@@ -1,4 +1,5 @@
 import { prisma } from "../db";
+import { MatchType } from "../db";
 
 /**
  * Unified Tournament Automation System
@@ -41,7 +42,7 @@ export class UnifiedTournamentAutomation {
           });
 
           // Start live simulation
-          await matchStateManager.startLiveMatch(match.id);
+          await matchStateManager.startLiveMatch(match.id.toString());
           console.log(`Started live simulation for tournament match ${match.id}`);
           
           return match.id;
@@ -146,9 +147,9 @@ export class UnifiedTournamentAutomation {
 
       // Determine winners (with detailed logging)
       const winners = completedMatches.map(match => {
-        const winnerId = match.homeScore > match.awayScore ? match.homeTeamId : match.awayTeamId;
-        const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
-        console.log(`Match ${match.id}: Team ${winnerId} (${match.homeScore > match.awayScore ? 'home' : 'away'}) beat Team ${loserId} (${match.homeScore}-${match.awayScore})`);
+        const winnerId = (match.homeScore || 0) > (match.awayScore || 0) ? match.homeTeamId : match.awayTeamId;
+        const loserId = (match.homeScore || 0) > (match.awayScore || 0) ? match.awayTeamId : match.homeTeamId;
+        console.log(`Match ${match.id}: Team ${winnerId} (${(match.homeScore || 0) > (match.awayScore || 0) ? 'home' : 'away'}) beat Team ${loserId} (${match.homeScore || 0}-${match.awayScore || 0})`);
         return winnerId;
       });
 
@@ -168,7 +169,7 @@ export class UnifiedTournamentAutomation {
             status: 'SCHEDULED',
             round: nextRound,
             gameDate: new Date(),
-            matchType: 'TOURNAMENT_DAILY'
+            matchType: 'TOURNAMENT_DAILY' as MatchType
           };
           nextRoundMatches.push(match);
           console.log(`Created match: Team ${winners[i]} vs Team ${winners[i + 1]} for round ${nextRound}`);
@@ -196,7 +197,7 @@ export class UnifiedTournamentAutomation {
     
     try {
       // Get tournament to determine type and find finals round
-      const tournament = await prisma.tournamentEntries[0].findUnique({
+      const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId }
       });
 
@@ -217,9 +218,9 @@ export class UnifiedTournamentAutomation {
       if (!finalsMatch) return;
 
       // Determine champion and runner-up
-      const championTeamId = finalsMatch.homeScore > finalsMatch.awayScore ? 
+      const championTeamId = (finalsMatch.homeScore || 0) > (finalsMatch.awayScore || 0) ? 
         finalsMatch.homeTeamId : finalsMatch.awayTeamId;
-      const runnerUpTeamId = finalsMatch.homeScore > finalsMatch.awayScore ? 
+      const runnerUpTeamId = (finalsMatch.homeScore || 0) > (finalsMatch.awayScore || 0) ? 
         finalsMatch.awayTeamId : finalsMatch.homeTeamId;
 
       // Get semifinals matches to determine 3rd place (different round for different tournament types)
@@ -245,7 +246,7 @@ export class UnifiedTournamentAutomation {
         if (!existingThirdPlaceGame) {
           // Create 3rd place playoff game
           const semifinalLosers = semifinalsMatches.map(match => 
-            match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId
+            (match.homeScore || 0) > (match.awayScore || 0) ? match.awayTeamId : match.homeTeamId
           );
 
           if (semifinalLosers.length === 2) {
@@ -287,7 +288,7 @@ export class UnifiedTournamentAutomation {
       // 3rd place - Semifinals losers
       let rank = 3;
       for (const match of semifinalsMatches) {
-        const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
+        const loserId = (match.homeScore || 0) > (match.awayScore || 0) ? match.awayTeamId : match.homeTeamId;
         if (!finalRanks.has(loserId)) {
           finalRanks.set(loserId, rank);
           rank++;
@@ -297,7 +298,7 @@ export class UnifiedTournamentAutomation {
       // 5th place - Quarterfinals losers
       rank = 5;
       for (const match of quarterfinalsMatches) {
-        const loserId = match.homeScore > match.awayScore ? match.awayTeamId : match.homeTeamId;
+        const loserId = (match.homeScore || 0) > (match.awayScore || 0) ? match.awayTeamId : match.homeTeamId;
         if (!finalRanks.has(loserId)) {
           finalRanks.set(loserId, rank);
           rank++;
@@ -320,7 +321,7 @@ export class UnifiedTournamentAutomation {
       console.log(`Tournament ${tournamentId} completed! Champion: Team ${championTeamId}, Runner-up: Team ${runnerUpTeamId}`);
 
       // Update tournament status
-      await prisma.tournamentEntries[0].update({
+      await prisma.tournament.update({
         where: { id: tournamentId },
         data: {
           status: 'COMPLETED'
@@ -352,7 +353,7 @@ export class UnifiedTournamentAutomation {
       console.log(`Tournament match ${matchId} completed - checking round progression`);
       
       // Check if round is complete and advance
-      await this.checkRoundCompletion(match.tournamentId, match.round);
+      await this.checkRoundCompletion(match.tournamentId, match.round || 1);
     } catch (error) {
       console.error(`Error handling tournament match completion:`, error);
     }

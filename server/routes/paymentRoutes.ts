@@ -1,6 +1,7 @@
 import express, { Router, type Request, type Response, type NextFunction } from "express";
 import Stripe from "stripe";
 import { storage } from "../storage"; // Adjusted path
+import { prisma } from "../db"; // Add Prisma import
 import { isAuthenticated } from "../googleAuth"; // Adjusted path
 import { z } from "zod"; // For validation
 
@@ -13,7 +14,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
   // throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_fallbackkeyifnotset", {
-  apiVersion: "2024-04-10", // Ensure this matches your Stripe API version
+  apiVersion: "2023-08-16", // Updated Stripe API version
 });
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -37,9 +38,9 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req: Req
       
       // Update payment transaction status
       try {
-        const transaction = await storage.payments.findFirst({ where: { stripePaymentIntentId: paymentIntent.id } });
+        const transaction = await prisma.paymentTransaction.findFirst({ where: { stripePaymentIntentId: paymentIntent.id } });
         if (transaction) {
-          await storage.payments.update({
+          await prisma.paymentTransaction.update({
             where: { id: transaction.id },
             data: {
               status: 'completed',
@@ -51,13 +52,13 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req: Req
         // Add gems/credits to user account
         const metadata = paymentIntent.metadata;
         if (metadata.realmRivalryUserId) {
-            const user = await storage.users.findUnique({ where: { id: metadata.realmRivalryUserId } });
+            const user = await prisma.userProfile.findUnique({ where: { id: metadata.realmRivalryUserId } });
             if (user) {
                 if (metadata.creditsAmount) {
-                    await storage.users.update({ where: { id: user.id }, data: { credits: (user.credits || 0) + parseInt(metadata.creditsAmount) } });
+                    await prisma.userProfile.update({ where: { id: user.id }, data: { credits: (user.credits || 0) + parseInt(metadata.creditsAmount) } });
                 }
                 if (metadata.gemsAmount) {
-                    await storage.users.update({ where: { id: user.id }, data: { gems: (user.gems || 0) + parseInt(metadata.gemsAmount) } });
+                    await prisma.userProfile.update({ where: { id: user.id }, data: { gems: (user.gems || 0) + parseInt(metadata.gemsAmount) } });
                 }
             }
         }
@@ -72,9 +73,9 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req: Req
       
       // Update payment transaction status
       try {
-        const transaction = await storage.payments.findFirst({ where: { stripePaymentIntentId: failedPayment.id } });
+        const transaction = await prisma.paymentTransaction.findFirst({ where: { stripePaymentIntentId: failedPayment.id } });
         if (transaction) {
-            await storage.payments.update({
+            await prisma.paymentTransaction.update({
                 where: { id: transaction.id },
                 data: {
                     status: 'failed',
@@ -119,12 +120,12 @@ router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, n
       { name: "Pro Pack", description: "For serious competitors", credits: 35000, price: 1999, bonusCredits: 8000, isActive: true, popularTag: false, discountPercent: 0 },
       { name: "Elite Pack", description: "Maximum value for champions", credits: 75000, price: 3999, bonusCredits: 20000, isActive: true, popularTag: false, discountPercent: 0 }
     ];
-    const existingPackages = await storage.creditPackage.findMany();
+    const existingPackages = await prisma.creditPackage.findMany();
     const packagesToCreate = defaultPackages.filter(dp => !existingPackages.find((ep: any) => ep.name === dp.name));
 
     const createdPackages = [];
     for (const packageData of packagesToCreate) {
-      const pkg = await storage.creditPackage.create({ data: packageData as any });
+      const pkg = await prisma.creditPackage.create({ data: packageData as any });
       createdPackages.push(pkg);
     }
     res.status(201).json({ message: `Seeded ${createdPackages.length} new credit packages. ${existingPackages.length} already existed.`, packages: createdPackages });
@@ -137,7 +138,7 @@ router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, n
 // Get available credit packages
 router.get('/packages', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const packages = await storage.creditPackage.findMany({ where: { isActive: true } }); // Assumes this fetches only active ones by default:
+    const packages = await prisma.creditPackage.findMany({ where: { isActive: true } }); // Assumes this fetches only active ones by default:
     res.json(packages);
   } catch (error) {
     console.error("Error fetching credit packages:", error);
@@ -151,12 +152,12 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
     const userId = req.user.claims.sub;
     const { packageId } = createPaymentIntentSchema.parse(req.body);
 
-    const creditPackage = await storage.creditPackage.findUnique({ where: { id: parseInt(packageId) } });
+    const creditPackage = await prisma.creditPackage.findUnique({ where: { id: parseInt(packageId) } });
     if (!creditPackage || !creditPackage.isActive) {
       return res.status(404).json({ message: "Credit package not found or not active." });
     }
 
-    const user = await storage.users.findUnique({ where: { id: userId } });
+    const user = await prisma.userProfile.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found." });
 
     let stripeCustomerId = (user as any).stripeCustomerId;
@@ -167,7 +168,7 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
         metadata: { realmRivalryUserId: userId }
       });
       stripeCustomerId = customer.id;
-      await storage.users.upsert({ where: { id: userId }, create: { id: userId, stripeCustomerId }, update: { stripeCustomerId } }); // Save customer ID
+      await prisma.userProfile.upsert({ where: { id: userId }, create: { id: userId, stripeCustomerId }, update: { stripeCustomerId } }); // Save customer ID
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -184,7 +185,7 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
       automatic_payment_methods: { enabled: true },
     });
 
-    await storage.paymentTransaction.create({
+    await prisma.paymentTransaction.create({
         data: {
       userId: userId,
       stripePaymentIntentId: paymentIntent.id,
@@ -236,7 +237,7 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       return res.status(404).json({ message: "Gem package not found." });
     }
 
-    const user = await storage.users.findUnique({ where: { id: userId } });
+    const user = await prisma.userProfile.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found." });
 
     let stripeCustomerId = (user as any).stripeCustomerId;
@@ -260,7 +261,7 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
       automatic_payment_methods: { enabled: true },
     });
 
-    await storage.paymentTransaction.create({
+    await prisma.paymentTransaction.create({
         data: {
       userId: userId,
       stripePaymentIntentId: paymentIntent.id,
@@ -301,7 +302,7 @@ router.post("/create-subscription", isAuthenticated, async (req: any, res: Respo
     const storeConfig = await import("../config/store_config.json", { assert: { type: "json" } });
     const realmPassConfig = storeConfig.default.realmPassSubscription;
     
-    const user = await storage.users.findUnique({ where: { id: userId } });
+    const user = await prisma.userProfile.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found." });
 
     let stripeCustomerId = (user as any).stripeCustomerId;
@@ -329,7 +330,7 @@ router.post("/create-subscription", isAuthenticated, async (req: any, res: Respo
       automatic_payment_methods: { enabled: true },
     });
 
-    await storage.paymentTransaction.create({
+    await prisma.paymentTransaction.create({
         data: {
       userId: userId,
       stripePaymentIntentId: paymentIntent.id,

@@ -47,12 +47,15 @@ export class SeasonalFlowService {
     // Tournament qualifiers (updated to match specifications)
     DIVISION_1_TOURNAMENT_QUALIFIERS: 8, // Top 8 teams for Division 1 tournament
     STANDARD_TOURNAMENT_QUALIFIERS: 4, // Top 4 teams for Divisions 2-8 tournaments
+    PLAYOFF_QUALIFIERS: 4, // Standard playoff qualifiers for most divisions
     
     // Promotion/relegation (updated to match specifications)
     DIVISION_1_RELEGATION: 6, // Bottom 6 teams relegated (11th-16th place)
     DIVISION_2_RELEGATION_PER_SUBDIVISION: 4, // Bottom 4 teams from each 16-team subdivision
     DIVISION_2_PROMOTION_PER_SUBDIVISION: 2, // 2 teams promoted from each Division 2 subdivision
     STANDARD_RELEGATION_PER_SUBDIVISION: 4, // Bottom 4 teams from each 8-team subdivision
+    STANDARD_LEAGUE_TEAMS: 8, // Standard teams per subdivision
+    STANDARD_RELEGATION: 4, // Standard relegation count
     
     // Division limits
     MIN_DIVISION: 1,
@@ -106,7 +109,7 @@ export class SeasonalFlowService {
         where: {
           teamId: parseInt(teamId, 10),
           tournament: {
-            type: 'TOURNAMENT_PLAYOFF'
+            type: 'TOURNAMENT_DIVISIONAL'
           }
         },
         include: {
@@ -115,8 +118,8 @@ export class SeasonalFlowService {
       });
 
       return tournamentEntries.some(entry => 
-        entry.tournament.status === 'IN_PROGRESS' || 
-        entry.tournament.status === 'COMPLETED'
+        entry.tournament?.status === 'IN_PROGRESS' || 
+        entry.tournament?.status === 'COMPLETED'
       );
     } catch (error) {
       console.error('Error checking team playoff status:', error);
@@ -161,21 +164,21 @@ export class SeasonalFlowService {
       let matches;
       if (league.division === 1 || league.division === 2) {
         // Divisions 1-2: CORRECTED - 112 matches over 14 days (8 per day)
-        matches = await this.generatePremiumDivisionSchedule(league.id, leagueTeams, season);
+        matches = await this.generatePremiumDivisionSchedule(league.id.toString(), leagueTeams, season);
       } else if (leagueTeams.length > 16) {
         // Large divisions: Create multiple subdivisions of 8 teams each
-        matches = await this.generateLargeDivisionSchedule(league.id, leagueTeams, season);
+        matches = await this.generateLargeDivisionSchedule(league.id.toString(), leagueTeams, season);
       } else if (leagueTeams.length >= 8) {
         // Standard divisions: 8-16 teams
-        matches = await this.generateStandardSubdivisionSchedule(league.id, leagueTeams, season);
+        matches = await this.generateStandardSubdivisionSchedule(league.id.toString(), leagueTeams, season);
       } else {
         // Small divisions: Less than 8 teams, generate round-robin
-        matches = await this.generateSmallDivisionSchedule(league.id, leagueTeams, season);
+        matches = await this.generateSmallDivisionSchedule(league.id.toString(), leagueTeams, season);
       }
       
       totalMatches += matches.length;
       leaguesProcessed.push({
-        leagueId: league.id,
+        leagueId: league.id.toString(),
         division: league.division,
         teams: leagueTeams.length,
         matches: matches.length
@@ -493,7 +496,7 @@ export class SeasonalFlowService {
       subdivisionMap.get(subdivision)!.push(team);
     }
     
-    const subdivisions = Array.from(subdivisionMap.tournamentEntries()).map(([name, teams]) => ({
+    const subdivisions = Array.from(subdivisionMap.entries()).map(([name, teams]) => ({
       name,
       teams: teams.length,
       matches: Math.floor(teams.length / 2) * 6 // Estimated matches for 6 remaining days
@@ -780,7 +783,6 @@ export class SeasonalFlowService {
       const homeMatches = await prisma.game.findMany({
         where: {
           homeTeamId: team.id,
-          season,
           status: 'COMPLETED'
         }
       });
@@ -788,7 +790,6 @@ export class SeasonalFlowService {
       const awayMatches = await prisma.game.findMany({
         where: {
           awayTeamId: team.id,
-          season,
           status: 'COMPLETED'
         }
       });
@@ -1298,7 +1299,6 @@ export class SeasonalFlowService {
     // Get all championship matches (would need to be created after semifinals)
     const championshipMatches = await prisma.game.findMany({
       where: {
-        season,
         matchType: 'PLAYOFF',
         status: 'COMPLETED'
       }

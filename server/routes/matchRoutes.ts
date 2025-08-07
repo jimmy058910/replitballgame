@@ -307,7 +307,7 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
     console.log(`Manual match start requested for match ${matchId}`);
     
     const { matchStateManager } = await import('../services/matchStateManager');
-    const result = await matchStateManager.startLiveMatch(parseInt(matchId));
+    const result = await matchStateManager.startLiveMatch(matchId);
     
     res.json({ 
       success: true, 
@@ -428,14 +428,14 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
           if (!player) continue;
           
           // Calculate MVP score: scores*10 + tackles*3 + passes*2 + catches*2 + yards*0.1
-          const mvpScore = (stats.scores || 0) * 10 + 
-                          (stats.tackles || 0) * 3 + 
-                          (stats.passesCompleted || 0) * 2 + 
-                          (stats.catches || 0) * 2 + 
-                          ((stats.carrierYards || 0) + (stats.passingYards || 0) + (stats.receivingYards || 0)) * 0.1;
+          const mvpScore = ((stats as any).scores || 0) * 10 + 
+                          ((stats as any).tackles || 0) * 3 + 
+                          ((stats as any).passesCompleted || 0) * 2 + 
+                          ((stats as any).catches || 0) * 2 + 
+                          (((stats as any).carrierYards || 0) + ((stats as any).passingYards || 0) + ((stats as any).receivingYards || 0)) * 0.1;
           
           console.log(`Player ${player.firstName} ${player.lastName} MVP score: ${mvpScore}`
-                    + ` (scores: ${stats.scores}, tackles: ${stats.tackles}, passes: ${stats.passesCompleted}, catches: ${stats.catches})`);
+                    + ` (scores: ${(stats as any).scores}, tackles: ${(stats as any).tackles}, passes: ${(stats as any).passesCompleted}, catches: ${(stats as any).catches})`);
           
           // Check if this player belongs to home or away team
           if (player.teamId === match.homeTeamId) {
@@ -549,7 +549,7 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
 
     // Get live match state if available
     const { matchStateManager } = await import('../services/matchStateManager');
-    const liveState = await matchStateManager.getLiveMatchState(parseInt(matchId));
+    const liveState = await matchStateManager.getLiveMatchState(matchId);
     
     console.log(`Live state found: ${liveState ? 'YES' : 'NO'}`);
     console.log(`Match status: ${match.status}`);
@@ -695,9 +695,9 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
     };
 
     // Get player stats from live state
-    const playerStats = {};
+    const playerStats: any = {};
     liveState.playerStats.forEach((stats, playerId) => {
-      playerStats[playerId] = {
+      (playerStats as any)[playerId] = {
         scores: stats.scores,
         passingAttempts: stats.passingAttempts,
         passesCompleted: stats.passesCompleted,
@@ -793,8 +793,8 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
         startTime: liveState.possessionStartTime
       },
       teamStats: {
-        home: liveState.teamStats.get(match.homeTeamId) || {},
-        away: liveState.teamStats.get(match.awayTeamId) || {}
+        home: liveState.teamStats.get(match.homeTeamId.toString()) || {},
+        away: liveState.teamStats.get(match.awayTeamId.toString()) || {}
       }
     };
 
@@ -947,7 +947,7 @@ router.post('/:matchId/reset', isAuthenticated, async (req: Request, res: Respon
       completedAt: null,
     });
     const { matchStateManager } = await import('../services/matchStateManager');
-    matchStateManager.stopMatch(parseInt(matchId));
+    matchStateManager.stopMatch(matchId);
     res.json({ message: "Match reset successfully" });
   } catch (error) {
     console.error("Error resetting match:", error);
@@ -1050,7 +1050,7 @@ router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Respon
     
     // Start live match simulation
     const { matchStateManager } = await import('../services/matchStateManager');
-    await matchStateManager.startLiveMatch(newMatch.id, true);
+    await matchStateManager.startLiveMatch(newMatch.id.toString(), true);
     
     res.json({ 
       message: "Exhibition match created successfully",
