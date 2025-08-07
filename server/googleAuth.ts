@@ -54,18 +54,41 @@ export async function setupGoogleAuth(app: Express) {
   // Configure Passport authenticated session persistence with database integration
   passport.serializeUser((user: any, done) => {
     // Serialize the user's database userId into the session
-    Logger.logInfo('Serializing user for session', { userId: user.userId });
-    done(null, user.userId);
+    console.log('🔧 Serializing user for session', { 
+      userType: typeof user, 
+      userId: user.userId, 
+      userKeys: Object.keys(user || {}) 
+    });
+    // CRITICAL: Store only the string userId in session, not the full object
+    const userIdToStore = typeof user.userId === 'string' ? user.userId : user.id;
+    Logger.logInfo('Serializing user for session', { userIdToStore });
+    done(null, userIdToStore);
   });
 
-  passport.deserializeUser(async (userId: string, done) => {
+  passport.deserializeUser(async (userIdFromSession: any, done) => {
     try {
+      console.log('🔧 Deserializing user from session', { 
+        userIdFromSession, 
+        type: typeof userIdFromSession,
+        isString: typeof userIdFromSession === 'string'
+      });
+      
+      // CRITICAL: Ensure we have a string userId, not an object
+      const userId = typeof userIdFromSession === 'string' 
+        ? userIdFromSession 
+        : userIdFromSession.userId || userIdFromSession.id || String(userIdFromSession);
+      
+      if (!userId || typeof userId !== 'string') {
+        Logger.logError('Invalid userId from session', new Error('Invalid userId type'), { userIdFromSession });
+        return done(null, false);
+      }
+      
       // Deserialize by fetching user from database
       const user = await AuthService.getUserProfile(userId);
       Logger.logInfo('User deserialized from session', { userId });
-      done(null, user ? { ...user, claims: user } : null);
+      done(null, user ? { ...user, claims: { sub: user.userId } } : null);
     } catch (error) {
-      Logger.logError('Failed to deserialize user from session', error as Error, { userId });
+      Logger.logError('Failed to deserialize user from session', error as Error, { userIdFromSession });
       done(error, false);
     }
   });
