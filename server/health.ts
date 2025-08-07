@@ -36,7 +36,7 @@ export function createBasicHealthCheck() {
         status: 'healthy',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        version: '6.28.0-CLOUD-RUN-DEBUG-AUG6',
+        version: '6.29.0-STARTUP-PROBE-FIX-AUG7',
         environment: {
           NODE_ENV: process.env.NODE_ENV || 'not-set',
           PORT: process.env.PORT || 'not-set',
@@ -65,26 +65,37 @@ export function createBasicHealthCheck() {
         }
       };
 
-      // Log every health check for Cloud Run debugging
-      if (process.env.NODE_ENV === 'production') {
-        console.log('🔍 HEALTH CHECK REQUEST RECEIVED');
-        console.log('🔍 HEALTH CHECK RESPONSE:', JSON.stringify(healthData, null, 2));
-      }
-      
-      // Set headers for Cloud Run
+      // Set headers immediately for maximum startup probe speed
       res.set({
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        'Cache-Control': 'no-cache'
       });
       
-      res.status(200).json(healthData);
+      // Send minimal response for startup probes (research-optimized)
+      res.status(200).json({
+        status: 'healthy',
+        timestamp: healthData.timestamp,
+        version: healthData.version,
+        port: process.env.PORT || '8080'
+      });
+      
+      // Log after response (non-blocking for startup probes)
+      if (process.env.NODE_ENV === 'production') {
+        setImmediate(() => {
+          console.log('🔍 STARTUP PROBE SUCCESS:', {
+            timestamp: healthData.timestamp,
+            uptime: process.uptime(),
+            pid: process.pid
+          });
+        });
+      }
     } catch (error) {
       console.error('❌ HEALTH CHECK ERROR:', error);
       res.status(500).json({
         status: 'error',
         timestamp: new Date().toISOString(),
         error: error instanceof Error ? error.message : 'Unknown error',
-        version: '6.28.0-CLOUD-RUN-DEBUG-AUG6'
+        version: '6.29.0-STARTUP-PROBE-FIX-AUG7'
       });
     }
   };
