@@ -1,0 +1,20 @@
+🚨 CRITICAL IAM PERMISSION DISCOVERY
+
+ACTUAL ROOT CAUSE IDENTIFIED:
+❌ GitHub Actions IAM policy binding fails with Permission denied
+❌ Cloud Run service cannot access Secret Manager secrets
+❌ Database connection fails due to missing DATABASE_URL secret
+❌ Health checks fail, causing startup probe timeouts
+
+REQUIRED MANUAL CONFIGURATION:
+1. Open Google Cloud Console → IAM & Admin → IAM
+2. Find Cloud Run service account (default or custom)  
+3. Grant role: "Secret Manager Secret Accessor"
+4. Apply to secrets: database-url, firebase-api-key, firebase-project-id, firebase-app-id, google-client-id, google-client-secret
+
+WORKFLOW UPDATED:
+✅ Removed failing IAM policy binding step
+✅ Added clear documentation of required manual setup
+✅ Maintained all technical Cloud Run compatibility fixes
+
+STATUS: Ready for deployment after IAM configuration

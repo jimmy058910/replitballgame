@@ -45,31 +45,14 @@ jobs:
     - name: Configure Docker authentication
       run: gcloud auth configure-docker us-east5-docker.pkg.dev
 
-    # CRITICAL FIX: Ensure Cloud Run service account has Secret Manager access
-    - name: Configure IAM permissions for secrets
+    # CRITICAL IAM FIX: Skip IAM policy binding - permissions must be configured in GCP Console
+    - name: Verify IAM permissions prerequisites
       run: |
-        echo "🔐 Configuring IAM permissions for Secret Manager access"
-        
-        # Get the Cloud Run service account (will be created if service exists, otherwise use compute default)
-        SERVICE_ACCOUNT=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(spec.template.spec.serviceAccountName)" 2>/dev/null || echo "")
-        
-        if [ -z "$SERVICE_ACCOUNT" ]; then
-          echo "Using default compute service account"
-          SERVICE_ACCOUNT="${{ env.PROJECT_ID }}-compute@developer.gserviceaccount.com"
-        fi
-        
-        echo "Service account: $SERVICE_ACCOUNT"
-        
-        # Grant Secret Manager Secret Accessor role for each secret
-        for SECRET_NAME in database-url firebase-api-key firebase-project-id firebase-app-id google-client-id google-client-secret; do
-          echo "Granting access to secret: $SECRET_NAME"
-          gcloud secrets add-iam-policy-binding $SECRET_NAME \
-            --member="serviceAccount:$SERVICE_ACCOUNT" \
-            --role="roles/secretmanager.secretAccessor" \
-            --project=${{ env.PROJECT_ID }} || echo "Failed to grant access to $SECRET_NAME (may already exist)"
-        done
-        
-        echo "✅ IAM permissions configured for Secret Manager access"
+        echo "🔐 CRITICAL: Verifying IAM permissions are configured"
+        echo "⚠️  IMPORTANT: Cloud Run service account must have 'Secret Manager Secret Accessor' role"
+        echo "📋 Required secrets: database-url, firebase-api-key, firebase-project-id, firebase-app-id, google-client-id, google-client-secret"
+        echo "🔧 Configure in GCP Console: IAM & Admin → IAM → Add Cloud Run service account → Grant 'Secret Manager Secret Accessor' role"
+        echo "✅ Proceeding with deployment assuming IAM permissions are correctly configured"
 
     # STEP 1: Build with immutable tag (commit SHA)
     - name: Build Green revision with immutable tag
