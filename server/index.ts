@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/node";
 
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
+import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
@@ -493,7 +494,6 @@ app.use('/api', (req, res, next) => {
     // Test health endpoint immediately after binding
     console.log('🔍 TESTING HEALTH ENDPOINT IMMEDIATELY...');
     setTimeout(() => {
-      const http = require('http');
       const testReq = http.get(`http://localhost:${port}/healthz`, (res: any) => {
         console.log(`✅ HEALTH ENDPOINT TEST: Status ${res.statusCode}`);
       }).on('error', (err: any) => {

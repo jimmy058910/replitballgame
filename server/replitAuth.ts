@@ -1,7 +1,8 @@
 import * as client from "openid-client";
 import passport from "passport";
 import type { AuthenticateCallback } from "passport";
-const { Strategy } = require("openid-client/passport");
+// Import from the correct path based on TypeScript resolution
+import { Strategy } from "openid-client/build/passport";
 
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
