@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import { MatchType } from "../db";
+import { MatchType, GameStatus } from "../db";
 
 /**
  * Unified Tournament Automation System
@@ -166,7 +166,7 @@ export class UnifiedTournamentAutomation {
             awayTeamId: winners[i + 1],
             homeScore: 0,
             awayScore: 0,
-            status: 'SCHEDULED',
+            status: 'SCHEDULED' as GameStatus,
             round: nextRound,
             gameDate: new Date(),
             matchType: 'TOURNAMENT_DAILY' as MatchType

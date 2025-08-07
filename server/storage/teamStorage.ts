@@ -294,7 +294,7 @@ export class TeamStorage {
       const race = races[Math.floor(Math.random() * races.length)];
       const position = requiredPositions[i];
       
-      const playerData = generateRandomPlayer("", race, teamId.toString(), position);
+      const playerData = generateRandomPlayer("", race, teamId, position);
       
       const cleanPlayerData = {
         teamId: teamId,

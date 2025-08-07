@@ -93,7 +93,7 @@ export class MatchStorage {
         AND: [
           { homeTeamId: { in: teamIdsInDivision } },
           { awayTeamId: { in: teamIdsInDivision } },
-          ...(seasonId ? [{ league: { seasonId } }] : [])
+          ...(seasonId ? [{ leagueId: seasonId }] : [])
         ]
       },
       include: {

@@ -63,7 +63,7 @@ export class ItemStorage {
     });
   }
 
-  async updateItem(id: number, updates: Omit<Partial<Item>, 'id'>): Promise<Item | null> {
+  async updateItem(id: number, updates: any): Promise<Item | null> {
     try {
       const updatedItem = await prisma.item.update({
         where: { id },

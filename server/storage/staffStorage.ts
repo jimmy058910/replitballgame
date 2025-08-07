@@ -109,7 +109,7 @@ export class StaffStorage {
     return await prisma.staff.findFirst({
       where: { 
         teamId,
-        type: 'HEAD_COACH'
+        type: 'HEAD_COACH' as StaffType
       },
       include: {
         team: { select: { name: true } }
@@ -121,7 +121,7 @@ export class StaffStorage {
     return await prisma.staff.findMany({
       where: { 
         teamId,
-        type: 'TRAINER'
+        type: 'TRAINER' as StaffType
       },
       include: {
         team: { select: { name: true } }
@@ -133,7 +133,7 @@ export class StaffStorage {
     return await prisma.staff.findMany({
       where: { 
         teamId,
-        type: 'SCOUT'
+        type: 'SCOUT' as StaffType
       },
       include: {
         team: { select: { name: true } }
@@ -145,7 +145,7 @@ export class StaffStorage {
     return await prisma.staff.findMany({
       where: { 
         teamId,
-        type: 'RECOVERY_SPECIALIST'
+        type: 'RECOVERY_SPECIALIST' as StaffType
       },
       include: {
         team: { select: { name: true } }

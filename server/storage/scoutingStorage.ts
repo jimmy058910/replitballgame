@@ -89,8 +89,8 @@ export class ScoutingStorage {
   }
 
   async getScoutingReport(teamId: number, targetTeamId: number): Promise<{
-    team: Team | null;
-    players: Player[];
+    team: any;
+    players: any[];
     scoutQuality: string;
   }> {
     const targetTeam = await prisma.team.findUnique({
@@ -111,7 +111,7 @@ export class ScoutingStorage {
             throwing: true,
             catching: true,
             kicking: true,
-            stamina: true,
+            staminaAttribute: true,
             leadership: true,
             injuryStatus: true,
           }

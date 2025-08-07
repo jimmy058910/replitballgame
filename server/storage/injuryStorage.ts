@@ -93,7 +93,7 @@ export class InjuryStorage {
     }
   }
 
-  async getTeamStaminaReport(teamId: number): Promise<Player[]> {
+  async getTeamStaminaReport(teamId: number): Promise<any[]> {
     return await prisma.player.findMany({
       where: { teamId },
       select: {

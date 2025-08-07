@@ -180,7 +180,7 @@ export class SimulationContext {
   // Export state for testing
   exportState(): {
     seed: number;
-    eventLog: typeof this.eventLog;
+    eventLog: Array<{event: string, seed: string, result: any, timestamp: Date}>;
   } {
     return {
       seed: this.rng.getSeed(),

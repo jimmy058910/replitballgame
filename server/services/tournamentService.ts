@@ -587,7 +587,7 @@ export class TournamentService {
           teamWithUser.userProfileId.toString(),
           teamId.toString(),
           "Daily Division Tournament Entry",
-          0,
+          "0",
           0
         );
       }
@@ -847,7 +847,7 @@ export class TournamentService {
       tournamentId = existingTournament[0].id;
     } else {
       // Create new tournament - use createMidSeasonCup for proper implementation
-      tournamentId = await this.createMidSeasonCup(division);
+      tournamentId = Number(await this.createMidSeasonCup(division));
     }
 
     // Handle payment based on user choice
@@ -880,9 +880,9 @@ export class TournamentService {
       if (teamWithUser?.userProfileId) {
         await PaymentHistoryService.recordItemPurchase(
           teamWithUser.userProfileId.toString(),
-          teamId,
+          teamId.toString(),
           "Mid-Season Cup Entry (Credits)",
-          0,
+          "0",
           0
         );
       }
@@ -902,9 +902,9 @@ export class TournamentService {
       if (teamWithUser?.userProfileId) {
         await PaymentHistoryService.recordItemPurchase(
           teamWithUser.userProfileId.toString(),
-          teamId,
+          teamId.toString(),
           "Mid-Season Cup Entry (Gems)",
-          0,
+          "0",
           20
         );
       }
@@ -927,9 +927,9 @@ export class TournamentService {
       if (teamWithUser?.userProfileId) {
         await PaymentHistoryService.recordItemPurchase(
           teamWithUser.userProfileId.toString(),
-          teamId,
+          teamId.toString(),
           "Mid-Season Cup Entry (Credits + Gems)",
-          10000,
+          "10000",
           20
         );
       }
@@ -960,7 +960,7 @@ export class TournamentService {
       }
     }
 
-    return tournamentId;
+    return tournamentId.toString();
   }
 
   // Fill tournament with AI teams

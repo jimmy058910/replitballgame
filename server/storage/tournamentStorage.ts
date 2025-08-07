@@ -45,10 +45,11 @@ export class TournamentStorage {
         // gameDay: tournamentData.gameDay, // Not in schema yet
         entryFeeCredits: tournamentData.entryFeeCredits || BigInt(0),
         entryFeeGems: tournamentData.entryFeeGems || 0,
-        requiresEntryItem: tournamentData.requiresEntryItem || false,
-        registrationDeadline: tournamentData.registrationDeadline,
+        // requiresEntryItem: tournamentData.requiresEntryItem || false, // Not in schema yet
+        registrationEndTime: tournamentData.registrationDeadline,
         startTime: tournamentData.startTime || new Date(),
-        maxParticipants: tournamentData.maxParticipants || 16,
+        prizePoolJson: {}, // Required by schema
+        // maxParticipants: tournamentData.maxParticipants || 16, // Not in schema yet
       },
       include: {
         entries: true
