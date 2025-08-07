@@ -223,10 +223,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Add health check endpoints early - critical for Cloud Run startup probes
-app.get('/health', createBasicHealthCheck()); // Simple health for startup probes
-app.get('/healthz', createBasicHealthCheck()); // Cloud Run startup probe endpoint  
+// CRITICAL CLOUD RUN HEALTH ENDPOINTS - Must be first for startup probe success
+app.get('/health', createBasicHealthCheck()); // Basic health for startup probes
+app.get('/healthz', createBasicHealthCheck()); // Cloud Run startup probe endpoint (CRITICAL)
+app.get('/readyz', createBasicHealthCheck()); // Kubernetes-style readiness probe
 app.get('/api/health', createDetailedHealthCheck()); // Detailed health with database info
+
+// Ultra-fast ping endpoint for Cloud Run (minimal response time)
+app.get('/ping', (req, res) => {
+  res.set('Cache-Control', 'no-cache');
+  res.status(200).send('OK');
+});
 
 // REMOVED DUPLICATE ENDPOINT - was conflicting with nuclear test above
 
@@ -468,9 +475,14 @@ app.use('/api', (req, res, next) => {
     process.exit(1);
   });
 
+  // CRITICAL CLOUD RUN FIX: Configure server timeout for Cloud Run compatibility
+  httpServer.setTimeout(0); // Disable server timeout - let Cloud Run handle timeouts
+  httpServer.keepAliveTimeout = 120000; // 2 minutes keep-alive
+  httpServer.headersTimeout = 120000; // 2 minutes header timeout
+
   httpServer.listen({
     port,
-    host: "0.0.0.0", // Important for Cloud Run
+    host: "0.0.0.0", // CRITICAL: Must bind to 0.0.0.0 for Cloud Run
     reusePort: true,
   }, () => {
     console.log(`✅ SERVER SUCCESSFULLY BOUND TO PORT ${port}`);

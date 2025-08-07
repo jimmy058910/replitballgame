@@ -27,7 +27,7 @@ async function testDatabaseConnection() {
   }
 }
 
-// Basic health check for startup probes (no database dependency)
+// Ultra-fast health check for Cloud Run startup probes (optimized for speed)
 export function createBasicHealthCheck() {
   return (req: any, res: any) => {
     try {
