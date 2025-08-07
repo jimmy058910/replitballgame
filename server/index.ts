@@ -454,8 +454,8 @@ app.use('/api', (req, res, next) => {
   app.use(errorHandler);
   console.log('✅ Error handler added as final middleware');
 
-  // CRITICAL CLOUD RUN FIX: Always use port 8080 in production, 5000 in development
-  const port = process.env.NODE_ENV === 'production' ? 8080 : 5000;
+  // CRITICAL CLOUD RUN FIX: MUST use PORT environment variable set by Cloud Run
+  const port = parseInt(process.env.PORT || "5000", 10);
   
   console.log('🔍 CRITICAL PORT BINDING DEBUG:', {
     NODE_ENV: process.env.NODE_ENV,
@@ -513,7 +513,7 @@ app.use('/api', (req, res, next) => {
           bindingHost: '0.0.0.0',
           bindingPort: port,
           actualPort: port,
-          portMatch: port === 8080,
+          portFromEnv: process.env.PORT,
           listening: true
         },
         environment: {
