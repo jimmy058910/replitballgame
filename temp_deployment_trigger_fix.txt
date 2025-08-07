@@ -1,0 +1,22 @@
+🎯 COMPREHENSIVE DEPLOYMENT FIX APPLIED (Aug 7, 2025)
+
+ROOT CAUSE ANALYSIS COMPLETE:
+- Issue: Deployment configuration hardcoded --port 8080 creating mismatch with dynamic process.env.PORT
+- Server code: ✅ CORRECT (uses process.env.PORT properly)
+- Deployment config: ❌ FIXED (removed hardcoded port specifications)
+
+FIXES APPLIED:
+✅ Removed --port 8080 from deployment configuration
+✅ Removed httpGet.port=8080 from startup probe  
+✅ Cloud Run now uses default behavior (PORT=8080 automatically)
+✅ Startup probe automatically uses correct port
+
+RESEARCH CONFIRMED:
+- Cloud Run automatically sets PORT environment variable to 8080
+- Startup probes automatically use the container's listening port
+- Server code correctly reads process.env.PORT
+- Removing hardcoded port lets Cloud Run handle this properly
+
+DEPLOYMENT READY: All comprehensive fixes applied and validated.
+
+This file triggers GitHub Actions deployment with the corrected configuration.
