@@ -193,8 +193,8 @@ jobs:
         echo "If issues occur, use this command to rollback:"
         echo ""
         
-        # Get previous revision
-        PREVIOUS_REVISION=$(gcloud run revisions list --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(REVISION)' --sort-by='~creationTimestamp' --limit=1 --skip=1)
+        # Get previous revision (second most recent)
+        PREVIOUS_REVISION=$(gcloud run revisions list --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(REVISION)' --sort-by='~creationTimestamp' --limit=2 | tail -n1)
         
         if [ -n "$PREVIOUS_REVISION" ]; then
           echo "gcloud run services update-traffic ${{ env.SERVICE_NAME }} \\"
