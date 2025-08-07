@@ -284,10 +284,10 @@ export class TournamentService {
     // If we don't have enough AI teams, create them
     if (aiTeams.length < spotsToFill) {
       const teamsToCreate = spotsToFill - aiTeams.length;
-      await this.createAITeamsForMidSeasonCup(tournament.division, teamsToCreate);
+      await this.createAITeamsForMidSeasonCup(tournament.division || 8, teamsToCreate);
 
       // Re-fetch AI teams after creation
-      const newAiTeams = await prisma.tournamentEntry.team.findMany({
+      const newAiTeams = await prisma.team.findMany({
         where: {
           division: tournament.division,
           isAI: true,
@@ -299,7 +299,7 @@ export class TournamentService {
       });
 
       // Create tournament entries for AI teams
-      const aiEntries = newAiTeams.map(team => ({
+      const aiEntries = newAiTeams.map((team: any) => ({
         tournamentId: Number(tournamentId),
         teamId: team.id,
         registeredAt: new Date()
@@ -346,12 +346,10 @@ export class TournamentService {
         // Create AI user profile
         const aiUser = await prisma.userProfile.create({
           data: {
-            userProfileId: `ai_midseason_${Date.now()}_${i}`,
+            userId: `ai_midseason_${Date.now()}_${i}`,
             email: `ai_midseason_${Date.now()}_${i}@realmrivalry.ai`,
             firstName: "AI",
-            lastName: "Coach",
-            displayName: `AI Coach ${i + 1}`,
-            isAI: true
+            lastName: "Coach"
           }
         });
 
@@ -365,7 +363,6 @@ export class TournamentService {
             isAI: true,
             wins: Math.floor(Math.random() * 3),
             losses: Math.floor(Math.random() * 3),
-            draws: Math.floor(Math.random() * 2),
             points: Math.floor(Math.random() * 10),
             camaraderie: 50 + Math.floor(Math.random() * 40)
           }
@@ -389,8 +386,7 @@ export class TournamentService {
             parkingLevel: 1,
             vipSuitesLevel: 1,
             merchandisingLevel: 1,
-            lightingScreensLevel: 1,
-            fanLoyalty: 50 + Math.floor(Math.random() * 30)
+            lightingScreensLevel: 1
           }
         });
 
@@ -413,11 +409,10 @@ export class TournamentService {
               throwing: 20 + Math.floor(Math.random() * 15),
               catching: 20 + Math.floor(Math.random() * 15),
               kicking: 20 + Math.floor(Math.random() * 15),
-              stamina: 20 + Math.floor(Math.random() * 15),
+              staminaAttribute: 20 + Math.floor(Math.random() * 15),
               leadership: 20 + Math.floor(Math.random() * 15),
               agility: 20 + Math.floor(Math.random() * 15),
-              potential: 1 + Math.floor(Math.random() * 4),
-              camaraderie: 50 + Math.floor(Math.random() * 40)
+              potentialRating: 1 + Math.floor(Math.random() * 4)
             }
           });
         }

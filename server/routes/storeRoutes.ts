@@ -183,7 +183,7 @@ router.post('/exchange-gems', isAuthenticated, async (req: any, res: Response, n
       return res.status(404).json({ success: false, error: 'Team not found' });
     }
 
-    const result = await EnhancedGameEconomyService.exchangeGemsForCredits(team.id.toString(), gemAmount);
+    const result = await EnhancedGameEconomyService.exchangeGemsForCredits(team.id, gemAmount);
     
     if (result.success) {
       res.json({ success: true, data: { creditsReceived: result.creditsReceived } });
@@ -257,8 +257,8 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
   try {
     const userId = req.user.claims.sub;
     
-    // Check if adSystem exists
-    if (!storage.adView) {
+    // Check if adSystem exists  
+    if (!(storage as any).adView) {
       console.error("adSystem storage not available");
       return res.json({
         adsWatchedToday: 0,

@@ -152,7 +152,12 @@ router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response)
   }
 
   // Create team logic here - simplified for immediate functionality
-  const newTeam = await storage.teams.createTeam(userId, teamName);
+  const newTeam = await storage.teams.createTeam({ 
+    userProfileId: parseInt(userId), 
+    name: teamName,
+    isAI: false,
+    division: 8
+  });
 
   res.json({
     success: true,

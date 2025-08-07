@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { SeasonalFlowService } from '../services/seasonalFlowService';
 import { isAuthenticated } from '../googleAuth';
-import { RBACService } from '../services/rbacService';
+import { RBACService, Permission } from '../services/rbacService';
 import { asyncHandler } from '../services/errorService';
 import { storage } from '../storage/index';
 
@@ -234,7 +234,7 @@ router.post('/promotion-relegation/process', isAuthenticated, async (req, res) =
  * POST /api/seasonal-flow/leagues/rebalance
  * Rebalance leagues after promotion/relegation
  */
-router.post('/leagues/rebalance', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/leagues/rebalance', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -266,7 +266,7 @@ router.post('/leagues/rebalance', isAuthenticated, RBACService.requirePermission
  * POST /api/seasonal-flow/season/rollover
  * Execute complete season rollover
  */
-router.post('/season/rollover', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/season/rollover', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const { currentSeason } = req.body;
     
@@ -298,7 +298,7 @@ router.post('/season/rollover', isAuthenticated, RBACService.requirePermission('
  * POST /api/seasonal-flow/cleanup-ai-teams
  * Test endpoint to clean up AI teams (temporary for debugging)
  */
-router.post('/cleanup-ai-teams', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/cleanup-ai-teams', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     console.log('Manual AI cleanup requested...');
     
@@ -363,7 +363,7 @@ router.get('/config', isAuthenticated, async (req, res) => {
  * GET /api/seasonal-flow/schedule/preview/:season
  * Preview schedule generation without creating matches
  */
-router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const season = parseInt(req.params.season);
     

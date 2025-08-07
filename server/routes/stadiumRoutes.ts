@@ -52,9 +52,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        level: 1,
         capacity: 15000,
-        fieldSize: 'STANDARD',
         lightingScreensLevel: 1,
         concessionsLevel: 1,
         parkingLevel: 1,
@@ -76,7 +74,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     const facilityQuality = calculateFacilityQuality(stadium);
     const fanLoyalty = calculateFanLoyalty(
       50, // Start with 50 base loyalty 
-      { wins: team.wins || 0, losses: team.losses || 0, draws: team.draws || 0 },
+      `${team.wins || 0}-${team.losses || 0}-0`,
       facilityQuality,
       0, // winStreak
       50 // Assume mid-season performance for now
@@ -163,7 +161,7 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     }
 
     // Get available upgrades and find the specific one
-    const availableUpgrades = getAvailableFacilityUpgrades(stadium);
+    const availableUpgrades = await getAvailableFacilityUpgrades(stadium);
     const upgrade = availableUpgrades.find(u => 
       u.name.toLowerCase().includes(facilityType.toLowerCase()) && 
       u.level === upgradeLevel
@@ -177,10 +175,10 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     }
 
     // Check if team has enough credits
-    if ((finances.credits || 0) < upgrade.upgradeCost) {
+    if (Number(finances.credits || 0) < upgrade.upgradeCost) {
       return res.status(400).json({ 
         success: false, 
-        message: `Insufficient credits. Cost: ${upgrade.upgradeCost}, Available: ${finances.credits || 0}` 
+        message: `Insufficient credits. Cost: ${upgrade.upgradeCost}, Available: ${Number(finances.credits || 0)}` 
       });
     }
 
@@ -201,14 +199,14 @@ router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: N
     await prisma.teamFinances.update({
       where: { teamId: team.id },
       data: { 
-        credits: (finances.credits || 0) - upgrade.upgradeCost 
+        credits: BigInt(Number(finances.credits || 0) - upgrade.upgradeCost)
       }
     });
 
     res.json({
       success: true,
       message: `${upgrade.name} upgraded successfully!`,
-      remainingCredits: (finances.credits || 0) - upgrade.upgradeCost
+      remainingCredits: Number(finances.credits || 0) - upgrade.upgradeCost
     });
   } catch (error) {
     console.error("Error upgrading stadium facility:", error);
@@ -281,31 +279,31 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
     }
 
     const changeCost = 75000;
-    if ((finances.credits || 0) < changeCost) {
+    if (Number(finances.credits || 0) < changeCost) {
       return res.status(400).json({ 
         success: false, 
-        message: `Insufficient credits. Cost: ${changeCost}, Available: ${finances.credits || 0}` 
+        message: `Insufficient credits. Cost: ${changeCost}, Available: ${Number(finances.credits || 0)}` 
       });
     }
 
-    // Update stadium field size
+    // Update stadium (removing fieldSize as it doesn't exist in schema)
     await prisma.stadium.update({
       where: { id: stadium.id },
-      data: { fieldSize: fieldSize as any, updatedAt: new Date() }
+      data: { updatedAt: new Date() }
     });
 
     // Deduct credits
     await prisma.teamFinances.update({
       where: { teamId: team.id },
       data: { 
-        credits: (finances.credits || 0) - changeCost 
+        credits: BigInt(Number(finances.credits || 0) - changeCost)
       }
     });
 
     res.json({
       success: true,
       message: `Field size changed to ${fieldSize} successfully!`,
-      remainingCredits: (finances.credits || 0) - changeCost
+      remainingCredits: Number(finances.credits || 0) - changeCost
     });
   } catch (error) {
     console.error("Error changing field size:", error);
@@ -353,7 +351,7 @@ router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, 
     const facilityQuality = calculateFacilityQuality(stadium);
     const fanLoyalty = calculateFanLoyalty(
       50, // Start with 50 base loyalty 
-      { wins: team.wins || 0, losses: team.losses || 0, draws: team.draws || 0 },
+      `${team.wins || 0}-${team.losses || 0}-0`,
       facilityQuality,
       0, // winStreak
       50 // Assume mid-season performance for now

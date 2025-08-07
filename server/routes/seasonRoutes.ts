@@ -253,13 +253,8 @@ router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Respons
           include: {
             contract: {
               where: {
-                OR: [
-                  { startDate: { lte: new Date() } },
-                  { startDate: { equals: null } }
-                ]
-              },
-              orderBy: { startDate: 'desc' },
-              take: 1
+                startDate: { lte: new Date() }
+              }
             }
           }
         }
@@ -270,7 +265,7 @@ router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Respons
       return res.status(404).json({ message: "Team not found." });
     }
     
-    const totalSalary = team.players?.reduce((sum: number, player: any) => {
+    const totalSalary = (team as any).players?.reduce((sum: number, player: any) => {
       const latestContract = player.contract[0];
       return sum + (latestContract?.salary || 0);
     }, 0) || 0;

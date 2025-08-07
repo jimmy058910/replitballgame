@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService';
 import { isAuthenticated } from '../googleAuth';
-import { RBACService } from '../services/rbacService';
+import { RBACService, Permission } from '../services/rbacService';
 import { prisma } from '../db';
 
 const router = Router();
@@ -82,7 +82,7 @@ router.get('/team/:teamId/revenue', isAuthenticated, async (req, res) => {
  * POST /api/stadium-atmosphere/team/:teamId/loyalty/calculate
  * Calculate end-of-season loyalty for a team
  */
-router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requirePermission('MANAGE_TEAMS'), async (req, res) => {
+router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requirePermission(Permission.VIEW_ALL_TEAMS), async (req, res) => {
   try {
     const { teamId } = req.params;
     const { season } = req.body;
@@ -114,7 +114,7 @@ router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requ
  * POST /api/stadium-atmosphere/league/loyalty/process
  * Process league-wide end-of-season loyalty updates
  */
-router.post('/league/loyalty/process', isAuthenticated, RBACService.requirePermission('MANAGE_LEAGUES'), async (req, res) => {
+router.post('/league/loyalty/process', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -311,9 +311,7 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        level: 1,
         capacity: 15000,
-        fieldSize: 'STANDARD',
         lightingScreensLevel: 1,
         concessionsLevel: 1,
         parkingLevel: 1,
@@ -511,9 +509,7 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
       const newStadium = await prisma.stadium.create({
         data: {
         teamId: team.id,
-        level: 1,
         capacity: 15000,
-        fieldSize: 'STANDARD',
         lightingScreensLevel: 1,
         concessionsLevel: 1,
         parkingLevel: 1,
@@ -533,7 +529,7 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
         parking: 43750 * Math.pow(1.5, (stadium.parkingLevel || 1) - 1), // 75% increase
         vipSuites: 100000 * Math.pow(1.5, (stadium.vipSuitesLevel || 1) - 1), // Keep as prestige
         merchandising: 70000 * Math.pow(1.5, (stadium.merchandisingLevel || 1) - 1), // 75% increase
-        lighting: 60000 * Math.pow(1.5, (stadium.lightingLevel || 1) - 1) // Keep same
+        lighting: 60000 * Math.pow(1.5, (stadium.lightingScreensLevel || 1) - 1) // Keep same
       }
     });
   } catch (error) {

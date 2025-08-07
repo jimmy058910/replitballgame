@@ -108,9 +108,10 @@ router.post('/force-daily-progression', RBACService.requirePermission(Permission
     });
   } catch (error) {
     console.error('❌ SUPERUSER: Daily progression failed:', error);
-    logError("Daily progression execution failed", { error, requestId });
+    const err = error instanceof Error ? error : new Error(String(error));
+    logError(err, { context: err.message, requestId });
     res.status(500).json({ 
-      error: error.message, 
+      error: err.message, 
       details: 'Daily progression execution failed'
     });
   }
@@ -145,14 +146,11 @@ router.post('/advance-day', RBACService.requirePermission(Permission.MANAGE_SEAS
     const newSeasonYear = (currentSeason.year || new Date().getFullYear()) + 1;
     const newSeasonName = `Season ${newSeasonYear}`;
     
-    await storage.seasons.update({ where: { id: currentSeason.id }, data: { status: "COMPLETED", endDate: new Date() } });
-    await storage.seasons.create({
-      data: {
+    await storage.seasons.updateSeason(currentSeason.id, { status: "COMPLETED", endDate: new Date() });
+    await storage.seasons.createSeason({
       year: newSeasonYear,
-      status: "ACTIVE",
       startDate: newStartDate,
       name: `Season ${newSeasonYear}`
-      }
     });
     
     message = `New season started: ${newSeasonName}`;
@@ -322,8 +320,8 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
 
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
-    const player = generatePlayerForTeam(teamId, "HUMAN", "Passer");
-    await storage.players.create(player);
+    const player = generatePlayerForTeam(parseInt(teamId), "HUMAN", "Passer");
+    await storage.players.createPlayer(player);
     newPlayers.push(player);
   }
 
@@ -429,7 +427,7 @@ router.post('/create-league-schedule', RBACService.requirePermission(Permission.
             leagueId: parseInt(`1${division}`),
           };
           
-          await storage.matches.create(matchData);
+          await storage.matches.createGame(matchData);
           scheduledMatches++;
         }
       }
@@ -490,7 +488,8 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
           return match.id;
         })
         .catch(error => {
-          logError("Failed to start league game", { matchId: match.id, error: error.message });
+          const err = error instanceof Error ? error : new Error(String(error));
+          logError(err, { context: err.message, matchId: match.id });
           throw error;
         });
       
@@ -531,7 +530,7 @@ router.post('/test-exhibition-rewards', RBACService.requirePermission(Permission
 
   try {
     const { matchStateManager } = await import('../services/matchStateManager');
-    await matchStateManager.awardExhibitionRewards(parseInt(homeTeamId), parseInt(awayTeamId), homeScore, awayScore);
+    await matchStateManager.awardExhibitionRewards(homeTeamId, awayTeamId, homeScore, awayScore);
     res.json({ 
       success: true,
       message: `Exhibition rewards processed for teams ${homeTeamId} and ${awayTeamId}`,
