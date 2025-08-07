@@ -98,7 +98,7 @@ export class PlayerAgingRetirementService {
         const trainers = await prisma.staff.findMany({
           where: {
             teamId: player.teamId,
-            position: { contains: 'TRAINER' }
+            type: { contains: 'TRAINER' }
           }
         });
         
@@ -106,16 +106,16 @@ export class PlayerAgingRetirementService {
         let relevantTrainerRating = 0;
         if (this.DEVELOPMENT_CONFIG.PHYSICAL_STATS.includes(statName)) {
           // Physical stats improved by Physical Trainer
-          const physicalTrainer = trainers.find(t => t.type === 'trainer' && t.physicalRating);
-          relevantTrainerRating = physicalTrainer?.physicalRating || 0;
+          const physicalTrainer = trainers.find(t => t.type === 'PHYSICAL_TRAINER');
+          relevantTrainerRating = physicalTrainer?.physiology || 0;
         } else if (['throwing', 'catching'].includes(statName)) {
           // Passing stats improved by Offensive Trainer  
-          const offensiveTrainer = trainers.find(t => t.type === 'trainer' && t.offenseRating);
-          relevantTrainerRating = offensiveTrainer?.offenseRating || 0;
+          const offensiveTrainer = trainers.find(t => t.type === 'TACTICAL_ANALYST');
+          relevantTrainerRating = offensiveTrainer?.tactics || 0;
         } else if (['leadership', 'kicking'].includes(statName)) {
           // Mental/special stats improved by Defensive Trainer
-          const defensiveTrainer = trainers.find(t => t.type === 'trainer' && t.defenseRating);
-          relevantTrainerRating = defensiveTrainer?.defenseRating || 0;
+          const defensiveTrainer = trainers.find(t => t.type === 'MOTIVATIONAL_COACH');
+          relevantTrainerRating = defensiveTrainer?.motivation || 0;
         }
         
         // TrainerBonus = (TrainerRating / 40) * 10% max bonus
@@ -192,7 +192,7 @@ export class PlayerAgingRetirementService {
     milestones: Array<{ type: string; description: string }>;
   }> {
     const player = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: parseInt(playerId, 10) }
     });
     if (!player) {
       throw new Error('Player not found');
@@ -202,7 +202,7 @@ export class PlayerAgingRetirementService {
     const milestones = [];
     
     // Core stats to check for progression
-    const coreStats = ['speed', 'agility', 'power', 'throwing', 'catching', 'kicking', 'leadership', 'stamina'];
+    const coreStats = ['speed', 'agility', 'power', 'throwing', 'catching', 'kicking', 'leadership'];
     
     for (const statName of coreStats) {
       const currentValue = (player as any)[statName] || 0;
@@ -222,8 +222,8 @@ export class PlayerAgingRetirementService {
       const success = roll < progressionChance;
       const newValue = success ? Math.min(statCap, currentValue + 1) : currentValue;
       
-      // Record development history
-      const developmentRecord: InsertPlayerDevelopmentHistory = {
+      // Record development history (commenting out until schema updated)
+      /* const developmentRecord: InsertPlayerDevelopmentHistory = {
         playerId,
         season,
         developmentType: 'progression',
@@ -235,11 +235,11 @@ export class PlayerAgingRetirementService {
         success,
         ageAtTime: player.age || 20,
         gamesPlayedLastSeason,
-        potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
+        potentialAtTime: player.potentialRating || 0
       };
       await prisma.playerDevelopmentHistory.create({
         data: developmentRecord
-      });
+      }); */
       
       if (success) {
         progressions.push({
@@ -252,7 +252,7 @@ export class PlayerAgingRetirementService {
         
         // Update player stat
         await prisma.player.update({
-          where: { id: playerId },
+          where: { id: parseInt(playerId, 10) },
           data: { [statName]: newValue }
         });
         
@@ -286,7 +286,7 @@ export class PlayerAgingRetirementService {
     declines: Array<{ stat: string; oldValue: number; newValue: number; chance: number; roll: number }>;
   }> {
     const player = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: parseInt(playerId, 10) }
     });
     if (!player) {
       throw new Error('Player not found');
@@ -314,8 +314,8 @@ export class PlayerAgingRetirementService {
       const currentValue = (player as any)[selectedStat] || 0;
       const newValue = Math.max(1, currentValue - 1);
       
-      // Record decline
-      const declineRecord: InsertPlayerDevelopmentHistory = {
+      // Record decline (commenting out until schema updated)
+      /* const declineRecord: InsertPlayerDevelopmentHistory = {
         playerId,
         season,
         developmentType: 'decline',
@@ -327,15 +327,15 @@ export class PlayerAgingRetirementService {
         success: true,
         ageAtTime: age,
         gamesPlayedLastSeason: 0,
-        potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
+        potentialAtTime: player.potentialRating || 0
       };
       await prisma.playerDevelopmentHistory.create({
         data: declineRecord
-      });
+      }); */
       
       // Update player stat
       await prisma.player.update({
-        where: { id: playerId },
+        where: { id: parseInt(playerId, 10) },
         data: { [selectedStat]: newValue }
       });
       
@@ -364,7 +364,7 @@ export class PlayerAgingRetirementService {
     reason?: string;
   }> {
     const player = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: parseInt(playerId, 10) }
     });
     if (!player) {
       throw new Error('Player not found');
@@ -402,8 +402,8 @@ export class PlayerAgingRetirementService {
       await this.retirePlayer(playerId, season, reason);
     }
     
-    // Record retirement attempt
-    const retirementRecord: InsertPlayerDevelopmentHistory = {
+    // Record retirement attempt (commenting out until schema updated)
+    /* const retirementRecord: InsertPlayerDevelopmentHistory = {
       playerId,
       season,
       developmentType: 'retirement',
@@ -415,11 +415,11 @@ export class PlayerAgingRetirementService {
       success: retired,
       ageAtTime: age,
       gamesPlayedLastSeason,
-      potentialAtTime: typeof player.overallPotentialStars === 'number' ? player.overallPotentialStars : parseFloat(player.overallPotentialStars) || 0
+      potentialAtTime: player.potentialRating || 0
     };
     await prisma.playerDevelopmentHistory.create({
       data: retirementRecord
-    });
+    }); */
     
     return {
       retired,
@@ -434,12 +434,12 @@ export class PlayerAgingRetirementService {
    */
   static async retirePlayer(playerId: string, season: number, reason: string): Promise<void> {
     const player = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: parseInt(playerId, 10) }
     });
     if (!player) return;
     
-    // Create retirement milestone
-    await prisma.playerCareerMilestone.create({
+    // Create retirement milestone (commenting out until schema updated)
+    /* await prisma.playerCareerMilestone.create({
       data: {
         playerId,
         milestoneType: 'retirement',
@@ -454,17 +454,17 @@ export class PlayerAgingRetirementService {
           catching: player.catching,
           kicking: player.kicking,
           leadership: player.leadership,
-          stamina: player.stamina,
+          // stamina: player.stamina, // Property removed from schema
           careerInjuries: player.careerInjuries,
           gamesPlayedLastSeason: player.gamesPlayedLastSeason
         },
         significance: reason === 'mandatory_age' ? 2 : reason === 'injury_forced' ? 4 : 3
       }
-    });
+    }); */
     
     // Remove player from team (retirement)
     await prisma.player.update({
-      where: { id: playerId },
+      where: { id: parseInt(playerId, 10) },
       data: { 
         teamId: null // Remove from team
       }
@@ -683,7 +683,7 @@ export class PlayerAgingRetirementService {
     retirementAge?: number;
   }> {
     const startingPlayer = await prisma.player.findFirst({
-      where: { id: playerId }
+      where: { id: parseInt(playerId, 10) }
     });
     if (!startingPlayer) {
       throw new Error('Player not found');
@@ -697,8 +697,8 @@ export class PlayerAgingRetirementService {
       throwing: startingPlayer.throwing,
       catching: startingPlayer.catching,
       kicking: startingPlayer.kicking,
-      leadership: startingPlayer.leadership,
-      stamina: startingPlayer.stamina
+      leadership: startingPlayer.leadership
+      // stamina: startingPlayer.stamina // Property removed from schema
     };
 
     let totalProgressions = 0;

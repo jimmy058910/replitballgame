@@ -157,7 +157,7 @@ router.post('/claim-all', isAuthenticated, async (req: any, res: Response) => {
     const currentCredits = parseInt(teamFinances.credits);
     const currentGems = parseInt(teamFinances.gems);
 
-    await prisma.teamFinance.update({
+    await prisma.teamFinances.update({
       where: { teamId: userTeam.id },
       data: {
         credits: (currentCredits + totalCredits).toString(),

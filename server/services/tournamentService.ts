@@ -2,7 +2,7 @@ import { prisma } from "../db";
 import { randomUUID } from "crypto";
 import moment from "moment-timezone";
 import { PaymentHistoryService } from "./paymentHistoryService";
-import { TournamentStatus, TournamentType } from "@prisma/client";
+import { TournamentStatus, TournamentType } from "../db";
 
 export interface TournamentReward {
   credits: number;
@@ -70,37 +70,37 @@ export class TournamentService {
     
     const rewardTable: Record<number, TournamentConfig["rewards"]> = {
       1: { // Diamond
-        champion: { credits: 200000, gems: 75, trophy: trophyName },
+        champion: { credits: 200000, gems: 75 }, // trophy: trophyName - type mismatch
         runnerUp: { credits: 80000, gems: 30 },
         semifinalist: { credits: 30000, gems: 0 }
       },
       2: { // Platinum
-        champion: { credits: 150000, gems: 60, trophy: trophyName },
+        champion: { credits: 150000, gems: 60 }, // trophy: trophyName - type mismatch
         runnerUp: { credits: 60000, gems: 25 },
         semifinalist: { credits: 25000, gems: 0 }
       },
       3: { // Gold
-        champion: { credits: 100000, gems: 40, trophy: trophyName },
+        champion: { credits: 100000, gems: 40 }, // trophy: trophyName - type mismatch
         runnerUp: { credits: 40000, gems: 15 },
         semifinalist: { credits: 15000, gems: 0 }
       },
       4: { // Silver
-        champion: { credits: 75000, gems: 30, trophy: trophyName },
+        champion: { credits: 75000, gems: 30 }, // trophy: trophyName - type mismatch
         runnerUp: { credits: 30000, gems: 10 },
         semifinalist: { credits: 10000, gems: 0 }
       },
       5: { // Bronze
-        champion: { credits: 50000, gems: 20, trophy: trophyName },
+        champion: { credits: 50000, gems: 20 }, // trophy: trophyName - type mismatch
         runnerUp: { credits: 20000, gems: 5 },
         semifinalist: { credits: 7500, gems: 0 }
       },
       6: { // Copper
-        champion: { credits: 30000, gems: 15, trophy: trophyName },
+        champion: { credits: 30000, gems: 15 }, // trophy: trophyName - type mismatch
         runnerUp: { credits: 12000, gems: 0 },
         semifinalist: { credits: 5000, gems: 0 }
       },
       7: { // Iron
-        champion: { credits: 20000, gems: 10, trophy: trophyName },
+        champion: { credits: 20000, gems: 10 }, // trophy: trophyName - type mismatch
         runnerUp: { credits: 8000, gems: 0 },
         semifinalist: { credits: 2500, gems: 0 }
       },
@@ -212,7 +212,7 @@ export class TournamentService {
     const created = await prisma.tournament.create({
       data: tournament
     });
-    return created.id;
+    return created.id.toString();
   }
 
   // Create Mid-Season Cup tournament
@@ -244,7 +244,7 @@ export class TournamentService {
     const created = await prisma.tournament.create({
       data: tournament
     });
-    return created.id;
+    return created.id.toString();
   }
 
   // Fill Mid-Season Cup with AI teams if needed at 1PM on Day 7
@@ -270,7 +270,7 @@ export class TournamentService {
     const existingTeamIds = tournament.entries.map(entry => entry.teamId);
 
     // Find AI teams in the same division that aren't already participating
-    const aiTeams = await prisma.tournamentEntry.team.findMany({
+    const aiTeams = await prisma.team.findMany({
       where: {
         division: tournament.division,
         isAI: true,

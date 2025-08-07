@@ -37,12 +37,12 @@ export class InjuryStorage {
     });
   }
 
-  async updateStamina(playerId: number, dailyStaminaLevel: number): Promise<Player | null> {
+  async updateStamina(playerId: number, staminaValue: number): Promise<Player | null> {
     try {
       const updatedPlayer = await prisma.player.update({
         where: { id: playerId },
         data: {
-          dailyStaminaLevel,
+          staminaAttribute: staminaValue,
         },
         include: {
           team: { select: { name: true } }
@@ -100,12 +100,12 @@ export class InjuryStorage {
         id: true,
         firstName: true,
         lastName: true,
-        dailyStaminaLevel: true,
+        staminaAttribute: true,
         injuryStatus: true,
         injuryRecoveryPointsNeeded: true,
         injuryRecoveryPointsCurrent: true,
       },
-      orderBy: { dailyStaminaLevel: 'asc' }
+      orderBy: { staminaAttribute: 'asc' }
     });
   }
 }

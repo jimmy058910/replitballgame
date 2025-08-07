@@ -201,7 +201,7 @@ export class LateSignupService {
         // Create AI team
         const aiTeam = await storage.teams.createTeam({
           name: uniqueTeamName,
-          userProfileId: 'AI_USER_PROFILE', // Special AI user profile
+          userId: 'AI_USER_PROFILE', // Special AI user profile
           division: 8,
           subdivision: subdivisionName,
         });
@@ -255,7 +255,8 @@ export class LateSignupService {
           leadership: Math.floor(Math.random() * 15) + 10,
           agility: Math.floor(Math.random() * 15) + 10,
           injuryStatus: 'HEALTHY',
-          dailyStaminaLevel: 100,
+          staminaAttribute: Math.floor(Math.random() * 15) + 10,
+          potentialRating: Math.floor(Math.random() * 20) + 50,
         });
       } catch (error) {
         console.error(`Failed to create AI player for team ${teamId}:`, error);
@@ -341,7 +342,7 @@ export class LateSignupService {
     
     // Create the team in Division 8 late signup subdivision
     const team = await storage.teams.createTeam({
-      userProfileId: teamData.userId,
+      userId: teamData.userId,
       name: teamData.name,
       division: 8,
       subdivision: subdivision,
@@ -354,7 +355,7 @@ export class LateSignupService {
     
     if (needsScheduleGeneration) {
       // Generate schedule immediately when subdivision is full
-      await this.generateShortenedSeasonSchedule(subdivision, teamsInSubdivision);
+      await this.generateImmediateSeasonSchedule(subdivision, teamsInSubdivision);
       scheduleGenerated = true;
       
       logInfo(`Late signup subdivision ${subdivision} is full! Generated shortened season schedule immediately.`, {
@@ -384,7 +385,7 @@ export class LateSignupService {
    * Generate shortened season schedule for late signup subdivision
    * Called immediately when subdivision reaches 8 teams
    */
-  static async generateShortenedSeasonSchedule(
+  static async generateImmediateSeasonSchedule(
     subdivision: string,
     teams: any[]
   ): Promise<void> {
@@ -414,7 +415,7 @@ export class LateSignupService {
       league = await prisma.league.create({
         data: {
           id: leagueId,
-          seasonId: seasonNumber,
+          seasonId: parseInt(seasonNumber.toString(), 10),
           division: 8,
           name: `Division 8 Late Signup - ${subdivision.toUpperCase()}`
         }
@@ -570,7 +571,7 @@ export class LateSignupService {
     const activeSubdivisions = [];
     let totalLateSignupTeams = 0;
     
-    for (const { subdivision } of subdivisions) {
+    for (const { subdivision } of lateSignupSubdivisions) {
       if (subdivision) {
         const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision);
         activeSubdivisions.push({

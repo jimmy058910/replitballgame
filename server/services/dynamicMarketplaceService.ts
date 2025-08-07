@@ -147,7 +147,7 @@ export class DynamicMarketplaceService {
       // Deduct listing fee
       await prisma.teamFinances.update({
         where: { teamId: teamId },
-        data: { credits: (teamFinance.credits ?? 0) - BigInt(listingFee) }
+        data: { credits: (teamFinance.credits ?? 0) - listingFee }
       });
 
       // Create listing

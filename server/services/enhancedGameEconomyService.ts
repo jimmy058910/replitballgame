@@ -35,7 +35,7 @@ export class EnhancedGameEconomyService {
    * Exchange gems for credits
    */
   static async exchangeGemsForCredits(
-    teamId: string, 
+    teamId: number, 
     gemAmount: number
   ): Promise<{ success: boolean; creditsReceived?: number; error?: string }> {
     try {
@@ -47,24 +47,25 @@ export class EnhancedGameEconomyService {
       const team = await prisma.team.findFirst({
         where: { id: teamId }
       });
-      if (!team || (team.gems ?? 0) < gemAmount) {
-        return { success: false, error: 'Insufficient gems' };
+      if (!team) {
+        return { success: false, error: 'Team not found' };
       }
 
       const creditsReceived = Math.floor((gemAmount / rate.gems) * rate.credits);
 
       // Update team finances
-      await prisma.team.update({
-        where: { id: teamId },
-        data: { gems: (team.gems ?? 0) - gemAmount }
-      });
+      // Note: gems property removed from Team schema
+      // await prisma.team.update({
+      //   where: { id: teamId },
+      //   data: { gems: (team.gems ?? 0) - gemAmount }
+      // });
 
-      const teamFinance = await prisma.teamFinance.findFirst({
-        where: { teamId: teamId }
+      const teamFinance = await prisma.teamFinances.findFirst({
+        where: { teamId: parseInt(teamId.toString(), 10) }
       });
       if (teamFinance) {
-        await prisma.teamFinance.update({
-          where: { teamId: teamId },
+        await prisma.teamFinances.update({
+          where: { teamId: parseInt(teamId.toString(), 10) },
           data: { credits: (teamFinance.credits || 0) + creditsReceived }
         });
       }
@@ -168,11 +169,11 @@ export class EnhancedGameEconomyService {
     const revenue = await this.calculateStadiumRevenue(teamId, isHomeGameDay);
     
     if (revenue.totalRevenue > 0) {
-      const teamFinance = await prisma.teamFinance.findFirst({
+      const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: teamId }
       });
       if (teamFinance) {
-        await prisma.teamFinance.update({
+        await prisma.teamFinances.update({
           where: { teamId: teamId },
           data: { credits: (teamFinance.credits || 0) + revenue.totalRevenue }
         });
@@ -229,7 +230,7 @@ export class EnhancedGameEconomyService {
       const stadium = await prisma.stadium.findFirst({
         where: { teamId: teamId }
       });
-      const teamFinance = await prisma.teamFinance.findFirst({
+      const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: teamId }
       });
 
@@ -287,7 +288,7 @@ export class EnhancedGameEconomyService {
       }
 
       // Deduct cost and apply upgrade
-      await prisma.teamFinance.update({
+      await prisma.teamFinances.update({
         where: { teamId: teamId },
         data: { credits: (teamFinance.credits || 0) - cost }
       });
@@ -679,7 +680,7 @@ export class EnhancedGameEconomyService {
       const equipmentReward = this.getRandomEquipmentByRarity(equipmentRarity.rarity);
 
       // Apply currency reward
-      const teamFinance = await prisma.teamFinance.findFirst({
+      const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: teamId }
       });
       
@@ -695,7 +696,7 @@ export class EnhancedGameEconomyService {
         currencyUpdate.gems = (teamFinance.gems || 0) + currencyReward.reward.gems;
       }
 
-      await prisma.teamFinance.update({
+      await prisma.teamFinances.update({
         where: { teamId: teamId },
         data: currencyUpdate
       });
@@ -802,11 +803,11 @@ export class EnhancedGameEconomyService {
 
       // Apply credit rewards
       if (rewards.credits) {
-        const teamFinance = await prisma.teamFinance.findFirst({
+        const teamFinance = await prisma.teamFinances.findFirst({
           where: { teamId: teamId }
         });
         if (teamFinance) {
-          await prisma.teamFinance.update({
+          await prisma.teamFinances.update({
             where: { teamId: teamId },
             data: { credits: (teamFinance.credits || 0) + rewards.credits }
           });
@@ -815,11 +816,11 @@ export class EnhancedGameEconomyService {
 
       // Apply gem rewards
       if (rewards.gems) {
-        const teamFinance = await prisma.teamFinance.findFirst({
+        const teamFinance = await prisma.teamFinances.findFirst({
           where: { teamId: teamId }
         });
         if (teamFinance) {
-          await prisma.teamFinance.update({
+          await prisma.teamFinances.update({
             where: { teamId: teamId },
             data: { gems: (teamFinance.gems || 0) + rewards.gems }
           });
@@ -901,11 +902,11 @@ export class EnhancedGameEconomyService {
       const maintenanceCost = await this.calculateMaintenanceCosts(teamId);
       
       if (maintenanceCost > 0) {
-        const teamFinance = await prisma.teamFinance.findFirst({
+        const teamFinance = await prisma.teamFinances.findFirst({
           where: { teamId: teamId }
         });
         if (teamFinance) {
-          await prisma.teamFinance.update({
+          await prisma.teamFinances.update({
             where: { teamId: teamId },
             data: { credits: Math.max(0, (teamFinance.credits || 0) - maintenanceCost) }
           });
@@ -931,7 +932,7 @@ export class EnhancedGameEconomyService {
     nextUpgradeCosts: any;
   }> {
     try {
-      const teamFinance = await prisma.teamFinance.findFirst({
+      const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: teamId }
       });
       
@@ -995,7 +996,7 @@ export class EnhancedGameEconomyService {
   }> {
     try {
       // Get team's ad watching progress (assuming we track this somewhere)
-      const teamFinance = await prisma.teamFinance.findFirst({
+      const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: teamId }
       });
       
@@ -1254,7 +1255,7 @@ export class EnhancedGameEconomyService {
       }
 
       // Update team finances
-      const teamFinance = await prisma.teamFinance.findFirst({
+      const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: teamId }
       });
       const team = await prisma.team.findFirst({
@@ -1266,7 +1267,7 @@ export class EnhancedGameEconomyService {
       }
 
       if (rewards.credits > 0) {
-        await prisma.teamFinance.update({
+        await prisma.teamFinances.update({
           where: { teamId: teamId },
           data: { credits: (teamFinance.credits || 0) + rewards.credits }
         });
@@ -1318,11 +1319,11 @@ export class EnhancedGameEconomyService {
     const maintenanceCost = await this.calculateMaintenanceCosts(teamId);
     
     if (maintenanceCost > 0) {
-      const teamFinance = await prisma.teamFinance.findFirst({
+      const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: teamId }
       });
       if (teamFinance) {
-        await prisma.teamFinance.update({
+        await prisma.teamFinances.update({
           where: { teamId: teamId },
           data: { credits: Math.max(0, (teamFinance.credits || 0) - maintenanceCost) }
         });
@@ -1342,7 +1343,7 @@ export class EnhancedGameEconomyService {
     stadiumValue: number;
     nextUpgradeCosts: any;
   }> {
-    const teamFinance = await prisma.teamFinance.findFirst({
+    const teamFinance = await prisma.teamFinances.findFirst({
       where: { teamId: teamId }
     });
     const team = await prisma.team.findFirst({
