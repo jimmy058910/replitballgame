@@ -101,5 +101,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# BULLETPROOF CONTAINER DEBUGGING - Direct execution to avoid shell issues
-CMD ["dumb-init", "sh", "-c", "echo '🚀 CONTAINER DEBUG: Node $(node --version) User: $(whoami) PWD: $(pwd)' && echo '📁 FILES:' && ls -la dist/server/index.js package.json || echo 'Missing files!' && echo '🔍 ENV: NODE_ENV=${NODE_ENV} PORT=${PORT}' && echo '🚀 STARTING APP...' && exec node dist/server/index.js"]
+# DIAGNOSTIC: Minimal server to test Cloud Run environment and secret access
+CMD ["node", "-e", "console.log('🚀 Debug server starting...'); console.log('PORT:', process.env.PORT); console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL); console.log('GOOGLE_CLIENT_ID exists:', !!process.env.GOOGLE_CLIENT_ID); require('http').createServer((req, res) => { res.writeHead(200, {'Content-Type': 'text/plain'}); res.end('Debug server running - Cloud Run environment OK'); }).listen(process.env.PORT || 8080, '0.0.0.0', () => console.log('✅ Server listening on port', process.env.PORT || 8080));"]
