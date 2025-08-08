@@ -4,7 +4,7 @@ import { storage } from "../storage/index";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { itemStorage } from "../storage/itemStorage";
 import { isAuthenticated } from "../googleAuth";
-import { ItemType } from "../db";
+// import type { ItemType } from "@prisma/client";
 
 // Schema items handled by itemStorage using Prisma
 // Drizzle operations replaced by Prisma in storage layers
@@ -203,7 +203,7 @@ router.post('/players/:playerId/remove-listing', isAuthenticated, async (req: an
 // Equipment Marketplace Routes
 router.get('/equipment', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const marketItems = await itemStorage.getMarketplaceItems(ItemType.EQUIPMENT);
+    const marketItems = await itemStorage.getMarketplaceItems("EQUIPMENT");
     res.json(marketItems);
   } catch (error) {
     console.error("Error fetching equipment marketplace:", error);

@@ -1,6 +1,6 @@
-import { prisma } from '../../db';
-import { Logger } from '../core/logger';
-import { NotFoundError, ValidationError, ConflictError } from '../core/errors';
+import { prisma } from '../../db.js';
+import { Logger } from '../core/logger.js';
+import { NotFoundError, ValidationError, ConflictError } from '../core/errors.js';
 import { StoreItem, PurchaseRequest, MarketplaceListing, BidRequest, FinancialSummary, AdReward } from './schemas.js';
 
 export class EconomyDomainService {

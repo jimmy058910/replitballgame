@@ -2,10 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { TournamentDomainService } from './service.js';
 import { tournamentSchemas } from './schemas.js';
-import { validateRequest } from '../core/validation';
-import { requireAuth, requireAdmin } from '../auth/middleware';
-import { commonSchemas } from '../core/validation';
-import { Logger } from '../core/logger';
+import { validateRequest } from '../core/validation.js';
+import { requireAuth, requireAdmin } from '../auth/middleware.js';
+import { commonSchemas } from '../core/validation.js';
+import { Logger } from '../core/logger.js';
 
 const router = Router();
 

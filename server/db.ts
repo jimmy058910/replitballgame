@@ -1,8 +1,7 @@
-import { PrismaClient, ItemType, Race, PlayerRole, TournamentStatus, TournamentType, MatchType, GameStatus } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 import ConnectionPoolOptimizer from './utils/connectionPoolOptimizer.js';
 
-// Export Prisma types for use in route files
-export { ItemType, Race, PlayerRole, TournamentStatus, TournamentType, MatchType, GameStatus };
+// Types are exported from generated Prisma client - no need to re-export
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined

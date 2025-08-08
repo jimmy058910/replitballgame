@@ -1,6 +1,6 @@
-import { prisma } from '../../db';
-import { Logger } from '../core/logger';
-import { NotFoundError, ConflictError } from '../core/errors';
+import { prisma } from '../../db.js';
+import { Logger } from '../core/logger.js';
+import { NotFoundError, ConflictError } from '../core/errors.js';
 import { MatchState, CreateMatchRequest, LiveMatchUpdate, SimulationEvent } from './schemas.js';
 
 export class MatchDomainService {
