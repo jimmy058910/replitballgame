@@ -1,0 +1,14 @@
+## DEPLOYMENT FIX SUMMARY
+
+ISSUE: Secret Manager secrets exist with lowercase names, but deployment was trying to reference uppercase secret names.
+
+SOLUTION:
+✅ Fixed secret mapping to reference existing lowercase secrets:
+   - DATABASE_URL_PRODUCTION env var maps to 'database-url' secret
+   - SESSION_SECRET env var maps to 'session-secret' secret
+
+✅ Added memory safety with NODE_OPTIONS to prevent Signal 11 crashes
+
+✅ Environment variables in code (uppercase) now correctly map to existing Secret Manager secrets (lowercase)
+
+This should resolve both the 'secret not found' error and the segmentation fault issues.
