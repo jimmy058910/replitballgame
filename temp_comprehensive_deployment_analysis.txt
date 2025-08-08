@@ -1,43 +1,17 @@
-COMPREHENSIVE DEPLOYMENT ISSUES ANALYSIS
-==========================================
+## COMPREHENSIVE DEPLOYMENT FIX NEEDED
 
-✅ ISSUE #1: Port Binding Mismatch (ALREADY FIXED)
-- Problem: Deployment hardcoded `--port 8080` vs dynamic PORT
-- Status: FIXED - Removed hardcoded port configurations
+BUILD ISSUES:
+❌ timezones.json missing from shared/ directory (FATAL error)
+❌ Container builds but missing critical runtime files
 
-❌ ISSUE #2: DATABASE_URL Secret Name Mismatch (CRITICAL)
-- Deployment config: `DATABASE_URL=database-url:latest`
-- Code expects: `DATABASE_URL_PRODUCTION` (server/routes/debug-env.ts:20-21)
-- Impact: Database connection will fail in production
-- Fix needed: Change secret name in deployment
+STARTUP ISSUES:  
+❌ Signal 11 segmentation fault during container startup
+❌ Old startup probe settings still being used (30s delay instead of 60s)
 
-❌ ISSUE #3: Missing SESSION_SECRET (CRITICAL)
-- Code requires: `SESSION_SECRET` (server/replitAuth.ts, server/utils/securityValidator.ts)
-- Deployment config: Missing from --set-secrets
-- Impact: Session management will fail
-- Fix needed: Add SESSION_SECRET to deployment secrets
+MEMORY ISSUES:
+❌ NODE_OPTIONS memory limit may not be sufficient for Prisma + complex app
 
-❌ ISSUE #4: Startup Probe Too Aggressive (MEDIUM)
-- Current: initialDelaySeconds=30, failureThreshold=20, periodSeconds=10
-- Problem: Only 200 seconds total timeout, 30s initial delay too short
-- Impact: May fail healthy containers due to slow startup
-- Fix needed: Increase delays and timeouts
-
-❌ ISSUE #5: Resource Allocation Insufficient (MEDIUM)
-- Current: 2Gi memory, 2 CPU
-- Problem: Complex app with Prisma, Sentry, WebSockets may need more
-- Impact: Out of memory crashes during startup
-- Fix needed: Increase to 4Gi memory
-
-❌ ISSUE #6: Build Verification Missing (LOW)
-- Current: No verification that all required files exist in container
-- Problem: Missing files cause silent startup failures
-- Impact: Container starts but fails to serve requests
-- Fix needed: Add verification steps to Dockerfile
-
-NEXT ACTIONS:
-1. Fix DATABASE_URL secret name mismatch
-2. Add SESSION_SECRET to deployment
-3. Adjust startup probe timings
-4. Increase memory allocation
-5. Add build verification steps
+SOLUTION APPROACH:
+1. Create missing timezones.json file
+2. Commit and push to trigger new deployment with updated startup probe settings  
+3. Monitor for Signal 11 resolution with memory safety measures
