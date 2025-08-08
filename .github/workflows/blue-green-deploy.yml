@@ -79,14 +79,12 @@ jobs:
         COMMIT_SHA="${{ github.sha }}"
         SHORT_SHA="${COMMIT_SHA:0:8}"
         
-        # DEFINITIVE FIX: Optimized configuration for reliable deployment
+        # DEFINITIVE FIX: Initial service deployment to us-central1
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:$SHORT_SHA \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
-          --no-traffic \
-          --tag green-$SHORT_SHA \
           --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$(date +%s),GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7,NODE_OPTIONS="--max-old-space-size=1536" \
           --set-secrets DATABASE_URL_PRODUCTION=DATABASE_URL:latest,SESSION_SECRET=SESSION_SECRET:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest \
           --memory 1Gi \
@@ -96,7 +94,7 @@ jobs:
           --min-instances 0 \
           --timeout 300s
         
-        echo "✅ Green revision deployed with optimized settings"
+        echo "✅ Service deployed successfully to us-central1"
 
     # STEP 3: Wait for startup probe success
     - name: Wait for Green revision health check
