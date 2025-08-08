@@ -72,31 +72,48 @@ jobs:
         docker push ${{ env.IMAGE_NAME }}:$SHORT_SHA
         echo "✅ Green revision built and pushed: $SHORT_SHA"
 
-    # STEP 2: Deploy Green revision with NO traffic
-    - name: Deploy Green revision (0% traffic)
+    # STEP 2: Deploy Green revision with NO traffic (OPTIMIZED FOR SPEED)
+    - name: Deploy Green revision (0% traffic) with timeout protection
+      timeout-minutes: 8
       run: |
-        echo "🚀 STEP 2: Deploying Green revision with 0% traffic"
+        echo "🚀 STEP 2: Deploying Green revision with OPTIMIZED settings"
         COMMIT_SHA="${{ github.sha }}"
         SHORT_SHA="${COMMIT_SHA:0:8}"
         
-        gcloud run deploy ${{ env.SERVICE_NAME }} \
+        # Deploy with aggressive timeouts and lighter resource allocation
+        timeout 7m gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:$SHORT_SHA \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
           --no-traffic \
           --tag green-$SHORT_SHA \
-          --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$(date +%s),GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7,NODE_OPTIONS="--max-old-space-size=3072" \
+          --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$(date +%s),GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7,NODE_OPTIONS="--max-old-space-size=2048" \
           --set-secrets DATABASE_URL_PRODUCTION=DATABASE_URL:latest,SESSION_SECRET=SESSION_SECRET:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest \
-          --memory 4Gi \
-          --cpu 2 \
-          --concurrency 80 \
-          --max-instances 10 \
+          --memory 2Gi \
+          --cpu 1 \
+          --concurrency 40 \
+          --max-instances 5 \
           --min-instances 0 \
-          --timeout 300s \
-          --startup-probe httpGet.path=/healthz,initialDelaySeconds=60,timeoutSeconds=10,failureThreshold=12,periodSeconds=15
+          --timeout 120s \
+          --startup-probe httpGet.path=/healthz,initialDelaySeconds=20,timeoutSeconds=5,failureThreshold=6,periodSeconds=10 \
+          --format="export" \
+          --quiet || {
+            echo "❌ DEPLOYMENT TIMEOUT OR FAILED"
+            echo "Possible causes:"
+            echo "- Cloud Run quota exceeded in region us-east5"
+            echo "- IAM permissions insufficient" 
+            echo "- Container startup failure"
+            echo "- Google Cloud infrastructure issues"
+            echo ""
+            echo "🔧 RECOMMENDED ACTIONS:"
+            echo "1. Try different region: gcloud config set run/region us-central1"
+            echo "2. Check quotas: gcloud run services list --region=us-east5"
+            echo "3. Test locally first: ./scripts/local-docker-test.sh"
+            exit 1
+          }
         
-        echo "✅ Green revision deployed with 0% traffic"
+        echo "✅ Green revision deployed with optimized settings"
 
     # STEP 3: Wait for startup probe success
     - name: Wait for Green revision health check
@@ -106,9 +123,9 @@ jobs:
         SHORT_SHA="${COMMIT_SHA:0:8}"
         GREEN_REVISION="green-$SHORT_SHA"
         
-        # Wait up to 5 minutes for the revision to become ready with enhanced debugging
+        # Wait up to 3 minutes for the revision to become ready with enhanced debugging
         echo "Waiting for Green revision to become healthy..."
-        timeout 300 bash -c '
+        timeout 180 bash -c '
           while true; do
             STATUS=$(gcloud run revisions describe '$GREEN_REVISION' --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.conditions[0].status)" 2>/dev/null || echo "Unknown")
             if [ "$STATUS" = "True" ]; then
