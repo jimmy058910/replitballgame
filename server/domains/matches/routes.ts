@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { MatchDomainService } from './service';
-import { matchSchemas } from './schemas';
+import { MatchDomainService } from './service.js';
+import { matchSchemas } from './schemas.js';
 import { validateRequest } from '../core/validation';
 import { requireAuth, requireAdmin } from '../auth/middleware';
 import { commonSchemas } from '../core/validation';

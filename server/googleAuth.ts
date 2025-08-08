@@ -1,8 +1,8 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Express } from 'express';
-import { AuthService } from './domains/auth/service';
-import { Logger } from './domains/core/logger';
+import { AuthService } from './domains/auth/service.js';
+import { Logger } from './domains/core/logger.js';
 
 export async function setupGoogleAuth(app: Express) {
   console.log('🔐 Setting up Google OAuth authentication system');

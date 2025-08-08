@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { EconomyDomainService } from './service';
-import { economySchemas } from './schemas';
+import { EconomyDomainService } from './service.js';
+import { economySchemas } from './schemas.js';
 import { validateRequest } from '../core/validation';
 import { requireAuth } from '../auth/middleware';
 import { commonSchemas } from '../core/validation';

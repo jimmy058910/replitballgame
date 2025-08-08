@@ -2,27 +2,27 @@
 // Other parts of the application can import this single 'storage' object.
 
 import { prisma } from '../db';
-import { userStorage, UserStorage } from './userStorage';
-import { teamStorage, TeamStorage } from './teamStorage';
-import { playerStorage, PlayerStorage } from './playerStorage';
-import { matchStorage, MatchStorage } from './matchStorage';
-import { leagueStorage, LeagueStorage } from './leagueStorage';
-import { staffStorage, StaffStorage } from './staffStorage'; // Assuming staffStorage is standalone
-import { teamFinancesStorage, TeamFinancesStorage } from './teamFinancesStorage'; // Assuming teamFinancesStorage is standalone
-import { auctionStorage, AuctionStorage } from './auctionStorage';
-import { notificationStorage, NotificationStorage } from './notificationStorage';
-import { injuryStorage, InjuryStorage } from './injuryStorage'; // Covers injuries, treatments, conditioning
-import { stadiumStorage, StadiumStorage } from './stadiumStorage'; // Covers stadiums, facilities, events
-import { itemStorage, ItemStorage } from './itemStorage';
-import { tournamentStorage, TournamentStorage } from './tournamentStorage';
-import { exhibitionGameStorage, ExhibitionGameStorage } from './exhibitionGameStorage';
-import { seasonStorage, SeasonStorage } from './seasonStorage'; // For Seasons and Playoffs
-import { contractStorage, ContractStorage } from './contractStorage'; // For PlayerContracts and SalaryCap
-import { sponsorshipStorage, SponsorshipStorage } from './sponsorshipStorage'; // For SponsorshipDeals and StadiumRevenue
+import { userStorage, UserStorage } from './userStorage.js';
+import { teamStorage, TeamStorage } from './teamStorage.js';
+import { playerStorage, PlayerStorage } from './playerStorage.js';
+import { matchStorage, MatchStorage } from './matchStorage.js';
+import { leagueStorage, LeagueStorage } from './leagueStorage.js';
+import { staffStorage, StaffStorage } from './staffStorage.js'; // Assuming staffStorage is standalone
+import { teamFinancesStorage, TeamFinancesStorage } from './teamFinancesStorage.js'; // Assuming teamFinancesStorage is standalone
+import { auctionStorage, AuctionStorage } from './auctionStorage.js';
+import { notificationStorage, NotificationStorage } from './notificationStorage.js';
+import { injuryStorage, InjuryStorage } from './injuryStorage.js'; // Covers injuries, treatments, conditioning
+import { stadiumStorage, StadiumStorage } from './stadiumStorage.js'; // Covers stadiums, facilities, events
+import { itemStorage, ItemStorage } from './itemStorage.js';
+import { tournamentStorage, TournamentStorage } from './tournamentStorage.js';
+import { exhibitionGameStorage, ExhibitionGameStorage } from './exhibitionGameStorage.js';
+import { seasonStorage, SeasonStorage } from './seasonStorage.js'; // For Seasons and Playoffs
+import { contractStorage, ContractStorage } from './contractStorage.js'; // For PlayerContracts and SalaryCap
+import { sponsorshipStorage, SponsorshipStorage } from './sponsorshipStorage.js'; // For SponsorshipDeals and StadiumRevenue
 // import { adSystemStorage, AdSystemStorage } from './adSystemStorage';
-import { paymentStorage, PaymentStorage } from './paymentStorage';
-import { scoutingStorage, ScoutingStorage } from './scoutingStorage';
-import { consumableStorage, ConsumableStorage } from './consumableStorage';
+import { paymentStorage, PaymentStorage } from './paymentStorage.js';
+import { scoutingStorage, ScoutingStorage } from './scoutingStorage.js';
+import { consumableStorage, ConsumableStorage } from './consumableStorage.js';
 
 // Interface combining all storage services, similar to the original IStorage
 // This provides a type for the aggregated storage object.

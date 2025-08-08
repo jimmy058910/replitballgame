@@ -1,7 +1,7 @@
 import { prisma } from '../../db';
 import { Logger } from '../core/logger';
 import { NotFoundError } from '../core/errors';
-import { UserProfile } from './schemas';
+import { UserProfile } from './schemas.js';
 
 export class AuthService {
   static async getUserProfile(userId: string): Promise<UserProfile> {

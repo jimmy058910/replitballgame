@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { TournamentDomainService } from './service';
-import { tournamentSchemas } from './schemas';
+import { TournamentDomainService } from './service.js';
+import { tournamentSchemas } from './schemas.js';
 import { validateRequest } from '../core/validation';
 import { requireAuth, requireAdmin } from '../auth/middleware';
 import { commonSchemas } from '../core/validation';

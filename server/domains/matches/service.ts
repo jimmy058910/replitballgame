@@ -1,7 +1,7 @@
 import { prisma } from '../../db';
 import { Logger } from '../core/logger';
 import { NotFoundError, ConflictError } from '../core/errors';
-import { MatchState, CreateMatchRequest, LiveMatchUpdate, SimulationEvent } from './schemas';
+import { MatchState, CreateMatchRequest, LiveMatchUpdate, SimulationEvent } from './schemas.js';
 
 export class MatchDomainService {
   static async createMatch(request: CreateMatchRequest): Promise<MatchState> {

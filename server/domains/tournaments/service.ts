@@ -1,7 +1,7 @@
 import { prisma } from '../../db';
 import { Logger } from '../core/logger';
 import { NotFoundError, ConflictError, ValidationError } from '../core/errors';
-import { TournamentEntry, TournamentStatus, TournamentRegistrationRequest } from './schemas';
+import { TournamentEntry, TournamentStatus, TournamentRegistrationRequest } from './schemas.js';
 
 export class TournamentDomainService {
   static async registerForTournament(

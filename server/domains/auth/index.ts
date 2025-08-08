@@ -1,4 +1,4 @@
 // Authentication domain
-export * from './middleware';
-export * from './schemas';
-export * from './service';
+export * from './middleware.js';
+export * from './schemas.js';
+export * from './service.js';

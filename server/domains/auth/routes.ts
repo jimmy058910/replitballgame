@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { validateRequest } from '../core/validation';
-import { commonSchemas } from '../core/validation';
-import { Logger } from '../core/logger';
-import { requireAuth } from './middleware';
+import { validateRequest } from '../core/validation.js';
+import { commonSchemas } from '../core/validation.js';
+import { Logger } from '../core/logger.js';
+import { requireAuth } from './middleware.js';
 
 const router = Router();
 

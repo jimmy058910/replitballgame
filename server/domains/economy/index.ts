@@ -1,4 +1,4 @@
 // Economy domain
-export * from './schemas';
-export * from './service';
-export * from './routes';
+export * from './schemas.js';
+export * from './service.js';
+export * from './routes.js';
