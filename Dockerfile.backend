@@ -58,6 +58,9 @@ COPY --from=builder --chown=backend:nodejs /app/package.json ./
 
 # CRITICAL FIX: Copy COMPILED JavaScript, not TypeScript source
 COPY --from=builder --chown=backend:nodejs /app/dist ./dist/
+
+# DEPLOYMENT FIX: Copy Prisma client to where compiled server expects it
+COPY --from=builder --chown=backend:nodejs /app/generated ./dist/generated
 COPY --from=builder --chown=backend:nodejs /app/shared/ ./shared/
 COPY --from=builder --chown=backend:nodejs /app/prisma/ ./prisma/
 COPY --from=builder --chown=backend:nodejs /app/types/ ./types/
