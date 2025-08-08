@@ -68,8 +68,11 @@ COPY --from=builder --chown=backend:nodejs /app/vite.config.production.ts ./
 COPY --from=builder --chown=backend:nodejs /app/tailwind.config.ts ./
 COPY --from=builder --chown=backend:nodejs /app/postcss.config.js ./
 
-# Verify frontend files exist in production container
+# CRITICAL VERIFICATION: Ensure all required files exist in container
 RUN ls -la dist/ && echo "✅ Frontend files copied successfully"
+RUN ls -la dist/server/ && echo "✅ Server files copied successfully"
+RUN ls -la dist/server/instrument.js && echo "✅ CRITICAL: instrument.js verified in container"
+RUN ls -la dist/server/index.js && echo "✅ CRITICAL: index.js verified in container"
 
 # Switch to non-root user for security
 USER backend
