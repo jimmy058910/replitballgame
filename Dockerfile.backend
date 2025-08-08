@@ -101,6 +101,36 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# CRITICAL CONTAINER STARTUP FIX: Direct node invocation for proper signal handling
-# ES modules work automatically with "type": "module" in package.json
-CMD ["dumb-init", "node", "dist/server/index.js"]
+# COMPREHENSIVE CONTAINER STARTUP DEBUGGING
+COPY --chown=backend:nodejs <<'EOF' /app/startup-debug.sh
+#!/bin/bash
+echo "🚀 CONTAINER STARTUP DEBUG - $(date)"
+echo "📍 Working Directory: $(pwd)"
+echo "👤 Current User: $(whoami)"
+echo "🔍 Node.js Version: $(node --version)"
+echo "🔍 NPM Version: $(npm --version)"
+
+echo "📁 CRITICAL FILE VERIFICATION:"
+test -f dist/server/index.js && echo "✅ dist/server/index.js EXISTS" || echo "❌ dist/server/index.js MISSING"
+test -f package.json && echo "✅ package.json EXISTS" || echo "❌ package.json MISSING"
+test -d node_modules && echo "✅ node_modules EXISTS" || echo "❌ node_modules MISSING"
+test -f generated/prisma/index.js && echo "✅ generated/prisma/index.js EXISTS" || echo "❌ generated/prisma/index.js MISSING"
+test -f shared/timezones.json && echo "✅ shared/timezones.json EXISTS" || echo "❌ shared/timezones.json MISSING"
+
+echo "🔍 ENVIRONMENT VARIABLES:"
+echo "   NODE_ENV: ${NODE_ENV:-NOT_SET}"
+echo "   PORT: ${PORT:-NOT_SET}"
+echo "   DATABASE_URL: ${DATABASE_URL:+PRESENT}"
+echo "   GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:+PRESENT}"
+
+echo "🔍 PACKAGE.JSON TYPE MODULE CHECK:"
+grep -o '"type".*"module"' package.json && echo "✅ ES modules enabled" || echo "❌ CommonJS mode"
+
+echo "🚀 STARTING NODE.JS APPLICATION..."
+exec node dist/server/index.js
+EOF
+
+RUN chmod +x /app/startup-debug.sh
+
+# CRITICAL CONTAINER STARTUP FIX: Use debug script for comprehensive diagnostics
+CMD ["dumb-init", "/app/startup-debug.sh"]
