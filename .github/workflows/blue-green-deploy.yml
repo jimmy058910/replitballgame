@@ -93,9 +93,8 @@ jobs:
           --concurrency 80 \
           --max-instances 10 \
           --min-instances 0 \
-          --port 8080 \
           --timeout 300s \
-          --startup-probe httpGet.path=/healthz,httpGet.port=8080,initialDelaySeconds=30,timeoutSeconds=5,failureThreshold=20,periodSeconds=10
+          --startup-probe httpGet.path=/healthz,initialDelaySeconds=30,timeoutSeconds=5,failureThreshold=20,periodSeconds=10
         
         echo "✅ Green revision deployed with 0% traffic"
 
