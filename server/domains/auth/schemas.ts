@@ -1,4 +1,4 @@
-import { z } from 'zod.js';
+import { z } from 'zod';
 
 // Authentication request/response schemas
 export const authSchemas: {

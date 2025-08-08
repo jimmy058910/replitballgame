@@ -3,8 +3,8 @@
  * Apply caching to specific high-traffic routes for compute optimization
  */
 
-import { Router } from 'express.js';
-import { cacheResponse } from './cacheMiddleware.js';
+import { Router } from 'express';
+import { cacheResponse } from './cacheMiddleware';
 
 // Team routes with caching
 export function applyCacheToTeamRoutes(router: Router): Router {

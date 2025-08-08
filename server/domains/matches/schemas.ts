@@ -1,4 +1,4 @@
-import { z } from 'zod.js';
+import { z } from 'zod';
 
 // Match domain schemas
 export const matchSchemas: Record<string, any> = {

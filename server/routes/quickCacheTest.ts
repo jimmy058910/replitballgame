@@ -3,9 +3,9 @@
  * Test cache functionality and demonstrate immediate compute savings
  */
 
-import { Router, type Response } from "express.js";
-import { cacheResponse, simpleCache } from "../middleware/cacheMiddleware.js";
-import { asyncHandler } from "../services/errorService.js";
+import { Router, type Response } from "express";
+import { cacheResponse, simpleCache } from "../middleware/cacheMiddleware";
+import { asyncHandler } from "../services/errorService";
 
 const router = Router();
 

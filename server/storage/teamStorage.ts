@@ -1,5 +1,5 @@
-import { prisma } from '../db.js';
-import { PrismaClient, Team, Race } from '../../generated/prisma.js';
+import { prisma } from '../db';
+import { PrismaClient, Team, Race } from '../../generated/prisma';
 
 // Helper function to serialize BigInt fields to strings for JSON compatibility
 function serializeTeamFinances(finances: any): any {

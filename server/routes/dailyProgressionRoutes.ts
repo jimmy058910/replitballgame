@@ -1,7 +1,7 @@
-import { Router } from 'express.js';
-import { DailyPlayerProgressionService } from '../services/dailyPlayerProgressionService.js';
-import { isAuthenticated } from '../googleAuth.js';
-import { RBACService, Permission } from '../services/rbacService.js';
+import { Router } from 'express';
+import { DailyPlayerProgressionService } from '../services/dailyPlayerProgressionService';
+import { isAuthenticated } from '../googleAuth';
+import { RBACService, Permission } from '../services/rbacService';
 
 const router = Router();
 

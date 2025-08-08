@@ -1,13 +1,13 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
-import { storage } from "../storage/index.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { storage } from "../storage/index";
 // playerStorage imported via storage index
-import { userStorage } from "../storage/userStorage.js";
-import { teamFinancesStorage } from "../storage/teamFinancesStorage.js";
-import { leagueStorage } from "../storage/leagueStorage.js"; // For currentSeason
-import { matchStorage } from "../storage/matchStorage.js"; // For getMatchesByDivision
-import { seasonStorage } from "../storage/seasonStorage.js"; // For getCurrentSeason
-import { isAuthenticated } from "../googleAuth.js";
-import { prisma } from "../db.js";
+import { userStorage } from "../storage/userStorage";
+import { teamFinancesStorage } from "../storage/teamFinancesStorage";
+import { leagueStorage } from "../storage/leagueStorage"; // For currentSeason
+import { matchStorage } from "../storage/matchStorage"; // For getMatchesByDivision
+import { seasonStorage } from "../storage/seasonStorage"; // For getCurrentSeason
+import { isAuthenticated } from "../googleAuth";
+import { prisma } from "../db";
 import {
   generateLeagueGameSchedule,
   generateDailyGameTimes,
@@ -16,11 +16,11 @@ import {
   formatEasternTime,
   LEAGUE_GAME_START_HOUR,
   LEAGUE_GAME_END_HOUR
-} from "@shared/timezone.js";
-import { generateRandomPlayer } from "../services/leagueService.js";
-import { generateRandomName } from "@shared/names.js";
-import gameConfig from "../config/game_config.json.js";
-// import { ABILITIES, rollForAbility } from "@shared/abilities.js"; // Only if used directly in AI team gen
+} from "@shared/timezone";
+import { generateRandomPlayer } from "../services/leagueService";
+import { generateRandomName } from "@shared/names";
+import gameConfig from "../config/game_config.json";
+// import { ABILITIES, rollForAbility } from "@shared/abilities"; // Only if used directly in AI team gen
 
 const router = Router();
 

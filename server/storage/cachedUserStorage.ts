@@ -3,9 +3,9 @@
  * Wraps userStorage with intelligent caching to reduce database queries
  */
 
-import { userStorage } from './userStorage.js';
-import { memoryCache } from '../utils/memoryCache.js';
-import type { UserProfile } from '../../generated/prisma.js';
+import { userStorage } from './userStorage';
+import { memoryCache } from '../utils/memoryCache';
+import type { UserProfile } from '../../generated/prisma';
 
 export class CachedUserStorage {
   // Cache TTL configurations

@@ -3,7 +3,7 @@
  * Apply caching to existing high-traffic routes for instant compute savings
  */
 
-import { simpleCache } from '../middleware/cacheMiddleware.js';
+import { simpleCache } from '../middleware/cacheMiddleware';
 
 // Cache configuration for different data types
 export const CACHE_CONFIGS = {

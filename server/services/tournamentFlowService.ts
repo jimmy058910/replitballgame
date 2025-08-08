@@ -1,4 +1,4 @@
-import { prisma } from "../db.js";
+import { prisma } from "../db";
 
 // Simple logging function for now
 function logInfo(message: string) {

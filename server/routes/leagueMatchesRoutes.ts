@@ -1,7 +1,7 @@
-import express from 'express.js';
-import { isAuthenticated } from '../googleAuth.js';
-import { storage } from '../storage.js';
-import { prisma } from '../db.js';
+import express from 'express';
+import { isAuthenticated } from '../googleAuth';
+import { storage } from '../storage';
+import { prisma } from '../db';
 
 const router = express.Router();
 

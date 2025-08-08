@@ -3,8 +3,8 @@
  * Implements 200+ specific commentary prompts for dynamic, engaging match simulation
  */
 
-import { fantasyCommentaryDatabase } from './fantasyCommentaryDatabase.js';
-import { configManager } from '../utils/configManager.js';
+import { fantasyCommentaryDatabase } from './fantasyCommentaryDatabase';
+import { configManager } from '../utils/configManager';
 
 interface Player {
   id: string;

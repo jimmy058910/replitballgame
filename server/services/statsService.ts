@@ -1,4 +1,4 @@
-import { prisma } from '../db.js';
+import { prisma } from '../db';
 
 // Only track stats from meaningful match types (exclude exhibitions)
 const MEANINGFUL_MATCH_TYPES = ['LEAGUE', 'PLAYOFF'] as const;

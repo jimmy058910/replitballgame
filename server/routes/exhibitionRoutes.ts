@@ -1,14 +1,14 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
-import { storage } from "../storage/index.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { storage } from "../storage/index";
 // playerStorage imported via storage index
-import { matchStorage } from "../storage/matchStorage.js";
-import { exhibitionGameStorage } from "../storage/exhibitionGameStorage.js";
-import { isAuthenticated } from "../googleAuth.js";
+import { matchStorage } from "../storage/matchStorage";
+import { exhibitionGameStorage } from "../storage/exhibitionGameStorage";
+import { isAuthenticated } from "../googleAuth";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
-// import { matchStateManager } from "../services/matchStateManager.js";
-import { z } from "zod.js";
+// import { matchStateManager } from "../services/matchStateManager";
+import { z } from "zod";
 import { MatchType } from "../../generated/prisma";
-import { prisma } from "../db.js";
+import { prisma } from "../db";
 
 // TODO: Move to TeamService or similar
 function calculateTeamPower(players: any[]): number {

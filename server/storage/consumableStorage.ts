@@ -1,5 +1,5 @@
-import { prisma } from '../db.js';
-import { PrismaClient, InventoryItem } from '../../generated/prisma.js';
+import { prisma } from '../db';
+import { PrismaClient, InventoryItem } from '../../generated/prisma';
 
 // Note: MatchConsumable type not yet in schema, using any for now
 type MatchConsumable = any;

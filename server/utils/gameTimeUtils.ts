@@ -3,9 +3,9 @@
  * Centralized game duration configuration based on match type
  */
 
-import { readFileSync } from 'fs.js';
-import { join, dirname } from 'path.js';
-import { fileURLToPath } from 'url.js';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);

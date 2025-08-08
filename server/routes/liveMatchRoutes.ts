@@ -3,11 +3,11 @@
  * Handles starting, controlling, and monitoring live matches
  */
 
-import { Router } from 'express.js';
-import { z } from 'zod.js';
-import { prisma } from '../db.js';
-import { liveMatchEngine } from '../services/liveMatchEngine.js';
-import { webSocketManager } from '../websocket/webSocketManager.js';
+import { Router } from 'express';
+import { z } from 'zod';
+import { prisma } from '../db';
+import { liveMatchEngine } from '../services/liveMatchEngine';
+import { webSocketManager } from '../websocket/webSocketManager';
 
 const router = Router();
 

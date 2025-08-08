@@ -1,12 +1,12 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
-import { auctionStorage } from "../storage/auctionStorage.js";
-import { storage } from "../storage/index.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { auctionStorage } from "../storage/auctionStorage";
+import { storage } from "../storage/index";
 // playerStorage imported via storage index
-import { teamFinancesStorage } from "../storage/teamFinancesStorage.js";
-import { notificationStorage } from "../storage/notificationStorage.js"; // For notifications
-import { isAuthenticated } from "../googleAuth.js";
-import { z } from "zod.js";
-// import { NotificationService } from "../services/notificationService.js"; // Preferred over direct storage for notifications
+import { teamFinancesStorage } from "../storage/teamFinancesStorage";
+import { notificationStorage } from "../storage/notificationStorage"; // For notifications
+import { isAuthenticated } from "../googleAuth";
+import { z } from "zod";
+// import { NotificationService } from "../services/notificationService"; // Preferred over direct storage for notifications
 
 const router = Router();
 

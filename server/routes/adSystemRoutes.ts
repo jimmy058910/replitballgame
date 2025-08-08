@@ -1,8 +1,8 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
-import { storage } from "../storage.js"; // Adjusted path
-import { isAuthenticated } from "../googleAuth.js"; // Adjusted path
-import { adSystemStorage } from "../storage/adSystemStorage.js";
-import { z } from "zod.js"; // For validation
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { storage } from "../storage"; // Adjusted path
+import { isAuthenticated } from "../googleAuth"; // Adjusted path
+import { adSystemStorage } from "../storage/adSystemStorage";
+import { z } from "zod"; // For validation
 
 const router = Router();
 

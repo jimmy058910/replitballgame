@@ -1,10 +1,10 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
-import { storage } from "../storage/index.js";
-import { isAuthenticated } from "../googleAuth.js";
-import { z } from "zod.js";
-import { tournamentService } from "../services/tournamentService.js";
-import { prisma } from "../db.js";
-import moment from "moment-timezone.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { storage } from "../storage/index";
+import { isAuthenticated } from "../googleAuth";
+import { z } from "zod";
+import { tournamentService } from "../services/tournamentService";
+import { prisma } from "../db";
+import moment from "moment-timezone";
 
 const router = Router();
 

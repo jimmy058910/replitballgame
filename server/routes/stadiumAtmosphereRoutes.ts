@@ -1,8 +1,8 @@
-import { Router } from 'express.js';
-import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService.js';
-import { isAuthenticated } from '../googleAuth.js';
-import { RBACService, Permission } from '../services/rbacService.js';
-import { prisma } from '../db.js';
+import { Router } from 'express';
+import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService';
+import { isAuthenticated } from '../googleAuth';
+import { RBACService, Permission } from '../services/rbacService';
+import { prisma } from '../db';
 
 const router = Router();
 

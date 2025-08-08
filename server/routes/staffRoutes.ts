@@ -1,8 +1,8 @@
-import { Router, type Response, type NextFunction } from 'express.js';
-import { storage } from '../storage.js';
-import { isAuthenticated } from '../googleAuth.js';
-import { z } from 'zod.js';
-import { ContractService } from '../services/contractService.js';
+import { Router, type Response, type NextFunction } from 'express';
+import { storage } from '../storage';
+import { isAuthenticated } from '../googleAuth';
+import { z } from 'zod';
+import { ContractService } from '../services/contractService';
 
 const router = Router();
 

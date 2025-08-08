@@ -1,5 +1,5 @@
-import { Contract } from '../../generated/prisma.js';
-import { prisma } from '../db.js';
+import { Contract } from '../../generated/prisma';
+import { prisma } from '../db';
 
 // MINIMAL STUB: Contract storage simplified to match actual schema
 // Original had 24 compilation errors due to schema mismatch

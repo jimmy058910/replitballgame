@@ -1,7 +1,7 @@
-import { Router, Response } from 'express.js';
-import { StatsService } from '../services/statsService.js';
-import { asyncHandler } from '../services/errorService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { Router, Response } from 'express';
+import { StatsService } from '../services/statsService';
+import { asyncHandler } from '../services/errorService';
+import { isAuthenticated } from '../googleAuth';
 
 const router = Router();
 

@@ -1,11 +1,11 @@
-import { Router } from 'express.js';
-import { z } from 'zod.js';
-import { MatchDomainService } from './service.js';
-import { matchSchemas } from './schemas.js';
-import { validateRequest } from '../core/validation.js';
-import { requireAuth, requireAdmin } from '../auth/middleware.js';
-import { commonSchemas } from '../core/validation.js';
-import { Logger } from '../core/logger.js';
+import { Router } from 'express';
+import { z } from 'zod';
+import { MatchDomainService } from './service';
+import { matchSchemas } from './schemas';
+import { validateRequest } from '../core/validation';
+import { requireAuth, requireAdmin } from '../auth/middleware';
+import { commonSchemas } from '../core/validation';
+import { Logger } from '../core/logger';
 
 const router = Router();
 

@@ -4,7 +4,7 @@
  */
 
 import * as Sentry from "@sentry/node";
-import { nodeProfilingIntegration } from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 export class SentryService {
   private static initialized = false;

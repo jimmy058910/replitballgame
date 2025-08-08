@@ -2,8 +2,8 @@
  * XSS Protection Utility
  * Sanitizes user inputs to prevent cross-site scripting attacks
  */
-import createDOMPurify from 'dompurify.js';
-import { JSDOM } from 'jsdom.js';
+import createDOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);

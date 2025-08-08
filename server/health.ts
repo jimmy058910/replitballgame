@@ -1,6 +1,6 @@
 // CRITICAL FIX: Remove database import from health check file
 // This was causing startup probe failures by triggering database connections
-// import { prisma } from './db.js';
+// import { prisma } from './db';
 
 // Database connection status for health checks
 let lastDatabaseTest: { connected: boolean; error: string | null; timestamp: Date } = {

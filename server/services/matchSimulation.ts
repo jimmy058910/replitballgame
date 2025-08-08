@@ -1,9 +1,9 @@
 import type { Player, Team, Stadium } from "../../generated/prisma";
-import { CamaraderieService } from "./camaraderieService.js";
-import { commentaryService } from "./commentaryService.js";
-import { DeterministicRNG } from '../utils/deterministicRNG.js';
-import { configManager } from '../utils/configManager.js';
-import { stadiumEffectsCalculator } from '../utils/stadiumEffects.js';
+import { CamaraderieService } from "./camaraderieService";
+import { commentaryService } from "./commentaryService";
+import { DeterministicRNG } from '../utils/deterministicRNG';
+import { configManager } from '../utils/configManager';
+import { stadiumEffectsCalculator } from '../utils/stadiumEffects';
 
 interface MatchEvent {
   time: number;

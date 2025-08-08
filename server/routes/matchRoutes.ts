@@ -1,12 +1,12 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
-import { matchStorage } from "../storage/matchStorage.js";
-import { storage } from "../storage/index.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { matchStorage } from "../storage/matchStorage";
+import { storage } from "../storage/index";
 // playerStorage imported via storage index
-import { isAuthenticated } from "../googleAuth.js";
-import { simulateEnhancedMatch as fullMatchSimulation } from "../services/matchSimulation.js";
+import { isAuthenticated } from "../googleAuth";
+import { simulateEnhancedMatch as fullMatchSimulation } from "../services/matchSimulation";
 // CRITICAL FIX: Dynamic import to prevent startup database connections  
-// import { matchStateManager } from "../services/matchStateManager.js";
-import { prisma } from "../db.js";
+// import { matchStateManager } from "../services/matchStateManager";
+import { prisma } from "../db";
 
 const router = Router();
 

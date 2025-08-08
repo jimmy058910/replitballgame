@@ -1,4 +1,4 @@
-import { prisma } from '../db.js';
+import { prisma } from '../db';
 
 /**
  * Integrated Stadium, Finance & Atmosphere Service

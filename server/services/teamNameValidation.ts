@@ -1,5 +1,5 @@
-import { profanity } from '@2toad/profanity.js';
-import { prisma } from '../db.js';
+import { profanity } from '@2toad/profanity';
+import { prisma } from '../db';
 
 // Configure the profanity filter
 profanity.addWords([

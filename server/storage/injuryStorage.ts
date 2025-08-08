@@ -1,5 +1,5 @@
-import { prisma } from '../db.js';
-import { PrismaClient, Player, $Enums } from '../../generated/prisma.js';
+import { prisma } from '../db';
+import { PrismaClient, Player, $Enums } from '../../generated/prisma';
 
 export class InjuryStorage {
   async updatePlayerInjury(playerId: number, injuryStatus: $Enums.InjuryStatus, recoveryPointsNeeded?: number, recoveryPointsCurrent?: number): Promise<Player | null> {

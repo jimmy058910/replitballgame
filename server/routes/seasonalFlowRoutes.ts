@@ -1,9 +1,9 @@
-import { Router, type Request, type Response } from 'express.js';
-import { SeasonalFlowService } from '../services/seasonalFlowService.js';
-import { isAuthenticated } from '../googleAuth.js';
-import { RBACService, Permission } from '../services/rbacService.js';
-import { asyncHandler } from '../services/errorService.js';
-import { storage } from '../storage/index.js';
+import { Router, type Request, type Response } from 'express';
+import { SeasonalFlowService } from '../services/seasonalFlowService';
+import { isAuthenticated } from '../googleAuth';
+import { RBACService, Permission } from '../services/rbacService';
+import { asyncHandler } from '../services/errorService';
+import { storage } from '../storage/index';
 
 const router = Router();
 

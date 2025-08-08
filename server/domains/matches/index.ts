@@ -1,4 +1,4 @@
 // Match domain
-export * from './schemas.js';
-export * from './service.js';
-export * from './routes.js';
+export * from './schemas';
+export * from './service';
+export * from './routes';

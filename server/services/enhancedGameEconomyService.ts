@@ -1,4 +1,4 @@
-import { prisma } from '../db.js.js';
+import { prisma } from '../db.js';
 
 export class EnhancedGameEconomyService {
 

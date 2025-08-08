@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express.js';
-import { nanoid } from 'nanoid.js';
+import { Request, Response, NextFunction } from 'express';
+import { nanoid } from 'nanoid';
 
 // Request ID interface now defined centrally in types/express/index.d.ts
 

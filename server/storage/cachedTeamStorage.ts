@@ -3,10 +3,10 @@
  * Wraps teamStorage with intelligent caching for team-related queries
  */
 
-import { storage } from './index.js';
-import { memoryCache } from '../utils/memoryCache.js';
-import type { Team } from '../../generated/prisma.js';
-import { prisma } from '../db.js';
+import { storage } from './index';
+import { memoryCache } from '../utils/memoryCache';
+import type { Team } from '../../generated/prisma';
+import { prisma } from '../db';
 
 export class CachedTeamStorage {
   // Cache TTL configurations

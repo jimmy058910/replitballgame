@@ -1,5 +1,5 @@
-import { prisma } from "../db.js";
-import { logInfo, ErrorCreators, asyncHandler } from "./errorService.js";
+import { prisma } from "../db";
+import { logInfo, ErrorCreators, asyncHandler } from "./errorService";
 
 /**
  * Role-Based Access Control Service

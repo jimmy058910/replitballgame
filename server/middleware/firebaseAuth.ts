@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express.js';
-import admin from 'firebase-admin.js';
+import { Request, Response, NextFunction } from 'express';
+import admin from 'firebase-admin';
 
 // Initialize Firebase Admin SDK with Cloud Run optimized configuration
 if (!admin.apps.length) {

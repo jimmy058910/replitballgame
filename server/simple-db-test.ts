@@ -1,5 +1,5 @@
 // Simple database test to debug the issue
-import { PrismaClient } from '@prisma/client.js';
+import { PrismaClient } from '@prisma/client';
 
 const testPrisma = new PrismaClient({
   datasources: {

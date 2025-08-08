@@ -1,5 +1,5 @@
-import { prisma } from '../db.js';
-import { PrismaClient, MarketplaceListing, Bid } from '../../generated/prisma.js';
+import { prisma } from '../db';
+import { PrismaClient, MarketplaceListing, Bid } from '../../generated/prisma';
 
 export class AuctionStorage {
   async createAuction(auctionData: {

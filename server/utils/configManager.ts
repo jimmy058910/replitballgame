@@ -3,8 +3,8 @@
  * Loads and caches configuration from JSON files
  */
 
-import * as fs from 'fs.js';
-import * as path from 'path.js';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface ConfigCache {
   [key: string]: any;

@@ -1,6 +1,6 @@
-import { Router, Request, Response, NextFunction } from "express.js";
-import { prisma } from "../db.js";
-import { isAuthenticated } from "../googleAuth.js";
+import { Router, Request, Response, NextFunction } from "express";
+import { prisma } from "../db";
+import { isAuthenticated } from "../googleAuth";
 
 const router = Router();
 

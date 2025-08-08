@@ -1,8 +1,8 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
-import { storage } from "../storage.js";
-import { prisma } from "../db.js";
-import { isAuthenticated } from "../googleAuth.js";
-import { logInfo } from "../services/errorService.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { storage } from "../storage";
+import { prisma } from "../db";
+import { isAuthenticated } from "../googleAuth";
+import { logInfo } from "../services/errorService";
 
 const router = Router();
 

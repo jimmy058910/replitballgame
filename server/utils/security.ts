@@ -1,8 +1,8 @@
 /**
  * Security utilities for enhanced error handling and protection
  */
-import { Response } from 'express.js';
-import logger from './logger.js';
+import { Response } from 'express';
+import logger from './logger';
 
 export const handleError = (error: Error, res: Response) => {
   // Log detailed error securely

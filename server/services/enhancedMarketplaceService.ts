@@ -1,5 +1,5 @@
-import { prisma } from '../db.js.js';
-import { MarketplaceStatus, ListingActionType } from '../../generated/prisma/index.js.js';
+import { prisma } from '../db.js';
+import { MarketplaceStatus, ListingActionType } from '../../generated/prisma/index.js';
 
 export class EnhancedMarketplaceService {
   

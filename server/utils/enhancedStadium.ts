@@ -3,9 +3,9 @@
  * Integrates stadium effects with match simulation
  */
 
-import { stadiumEffectsCalculator, type StadiumData } from './stadiumEffects.js';
-import { configManager } from './configManager.js';
-import type { Stadium } from '../../generated/prisma.js';
+import { stadiumEffectsCalculator, type StadiumData } from './stadiumEffects';
+import { configManager } from './configManager';
+import type { Stadium } from '../../generated/prisma';
 
 export interface EnhancedStadiumEffects {
   intimidationFactor: number;

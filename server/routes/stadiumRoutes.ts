@@ -1,7 +1,7 @@
-import { Router, Response, NextFunction } from 'express.js';
-import { z } from 'zod.js';
-import { prisma } from '../db.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { Router, Response, NextFunction } from 'express';
+import { z } from 'zod';
+import { prisma } from '../db';
+import { isAuthenticated } from '../googleAuth';
 import {
   calculateFanLoyalty,
   calculateHomeAdvantage,
@@ -10,7 +10,7 @@ import {
   getAvailableFacilityUpgrades,
   calculateFacilityQuality,
   getAtmosphereDescription
-} from "@shared/stadiumSystem.js";
+} from "@shared/stadiumSystem";
 
 const router = Router();
 

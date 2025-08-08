@@ -1,7 +1,7 @@
-import { Router, type Request, type Response } from 'express.js';
-import { isAuthenticated } from '../googleAuth.js';
-import { asyncHandler } from '../services/errorService.js';
-import { prisma } from '../db.js';
+import { Router, type Request, type Response } from 'express';
+import { isAuthenticated } from '../googleAuth';
+import { asyncHandler } from '../services/errorService';
+import { prisma } from '../db';
 
 const router = Router();
 

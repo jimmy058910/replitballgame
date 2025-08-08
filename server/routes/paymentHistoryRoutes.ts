@@ -1,8 +1,8 @@
-import { Router, type Response } from "express.js";
-import { isAuthenticated } from "../googleAuth.js";
-import { PaymentHistoryService } from "../services/paymentHistoryService.js";
-import { ErrorCreators, asyncHandler } from "../services/errorService.js";
-import { z } from "zod.js";
+import { Router, type Response } from "express";
+import { isAuthenticated } from "../googleAuth";
+import { PaymentHistoryService } from "../services/paymentHistoryService";
+import { ErrorCreators, asyncHandler } from "../services/errorService";
+import { z } from "zod";
 
 const router = Router();
 

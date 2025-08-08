@@ -1,7 +1,7 @@
-import { prisma } from '../db.js';
-import { storage } from '../storage.js';
-import { logInfo } from './errorService.js';
-import { Race, PlayerRole } from '../../generated/prisma.js';
+import { prisma } from '../db';
+import { storage } from '../storage';
+import { logInfo } from './errorService';
+import { Race, PlayerRole } from '../../generated/prisma';
 
 /**
  * Late Signup Service

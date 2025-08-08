@@ -1,16 +1,16 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
-import { cacheMiddleware } from "../middleware/cache.js";
-import { storage } from "../storage/index.js";
-import { teamFinancesStorage } from "../storage/teamFinancesStorage.js";
-// import { adSystemStorage } from "../storage/adSystemStorage.js";
-import { consumableStorage } from "../storage/consumableStorage.js";
-import { prisma } from "../db.js";
-// import { itemStorage } from "../storage/itemStorage.js"; // For fetching actual item details
-import { isAuthenticated } from "../googleAuth.js";
-import { z } from "zod.js";
-import storeConfig from "../config/store_config.json.js";
-import { EnhancedGameEconomyService } from "../services/enhancedGameEconomyService.js";
-import { PaymentHistoryService } from "../services/paymentHistoryService.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { cacheMiddleware } from "../middleware/cache";
+import { storage } from "../storage/index";
+import { teamFinancesStorage } from "../storage/teamFinancesStorage";
+// import { adSystemStorage } from "../storage/adSystemStorage";
+import { consumableStorage } from "../storage/consumableStorage";
+import { prisma } from "../db";
+// import { itemStorage } from "../storage/itemStorage"; // For fetching actual item details
+import { isAuthenticated } from "../googleAuth";
+import { z } from "zod";
+import storeConfig from "../config/store_config.json";
+import { EnhancedGameEconomyService } from "../services/enhancedGameEconomyService";
+import { PaymentHistoryService } from "../services/paymentHistoryService";
 import fs from "fs";
 
 const router = Router();

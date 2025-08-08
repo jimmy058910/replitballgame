@@ -3,7 +3,7 @@
  * Implements aggressive connection management to minimize branch compute hours
  */
 
-import { PrismaClient } from '../../generated/prisma.js';
+import { PrismaClient } from '../../generated/prisma';
 
 export class ConnectionPoolOptimizer {
   private static instance: ConnectionPoolOptimizer;

@@ -1,6 +1,6 @@
-import { Router, type Request, type Response } from "express.js";
-import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService.js";
-import { z } from "zod.js";
+import { Router, type Request, type Response } from "express";
+import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
+import { z } from "zod";
 
 const router = Router();
 

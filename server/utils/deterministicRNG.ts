@@ -4,7 +4,7 @@
  * Based on match and season IDs for consistent replay capability
  */
 
-import { createHash } from 'crypto.js';
+import { createHash } from 'crypto';
 
 export class DeterministicRNG {
   private state: number;

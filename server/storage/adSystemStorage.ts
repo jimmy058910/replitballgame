@@ -1,4 +1,4 @@
-import { prisma } from '../db.js';
+import { prisma } from '../db';
 
 // Temporary stub - AdView model not yet implemented in Prisma schema
 export class AdSystemStorage {

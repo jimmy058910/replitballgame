@@ -1,14 +1,14 @@
-import { Router, type Request, type Response, type NextFunction } from "express.js";
+import { Router, type Request, type Response, type NextFunction } from "express";
 // playerStorage imported via storage index
-import { storage } from "../storage/index.js";
-import { teamFinancesStorage } from "../storage/teamFinancesStorage.js";
-import { itemStorage } from "../storage/itemStorage.js";
-import { isAuthenticated } from "../googleAuth.js";
-import { ItemType } from "../db.js";
+import { storage } from "../storage/index";
+import { teamFinancesStorage } from "../storage/teamFinancesStorage";
+import { itemStorage } from "../storage/itemStorage";
+import { isAuthenticated } from "../googleAuth";
+import { ItemType } from "../db";
 
 // Schema items handled by itemStorage using Prisma
 // Drizzle operations replaced by Prisma in storage layers
-import { z } from "zod.js";
+import { z } from "zod";
 
 const router = Router();
 

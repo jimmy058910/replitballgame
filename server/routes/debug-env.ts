@@ -1,4 +1,4 @@
-import { Router } from 'express.js';
+import { Router } from 'express';
 
 const router = Router();
 

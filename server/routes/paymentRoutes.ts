@@ -1,9 +1,9 @@
-import express, { Router, type Request, type Response, type NextFunction } from "express.js";
-import Stripe from "stripe.js";
-import { storage } from "../storage.js"; // Adjusted path
-import { prisma } from "../db.js"; // Add Prisma import
-import { isAuthenticated } from "../googleAuth.js"; // Adjusted path
-import { z } from "zod.js"; // For validation
+import express, { Router, type Request, type Response, type NextFunction } from "express";
+import Stripe from "stripe";
+import { storage } from "../storage"; // Adjusted path
+import { prisma } from "../db"; // Add Prisma import
+import { isAuthenticated } from "../googleAuth"; // Adjusted path
+import { z } from "zod"; // For validation
 
 const router = Router();
 
