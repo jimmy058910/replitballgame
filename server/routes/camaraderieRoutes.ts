@@ -1,9 +1,9 @@
-import { Router, type Request, type Response } from "express";
-import { isAuthenticated } from "../googleAuth";
-import { CamaraderieService } from "../services/camaraderieService";
-import { RBACService, Permission } from "../services/rbacService";
-import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
-import { storage } from "../storage";
+import { Router, type Request, type Response } from "express.js";
+import { isAuthenticated } from "../googleAuth.js";
+import { CamaraderieService } from "../services/camaraderieService.js";
+import { RBACService, Permission } from "../services/rbacService.js";
+import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService.js";
+import { storage } from "../storage.js";
 
 const router = Router();
 

@@ -1,7 +1,7 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { isAuthenticated } from '../googleAuth';
-import { prisma } from '../db';
-import { Race, PlayerRole, SeasonPhase } from '../../generated/prisma';
+import { Router, Request, Response, NextFunction } from 'express.js';
+import { isAuthenticated } from '../googleAuth.js';
+import { prisma } from '../db.js';
+import { Race, PlayerRole, SeasonPhase } from '../../generated/prisma.js';
 
 const router = Router();
 

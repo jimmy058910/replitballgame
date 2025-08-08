@@ -1,5 +1,5 @@
-import { Router } from "express";
-import fs from "fs/promises";
+import { Router } from "express.js";
+import fs from "fs/promises.js";
 import path from "path";
 
 const router = Router();

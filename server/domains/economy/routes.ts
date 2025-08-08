@@ -1,10 +1,10 @@
-import { Router } from 'express';
-import { z } from 'zod';
-import { EconomyDomainService } from './service';
-import { economySchemas } from './schemas';
-import { validateRequest } from '../core/validation';
-import { requireAuth } from '../auth/middleware';
-import { commonSchemas } from '../core/validation';
+import { Router } from 'express.js';
+import { z } from 'zod.js';
+import { EconomyDomainService } from './service.js';
+import { economySchemas } from './schemas.js';
+import { validateRequest } from '../core/validation.js';
+import { requireAuth } from '../auth/middleware.js';
+import { commonSchemas } from '../core/validation.js';
 
 const router = Router();
 

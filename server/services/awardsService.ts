@@ -1,5 +1,5 @@
-import { prisma } from "../db";
-import { nanoid } from "nanoid";
+import { prisma } from "../db.js";
+import { nanoid } from "nanoid.js";
 import type { 
   Prisma
 } from "../../generated/prisma";

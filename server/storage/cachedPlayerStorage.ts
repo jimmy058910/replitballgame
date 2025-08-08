@@ -3,9 +3,9 @@
  * Wraps playerStorage with caching for player data
  */
 
-import { storage } from './index';
-import { memoryCache } from '../utils/memoryCache';
-import type { Player } from '../../generated/prisma';
+import { storage } from './index.js';
+import { memoryCache } from '../utils/memoryCache.js';
+import type { Player } from '../../generated/prisma.js';
 
 export class CachedPlayerStorage {
   private readonly PLAYERS_TTL = 8 * 60 * 1000; // 8 minutes (changes during training/games)

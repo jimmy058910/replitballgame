@@ -1,6 +1,6 @@
-import { Router, type Request, type Response } from "express";
-import { formatSubdivisionName, getSubdivisionCapacityInfo, generateSubdivisionProgression, validateSubdivisionName } from "@shared/subdivisionUtils";
-import { isAuthenticated } from "../googleAuth";
+import { Router, type Request, type Response } from "express.js";
+import { formatSubdivisionName, getSubdivisionCapacityInfo, generateSubdivisionProgression, validateSubdivisionName } from "@shared/subdivisionUtils.js";
+import { isAuthenticated } from "../googleAuth.js";
 
 const router = Router();
 

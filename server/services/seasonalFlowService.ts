@@ -1,8 +1,8 @@
-import { GameStatus, MatchType, TournamentStatus, TournamentType } from '../db';
-import { PrismaClient } from '@prisma/client';
-import { prisma } from '../db';
-import { logInfo } from './errorService';
-import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone';
+import { GameStatus, MatchType, TournamentStatus, TournamentType } from '../db.js';
+import { PrismaClient } from '@prisma/client.js';
+import { prisma } from '../db.js';
+import { logInfo } from './errorService.js';
+import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 
 /**
  * Seasonal Flow Algorithm Service

@@ -1,13 +1,13 @@
-import { Router } from 'express';
-import { Request, Response, NextFunction } from 'express';
-import { AppError, createErrorResponse } from './core/errors';
-import { Logger } from './core/logger';
+import { Router } from 'express.js';
+import { Request, Response, NextFunction } from 'express.js';
+import { AppError, createErrorResponse } from './core/errors.js';
+import { Logger } from './core/logger.js';
 
 // Import domain routes
-import authRoutes from './auth/routes';
-import tournamentRoutes from './tournaments/routes';
-import matchRoutes from './matches/routes';
-import economyRoutes from './economy/routes';
+import authRoutes from './auth/routes.js';
+import tournamentRoutes from './tournaments/routes.js';
+import matchRoutes from './matches/routes.js';
+import economyRoutes from './economy/routes.js';
 
 const router = Router();
 

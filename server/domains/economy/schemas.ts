@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod.js';
 
 // Economy domain schemas
 export const economySchemas = {

@@ -1,5 +1,5 @@
-import { prisma } from '../db';
-import { PrismaClient, Game, GameStatus, MatchType } from '../../generated/prisma';
+import { prisma } from '../db.js';
+import { PrismaClient, Game, GameStatus, MatchType } from '../../generated/prisma.js';
 
 export class MatchStorage {
   async createMatch(matchData: {

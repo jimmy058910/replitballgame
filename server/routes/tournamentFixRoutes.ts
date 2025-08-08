@@ -1,10 +1,10 @@
-import { Router } from "express";
-import { prisma } from "../db";
-import { isAuthenticated } from "../googleAuth";
-import logger from '../utils/logger';
-import { tournamentFlowService } from "../services/tournamentFlowService";
+import { Router } from "express.js";
+import { prisma } from "../db.js";
+import { isAuthenticated } from "../googleAuth.js";
+import logger from '../utils/logger.js';
+import { tournamentFlowService } from "../services/tournamentFlowService.js";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
-// import { matchStateManager } from "../services/matchStateManager";
+// import { matchStateManager } from "../services/matchStateManager.js";
 
 const router = Router();
 

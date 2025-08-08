@@ -1,5 +1,5 @@
 // CRITICAL: Import Sentry instrumentation FIRST
-import "./instrument";
+import "./instrument.js";
 import * as Sentry from "@sentry/node";
 
 // CLOUD RUN LOGGING: Add immediate logging for container startup debugging
@@ -21,21 +21,21 @@ import compression from "compression";
 import cors from "cors";
 import session from 'express-session';
 import passport from 'passport';
-import { setupGoogleAuth } from "./googleAuth"; // Import Google Auth setup
-import { registerAllRoutes } from "./routes/index";
+import { setupGoogleAuth } from "./googleAuth.js"; // Import Google Auth setup
+import { registerAllRoutes } from "./routes/index.js";
 // PRODUCTION FIX: Use dynamic imports to avoid loading Vite in production
-// import { setupVite, serveStatic, log } from "./vite"; // Moved to dynamic import below
-import { requestIdMiddleware } from "./middleware/requestId";
-import { errorHandler, logInfo } from "./services/errorService";
-import { setupWebSocketServer, webSocketService } from "./services/webSocketService";
-import { webSocketManager } from "./websocket/webSocketManager";
+// import { setupVite, serveStatic, log } from "./vite.js"; // Moved to dynamic import below
+import { requestIdMiddleware } from "./middleware/requestId.js";
+import { errorHandler, logInfo } from "./services/errorService.js";
+import { setupWebSocketServer, webSocketService } from "./services/webSocketService.js";
+import { webSocketManager } from "./websocket/webSocketManager.js";
 // CRITICAL FIX: Remove database service imports - they cause startup crashes
-// import { matchStateManager } from "./services/matchStateManager"; 
-// import { SeasonTimingAutomationService } from "./services/seasonTimingAutomationService";
-import logger from "./utils/logger";
-import { validateOrigin } from "./utils/security";
-import { sanitizeInputMiddleware, securityHeadersMiddleware } from "./middleware/security";
-import { createHealthCheck, createBasicHealthCheck, createDetailedHealthCheck } from "./health";
+// import { matchStateManager } from "./services/matchStateManager.js"; 
+// import { SeasonTimingAutomationService } from "./services/seasonTimingAutomationService.js";
+import logger from "./utils/logger.js";
+import { validateOrigin } from "./utils/security.js";
+import { sanitizeInputMiddleware, securityHeadersMiddleware } from "./middleware/security.js";
+import { createHealthCheck, createBasicHealthCheck, createDetailedHealthCheck } from "./health.js";
 
 const app = express();
 

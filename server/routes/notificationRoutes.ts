@@ -1,9 +1,9 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage"; // Adjusted path
-import { prisma } from "../db";
-import { isAuthenticated } from "../googleAuth"; // Adjusted path
+import { Router, type Request, type Response, type NextFunction } from "express.js";
+import { storage } from "../storage.js"; // Adjusted path
+import { prisma } from "../db.js";
+import { isAuthenticated } from "../googleAuth.js"; // Adjusted path
 import { randomUUID } from "crypto"; // For demo notifications
-// import { NotificationService } from "../services/notificationService"; // If using service methods here
+// import { NotificationService } from "../services/notificationService.js"; // If using service methods here
 
 const router = Router();
 

@@ -2,10 +2,10 @@
  * Security Assessment Routes - Admin-only endpoints for security validation
  */
 
-import express from 'express';
-import { runSecurityValidation } from '../utils/securityValidator';
-import logger from '../utils/logger';
-import { adminAuth } from '../middleware/adminAuth';
+import express from 'express.js';
+import { runSecurityValidation } from '../utils/securityValidator.js';
+import logger from '../utils/logger.js';
+import { adminAuth } from '../middleware/adminAuth.js';
 
 const router = express.Router();
 

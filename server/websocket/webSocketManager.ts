@@ -3,9 +3,9 @@
  * Handles WebSocket connections, room management, and message broadcasting
  */
 
-import { WebSocket, WebSocketServer } from 'ws';
-import { IncomingMessage } from 'http';
-import { LiveMatchState, MatchEvent, MatchCommand } from '../../shared/types/LiveMatchState';
+import { WebSocket, WebSocketServer } from 'ws.js';
+import { IncomingMessage } from 'http.js';
+import { LiveMatchState, MatchEvent, MatchCommand } from '../../shared/types/LiveMatchState.js';
 
 interface ConnectedClient {
   id: string;

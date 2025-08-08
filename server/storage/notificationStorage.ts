@@ -1,5 +1,5 @@
-import { prisma } from '../db';
-import { PrismaClient, Notification, NotificationType } from '../../generated/prisma';
+import { prisma } from '../db.js';
+import { PrismaClient, Notification, NotificationType } from '../../generated/prisma.js';
 
 
 

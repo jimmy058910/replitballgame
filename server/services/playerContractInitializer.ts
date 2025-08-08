@@ -1,6 +1,6 @@
-import { prisma } from '../db.js';
-import { Player } from '../../generated/prisma';
-import { ContractService } from './contractService';
+import { prisma } from '../db.js.js';
+import { Player } from '../../generated/prisma.js';
+import { ContractService } from './contractService.js';
 
 export class PlayerContractInitializer {
   /**

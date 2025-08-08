@@ -3,7 +3,7 @@
  * Initialize caching system and register cache invalidation hooks
  */
 
-import { simpleCache, invalidateCache } from '../middleware/cacheMiddleware';
+import { simpleCache, invalidateCache } from '../middleware/cacheMiddleware.js';
 
 // Track cache activity for compute optimization
 let totalCacheHits = 0;

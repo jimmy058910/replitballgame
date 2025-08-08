@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { PlayerAgingRetirementService } from '../services/playerAgingRetirementService';
-import { isAuthenticated } from '../googleAuth';
-import { RBACService } from '../services/rbacService';
+import { Router } from 'express.js';
+import { PlayerAgingRetirementService } from '../services/playerAgingRetirementService.js';
+import { isAuthenticated } from '../googleAuth.js';
+import { RBACService } from '../services/rbacService.js';
 
 const router = Router();
 

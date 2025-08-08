@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from 'express.js';
 
 // Environment detection
 const isDevelopment = process.env.NODE_ENV === 'development';

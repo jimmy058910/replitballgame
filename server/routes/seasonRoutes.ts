@@ -1,12 +1,12 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage"; // Adjusted path
-import { isAuthenticated } from "../googleAuth"; // Adjusted path
-import { z } from "zod"; // For validation
+import { Router, type Request, type Response, type NextFunction } from "express.js";
+import { storage } from "../storage.js"; // Adjusted path
+import { isAuthenticated } from "../googleAuth.js"; // Adjusted path
+import { z } from "zod.js"; // For validation
 
 const router = Router();
 
 // Import timezone utilities for current cycle calculation
-import { getServerTimeInfo, EASTERN_TIMEZONE, getEasternTimeAsDate } from "@shared/timezone";
+import { getServerTimeInfo, EASTERN_TIMEZONE, getEasternTimeAsDate } from "@shared/timezone.js";
 
 // Zod Schemas for validation
 const playoffStartSchema = z.object({

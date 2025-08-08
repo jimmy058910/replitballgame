@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { prisma } from '../db';
-import { calculateGameRevenue, calculateAttendance } from '../../shared/stadiumSystem';
+import { Router } from 'express.js';
+import { prisma } from '../db.js';
+import { calculateGameRevenue, calculateAttendance } from '../../shared/stadiumSystem.js';
 // LiveMatchState type import removed - not needed for this endpoint
 
 const router = Router();

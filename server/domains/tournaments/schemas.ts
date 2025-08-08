@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod.js';
 
 // Tournament domain schemas
 export const tournamentSchemas = {

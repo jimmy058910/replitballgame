@@ -1,8 +1,8 @@
-import { Server as SocketIOServer, Socket } from "socket.io";
-import { prisma } from "../db";
+import { Server as SocketIOServer, Socket } from "socket.io.js";
+import { prisma } from "../db.js";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
-// import { matchStateManager } from "./matchStateManager";
-import logger from '../utils/logger';
+// import { matchStateManager } from "./matchStateManager.js";
+import logger from '../utils/logger.js';
 
 interface ConnectedUser {
   userId: string;

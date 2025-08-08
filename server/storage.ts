@@ -3,13 +3,13 @@
 // Now, it re-exports the aggregated storage object from server/storage/index.ts
 // to maintain backward compatibility for existing imports while transitioning.
 
-import { storage, type IAppStorage } from "./storage/index";
-import { prisma } from "./db"; // Use Prisma instead of Drizzle
+import { storage, type IAppStorage } from "./storage/index.js";
+import { prisma } from "./db.js"; // Use Prisma instead of Drizzle
 
 // Export the aggregated storage instance
 export { storage };
 
-// Export the aggregated type if needed elsewhere, though direct imports from './storage/index' are preferred for types.
+// Export the aggregated type if needed elsewhere, though direct imports from './storage/index.js' are preferred for types.
 export type { IAppStorage };
 
 // The original IStorage interface might be deprecated or refactored into smaller interfaces
@@ -23,19 +23,19 @@ export type { IAppStorage };
 // etc.
 //
 // Files that previously did:
-// import { storage } from "./storage";
+// import { storage } from "./storage.js";
 // await storage.createTeam(...);
 //
 // Will now effectively be doing (without changing their import line):
-// import { storage } from "./storage/index"; // (as re-exported by this file)
+// import { storage } from "./storage/index.js"; // (as re-exported by this file)
 // await storage.teams.createTeam(...);
 //
 // This allows a phased update of consumer files. New files or refactored files
 // can choose to import more granularly, e.g.:
-// import { teamStorage } from "./storage/teamStorage";
+// import { teamStorage } from "./storage/teamStorage.js";
 // await teamStorage.createTeam(...);
 // OR
-// import { storage } from "./storage/index";
+// import { storage } from "./storage/index.js";
 // await storage.teams.createTeam(...);
 
 // Integrating methods from feature/detailed-match-stats

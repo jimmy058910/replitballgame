@@ -1,12 +1,12 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage";
-import { isAuthenticated } from "../googleAuth";
-import { prisma } from "../db";
-import { generateRandomPlayer as generatePlayerForTeam } from "../services/leagueService";
-import { RBACService, Permission, UserRole } from "../services/rbacService";
-import { ErrorCreators, asyncHandler, logInfo, logError } from "../services/errorService";
+import { Router, type Request, type Response, type NextFunction } from "express.js";
+import { storage } from "../storage.js";
+import { isAuthenticated } from "../googleAuth.js";
+import { prisma } from "../db.js";
+import { generateRandomPlayer as generatePlayerForTeam } from "../services/leagueService.js";
+import { RBACService, Permission, UserRole } from "../services/rbacService.js";
+import { ErrorCreators, asyncHandler, logInfo, logError } from "../services/errorService.js";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
-// import { matchStateManager } from "../services/matchStateManager";
+// import { matchStateManager } from "../services/matchStateManager.js";
 
 const router = Router();
 

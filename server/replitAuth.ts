@@ -1,14 +1,14 @@
-import * as client from "openid-client";
-import passport from "passport";
-import type { AuthenticateCallback } from "passport";
+import * as client from "openid-client.js";
+import passport from "passport.js";
+import type { AuthenticateCallback } from "passport.js";
 // Import from the correct path based on TypeScript resolution
-import { Strategy } from "openid-client/build/passport";
+import { Strategy } from "openid-client/build/passport.js";
 
-import session from "express-session";
-import type { Express, RequestHandler } from "express";
-import memoize from "memoizee";
-import connectPg from "connect-pg-simple";
-import { storage } from "./storage"; // Assuming this now points to your Prisma-based userStorage
+import session from "express-session.js";
+import type { Express, RequestHandler } from "express.js";
+import memoize from "memoizee.js";
+import connectPg from "connect-pg-simple.js";
+import { storage } from "./storage.js"; // Assuming this now points to your Prisma-based userStorage
 
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");

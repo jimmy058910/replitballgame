@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { prisma } from "../db.js";
 import type { Player, Staff } from "../../generated/prisma";
 
 /**

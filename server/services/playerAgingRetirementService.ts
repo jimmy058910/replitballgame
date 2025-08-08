@@ -1,5 +1,5 @@
-import { prisma } from '../db';
-import { StaffType } from '../../generated/prisma';
+import { prisma } from '../db.js';
+import { StaffType } from '../../generated/prisma.js';
 
 export class PlayerAgingRetirementService {
 

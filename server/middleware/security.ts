@@ -1,10 +1,10 @@
 /**
  * Security middleware for input validation and sanitization
  */
-import { Request, Response, NextFunction } from 'express';
-import { z } from 'zod';
-import { sanitizeInput } from '../utils/sanitize';
-import logger from '../utils/logger';
+import { Request, Response, NextFunction } from 'express.js';
+import { z } from 'zod.js';
+import { sanitizeInput } from '../utils/sanitize.js';
+import logger from '../utils/logger.js';
 
 // Enhanced input validation schema
 export const secureStringSchema = z.string()

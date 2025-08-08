@@ -4,7 +4,7 @@
  * Based on stadium capacity, fan loyalty, and attendance
  */
 
-import { configManager } from './configManager';
+import { configManager } from './configManager.js';
 
 export interface StadiumEffects {
   intimidationFactor: number;    // 0-100 scale

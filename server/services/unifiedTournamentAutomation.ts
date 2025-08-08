@@ -1,5 +1,5 @@
-import { prisma } from "../db";
-import { MatchType, GameStatus } from "../db";
+import { prisma } from "../db.js";
+import { MatchType, GameStatus } from "../db.js";
 
 /**
  * Unified Tournament Automation System

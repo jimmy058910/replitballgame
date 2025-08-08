@@ -1,7 +1,7 @@
-import express from 'express';
-import { isAuthenticated } from '../googleAuth';
-import { LateSignupService } from '../services/lateSignupService';
-import { asyncHandler } from '../services/errorService';
+import express from 'express.js';
+import { isAuthenticated } from '../googleAuth.js';
+import { LateSignupService } from '../services/lateSignupService.js';
+import { asyncHandler } from '../services/errorService.js';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ const router = express.Router();
  * GET /api/late-signup/status
  * Get current late signup window status and statistics
  */
-import { Request, Response } from 'express';
+import { Request, Response } from 'express.js';
 
 router.get('/status', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
   const stats = await LateSignupService.getLateSignupStats();

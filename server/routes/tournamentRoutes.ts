@@ -1,11 +1,11 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index";
-import { teamFinancesStorage } from "../storage/teamFinancesStorage";
-import { tournamentStorage } from "../storage/tournamentStorage";
-import { isAuthenticated } from "../googleAuth";
-import { z } from "zod";
-import { getDivisionName } from "../../shared/divisionUtils";
-import { PrismaClient } from "../../generated/prisma/index";
+import { Router, type Request, type Response, type NextFunction } from "express.js";
+import { storage } from "../storage/index.js";
+import { teamFinancesStorage } from "../storage/teamFinancesStorage.js";
+import { tournamentStorage } from "../storage/tournamentStorage.js";
+import { isAuthenticated } from "../googleAuth.js";
+import { z } from "zod.js";
+import { getDivisionName } from "../../shared/divisionUtils.js";
+import { PrismaClient } from "../../generated/prisma/index.js";
 
 const prisma = new PrismaClient();
 

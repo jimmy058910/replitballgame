@@ -1,5 +1,5 @@
-import { prisma } from '../db.js';
-import { getPlayerRole } from '../../shared/playerUtils.js';
+import { prisma } from '../db.js.js';
+import { getPlayerRole } from '../../shared/playerUtils.js.js';
 
 export class PlayerSkillsService {
   /**

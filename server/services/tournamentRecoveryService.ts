@@ -1,7 +1,7 @@
-import { prisma } from "../db";
-// import { logInfo } from "../logging"; // Commented out for production
+import { prisma } from "../db.js";
+// import { logInfo } from "../logging.js"; // Commented out for production
 const logInfo = (message: string) => console.log(`[INFO] ${message}`);
-import { tournamentFlowService } from "./tournamentFlowService";
+import { tournamentFlowService } from "./tournamentFlowService.js";
 
 /**
  * Emergency tournament recovery service

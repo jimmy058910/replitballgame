@@ -1,8 +1,8 @@
-import { prisma } from "../db";
+import { prisma } from "../db.js";
 import { randomUUID } from "crypto";
-import moment from "moment-timezone";
-import { PaymentHistoryService } from "./paymentHistoryService";
-import { TournamentStatus, TournamentType } from "../db";
+import moment from "moment-timezone.js";
+import { PaymentHistoryService } from "./paymentHistoryService.js";
+import { TournamentStatus, TournamentType } from "../db.js";
 
 export interface TournamentReward {
   credits: number;

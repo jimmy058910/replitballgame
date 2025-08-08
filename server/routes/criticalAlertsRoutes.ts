@@ -1,9 +1,9 @@
-import express from 'express';
-import { z } from 'zod';
-import { isAuthenticated } from '../googleAuth';
-import { TeamStorage } from '../storage/teamStorage';
-import { PlayerStorage } from '../storage/playerStorage';
-import { StaffStorage } from '../storage/staffStorage';
+import express from 'express.js';
+import { z } from 'zod.js';
+import { isAuthenticated } from '../googleAuth.js';
+import { TeamStorage } from '../storage/teamStorage.js';
+import { PlayerStorage } from '../storage/playerStorage.js';
+import { StaffStorage } from '../storage/staffStorage.js';
 
 const router = express.Router();
 const teamStorage = new TeamStorage();

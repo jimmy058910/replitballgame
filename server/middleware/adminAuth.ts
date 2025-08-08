@@ -2,8 +2,8 @@
  * Admin Authentication Middleware
  */
 
-import { Request, Response, NextFunction } from 'express';
-import logger from '../utils/logger';
+import { Request, Response, NextFunction } from 'express.js';
+import logger from '../utils/logger.js';
 
 /**
  * Admin authentication middleware

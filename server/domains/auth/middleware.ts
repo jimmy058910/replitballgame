@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { UnauthorizedError, ForbiddenError } from '../core/errors';
-import { Logger } from '../core/logger';
+import { Request, Response, NextFunction } from 'express.js';
+import { UnauthorizedError, ForbiddenError } from '../core/errors.js';
+import { Logger } from '../core/logger.js';
 
 // DEPRECATED - Use server/middleware/firebaseAuth.ts instead
 // This middleware is being replaced with proper Firebase token verification

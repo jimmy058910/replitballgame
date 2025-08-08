@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { awardsService } from "../services/awardsService";
-import { isAuthenticated } from "../googleAuth";
-import { asyncHandler } from "../utils/asyncHandler";
-import { requirePermission, Permission } from "../utils/rbac"; // Add Permission enum import
+import { Router } from "express.js";
+import { awardsService } from "../services/awardsService.js";
+import { isAuthenticated } from "../googleAuth.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { requirePermission, Permission } from "../utils/rbac.js"; // Add Permission enum import
 
 const router = Router();
 

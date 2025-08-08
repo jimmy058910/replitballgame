@@ -3,12 +3,12 @@
  * Admin endpoints for monitoring and managing cache
  */
 
-import { Router, Response } from 'express';
-import { memoryCache } from '../utils/memoryCache';
-import { cachedUserStorage } from '../storage/cachedUserStorage';
-import { cachedTeamStorage } from '../storage/cachedTeamStorage';
-import { cachedPlayerStorage } from '../storage/cachedPlayerStorage';
-import { asyncHandler } from '../services/errorService';
+import { Router, Response } from 'express.js';
+import { memoryCache } from '../utils/memoryCache.js';
+import { cachedUserStorage } from '../storage/cachedUserStorage.js';
+import { cachedTeamStorage } from '../storage/cachedTeamStorage.js';
+import { cachedPlayerStorage } from '../storage/cachedPlayerStorage.js';
+import { asyncHandler } from '../services/errorService.js';
 
 const router = Router();
 

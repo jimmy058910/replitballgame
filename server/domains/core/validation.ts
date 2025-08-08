@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod.js';
+import { Request, Response, NextFunction } from 'express.js';
 
 // Common validation schemas
 export const commonSchemas = {

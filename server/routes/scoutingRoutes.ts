@@ -1,8 +1,8 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage"; // Adjusted path
-import { isAuthenticated } from "../googleAuth"; // Adjusted path
-import { prisma } from "../db";
-// import { z } from "zod"; // For validation if needed
+import { Router, type Request, type Response, type NextFunction } from "express.js";
+import { storage } from "../storage.js"; // Adjusted path
+import { isAuthenticated } from "../googleAuth.js"; // Adjusted path
+import { prisma } from "../db.js";
+// import { z } from "zod.js"; // For validation if needed
 
 const router = Router();
 

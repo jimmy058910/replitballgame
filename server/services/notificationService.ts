@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { prisma } from "../db.js";
 import { randomUUID } from "crypto";
 import { NotificationType } from "../../generated/prisma";
 

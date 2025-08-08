@@ -3,7 +3,7 @@
  * Simple in-memory caching to reduce database queries
  */
 
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express.js';
 
 interface CacheEntry {
   data: any;

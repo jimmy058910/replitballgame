@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { PlayerSkillsService } from '../services/playerSkillsService';
-import { isAuthenticated } from '../googleAuth';
-import { prisma } from '../db';
+import { Router } from 'express.js';
+import { PlayerSkillsService } from '../services/playerSkillsService.js';
+import { isAuthenticated } from '../googleAuth.js';
+import { prisma } from '../db.js';
 
 const router = Router();
 

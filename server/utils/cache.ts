@@ -2,7 +2,7 @@
  * Redis Caching Service
  * Implements caching for frequently accessed data
  */
-import Redis from 'ioredis';
+import Redis from 'ioredis.js';
 
 class CacheService {
   private redis: Redis | null = null;
