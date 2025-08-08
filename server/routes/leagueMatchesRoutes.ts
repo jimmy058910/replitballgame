@@ -1,6 +1,6 @@
 import express from 'express';
 import { isAuthenticated } from '../googleAuth';
-import { storage } from '../storage';
+import { storage } from '../storage/index.js';
 import { prisma } from '../db';
 
 const router = express.Router();
@@ -35,7 +35,7 @@ router.get('/', isAuthenticated, async (req: any, res, next) => {
     console.log(`📊 Found ${allMatches.length} total matches for team ${team.id}`);
 
     // Filter for league matches (exclude exhibition and tournament matches)
-    const leagueMatches = allMatches.filter(match => 
+    const leagueMatches = allMatches.filter((match: any) => 
       match.matchType === 'LEAGUE' || match.matchType === null || match.matchType === undefined
     );
 
@@ -43,7 +43,7 @@ router.get('/', isAuthenticated, async (req: any, res, next) => {
 
     // Get opponent team data for each match
     const matchesWithOpponents = await Promise.all(
-      leagueMatches.map(async (match) => {
+      leagueMatches.map(async (match: any) => {
         const opponentId = match.homeTeamId === team.id ? match.awayTeamId : match.homeTeamId;
         const opponentTeam = await storage.teams.getTeamById(opponentId);
         

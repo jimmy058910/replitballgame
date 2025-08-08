@@ -34,7 +34,7 @@ async function serializeTeamData(team: any): Promise<any> {
     });
     
     // Create a map for quick lookup
-    const contractMap = new Map(contracts.map(c => [c.playerId, c]));
+    const contractMap = new Map(contracts.map((c: any) => [c.playerId, c]));
     
     // Add contract data to each player
     playersWithContracts = team.players.map((player: any) => ({
@@ -177,7 +177,7 @@ export class TeamStorage {
       }
     });
     
-    return await Promise.all(teams.map(team => serializeTeamData(team)));
+    return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
   }
 
   async getAllTeamsWithBasicInfo(): Promise<any[]> {
@@ -195,7 +195,7 @@ export class TeamStorage {
       }
     });
     
-    return await Promise.all(teams.map(team => serializeTeamData(team)));
+    return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
   }
 
   async getTeamsInDivision(division: number, subdivision?: string): Promise<any[]> {
@@ -219,7 +219,7 @@ export class TeamStorage {
       }
     });
     
-    return await Promise.all(teams.map(team => serializeTeamData(team)));
+    return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
   }
 
   // Alias method for route compatibility
@@ -394,9 +394,9 @@ export class TeamStorage {
     });
 
     return {
-      rankings: await Promise.all(teams.map(team => serializeTeamData(team))),
+      rankings: await Promise.all(teams.map((team: any) => serializeTeamData(team))),
       totalTeams: teams.length,
-      totalPlayers: teams.reduce((sum, team) => sum + team.players.length, 0)
+      totalPlayers: teams.reduce((sum: number, team: any) => sum + team.players.length, 0)
     };
   }
 
@@ -428,7 +428,7 @@ export class TeamStorage {
       }
     });
     
-    return await Promise.all(teams.map(team => serializeTeamData(team)));
+    return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
   }
 }
 

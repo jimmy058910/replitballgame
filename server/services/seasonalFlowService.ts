@@ -1,4 +1,4 @@
-import { GameStatus, MatchType, TournamentStatus, TournamentType } from '../db';
+import type { GameStatus, MatchType, TournamentStatus, TournamentType } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../db';
 import { logInfo } from './errorService.js';

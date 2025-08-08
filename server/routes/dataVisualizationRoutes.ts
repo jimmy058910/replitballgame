@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage";
+import { storage } from "../storage/index.js";
 import { prisma } from "../db";
 import { isAuthenticated } from "../googleAuth";
 import { logInfo } from "../services/errorService";

@@ -35,7 +35,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
     });
 
     // Transform inventory data to match expected format
-    const formattedInventory = inventory.map(invItem => ({
+    const formattedInventory = inventory.map((invItem: any) => ({
       id: invItem.id,
       itemType: invItem.item.type,
       type: invItem.item.type.toLowerCase(), // Add type field for frontend compatibility
@@ -98,7 +98,7 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
     });
 
     // Transform inventory data to match expected format
-    const formattedInventory = inventory.map(invItem => ({
+    const formattedInventory = inventory.map((invItem: any) => ({
       id: invItem.id,
       itemType: invItem.item.type,
       type: invItem.item.type.toLowerCase(), // Add type field for frontend compatibility

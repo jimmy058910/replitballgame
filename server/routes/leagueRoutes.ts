@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index";
+import { storage } from "../storage/index.js";
 // playerStorage imported via storage index
 import { userStorage } from "../storage/userStorage";
 import { teamFinancesStorage } from "../storage/teamFinancesStorage";
@@ -170,7 +170,7 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
       let goalsFor = 0;
       let goalsAgainst = 0;
       
-      completedMatches.forEach(match => {
+      completedMatches.forEach((match: any) => {
         if (match.homeTeamId === team.id) {
           goalsFor += match.homeScore || 0;
           goalsAgainst += match.awayScore || 0;
@@ -434,7 +434,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
       select: { id: true }
     });
     
-    const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
+    const subdivisionTeamIds = subdivisionTeams.map((team: any) => team.id);
 
     // Show user's team games + fill to exactly 4 games per day
     const userTeamMatches = leagueMatches.filter(match => 

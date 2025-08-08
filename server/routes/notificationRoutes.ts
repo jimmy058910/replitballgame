@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage"; // Adjusted path
+import { storage } from "../storage/index.js"; // Adjusted path
 import { prisma } from "../db";
 import { isAuthenticated } from "../googleAuth"; // Adjusted path
 import { randomUUID } from "crypto"; // For demo notifications

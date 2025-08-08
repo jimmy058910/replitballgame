@@ -72,6 +72,7 @@ router.post("/record", isAuthenticated, asyncHandler(async (req: any, res: Respo
     itemName: transactionData.itemName || '',
     itemType: transactionData.itemType || 'general',
     teamId: transactionData.teamId ? (typeof transactionData.teamId === 'string' ? parseInt(transactionData.teamId) : transactionData.teamId) : 0,
+    transactionType: transactionData.transactionType, // Ensure required field is explicitly passed
   });
   
   res.json({ transaction });

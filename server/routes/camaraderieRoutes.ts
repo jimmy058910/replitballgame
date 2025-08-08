@@ -3,7 +3,7 @@ import { isAuthenticated } from "../googleAuth";
 import { CamaraderieService } from "../services/camaraderieService";
 import { RBACService, Permission } from "../services/rbacService";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
-import { storage } from "../storage";
+import { storage } from "../storage/index.js";
 
 const router = Router();
 

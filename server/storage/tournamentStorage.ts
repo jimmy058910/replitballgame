@@ -250,7 +250,7 @@ export class TournamentStorage {
       select: { tournamentId: true }
     });
     
-    const excludedTournamentIds = existingEntries.map(entry => entry.tournamentId);
+    const excludedTournamentIds = existingEntries.map((entry: any) => entry.tournamentId);
 
     return await prisma.tournament.findMany({
       where: {
