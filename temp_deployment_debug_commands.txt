@@ -1,0 +1,18 @@
+## Debugging Commands for Long Deployment
+
+While your deployment is running, check these in Google Cloud Console:
+
+1. **Real-time Container Logs**:
+   https://console.cloud.google.com/logs/query;query=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22realm-rivalry-backend%22%0Atimestamp%3E%3D%222025-08-08T14:42:10Z%22;project=direct-glider-465821-p7
+
+2. **Startup Probe Failures**:
+   Look for: 'Startup probe failed', 'Liveness probe failed', 'Readiness probe failed'
+
+3. **Secret Access Errors**:
+   Look for: 'Secret not found', 'Permission denied', 'SecretKeyRef'
+
+4. **Memory/Signal Issues**:
+   Look for: 'Signal 11', 'out of memory', 'container terminated'
+
+If deployment fails, run this to get the exact error:
+gcloud run revisions describe [REVISION-NAME] --region=us-east5 --service=realm-rivalry-backend

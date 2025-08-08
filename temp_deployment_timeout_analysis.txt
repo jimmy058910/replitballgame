@@ -1,0 +1,14 @@
+## Deployment Time Analysis
+
+13+ minutes for 'Deploy Green revision (0% traffic)' suggests:
+
+1. **Secret Access Issues**: Container may be repeatedly failing startup probe
+2. **Resource Allocation**: Cloud Run may be struggling to allocate 4Gi memory + 2 CPU
+3. **Startup Probe Timeout**: 30s initial delay + 5s timeout × 20 failures = potential 2+ minute retry cycles
+4. **Image Pull Issues**: Large container image may be slow to download
+
+RECOMMENDATION: Check Cloud Run logs during deployment for:
+- 'Secret not found' errors
+- 'Startup probe failed' messages  
+- 'Resource allocation failed' warnings
+- Container crash loops with Signal 11 errors

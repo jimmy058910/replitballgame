@@ -94,7 +94,7 @@ jobs:
           --max-instances 10 \
           --min-instances 0 \
           --timeout 300s \
-          --startup-probe httpGet.path=/healthz,initialDelaySeconds=30,timeoutSeconds=5,failureThreshold=20,periodSeconds=10
+          --startup-probe httpGet.path=/healthz,initialDelaySeconds=60,timeoutSeconds=10,failureThreshold=12,periodSeconds=15
         
         echo "✅ Green revision deployed with 0% traffic"
 
