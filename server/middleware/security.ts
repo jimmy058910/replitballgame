@@ -3,8 +3,8 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { sanitizeInput } from '../utils/sanitize';
-import logger from '../utils/logger';
+import { sanitizeInput } from '../utils/sanitize.js';
+import logger from '../utils/logger.js';
 
 // Enhanced input validation schema
 export const secureStringSchema = z.string()
