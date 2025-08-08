@@ -43,6 +43,19 @@ const app = express();
 // This fixes ValidationError about X-Forwarded-For header
 app.set('trust proxy', 1);
 
+// CRITICAL GEMINI SUGGESTION #2: Health checks MUST be registered FIRST
+// Before any authentication, rate-limiting, or complex middleware
+app.get('/health', createBasicHealthCheck()); // Basic health for startup probes
+app.get('/healthz', createBasicHealthCheck()); // Cloud Run startup probe endpoint (CRITICAL)
+app.get('/readyz', createBasicHealthCheck()); // Kubernetes-style readiness probe
+app.get('/api/health', createDetailedHealthCheck()); // Detailed health with database info
+
+// Ultra-fast ping endpoint for Cloud Run (minimal response time)
+app.get('/ping', (req, res) => {
+  res.set('Cache-Control', 'no-cache');
+  res.status(200).send('OK');
+});
+
 // BULLETPROOF CORS Configuration - Industry Standard
 // Detect production environment using multiple reliable methods
 const isProduction = process.env.NODE_ENV === 'production' || 
@@ -227,17 +240,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// CRITICAL CLOUD RUN HEALTH ENDPOINTS - Must be first for startup probe success
-app.get('/health', createBasicHealthCheck()); // Basic health for startup probes
-app.get('/healthz', createBasicHealthCheck()); // Cloud Run startup probe endpoint (CRITICAL)
-app.get('/readyz', createBasicHealthCheck()); // Kubernetes-style readiness probe
-app.get('/api/health', createDetailedHealthCheck()); // Detailed health with database info
 
-// Ultra-fast ping endpoint for Cloud Run (minimal response time)
-app.get('/ping', (req, res) => {
-  res.set('Cache-Control', 'no-cache');
-  res.status(200).send('OK');
-});
 
 // REMOVED DUPLICATE ENDPOINT - was conflicting with nuclear test above
 
