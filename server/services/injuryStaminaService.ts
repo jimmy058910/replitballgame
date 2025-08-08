@@ -1,5 +1,5 @@
-import { prisma } from '../db';
-import { getGameDurationMinutes, type MatchType } from '../utils/gameTimeUtils';
+import { prisma } from '../db.js';
+import { getGameDurationMinutes, type MatchType } from '../utils/gameTimeUtils.js';
 
 export interface InjuryStaminaSettings {
   // Game mode base injury chances

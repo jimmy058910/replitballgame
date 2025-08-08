@@ -220,7 +220,7 @@ router.get('/contracts/:teamId', isAuthenticated, async (req: any, res: Response
   try {
     const { teamId } = req.params;
     // Use Prisma directly for now
-    const { prisma } = await import('../db');
+    const { prisma } = await import('../db.js');
     const contracts = await prisma.contract.findMany({
       where: {
         OR: [
@@ -244,7 +244,7 @@ router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Respons
   try {
     const { teamId } = req.params;
     // Simplified implementation - calculate from team's current contracts
-    const { prisma } = await import('../db');
+    const { prisma } = await import('../db.js');
     
     const team = await prisma.team.findUnique({
       where: { id: parseInt(teamId) },
@@ -296,7 +296,7 @@ router.post('/contracts/negotiate', isAuthenticated, async (req: any, res: Respo
 
     const { playerId, salary, duration } = contractNegotiationSchema.omit({teamId: true}).parse(req.body);
 
-    const { prisma } = await import('../db');
+    const { prisma } = await import('../db.js');
     const player = await prisma.player.findUnique({ where: { id: parseInt(playerId) } });
     if(!player || player.teamId !== userTeam.id) {
         return res.status(403).json({ message: "Player not on your team or does not exist." });
@@ -367,7 +367,7 @@ router.post('/test-catch-up', isAuthenticated, async (req: Request, res: Respons
     
     // Check for missed matches that need to be started
     const now = new Date();
-    const { prisma } = await import('../db');
+    const { prisma } = await import('../db.js');
     
     const missedMatches = await prisma.game.findMany({
       where: {
@@ -422,7 +422,7 @@ router.post('/daily-progression', isAuthenticated, async (req: Request, res: Res
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     
     // Import required services
-    const { prisma } = await import('../db');
+    const { prisma } = await import('../db.js');
     
     // For this implementation, we'll simulate the daily progression logic
     // In production, this would be handled by the automation service

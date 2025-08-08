@@ -13,7 +13,7 @@ let lastDatabaseTest: { connected: boolean; error: string | null; timestamp: Dat
 async function testDatabaseConnection() {
   try {
     // CRITICAL FIX: Dynamic import to prevent startup database connections
-    const { prisma } = await import('./db');
+    const { prisma } = await import('./db.js');
     await prisma.$queryRaw`SELECT 1 as test`;
     lastDatabaseTest = { connected: true, error: null, timestamp: new Date() };
     return true;

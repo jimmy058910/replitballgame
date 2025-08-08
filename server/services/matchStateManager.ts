@@ -1658,7 +1658,7 @@ class MatchStateManager {
       logger.info(`🔍 DEBUG: prisma type at award time: ${typeof prisma}, exists: ${!!prisma}`);
       
       // Import prisma directly to debug import issues
-      const { prisma: directPrisma } = await import("../db");
+      const { prisma: directPrisma } = await import("../db.js");
       logger.info(`🔍 DEBUG: directPrisma type: ${typeof directPrisma}, exists: ${!!directPrisma}`);
       
       const homeTeamFinance = await directPrisma.teamFinances.findUnique({

@@ -1,6 +1,6 @@
-import { prisma } from '../db';
+import { prisma } from '../db.js';
 import type { Prisma } from '../../generated/prisma';
-import { getEasternTime } from '../../shared/timezone';
+import { getEasternTime } from '../../shared/timezone.js';
 
 /**
  * Daily Player Progression & Development System
