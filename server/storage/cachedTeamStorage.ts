@@ -3,7 +3,7 @@
  * Wraps teamStorage with intelligent caching for team-related queries
  */
 
-import { storage } from './index';
+import { storage } from './index.js';
 import { memoryCache } from '../utils/memoryCache';
 import type { Team } from '../../generated/prisma';
 import { prisma } from '../db';

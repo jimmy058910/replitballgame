@@ -1,12 +1,12 @@
 import { prisma } from '../db';
-import { SeasonalFlowService } from './seasonalFlowService';
-import { DailyPlayerProgressionService } from './dailyPlayerProgressionService';
-import { AgingService } from './agingService';
-import { InjuryStaminaService } from './injuryStaminaService';
-import { LateSignupService } from './lateSignupService';
-import { tournamentService } from './tournamentService';
+import { SeasonalFlowService } from './seasonalFlowService.js';
+import { DailyPlayerProgressionService } from './dailyPlayerProgressionService.js';
+import { AgingService } from './agingService.js';
+import { InjuryStaminaService } from './injuryStaminaService.js';
+import { LateSignupService } from './lateSignupService.js';
+import { tournamentService } from './tournamentService.js';
 import { storage } from '../storage';
-import { logInfo } from './errorService';
+import { logInfo } from './errorService.js';
 import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone';
 
 /**

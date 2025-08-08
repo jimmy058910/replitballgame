@@ -1,5 +1,5 @@
 // CRITICAL: Import Sentry instrumentation FIRST
-import "./instrument";
+import "./instrument.js";
 import * as Sentry from "@sentry/node";
 
 // CLOUD RUN LOGGING: Add immediate logging for container startup debugging

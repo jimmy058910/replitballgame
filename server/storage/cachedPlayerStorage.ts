@@ -3,7 +3,7 @@
  * Wraps playerStorage with caching for player data
  */
 
-import { storage } from './index';
+import { storage } from './index.js';
 import { memoryCache } from '../utils/memoryCache';
 import type { Player } from '../../generated/prisma';
 

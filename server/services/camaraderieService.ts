@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import { logInfo, logError, ErrorCreators } from "./errorService";
+import { logInfo, logError, ErrorCreators } from "./errorService.js";
 
 /**
  * Comprehensive Team & Player Camaraderie System

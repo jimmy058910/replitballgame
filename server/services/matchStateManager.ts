@@ -1,11 +1,11 @@
 import { prisma } from "../db";
 console.log("🔍 DEBUG: prisma object:", typeof prisma, !!prisma);
 import type { Game, Player, Stadium, Team } from "../../generated/prisma";
-import { commentaryService } from "./commentaryService";
-import { injuryStaminaService } from "./injuryStaminaService";
-import { simulateEnhancedMatch } from "./matchSimulation";
+import { commentaryService } from "./commentaryService.js";
+import { injuryStaminaService } from "./injuryStaminaService.js";
+import { simulateEnhancedMatch } from "./matchSimulation.js";
 import logger from '../utils/logger';
-import { PaymentHistoryService } from "./paymentHistoryService";
+import { PaymentHistoryService } from "./paymentHistoryService.js";
 import { getGameDurationSeconds, type MatchType } from "../utils/gameTimeUtils";
 
 // Helper type for player stats snapshot

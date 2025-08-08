@@ -1,7 +1,7 @@
 import { GameStatus, MatchType, TournamentStatus, TournamentType } from '../db';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../db';
-import { logInfo } from './errorService';
+import { logInfo } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone';
 
 /**

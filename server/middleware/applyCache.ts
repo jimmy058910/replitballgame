@@ -4,7 +4,7 @@
  */
 
 import { Router } from 'express';
-import { cacheResponse } from './cacheMiddleware';
+import { cacheResponse } from './cacheMiddleware.js';
 
 // Team routes with caching
 export function applyCacheToTeamRoutes(router: Router): Router {

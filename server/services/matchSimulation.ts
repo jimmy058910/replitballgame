@@ -1,6 +1,6 @@
 import type { Player, Team, Stadium } from "../../generated/prisma";
-import { CamaraderieService } from "./camaraderieService";
-import { commentaryService } from "./commentaryService";
+import { CamaraderieService } from "./camaraderieService.js";
+import { commentaryService } from "./commentaryService.js";
 import { DeterministicRNG } from '../utils/deterministicRNG';
 import { configManager } from '../utils/configManager';
 import { stadiumEffectsCalculator } from '../utils/stadiumEffects';

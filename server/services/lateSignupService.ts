@@ -1,6 +1,6 @@
 import { prisma } from '../db';
 import { storage } from '../storage';
-import { logInfo } from './errorService';
+import { logInfo } from './errorService.js';
 import { Race, PlayerRole } from '../../generated/prisma';
 
 /**
