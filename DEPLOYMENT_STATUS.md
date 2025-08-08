@@ -17,8 +17,17 @@
 3. **Registry Co-location**: Container registry and compute in same region
 4. **Deployment Simplification**: Removed over-engineered timeout logic
 
-## Next Step: Deployment Test
-The next git push to main branch will trigger the first deployment with the definitive infrastructure configuration.
+## Current Status: IAM Permission Fix Required
+✅ **Infrastructure Migration Complete**: All systematic issues resolved  
+✅ **Docker Build/Push Success**: Container successfully built and pushed to us-central1 registry  
+❌ **IAM Permission Missing**: GitHub Actions service account needs Service Account User role
+
+**Required Fix:**
+```bash
+gcloud projects add-iam-policy-binding direct-glider-465821-p7 \
+  --member='serviceAccount:realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com' \
+  --role='roles/iam.serviceAccountUser'
+```
 
 **Expected Results:**
 - Deployment time: 5-8 minutes (vs 24+ minutes previously)
