@@ -50,7 +50,7 @@ jobs:
       run: |
         echo "🔐 CRITICAL: Verifying IAM permissions are configured"
         echo "⚠️  IMPORTANT: Cloud Run service account must have 'Secret Manager Secret Accessor' role"
-        echo "📋 Required secrets: database-url, session-secret, firebase-api-key, firebase-project-id, firebase-app-id, google-client-id, google-client-secret"
+        echo "📋 Required secrets: DATABASE_URL, SESSION_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, firebase-api-key, firebase-project-id, firebase-app-id"
         echo "🔧 Configure in GCP Console: IAM & Admin → IAM → Add Cloud Run service account → Grant 'Secret Manager Secret Accessor' role"
         echo "✅ Proceeding with deployment assuming IAM permissions are correctly configured"
 
@@ -87,7 +87,7 @@ jobs:
           --no-traffic \
           --tag green-$SHORT_SHA \
           --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$(date +%s),GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7,NODE_OPTIONS="--max-old-space-size=3072" \
-          --set-secrets DATABASE_URL_PRODUCTION=database-url:latest,SESSION_SECRET=session-secret:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest \
+          --set-secrets DATABASE_URL_PRODUCTION=DATABASE_URL:latest,SESSION_SECRET=SESSION_SECRET:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest \
           --memory 4Gi \
           --cpu 2 \
           --concurrency 80 \
