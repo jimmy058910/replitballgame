@@ -8,7 +8,7 @@ import { prisma } from "../db";
 // import { itemStorage } from "../storage/itemStorage"; // For fetching actual item details
 import { isAuthenticated } from "../googleAuth";
 import { z } from "zod";
-import storeConfig from "../config/store_config.json";
+import storeConfig from "../config/store_config.json" with { type: "json" };
 import { EnhancedGameEconomyService } from "../services/enhancedGameEconomyService";
 import { PaymentHistoryService } from "../services/paymentHistoryService";
 import fs from "fs";

@@ -4,7 +4,7 @@ export interface NameDatabase {
   lastNames: string[];
 }
 
-import raceNamesData from './config/race_names.json';
+import raceNamesData from './config/race_names.json' with { type: "json" };
 
 export const RACE_NAMES: Record<string, NameDatabase> = raceNamesData;
 

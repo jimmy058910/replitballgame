@@ -1,7 +1,7 @@
 import type { Player, Prisma } from "../../generated/prisma/index.js";
 import { generateRandomName, getFullName } from "@shared/names";
 import { generatePotential } from "@shared/potentialSystem";
-import gameConfig from "../config/game_config.json";
+import gameConfig from "../config/game_config.json" with { type: "json" };
 
 export function generateRandomPlayer(name: string | null, race: string, teamId: number, position?: string): Omit<Player, 'id' | 'createdAt' | 'updatedAt' | 'teamId'> & { teamId: number } {
   // Convert race to lowercase for switch statement, but store original for return

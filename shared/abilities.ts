@@ -23,7 +23,7 @@ export interface Ability {
   conflictsWith?: string[]; // abilities that cannot coexist
 }
 
-import abilitiesData from './config/abilities.json';
+import abilitiesData from './config/abilities.json' with { type: "json" };
 
 // @ts-expect-error TS2322
 export const ABILITIES: Record<string, Ability> = abilitiesData;

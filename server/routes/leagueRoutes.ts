@@ -19,7 +19,7 @@ import {
 } from "@shared/timezone";
 import { generateRandomPlayer } from "../services/leagueService.js";
 import { generateRandomName } from "@shared/names";
-import gameConfig from "../config/game_config.json";
+import gameConfig from "../config/game_config.json" with { type: "json" };
 // import { ABILITIES, rollForAbility } from "@shared/abilities"; // Only if used directly in AI team gen
 
 const router = Router();
