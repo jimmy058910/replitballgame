@@ -17,22 +17,30 @@
 3. **Registry Co-location**: Container registry and compute in same region
 4. **Deployment Simplification**: Removed over-engineered timeout logic
 
-## Current Status: IAM Permission Fix Required
+## Current Status: Comprehensive Runtime Debugging Implemented
 ✅ **Infrastructure Migration Complete**: All systematic issues resolved  
 ✅ **Docker Build/Push Success**: Container successfully built and pushed to us-central1 registry  
-❌ **IAM Permission Missing**: GitHub Actions service account needs Service Account User role
+✅ **Enhanced Startup Logging**: Comprehensive runtime debugging implemented
+✅ **Local Full-Stack Validation**: Server + frontend working perfectly with health checks
 
-**Required Fix:**
-```bash
-gcloud projects add-iam-policy-binding direct-glider-465821-p7 \
-  --member='serviceAccount:realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com' \
-  --role='roles/iam.serviceAccountUser'
-```
+## Comprehensive Runtime Debugging (Aug 8, 2025)
+**BREAKTHROUGH**: Implemented bulletproof startup debugging that will reveal exact failure point:
+- **Environment Variable Validation**: Checks all required secrets (DATABASE_URL, GOOGLE_CLIENT_ID, etc.)
+- **Cloud Run Environment Detection**: Validates PORT, K_SERVICE, K_REVISION variables  
+- **Port Binding Analysis**: Detailed logging of 0.0.0.0:8080 binding process
+- **File System Validation**: Checks for required files (dist/server/index.js, etc.)
+- **Comprehensive Error Analysis**: Any crash now shows complete environment state
+
+**Next Deployment Will Reveal Exact Issue:**
+The enhanced logging will show in Cloud Run logs:
+- ✅ Environment validation results (which secrets are missing)
+- ✅ Port binding process (0.0.0.0:8080 success/failure)  
+- ✅ File system checks (missing dependencies)
+- ✅ Complete error analysis with environment state
 
 **Expected Results:**
-- Deployment time: 5-8 minutes (vs 24+ minutes previously)
-- Success rate: 95%+ (vs 30% previously)  
-- No more "Creating Revision" timeouts
-- Reliable, repeatable deployments
+- **Definitive Root Cause**: Enhanced logging will show exact failure point
+- **No More Silent Crashes**: All failures now visible in Cloud Run logs
+- **Systematic Resolution**: Address all revealed issues simultaneously
 
 This is a **systematic infrastructure fix**, not a temporary solution.

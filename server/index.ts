@@ -23,6 +23,40 @@ async function startServer() {
     console.log(`🔍 Memory: ${JSON.stringify(process.memoryUsage())}`);
     console.log(`🔍 Working Directory: ${process.cwd()}`);
     console.log(`⏰ Container startup timestamp: ${new Date().toISOString()}`);
+    
+    // CRITICAL CLOUD RUN DEBUGGING: Validate all required environment variables
+    console.log('🔍 COMPREHENSIVE ENVIRONMENT VALIDATION:');
+    const requiredEnvVars = ['DATABASE_URL', 'SESSION_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
+    const missingEnvVars: string[] = [];
+    
+    requiredEnvVars.forEach(envVar => {
+      const value = process.env[envVar];
+      const exists = !!value;
+      const length = value ? value.length : 0;
+      console.log(`   ${envVar}: ${exists ? '✅ EXISTS' : '❌ MISSING'} (length: ${length})`);
+      if (!exists) missingEnvVars.push(envVar);
+    });
+    
+    if (missingEnvVars.length > 0) {
+      console.error('❌ CRITICAL STARTUP FAILURE: Missing required environment variables:', missingEnvVars);
+      console.error('This will cause the application to crash. Check Secret Manager permissions.');
+      console.error('Cloud Run service account needs "Secret Manager Secret Accessor" role');
+      // Don't exit here - let the app try to start and show the actual error
+    }
+    
+    console.log('🔍 CLOUD RUN ENVIRONMENT DETECTION:');
+    console.log(`   K_SERVICE: ${process.env.K_SERVICE || 'NOT_SET'}`);
+    console.log(`   K_REVISION: ${process.env.K_REVISION || 'NOT_SET'}`);
+    console.log(`   K_CONFIGURATION: ${process.env.K_CONFIGURATION || 'NOT_SET'}`);
+    console.log(`   GOOGLE_CLOUD_PROJECT: ${process.env.GOOGLE_CLOUD_PROJECT || 'NOT_SET'}`);
+    console.log(`   PORT (from Cloud Run): ${process.env.PORT || 'NOT_SET'}`);
+    
+    const isCloudRun = !!(process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT);
+    console.log(`   IS_CLOUD_RUN: ${isCloudRun}`);
+    
+    if (isCloudRun && !process.env.PORT) {
+      console.error('❌ CRITICAL: Running in Cloud Run but PORT environment variable is not set!');
+    }
 
     console.log('--- Phase 3: Importing Express and core modules ---');
     const express = await import("express");
@@ -292,6 +326,12 @@ async function startServer() {
     // ENHANCED CLOUD RUN STARTUP: Add immediate health check response capability
     console.log('🚀 CRITICAL: Starting server with enhanced Cloud Run compatibility...');
 
+    // CRITICAL CLOUD RUN FIX: Add comprehensive port binding with detailed logging
+    console.log('🚀 ATTEMPTING SERVER BINDING WITH COMPREHENSIVE LOGGING...');
+    console.log(`   Target Host: 0.0.0.0`);
+    console.log(`   Target Port: ${port}`);
+    console.log(`   Port Source: ${process.env.PORT ? 'Cloud Run PORT env var' : 'Default (5000)'}`);
+    
     httpServer.listen({
       port,
       host: "0.0.0.0", // CRITICAL: Must bind to 0.0.0.0 for Cloud Run
@@ -300,16 +340,20 @@ async function startServer() {
       console.log(`✅ SERVER SUCCESSFULLY BOUND TO PORT ${port}`);
       console.log(`✅ Health check available at /health`);
       console.log(`✅ Cloud Run startup probe endpoint: /healthz`);
+      console.log(`🌍 Server accessible at: http://0.0.0.0:${port}`);
       
       // CRITICAL: Enhanced Cloud Run debugging
-      if (process.env.NODE_ENV === 'production') {
-        console.log('🔍 COMPREHENSIVE CLOUD RUN DEBUG:', {
+      const isCloudRun = !!(process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT);
+      
+      if (isCloudRun) {
+        console.log('🔍 CLOUD RUN DEPLOYMENT SUCCESS:', {
           server: {
             bindingHost: '0.0.0.0',
             bindingPort: port,
             actualPort: port,
             portFromEnv: process.env.PORT,
-            listening: true
+            listening: true,
+            startupTime: new Date().toISOString()
           },
           environment: {
             NODE_ENV: process.env.NODE_ENV,
@@ -317,8 +361,34 @@ async function startServer() {
             K_SERVICE: process.env.K_SERVICE,
             K_REVISION: process.env.K_REVISION,
             K_CONFIGURATION: process.env.K_CONFIGURATION
+          },
+          healthChecks: {
+            healthEndpoint: '/health',
+            startupProbe: '/healthz',
+            ready: true
           }
         });
+        
+        // Test health endpoint internally to ensure it's working
+        setTimeout(() => {
+          const http = require('http');
+          const options = {
+            hostname: '0.0.0.0',
+            port: port,
+            path: '/health',
+            method: 'GET'
+          };
+          
+          const req = http.request(options, (res: any) => {
+            console.log(`🏥 Internal health check status: ${res.statusCode}`);
+          });
+          
+          req.on('error', (err: any) => {
+            console.error('❌ Internal health check failed:', err.message);
+          });
+          
+          req.end();
+        }, 1000);
       }
     });
 
