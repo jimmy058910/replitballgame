@@ -34,7 +34,7 @@ RUN ls -la generated/prisma/ && echo "✅ Prisma client generated successfully"
 RUN test -f generated/prisma/index.js && echo "✅ Prisma index.js exists" || echo "❌ Prisma index.js missing"
 
 # INDUSTRY STANDARD: Compile TypeScript server to JavaScript for production  
-RUN rm -rf dist && npm run build:server && tsc-alias -p tsconfig.server.json --resolve-full-paths && npm run build
+RUN rm -rf dist && npm run build:server && npx tsc-alias -p tsconfig.server.json --resolve-full-paths && npm run build
 
 # Verify both frontend and server compilation
 RUN ls -la dist/public/ && echo "✅ Frontend compiled successfully"
