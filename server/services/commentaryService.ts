@@ -4,7 +4,7 @@
  */
 
 import { fantasyCommentaryDatabase } from './fantasyCommentaryDatabase.js';
-import { configManager } from '../utils/configManager';
+import { configManager } from '../utils/configManager.js';
 
 interface Player {
   id: string;

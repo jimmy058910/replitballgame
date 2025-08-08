@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { prisma } from "../db.js";
 import { randomUUID } from "crypto";
 import moment from "moment-timezone";
 import { PaymentHistoryService } from "./paymentHistoryService.js";

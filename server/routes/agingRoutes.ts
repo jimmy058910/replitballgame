@@ -1,9 +1,9 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { isAuthenticated } from "../googleAuth";
-import { AgingService } from "../services/agingService";
-import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
+import { isAuthenticated } from "../googleAuth.js";
+import { AgingService } from "../services/agingService.js";
+import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService.js";
 import { z } from "zod";
-import { prisma } from "../db";
+import { prisma } from "../db.js";
 
 const router = Router();
 

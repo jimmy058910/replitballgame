@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { prisma } from "../db.js";
 // import { logInfo } from "../logging"; // Commented out for production
 const logInfo = (message: string) => console.log(`[INFO] ${message}`);
 import { tournamentFlowService } from "./tournamentFlowService.js";

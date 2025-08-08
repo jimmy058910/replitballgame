@@ -1,4 +1,4 @@
-import { prisma } from "../db";
+import { prisma } from "../db.js";
 import type { MatchType, GameStatus } from "../../generated/prisma/index.js";
 
 /**
