@@ -1316,7 +1316,7 @@ export class EnhancedGameEconomyService {
 
     // Use proper stadium system for value calculation instead of hardcoded multipliers
     const stadiumValue = stadium ? 
-      await import('../../shared/stadiumSystem').then(({ calculateFacilityQuality }) => {
+      await import('../../shared/stadiumSystem.js').then(({ calculateFacilityQuality }) => {
         const facilityQuality = calculateFacilityQuality(stadium);
         return 100000 + (facilityQuality * 5000); // Base value + quality-based enhancement
       }) : 0;

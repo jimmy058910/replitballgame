@@ -2,7 +2,7 @@ import type { GameStatus, MatchType, TournamentStatus, TournamentType } from '..
 import { PrismaClient } from '../../generated/prisma/index.js';
 import { prisma } from '../db';
 import { logInfo } from './errorService.js';
-import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone';
+import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '@shared/timezone.js';
 
 /**
  * Seasonal Flow Algorithm Service
@@ -206,7 +206,7 @@ export class SeasonalFlowService {
       const dayMatches = this.generateDayMatches(teams, day, 8);
       
       // Use generateDailyGameTimes for consecutive 15-minute intervals
-      const { generateDailyGameTimes } = await import('../../shared/timezone');
+      const { generateDailyGameTimes } = await import('../../shared/timezone.js');
       const dailyGameTimes = generateDailyGameTimes(day);
       
       for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
@@ -267,7 +267,7 @@ export class SeasonalFlowService {
       const dayMatches = this.generateSubdivisionDayMatches(teams, day, 1);
       
       // Use generateDailyGameTimes for consecutive 15-minute intervals
-      const { generateDailyGameTimes } = await import('../../shared/timezone');
+      const { generateDailyGameTimes } = await import('../../shared/timezone.js');
       const dailyGameTimes = generateDailyGameTimes(day);
       
       for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
@@ -408,7 +408,7 @@ export class SeasonalFlowService {
           gameDate.setDate(gameDate.getDate() + day - 1);
           
           // Use generateDailyGameTimes for consecutive 15-minute intervals
-          const { generateDailyGameTimes } = await import('../../shared/timezone');
+          const { generateDailyGameTimes } = await import('../../shared/timezone.js');
           const dailyGameTimes = generateDailyGameTimes(day);
           
           // Use the appropriate time slot for this match (staggered every 15 minutes)
@@ -526,7 +526,7 @@ export class SeasonalFlowService {
       const dayMatches = this.generateSubdivisionDayMatches(teams, day, 1);
       
       // Use generateDailyGameTimes for consecutive 15-minute intervals
-      const { generateDailyGameTimes } = await import('../../shared/timezone');
+      const { generateDailyGameTimes } = await import('../../shared/timezone.js');
       const dailyGameTimes = generateDailyGameTimes(day);
       
       for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {

@@ -54,7 +54,7 @@ router.get('/error-demo/:type', asyncHandler(async (req: Request, res: Response)
 
 // Server time endpoint (existing functionality)
 router.get('/time', asyncHandler(async (req: Request, res: Response) => {
-  const { getServerTimeInfo } = await import("@shared/timezone");
+  const { getServerTimeInfo } = await import("@shared/timezone.js");
   const timeInfo = getServerTimeInfo();
   
   logInfo("Server time requested", { 

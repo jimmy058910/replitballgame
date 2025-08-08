@@ -46,9 +46,9 @@ FROM --platform=linux/amd64 node:20-slim AS production
 # Install dumb-init for proper signal handling
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S backend -u 1001
+# Create non-root user (Debian syntax)
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -s /bin/sh -d /home/backend -M backend
 
 # Set working directory
 WORKDIR /app

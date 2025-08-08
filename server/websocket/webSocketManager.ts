@@ -5,7 +5,7 @@
 
 import { WebSocket, WebSocketServer } from 'ws';
 import { IncomingMessage } from 'http';
-import { LiveMatchState, MatchEvent, MatchCommand } from '../../shared/types/LiveMatchState';
+import { LiveMatchState, MatchEvent, MatchCommand } from '@shared/types/LiveMatchState.js';
 
 interface ConnectedClient {
   id: string;

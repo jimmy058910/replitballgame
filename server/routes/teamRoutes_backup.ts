@@ -7,11 +7,11 @@ import { z } from "zod";
 import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 import { TeamNameValidator } from "../services/teamNameValidation";
 import { AgingService } from "../services/agingService";
-import { generateRandomName } from "@shared/names";
+import { generateRandomName } from "@shared/names.js";
 import { Race, PlayerRole, InjuryStatus } from "../../generated/prisma/index.js";
 import { prisma } from '../db';
-import { getPlayerRole } from "@shared/playerUtils";
-import { formatSubdivisionName, getSubdivisionCapacityInfo } from "@shared/subdivisionUtils";
+import { getPlayerRole } from "@shared/playerUtils.js";
+import { formatSubdivisionName, getSubdivisionCapacityInfo } from "@shared/subdivisionUtils.js";
 import { CamaraderieService } from "../services/camaraderieService";
 // Database operations handled through storage layer
 

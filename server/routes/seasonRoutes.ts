@@ -6,7 +6,7 @@ import { z } from "zod"; // For validation
 const router = Router();
 
 // Import timezone utilities for current cycle calculation
-import { getServerTimeInfo, EASTERN_TIMEZONE, getEasternTimeAsDate } from "@shared/timezone";
+import { getServerTimeInfo, EASTERN_TIMEZONE, getEasternTimeAsDate } from "@shared/timezone.js";
 
 // Zod Schemas for validation
 const playoffStartSchema = z.object({

@@ -16,11 +16,11 @@ import {
   formatEasternTime,
   LEAGUE_GAME_START_HOUR,
   LEAGUE_GAME_END_HOUR
-} from "@shared/timezone";
+} from "@shared/timezone.js";
 import { generateRandomPlayer } from "../services/leagueService.js";
-import { generateRandomName } from "@shared/names";
+import { generateRandomName } from "@shared/names.js";
 import gameConfig from "../config/game_config.json" with { type: "json" };
-// import { ABILITIES, rollForAbility } from "@shared/abilities"; // Only if used directly in AI team gen
+// import { ABILITIES, rollForAbility } from "@shared/abilities.js"; // Only if used directly in AI team gen
 
 const router = Router();
 
@@ -54,7 +54,7 @@ async function createAITeamsForDivision(division: number) {
     //   premiumCurrency: Math.floor(Math.random() * 100)
     // });
 
-    const { generateRandomName } = await import("@shared/names");
+    const { generateRandomName } = await import("@shared/names.js");
 
     // Define required position distribution: 2 passers, 3 runners, 3 blockers, 4 additional
     const requiredPositions = [

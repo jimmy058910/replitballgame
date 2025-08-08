@@ -1,0 +1,13 @@
+🔧 DOCKER USER CREATION COMMAND FIX
+
+PROBLEM: Mixed Alpine/Debian commands in Dockerfile
+❌ Alpine: addgroup -g 1001 -S nodejs && adduser -S backend -u 1001  
+✅ Debian: groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs backend
+
+COMPREHENSIVE FIX APPLIED:
+✅ Consistent Debian environment throughout Dockerfile
+✅ Proper user/group creation with Debian utilities
+✅ Maintained security with non-root user
+
+Ready to commit and redeploy with consistent Debian commands.
+

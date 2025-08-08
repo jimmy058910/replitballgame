@@ -1,6 +1,6 @@
 import express from 'express';
 import { simulateEnhancedMatch } from '../services/matchSimulation';
-import { Player } from '../../shared/types/api';
+import { Player } from '@shared/types/api.js';
 
 const router = express.Router();
 

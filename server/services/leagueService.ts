@@ -1,6 +1,6 @@
 import type { Player, Prisma } from "../../generated/prisma/index.js";
-import { generateRandomName, getFullName } from "@shared/names";
-import { generatePotential } from "@shared/potentialSystem";
+import { generateRandomName, getFullName } from "@shared/names.js";
+import { generatePotential } from "@shared/potentialSystem.js";
 import gameConfig from "../config/game_config.json" with { type: "json" };
 
 export function generateRandomPlayer(name: string | null, race: string, teamId: number, position?: string): Omit<Player, 'id' | 'createdAt' | 'updatedAt' | 'teamId'> & { teamId: number } {

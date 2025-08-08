@@ -49,7 +49,7 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     console.log(`[DEBUG] Found ${exhibitionMatches.length} exhibition matches out of ${allMatches.length} total matches`);
     
     // Use proper Eastern Time-based calculation that matches the 3AM reset time
-    const { getCurrentGameDayRange } = await import('../../shared/timezone');
+    const { getCurrentGameDayRange } = await import('../../shared/timezone.js');
     const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
     
     console.log(`[DEBUG] Game Day Range: Start: ${todayStart.toISOString()}, End: ${todayEnd.toISOString()}`);
@@ -220,7 +220,7 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
     // Check exhibition game limits using proper Eastern Time calculation
-    const { getCurrentGameDayRange } = await import('../../shared/timezone');
+    const { getCurrentGameDayRange } = await import('../../shared/timezone.js');
     const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
 
     const allExhibitionMatchesToday = await prisma.game.findMany({
@@ -367,7 +367,7 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
     // Check exhibition game limits using proper Eastern Time calculation
-    const { getCurrentGameDayRange } = await import('../../shared/timezone');
+    const { getCurrentGameDayRange } = await import('../../shared/timezone.js');
     const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
 
     const allExhibitionMatchesToday = await prisma.game.findMany({
@@ -483,7 +483,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
     }
 
     // Check exhibition game limits using proper Eastern Time calculation
-    const { getCurrentGameDayRange } = await import('../../shared/timezone');
+    const { getCurrentGameDayRange } = await import('../../shared/timezone.js');
     const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
 
     const allExhibitionMatchesToday = await prisma.game.findMany({

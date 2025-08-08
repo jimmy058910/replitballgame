@@ -1533,7 +1533,7 @@ class MatchStateManager {
       }
 
       // Import stadium system functions
-      const { calculateGameRevenue, calculateAttendance } = await import('../../shared/stadiumSystem');
+      const { calculateGameRevenue, calculateAttendance } = await import('../../shared/stadiumSystem.js');
 
       // Calculate attendance based on stadium capacity and fan loyalty
       const stadium = homeTeam.stadium;
