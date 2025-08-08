@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { storage } from '../storage';
+import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { Race, PlayerRole } from '../../generated/prisma';
 

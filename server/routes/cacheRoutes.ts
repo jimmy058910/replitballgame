@@ -5,9 +5,9 @@
 
 import { Router, Response } from 'express';
 import { memoryCache } from '../utils/memoryCache';
-import { cachedUserStorage } from '../storage/cachedUserStorage';
-import { cachedTeamStorage } from '../storage/cachedTeamStorage';
-import { cachedPlayerStorage } from '../storage/cachedPlayerStorage';
+import { cachedUserStorage } from '../storage/cachedUserStorage.js';
+import { cachedTeamStorage } from '../storage/cachedTeamStorage.js';
+import { cachedPlayerStorage } from '../storage/cachedPlayerStorage.js';
 import { asyncHandler } from '../services/errorService';
 
 const router = Router();

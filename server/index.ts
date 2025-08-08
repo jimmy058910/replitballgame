@@ -39,6 +39,10 @@ import { createHealthCheck, createBasicHealthCheck, createDetailedHealthCheck } 
 
 const app = express();
 
+// CRITICAL: Trust proxy for Google Cloud Run - MUST BE FIRST
+// This fixes ValidationError about X-Forwarded-For header
+app.set('trust proxy', 1);
+
 // BULLETPROOF CORS Configuration - Industry Standard
 // Detect production environment using multiple reliable methods
 const isProduction = process.env.NODE_ENV === 'production' || 
