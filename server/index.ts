@@ -50,6 +50,7 @@ async function startServer() {
     const { errorHandler, logInfo } = await import("./services/errorService.js");
     const { setupWebSocketServer, webSocketService } = await import("./services/webSocketService.js");
     const { webSocketManager } = await import("./websocket/webSocketManager.js");
+    const { setupVite, serveStatic } = await import("./vite.js");
     const logger = (await import("./utils/logger.js")).default;
     const { validateOrigin } = await import("./utils/security.js");
     const { sanitizeInputMiddleware, securityHeadersMiddleware } = await import("./middleware/security.js");
@@ -211,7 +212,7 @@ async function startServer() {
     app.use(passport.session());
 
     // Setup Google authentication
-    await setupGoogleAuth(passport);
+    await setupGoogleAuth(app);
     console.log('✅ Google authentication configured');
 
     // Register API routes
@@ -234,12 +235,32 @@ async function startServer() {
     webSocketManager.initialize(io);
     console.log('✅ WebSocket server configured');
 
+    // Setup frontend serving (Vite in development, static in production)
+    console.log('🔧 Setting up frontend serving...');
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🏭 Production mode: Serving static frontend files');
+      serveStatic(app);
+    } else {
+      console.log('🛠️ Development mode: Setting up Vite with hot reload');
+      await setupVite(app, httpServer);
+    }
+    console.log('✅ Frontend serving configured');
+
     // CRITICAL: Error handler MUST be last in middleware chain
     app.use(errorHandler);
     console.log('✅ Error handler added as final middleware');
 
     // CRITICAL CLOUD RUN FIX: MUST use PORT environment variable set by Cloud Run
+    // Cloud Run sets PORT=8080, development uses 5000
     const port = parseInt(process.env.PORT || "5000", 10);
+    
+    console.log('🔍 PRODUCTION PORT BINDING ANALYSIS:', {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT_FROM_ENV: process.env.PORT,
+      PARSED_PORT: port,
+      IS_CLOUD_RUN: !!(process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT),
+      EXPECTED_CLOUD_RUN_PORT: 8080
+    });
     
     console.log('🔍 CRITICAL PORT BINDING DEBUG:', {
       NODE_ENV: process.env.NODE_ENV,
