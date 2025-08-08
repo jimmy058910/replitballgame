@@ -3,8 +3,8 @@
 // Now, it re-exports the aggregated storage object from server/storage/index.ts
 // to maintain backward compatibility for existing imports while transitioning.
 
-import { storage, type IAppStorage } from "./storage/index";
-import { prisma } from "./db"; // Use Prisma instead of Drizzle
+import { storage, type IAppStorage } from "./storage/index.js";
+import { prisma } from "./db.js"; // Use Prisma instead of Drizzle
 
 // Export the aggregated storage instance
 export { storage };

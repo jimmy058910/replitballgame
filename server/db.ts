@@ -1,5 +1,5 @@
 import { PrismaClient, ItemType, Race, PlayerRole, TournamentStatus, TournamentType, MatchType, GameStatus } from '../generated/prisma';
-import ConnectionPoolOptimizer from './utils/connectionPoolOptimizer';
+import ConnectionPoolOptimizer from './utils/connectionPoolOptimizer.js';
 
 // Export Prisma types for use in route files
 export { ItemType, Race, PlayerRole, TournamentStatus, TournamentType, MatchType, GameStatus };

@@ -8,7 +8,7 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
-import { storage } from "./storage"; // Assuming this now points to your Prisma-based userStorage
+import { storage } from "./storage.js"; // Assuming this now points to your Prisma-based userStorage
 
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
