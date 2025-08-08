@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma/index.js';
 
 /**
  * Database Configuration Manager
@@ -172,7 +172,7 @@ try {
   // Production: Additional error context
   if (nodeEnv === 'production') {
     console.error('🔍 PRODUCTION ERROR CONTEXT:', {
-      prisma_client_exists: !!prismaClient,
+      prisma_client_exists: false, // Variable not yet assigned in catch block
       database_url_length: databaseUrl?.length || 0,
       error_type: typeof error,
       connection_attempt_failed: true,

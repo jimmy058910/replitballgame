@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/prisma/index.js';
 import ConnectionPoolOptimizer from './utils/connectionPoolOptimizer.js';
 
 // Types are exported from generated Prisma client - no need to re-export

@@ -1,5 +1,5 @@
-import type { GameStatus, MatchType, TournamentStatus, TournamentType } from '@prisma/client';
-import { PrismaClient } from '@prisma/client';
+import type { GameStatus, MatchType, TournamentStatus, TournamentType } from '../../generated/prisma/index.js';
+import { PrismaClient } from '../../generated/prisma/index.js';
 import { prisma } from '../db';
 import { logInfo } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone';

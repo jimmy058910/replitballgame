@@ -334,10 +334,10 @@ export class PlayerStorage {
     }
 
     // Check position requirements after release
-    const remainingMainRosterPlayers = mainRosterPlayers.filter(p => p.id !== playerId);
-    const blockerCount = remainingMainRosterPlayers.filter(p => p.role === 'BLOCKER').length;
-    const runnerCount = remainingMainRosterPlayers.filter(p => p.role === 'RUNNER').length;
-    const passerCount = remainingMainRosterPlayers.filter(p => p.role === 'PASSER').length;
+    const remainingMainRosterPlayers = mainRosterPlayers.filter((p: any) => p.id !== playerId);
+    const blockerCount = remainingMainRosterPlayers.filter((p: any) => p.role === 'BLOCKER').length;
+    const runnerCount = remainingMainRosterPlayers.filter((p: any) => p.role === 'RUNNER').length;
+    const passerCount = remainingMainRosterPlayers.filter((p: any) => p.role === 'PASSER').length;
 
     if (blockerCount < 4) {
       return { canRelease: false, reason: `Cannot release - would leave team with only ${blockerCount} Blockers (minimum 4 required)` };

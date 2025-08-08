@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import type { MatchType, GameStatus } from "@prisma/client";
+import type { MatchType, GameStatus } from "../../generated/prisma/index.js";
 
 /**
  * Unified Tournament Automation System

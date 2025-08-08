@@ -216,7 +216,7 @@ export class TeamFinancesStorage {
       });
 
       // Calculate total staff salaries (using level as salary base for now)
-      const totalStaffSalaries = staffMembers.reduce((sum, staff) => sum + (staff.level * 1000), 0);
+      const totalStaffSalaries = staffMembers.reduce((sum: number, staff: any) => sum + (staff.level * 1000), 0);
       const totalSalaries = totalStaffSalaries;
 
       // Update team finances with new projected expenses

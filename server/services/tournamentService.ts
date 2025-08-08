@@ -2,7 +2,7 @@ import { prisma } from "../db";
 import { randomUUID } from "crypto";
 import moment from "moment-timezone";
 import { PaymentHistoryService } from "./paymentHistoryService.js";
-import type { TournamentStatus, TournamentType } from "@prisma/client";
+import type { TournamentStatus, TournamentType } from "../../generated/prisma/index.js";
 
 export interface TournamentReward {
   credits: number;
