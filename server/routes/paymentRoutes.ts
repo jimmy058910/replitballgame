@@ -163,7 +163,7 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
     const { packageId } = purchaseGemsSchema.parse(req.body);
 
     // Use Master Economy v5 gem packages from store config
-    const storeConfig = await import("../config/store_config.json", { assert: { type: "json" } });
+    const storeConfig = await import("../config/store_config.json", { with: { type: "json" } });
     const gemPackages = storeConfig.default.gemPackages.map((pkg: any) => ({
       id: pkg.id,
       price: Math.round(pkg.price * 100), // Convert to cents
@@ -237,7 +237,7 @@ router.post("/create-subscription", isAuthenticated, async (req: any, res: Respo
     const { priceId } = subscribeRealmPassSchema.parse(req.body);
 
     // Get Realm Pass subscription details from store config
-    const storeConfig = await import("../config/store_config.json", { assert: { type: "json" } });
+    const storeConfig = await import("../config/store_config.json", { with: { type: "json" } });
     const realmPassConfig = storeConfig.default.realmPassSubscription;
     
     const user = await prisma.userProfile.findUnique({ where: { id: parseInt(userId) } });
