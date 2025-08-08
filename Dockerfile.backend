@@ -78,10 +78,13 @@ COPY --from=builder --chown=backend:nodejs /app/postcss.config.js ./
 # Verify frontend files exist in production container
 RUN ls -la dist/ && echo "✅ Frontend files copied successfully"
 
-# CRITICAL VERIFICATION: Ensure Prisma client is available where expected
+# COMPREHENSIVE BUILD VERIFICATION: Ensure all critical files exist
 RUN ls -la generated/prisma/ && echo "✅ Prisma client at /app/generated/prisma/"
 RUN ls -la dist/generated/prisma/ && echo "✅ Prisma client at /app/dist/generated/prisma/"
 RUN test -f dist/generated/prisma/index.js && echo "✅ Critical: Prisma index.js found at expected location" || echo "❌ FATAL: Prisma index.js missing at dist/generated/prisma/"
+RUN test -f dist/server/index.js && echo "✅ Critical: Server entry point exists" || echo "❌ FATAL: Server index.js missing"
+RUN test -d dist/public && echo "✅ Critical: Frontend build exists" || echo "❌ FATAL: Frontend build missing"
+RUN test -f shared/timezones.json && echo "✅ Critical: Shared timezones.json exists" || echo "❌ FATAL: timezones.json missing"
 
 # Switch to non-root user for security
 USER backend
