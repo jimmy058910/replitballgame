@@ -14,12 +14,38 @@ const globalForPrisma = globalThis as unknown as {
 function getDatabaseUrl(): string {
   const nodeEnv = process.env.NODE_ENV || 'development';
   
+  console.log('🔍 DATABASE URL RESOLUTION DEBUG:', {
+    NODE_ENV: nodeEnv,
+    DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
+    DATABASE_URL_PRODUCTION_EXISTS: !!process.env.DATABASE_URL_PRODUCTION,
+    DATABASE_URL_DEVELOPMENT_EXISTS: !!process.env.DATABASE_URL_DEVELOPMENT,
+    DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0,
+    DATABASE_URL_FIRST_30_CHARS: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'NONE'
+  });
+  
   if (nodeEnv === 'production') {
-    // Production database (live website)
-    const prodUrl = process.env.DATABASE_URL_PRODUCTION || process.env.DATABASE_URL;
+    // Production database (live website) - prioritize DATABASE_URL from Secret Manager
+    const prodUrl = process.env.DATABASE_URL || process.env.DATABASE_URL_PRODUCTION;
     if (!prodUrl) {
-      throw new Error('Production database URL not configured (DATABASE_URL_PRODUCTION or DATABASE_URL)');
+      console.error('❌ PRODUCTION DATABASE URL MISSING:', {
+        availableEnvVars: Object.keys(process.env).filter(k => k.includes('DATABASE')),
+        nodeEnv: nodeEnv,
+        secretManagerStatus: 'DATABASE_URL secret not loaded'
+      });
+      throw new Error('Production database URL not configured (DATABASE_URL or DATABASE_URL_PRODUCTION)');
     }
+    
+    // Validate URL is not localhost in production
+    if (prodUrl.includes('localhost') || prodUrl.includes('127.0.0.1')) {
+      console.error('❌ PRODUCTION DATABASE URL INVALID:', {
+        issue: 'localhost/127.0.0.1 detected in production DATABASE_URL',
+        url_preview: prodUrl.substring(0, 30) + '...',
+        solution: 'Update DATABASE_URL secret in Google Cloud Secret Manager with external database URL'
+      });
+      throw new Error('Production DATABASE_URL cannot point to localhost. Check Google Cloud Secret Manager.');
+    }
+    
+    console.log('✅ Production database URL validated:', prodUrl.substring(0, 50) + '...');
     return prodUrl;
   } else {
     // Development database (testing in Replit)
@@ -40,13 +66,30 @@ function getDatabaseUrlLazy(): string {
   
   const nodeEnv = process.env.NODE_ENV || 'development';
   
+  console.log('🔍 LAZY DATABASE URL RESOLUTION:', {
+    NODE_ENV: nodeEnv,
+    DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
+    DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0
+  });
+  
   if (nodeEnv === 'production') {
-    // Production database (live website)
-    const prodUrl = process.env.DATABASE_URL_PRODUCTION || process.env.DATABASE_URL;
+    // Production database (live website) - prioritize DATABASE_URL from Secret Manager
+    const prodUrl = process.env.DATABASE_URL || process.env.DATABASE_URL_PRODUCTION;
     if (!prodUrl) {
-      console.error('❌ CRITICAL: Production database URL not configured (DATABASE_URL_PRODUCTION or DATABASE_URL)');
-      throw new Error('Production database URL not configured (DATABASE_URL_PRODUCTION or DATABASE_URL)');
+      console.error('❌ CRITICAL: Production database URL not configured (DATABASE_URL or DATABASE_URL_PRODUCTION)');
+      throw new Error('Production database URL not configured (DATABASE_URL or DATABASE_URL_PRODUCTION)');
     }
+    
+    // Validate URL is not localhost in production
+    if (prodUrl.includes('localhost') || prodUrl.includes('127.0.0.1')) {
+      console.error('❌ PRODUCTION DATABASE URL INVALID (LAZY):', {
+        issue: 'localhost/127.0.0.1 detected in production DATABASE_URL',
+        url_preview: prodUrl.substring(0, 30) + '...',
+        solution: 'Update DATABASE_URL secret in Google Cloud Secret Manager with external database URL'
+      });
+      throw new Error('Production DATABASE_URL cannot point to localhost. Check Google Cloud Secret Manager.');
+    }
+    
     _databaseUrl = prodUrl;
     return prodUrl;
   } else {

@@ -29,6 +29,10 @@ COPY postcss.config.js ./
 # Generate Prisma client
 RUN npx prisma generate
 
+# Verify Prisma client generation
+RUN ls -la generated/prisma/ && echo "✅ Prisma client generated successfully"
+RUN test -f generated/prisma/index.js && echo "✅ Prisma index.js exists" || echo "❌ Prisma index.js missing"
+
 # INDUSTRY STANDARD: Compile TypeScript server to JavaScript for production
 RUN rm -rf dist && npm run build:all
 
@@ -73,6 +77,11 @@ COPY --from=builder --chown=backend:nodejs /app/postcss.config.js ./
 
 # Verify frontend files exist in production container
 RUN ls -la dist/ && echo "✅ Frontend files copied successfully"
+
+# CRITICAL VERIFICATION: Ensure Prisma client is available where expected
+RUN ls -la generated/prisma/ && echo "✅ Prisma client at /app/generated/prisma/"
+RUN ls -la dist/generated/prisma/ && echo "✅ Prisma client at /app/dist/generated/prisma/"
+RUN test -f dist/generated/prisma/index.js && echo "✅ Critical: Prisma index.js found at expected location" || echo "❌ FATAL: Prisma index.js missing at dist/generated/prisma/"
 
 # Switch to non-root user for security
 USER backend
