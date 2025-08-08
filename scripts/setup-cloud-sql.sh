@@ -18,7 +18,6 @@ gcloud sql instances create realm-rivalry-prod \
   --storage-size=10GB \
   --storage-auto-increase \
   --backup-start-time=03:00 \
-  --enable-bin-log \
   --deletion-protection \
   --project=$PROJECT_ID
 
