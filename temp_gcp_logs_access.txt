@@ -1,0 +1,23 @@
+## Google Cloud Log Explorer Access Instructions
+
+To access Google Cloud Log Explorer for better troubleshooting:
+
+1. Go to https://console.cloud.google.com/logs/query
+2. Set your project: direct-glider-465821-p7
+3. Use these filters for Cloud Run issues:
+
+**Container Logs:**
+resource.type="cloud_run_revision"
+resource.labels.service_name="realm-rivalry-backend"
+
+**Recent Deployment Logs:**
+resource.type="cloud_run_revision"
+resource.labels.service_name="realm-rivalry-backend"
+timestamp >= "2025-08-08T12:46:06Z"
+
+**Secret Access Errors:**
+resource.type="cloud_run_revision"
+resource.labels.service_name="realm-rivalry-backend"
+("Permission denied" OR "secret" OR "access denied")
+
+This will help you see real-time container startup logs and secret access issues.
