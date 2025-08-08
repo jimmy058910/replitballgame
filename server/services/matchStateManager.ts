@@ -1,6 +1,6 @@
 import { prisma } from "../db";
 console.log("🔍 DEBUG: prisma object:", typeof prisma, !!prisma);
-import type { Game, Player, Stadium, Team } from "../../generated/prisma";
+import type { Game, Player, Stadium, Team } from "../../generated/prisma/index.js";
 import { commentaryService } from "./commentaryService.js";
 import { injuryStaminaService } from "./injuryStaminaService.js";
 import { simulateEnhancedMatch } from "./matchSimulation.js";

@@ -7,7 +7,7 @@ import { isAuthenticated } from "../googleAuth";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from "../services/matchStateManager";
 import { z } from "zod";
-import { MatchType } from "../../generated/prisma";
+import { MatchType } from "../../generated/prisma/index.js";
 import { prisma } from "../db";
 
 // TODO: Move to TeamService or similar

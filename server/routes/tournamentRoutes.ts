@@ -5,7 +5,7 @@ import { tournamentStorage } from "../storage/tournamentStorage";
 import { isAuthenticated } from "../googleAuth";
 import { z } from "zod";
 import { getDivisionName } from "../../shared/divisionUtils";
-import { PrismaClient } from "../../generated/prisma/index";
+import { PrismaClient } from "../../generated/prisma/index.js";
 
 const prisma = new PrismaClient();
 

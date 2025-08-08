@@ -5,7 +5,7 @@
 
 import { stadiumEffectsCalculator, type StadiumData } from './stadiumEffects.js';
 import { configManager } from './configManager.js';
-import type { Stadium } from '../../generated/prisma';
+import type { Stadium } from '../../generated/prisma/index.js';
 
 export interface EnhancedStadiumEffects {
   intimidationFactor: number;

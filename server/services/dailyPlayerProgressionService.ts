@@ -1,5 +1,5 @@
 import { prisma } from '../db.js';
-import type { Prisma } from '../../generated/prisma';
+import type { Prisma } from '../../generated/prisma/index.js';
 import { getEasternTime } from '../../shared/timezone.js';
 
 /**

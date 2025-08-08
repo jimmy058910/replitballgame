@@ -8,7 +8,7 @@ import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
 import { TeamNameValidator } from "../services/teamNameValidation";
 import { AgingService } from "../services/agingService";
 import { generateRandomName } from "@shared/names";
-import { Race, PlayerRole, InjuryStatus } from "../../generated/prisma";
+import { Race, PlayerRole, InjuryStatus } from "../../generated/prisma/index.js";
 import { prisma } from '../db';
 import { getPlayerRole } from "@shared/playerUtils";
 import { formatSubdivisionName, getSubdivisionCapacityInfo } from "@shared/subdivisionUtils";

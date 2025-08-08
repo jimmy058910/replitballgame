@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { PrismaClient, Game } from '../../generated/prisma';
+import { PrismaClient, Game } from '../../generated/prisma/index.js';
 
 
 

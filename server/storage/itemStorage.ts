@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { PrismaClient, Item, InventoryItem, $Enums } from '../../generated/prisma';
+import { PrismaClient, Item, InventoryItem, $Enums } from '../../generated/prisma/index.js';
 
 
 

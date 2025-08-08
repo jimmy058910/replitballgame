@@ -1,5 +1,5 @@
 import { prisma } from "../db.js";
-import type { PaymentTransaction, Prisma } from "../../generated/prisma";
+import type { PaymentTransaction, Prisma } from "../../generated/prisma/index.js";
 
 export class PaymentHistoryService {
   /**

@@ -5,7 +5,7 @@
 
 import { storage } from './index.js';
 import { memoryCache } from '../utils/memoryCache';
-import type { Team } from '../../generated/prisma';
+import type { Team } from '../../generated/prisma/index.js';
 import { prisma } from '../db';
 
 export class CachedTeamStorage {

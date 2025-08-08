@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { PrismaClient, PaymentTransaction } from '../../generated/prisma';
+import { PrismaClient, PaymentTransaction } from '../../generated/prisma/index.js';
 
 
 
