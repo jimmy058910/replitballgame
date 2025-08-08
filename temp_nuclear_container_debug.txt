@@ -1,0 +1,26 @@
+🚨 NUCLEAR CONTAINER DEBUGGING APPROACH (Aug 8, 2025)
+
+CRITICAL ISSUE ANALYSIS:
+❌ Container consistently fails to start Node.js process
+❌ "No logs available" = Node.js never begins execution
+❌ Status remains "Unknown" despite generous 220-second startup window
+
+COMPREHENSIVE FIXES ATTEMPTED:
+✅ Port configuration (--port 8080 + httpGet.port=8080) 
+✅ Extended startup probe timeouts (220 seconds total)
+✅ Build system verification (dist/server/index.js exists)
+✅ Container architecture (linux/amd64, proper copying)
+✅ Health endpoint implementation (/healthz working locally)
+
+NUCLEAR DEBUGGING CHANGES:
+🔧 Removed dumb-init to isolate Node.js startup
+🔧 Added file permission verification at multiple stages
+🔧 Added content verification of entry file before execution
+🔧 Simplified CMD to direct Node.js invocation
+
+HYPOTHESIS:
+- File permissions issue with non-root user
+- ES modules compatibility with Cloud Run
+- Container runtime environment issue
+
+This deployment will provide maximum debugging information for container startup failure analysis.

@@ -71,8 +71,14 @@ COPY --from=builder --chown=backend:nodejs /app/postcss.config.js ./
 # Verify frontend files exist in production container
 RUN ls -la dist/ && echo "✅ Frontend files copied successfully"
 
+# DEBUGGING: Check file permissions before switching users
+RUN ls -la /app/dist/server/ && echo "✅ Server files accessible as root"
+
 # Switch to non-root user for security
 USER backend
+
+# DEBUGGING: Verify file permissions after user switch
+RUN ls -la /app/dist/server/ && echo "✅ Server files accessible as backend user"
 
 # CRITICAL CLOUD RUN FIXES: Environment and network configuration
 ENV NODE_ENV=production
@@ -86,6 +92,9 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# CRITICAL CONTAINER STARTUP FIX: Direct node invocation for proper signal handling
-# ES modules work automatically with "type": "module" in package.json
-CMD ["dumb-init", "node", "dist/server/index.js"]
+# NUCLEAR DEBUGGING APPROACH: Verify file permissions and startup
+RUN ls -la /app/dist/server/index.js && echo "✅ Entry file exists and permissions verified"
+RUN cat /app/dist/server/index.js | head -10 && echo "✅ Entry file content verified"
+
+# SIMPLIFIED STARTUP: Remove dumb-init to isolate Node.js startup issues
+CMD ["node", "dist/server/index.js"]
