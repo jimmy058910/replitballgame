@@ -33,8 +33,8 @@ RUN npx prisma generate
 RUN ls -la generated/prisma/ && echo "✅ Prisma client generated successfully"
 RUN test -f generated/prisma/index.js && echo "✅ Prisma index.js exists" || echo "❌ Prisma index.js missing"
 
-# INDUSTRY STANDARD: Compile TypeScript server to JavaScript for production
-RUN rm -rf dist && npm run build:all
+# INDUSTRY STANDARD: Compile TypeScript server to JavaScript for production  
+RUN rm -rf dist && npm run build:server && tsc-alias -p tsconfig.server.json --resolve-full-paths && npm run build
 
 # Verify both frontend and server compilation
 RUN ls -la dist/public/ && echo "✅ Frontend compiled successfully"
@@ -100,4 +100,4 @@ EXPOSE 8080
 
 # CRITICAL CONTAINER STARTUP FIX: Direct node invocation for proper signal handling
 # ES modules work automatically with "type": "module" in package.json
-CMD ["dumb-init", "node", "-r", "tsconfig-paths/register", "dist/server/index.js"]
+CMD ["dumb-init", "node", "dist/server/index.js"]
