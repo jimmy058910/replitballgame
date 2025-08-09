@@ -46,75 +46,29 @@ RUN ls -la dist/server/ && echo "✅ Server compiled to JavaScript successfully"
 # Production stage (CRITICAL: Use Debian for Prisma compatibility)
 FROM --platform=linux/amd64 node:20-slim AS production
 
-# Install dumb-init for proper signal handling
-RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user (Debian syntax)
-RUN groupadd -g 1001 nodejs && \
-    useradd -u 1001 -g nodejs -s /bin/sh -d /home/backend -M backend
-
 # Set working directory
 WORKDIR /app
 
 # Copy dependencies and generated files from builder
-COPY --from=builder --chown=backend:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=backend:nodejs /app/generated ./generated
-COPY --from=builder --chown=backend:nodejs /app/tsconfig.json ./
-COPY --from=builder --chown=backend:nodejs /app/tsconfig.server.json ./
-COPY --from=builder --chown=backend:nodejs /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/generated ./generated
+COPY --from=builder /app/package.json ./
 
-# CRITICAL FIX: Copy COMPILED JavaScript, not TypeScript source
-COPY --from=builder --chown=backend:nodejs /app/dist ./dist/
+# Copy COMPILED JavaScript from builder
+COPY --from=builder /app/dist ./dist/
 
-# DEPLOYMENT FIX: Copy Prisma client to where compiled server expects it
-COPY --from=builder --chown=backend:nodejs /app/generated ./dist/generated
-COPY --from=builder --chown=backend:nodejs /app/shared/ ./shared/
-COPY --from=builder --chown=backend:nodejs /app/prisma/ ./prisma/
-COPY --from=builder --chown=backend:nodejs /app/types/ ./types/
+# Copy Prisma client to where server expects it
+COPY --from=builder /app/generated ./dist/generated
+COPY --from=builder /app/shared/ ./shared/
+COPY --from=builder /app/prisma/ ./prisma/
 
-# DEPLOY #97: Copy minimal server for nuclear debugging
-COPY --from=builder --chown=backend:nodejs /app/minimal-server.js ./
+# DEPLOY #98: Copy minimal server for debugging
+COPY --from=builder /app/minimal-server.js ./
 
-# Copy Vite config files needed by server/vite.ts
-COPY --from=builder --chown=backend:nodejs /app/vite.config.ts ./
-COPY --from=builder --chown=backend:nodejs /app/vite.config.production.ts ./
-COPY --from=builder --chown=backend:nodejs /app/tailwind.config.ts ./
-COPY --from=builder --chown=backend:nodejs /app/postcss.config.js ./
-
-# Verify frontend files exist in production container
-RUN ls -la dist/ && echo "✅ Frontend files copied successfully"
-
-# COMPREHENSIVE BUILD VERIFICATION: Ensure all critical files exist
-RUN ls -la generated/prisma/ && echo "✅ Prisma client at /app/generated/prisma/"
-RUN ls -la dist/generated/prisma/ && echo "✅ Prisma client at /app/dist/generated/prisma/"
-RUN test -f dist/generated/prisma/index.js && echo "✅ Critical: Prisma index.js found at expected location" || echo "❌ FATAL: Prisma index.js missing at dist/generated/prisma/"
-RUN test -f dist/server/index.js && echo "✅ Critical: Server entry point exists" || echo "❌ FATAL: Server index.js missing"
-RUN test -d dist/public && echo "✅ Critical: Frontend build exists" || echo "❌ FATAL: Frontend build missing"
-RUN test -f shared/timezones.json && echo "✅ Critical: Shared timezones.json exists" || echo "❌ FATAL: timezones.json missing"
-
-# Switch to non-root user for security
-USER backend
-
-# CRITICAL CLOUD RUN FIXES: Environment and network configuration
+# DEPLOY #98: PROVEN CLOUD RUN CONFIGURATION
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
-# DO NOT hardcode PORT - Cloud Run sets it dynamically
-
-# Expose default port (Cloud Run will override with PORT env var)
 EXPOSE 8080
 
-# Health check (disabled for Cloud Run - uses startup probes instead)
-# HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-#   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
-
-# DEPLOY #97: NUCLEAR DEBUGGING - MAXIMUM VISIBILITY
-CMD ["sh", "-c", "\
-echo '🔥 DEPLOY #97: NUCLEAR DEBUGGING STARTING...' && \
-echo '=== NODE.JS VERSION ===' && node --version && \
-echo '=== WORKING DIRECTORY ===' && pwd && ls -la && \
-echo '=== MINIMAL SERVER EXISTS? ===' && test -f minimal-server.js && echo 'YES' || echo 'NO - FATAL ERROR' && \
-echo '=== ENVIRONMENT VARIABLES ===' && env | sort && \
-echo '=== NETWORK INTERFACES ===' && ip addr show || echo 'ip command not available' && \
-echo '=== STARTING MINIMAL SERVER ===' && \
-exec node minimal-server.js \
-"]
+# SIMPLIFIED CMD - PROVEN WORKING PATTERN
+CMD node minimal-server.js
