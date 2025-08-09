@@ -69,3 +69,7 @@ Dockerfile.debug
 Dockerfile.fixed
 Dockerfile.minimal
 Dockerfile.test
+
+# CRITICAL: Ensure production files are NOT ignored
+!Dockerfile.production
+!.github/workflows/production-deploy.yml
