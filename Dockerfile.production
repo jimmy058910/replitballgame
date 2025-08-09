@@ -20,7 +20,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig*.json ./
 
-# Install ALL dependencies (including devDependencies for build)
+# Install ALL dependencies (including devDependencies for build and tsx for runtime)
 RUN npm ci --include=dev
 
 # ===============================
@@ -84,7 +84,7 @@ WORKDIR /app
 # Copy package.json for dependency info
 COPY --from=builder /app/package.json ./
 
-# Copy ONLY production dependencies (but we need tsx for runtime)
+# Copy ALL dependencies (including devDependencies containing tsx)
 COPY --from=dependencies /app/node_modules ./node_modules
 
 # Copy source code (for tsx runtime compilation)

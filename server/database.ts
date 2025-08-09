@@ -10,47 +10,60 @@ import { PrismaClient } from '../generated/prisma/index.js';
  * even if external dependencies (like database) are temporarily unavailable.
  */
 
-// Environment-based database URL selection with comprehensive error handling
+// Cloud SQL connection management with development/production split
 function getDatabaseUrl(): string {
   const nodeEnv = process.env.NODE_ENV || 'development';
   
-  console.log('🔍 DATABASE INITIALIZATION DEBUG:', {
+  console.log('🔍 CLOUD SQL CONNECTION DEBUG:', {
     NODE_ENV: nodeEnv,
     DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
     DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0,
-    ALL_ENV_VARS_COUNT: Object.keys(process.env).length,
     DATABASE_RELATED_VARS: Object.keys(process.env).filter(key => key.includes('DATABASE'))
   });
   
+  const rawUrl = process.env.DATABASE_URL;
+  if (!rawUrl) {
+    console.error('❌ DATABASE URL MISSING:', {
+      nodeEnv: nodeEnv,
+      availableDbVars: Object.keys(process.env).filter(key => key.includes('DATABASE')),
+      troubleshooting: 'Check Secret Manager or environment configuration'
+    });
+    throw new Error(`DATABASE_URL not configured. Available DB vars: ${Object.keys(process.env).filter(key => key.includes('DATABASE')).join(', ')}`);
+  }
+
   if (nodeEnv === 'production') {
-    // Production database (live website)
-    const prodUrl = process.env.DATABASE_URL;
-    if (!prodUrl) {
-      console.error('❌ PRODUCTION DATABASE ERROR:', {
-        message: 'Production database URL not configured',
-        expectedVars: ['DATABASE_URL'],
-        availableDbVars: Object.keys(process.env).filter(key => key.includes('DATABASE')),
-        nodeEnv: nodeEnv,
-        troubleshooting: 'Check Google Cloud Secret Manager and IAM permissions'
-      });
-      throw new Error(`Production database URL not configured. Available DB vars: ${Object.keys(process.env).filter(key => key.includes('DATABASE')).join(', ')}`);
-    }
-    console.log('✅ Production database URL configured successfully');
-    return prodUrl;
+    // Production: Use Cloud SQL socket path (native Cloud Run integration)
+    console.log('✅ Production: Using Cloud SQL socket connection for Cloud Run');
+    return rawUrl;
   } else {
-    // Development database (testing in Replit)
-    const devUrl = process.env.DATABASE_URL;
-    if (!devUrl) {
-      console.error('❌ DEVELOPMENT DATABASE ERROR:', {
-        message: 'Development database URL not configured',
-        expectedVars: ['DATABASE_URL'],
-        availableDbVars: Object.keys(process.env).filter(key => key.includes('DATABASE')),
-        nodeEnv: nodeEnv
+    // Development: Convert socket path to TCP connection for Replit environment
+    if (rawUrl.includes('/cloudsql/')) {
+      console.log('🔄 Development: Converting Cloud SQL socket to TCP connection...');
+      
+      // Extract database details from socket URL
+      const match = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@localhost\/([^?]+)\?host=\/cloudsql\/([^:]+):([^:]+):([^&]+)/);
+      if (!match) {
+        console.error('❌ Unable to parse Cloud SQL socket URL format');
+        throw new Error('Invalid Cloud SQL URL format for development conversion');
+      }
+      
+      const [, username, password, database, project, region, instance] = match;
+      
+      // For development, we need the public IP of the Cloud SQL instance
+      // This would typically be set up with Cloud SQL Auth Proxy or allowlisted IPs
+      const devTcpUrl = `postgresql://${username}:${password}@34.XX.XX.XX:5432/${database}?sslmode=require`;
+      
+      console.log('⚠️  DEVELOPMENT DATABASE CONNECTION:', {
+        message: 'Using simulated TCP connection for development',
+        instance: `${project}:${region}:${instance}`,
+        note: 'In real setup, replace 34.XX.XX.XX with actual Cloud SQL public IP'
       });
-      throw new Error(`Development database URL not configured. Available DB vars: ${Object.keys(process.env).filter(key => key.includes('DATABASE')).join(', ')}`);
+      
+      return devTcpUrl;
+    } else {
+      console.log('✅ Development: Using provided TCP connection');
+      return rawUrl;
     }
-    console.log('✅ Development database URL configured successfully');
-    return devUrl;
   }
 }
 
@@ -70,6 +83,36 @@ export let databaseStatus = {
 };
 
 /**
+ * CLOUD RUN DATABASE URL VALIDATION
+ * 
+ * CRITICAL: Validate database URL format and handle both TCP and socket connections
+ */
+function validateDatabaseUrl(url: string): void {
+  if (url.includes('/cloudsql/')) {
+    console.log('🔍 CLOUD SQL SOCKET DETECTED:', {
+      socketPath: url.substring(url.indexOf('/cloudsql/'), url.indexOf('/cloudsql/') + 50) + '...',
+      format: 'Google Cloud SQL Unix Socket',
+      compatibility: 'Cloud Run Native'
+    });
+  } else if (url.includes('postgresql://')) {
+    const urlObj = new URL(url);
+    console.log('🔍 TCP DATABASE CONNECTION DETECTED:', {
+      host: urlObj.hostname,
+      port: urlObj.port || 5432,
+      database: urlObj.pathname.substring(1),
+      format: 'TCP Connection',
+      compatibility: 'Standard PostgreSQL'
+    });
+  } else {
+    console.error('❌ INVALID DATABASE URL FORMAT:', {
+      urlPreview: url.substring(0, 50) + '...',
+      expectedFormats: ['postgresql://...', 'postgresql://.../cloudsql/...']
+    });
+    throw new Error('Invalid DATABASE_URL format');
+  }
+}
+
+/**
  * LAZY DATABASE INITIALIZATION
  * 
  * CRITICAL: This function is ONLY called when database is actually needed,
@@ -85,7 +128,14 @@ async function initializeDatabase(): Promise<void> {
       console.log('🚀 [LAZY INIT] Starting database initialization...');
       
       databaseUrl = getDatabaseUrl();
-      dbHost = databaseUrl.split('@')[1]?.split('/')[0] || 'unknown';
+      validateDatabaseUrl(databaseUrl);
+      
+      // Extract host for monitoring (handle both TCP and socket formats)
+      if (databaseUrl.includes('/cloudsql/')) {
+        dbHost = 'cloudsql-socket';
+      } else {
+        dbHost = databaseUrl.split('@')[1]?.split('/')[0] || 'unknown';
+      }
 
       console.log(`🔗 [${nodeEnv.toUpperCase()}] Connecting to database: ${dbHost}`);
       

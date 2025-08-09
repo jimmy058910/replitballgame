@@ -9,8 +9,8 @@ console.log('--- BEGINNING COMPREHENSIVE ERROR HANDLING ---');
 async function startServer() {
   try {
     console.log('--- Phase 1: Initializing Sentry ---');
-    // CRITICAL: Import Sentry instrumentation FIRST
-    await import("./instrument.js");
+    // CRITICAL: Import Sentry instrumentation FIRST (tsx resolves .ts automatically)
+    await import("./instrument.ts");
     const Sentry = await import("@sentry/node");
     console.log('✅ Sentry imported successfully');
 
