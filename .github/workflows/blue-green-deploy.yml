@@ -80,13 +80,12 @@ jobs:
         COMMIT_SHA="${{ github.sha }}"
         SHORT_SHA="${COMMIT_SHA:0:8}"
         
-        # DEPLOY #99: MINIMAL CLOUD RUN DEPLOYMENT - No secrets, no Cloud SQL, no complexity
+        # DEPLOY #101: MINIMAL CLOUD RUN DEPLOYMENT - Fixed invalid port flag
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:$SHORT_SHA \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
-          --port 8080 \
           --memory 512Mi \
           --cpu 1 \
           --max-instances 1
