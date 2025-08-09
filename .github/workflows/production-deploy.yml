@@ -56,6 +56,16 @@ jobs:
     - name: Configure Docker authentication
       run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
+    - name: Get project number for explicit secret references
+      id: project-info
+      run: |
+        echo "🔍 Retrieving project number to fix secret resolution issue"
+        PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
+        echo "PROJECT_NUMBER=$PROJECT_NUMBER" >> $GITHUB_ENV
+        echo "✅ Project ID: ${{ env.PROJECT_ID }}"
+        echo "✅ Project Number: $PROJECT_NUMBER"
+        echo "This will override Cloud Run's incorrect auto-resolution to project 108005641993"
+
     # ===============================
     # PHASE 2: BUILD PRODUCTION IMAGE
     # ===============================
@@ -121,7 +131,7 @@ jobs:
           --platform=managed \
           --allow-unauthenticated \
           --set-env-vars="NODE_ENV=production" \
-          --set-secrets="DATABASE_URL=realm-rivalry-database-url:latest,SESSION_SECRET=realm-rivalry-session-secret:latest,GOOGLE_CLIENT_ID=realm-rivalry-google-client-id:latest,GOOGLE_CLIENT_SECRET=realm-rivalry-google-client-secret:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest" \
+          --set-secrets="DATABASE_URL=projects/$PROJECT_NUMBER/secrets/realm-rivalry-database-url:latest,SESSION_SECRET=projects/$PROJECT_NUMBER/secrets/realm-rivalry-session-secret:latest,GOOGLE_CLIENT_ID=projects/$PROJECT_NUMBER/secrets/realm-rivalry-google-client-id:latest,GOOGLE_CLIENT_SECRET=projects/$PROJECT_NUMBER/secrets/realm-rivalry-google-client-secret:latest,VITE_FIREBASE_API_KEY=projects/$PROJECT_NUMBER/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/$PROJECT_NUMBER/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/$PROJECT_NUMBER/secrets/firebase-app-id:latest" \
           --memory=${{ env.MEMORY }} \
           --cpu=${{ env.CPU }} \
           --timeout=${{ env.TIMEOUT }} \
