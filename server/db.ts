@@ -80,14 +80,21 @@ function getDatabaseUrlLazy(): string {
       throw new Error('Production database URL not configured (DATABASE_URL)');
     }
     
-    // Validate URL is not localhost in production
-    if (prodUrl.includes('localhost') || prodUrl.includes('127.0.0.1')) {
+    // Validate URL is not localhost in production (with Cloud Run exception)
+    const isCloudRun = process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT;
+    if ((prodUrl.includes('localhost') || prodUrl.includes('127.0.0.1')) && isCloudRun) {
       console.error('❌ PRODUCTION DATABASE URL INVALID (LAZY):', {
-        issue: 'localhost/127.0.0.1 detected in production DATABASE_URL',
+        issue: 'localhost/127.0.0.1 detected in production DATABASE_URL in Cloud Run',
         url_preview: prodUrl.substring(0, 30) + '...',
-        solution: 'Update DATABASE_URL secret in Google Cloud Secret Manager with external database URL'
+        solution: 'Update DATABASE_URL secret in Google Cloud Secret Manager with external database URL',
+        cloudRun: { K_SERVICE: process.env.K_SERVICE, PROJECT: process.env.GOOGLE_CLOUD_PROJECT }
       });
-      throw new Error('Production DATABASE_URL cannot point to localhost. Check Google Cloud Secret Manager.');
+      throw new Error('Production DATABASE_URL cannot point to localhost in Cloud Run. Check Google Cloud Secret Manager.');
+    }
+    
+    // Allow localhost in testing/development environments even with NODE_ENV=production
+    if (prodUrl.includes('localhost') || prodUrl.includes('127.0.0.1')) {
+      console.log('⚠️  WARNING: Using localhost database URL in production mode (development/testing environment)');
     }
     
     _databaseUrl = prodUrl;
