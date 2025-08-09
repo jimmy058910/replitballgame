@@ -49,14 +49,15 @@ function getDatabaseUrl(): string {
       
       const [, username, password, database, project, region, instance] = match;
       
-      // For development, we need the public IP of the Cloud SQL instance
-      // This would typically be set up with Cloud SQL Auth Proxy or allowlisted IPs
-      const devTcpUrl = `postgresql://${username}:${password}@34.XX.XX.XX:5432/${database}?sslmode=require`;
+      // For development, use the public IP of the Cloud SQL instance
+      const publicIP = '35.225.150.44'; // realm-rivalry-dev public IP from Cloud Console
+      const devTcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require`;
       
       console.log('⚠️  DEVELOPMENT DATABASE CONNECTION:', {
-        message: 'Using simulated TCP connection for development',
+        message: 'Using TCP connection to Cloud SQL public IP for development',
         instance: `${project}:${region}:${instance}`,
-        note: 'In real setup, replace 34.XX.XX.XX with actual Cloud SQL public IP'
+        publicIP: publicIP,
+        connectionType: 'TCP with SSL'
       });
       
       return devTcpUrl;
