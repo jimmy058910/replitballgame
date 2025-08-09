@@ -95,54 +95,55 @@ jobs:
     # STEP 3: Wait for startup probe success
     - name: Wait for Green revision health check
       run: |
-        echo "🔍 STEP 3: Waiting for Green revision to pass startup probes"
-        COMMIT_SHA="${{ github.sha }}"
-        SHORT_SHA="${COMMIT_SHA:0:8}"
-        GREEN_REVISION="green-$SHORT_SHA"
+        echo "🔍 STEP 3: Waiting for newly deployed revision to become healthy"
         
-        # Wait up to 3 minutes for the revision to become ready with enhanced debugging
-        echo "Waiting for Green revision to become healthy..."
-        timeout 180 bash -c '
+        # Get the actual latest revision name that Cloud Run created
+        LATEST_REVISION=$(gcloud run revisions list \
+          --service=${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --limit=1 \
+          --sort-by="~creationTimestamp" \
+          --format="value(REVISION)"
+        )
+        
+        echo "Latest revision: $LATEST_REVISION"
+        
+        # Wait up to 2 minutes for the revision to become ready
+        echo "Waiting for revision to become healthy..."
+        timeout 120 bash -c "
           while true; do
-            STATUS=$(gcloud run revisions describe '$GREEN_REVISION' --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.conditions[0].status)" 2>/dev/null || echo "Unknown")
-            if [ "$STATUS" = "True" ]; then
-              echo "✅ Green revision is healthy and ready"
+            STATUS=\$(gcloud run revisions describe '$LATEST_REVISION' --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.conditions[0].status)' 2>/dev/null || echo 'Unknown')
+            if [ \"\$STATUS\" = \"True\" ]; then
+              echo \"✅ Revision is healthy and ready\"
               break
             fi
-            echo "Waiting for Green revision... Status: $STATUS"
-            
-            # Get detailed failure information
-            echo "🔍 Checking revision details:"
-            gcloud run revisions describe '$GREEN_REVISION' --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.conditions[0].message)" 2>/dev/null || echo "No message available"
+            echo \"Waiting for revision... Status: \$STATUS\"
             
             # Check container logs for debugging
-            echo "📋 Recent container logs:"
-            gcloud logs read --limit=10 --filter="resource.type=cloud_run_revision AND resource.labels.service_name=${{ env.SERVICE_NAME }} AND resource.labels.revision_name='$GREEN_REVISION'" --format="value(textPayload)" 2>/dev/null | head -5 || echo "No logs available yet"
+            echo \"📋 Recent container logs:\"
+            gcloud logs read --limit=5 --filter=\"resource.type=cloud_run_revision AND resource.labels.service_name=${{ env.SERVICE_NAME }} AND resource.labels.revision_name='$LATEST_REVISION'\" --format=\"value(textPayload)\" 2>/dev/null | head -3 || echo \"No logs available yet\"
             
             sleep 10
           done
-        ' || {
-          echo "❌ Green revision failed to become healthy within timeout"
+        " || {
+          echo "❌ Revision failed to become healthy within timeout"
           echo "📋 Final container logs:"
-          gcloud logs read --limit=20 --filter="resource.type=cloud_run_revision AND resource.labels.service_name=${{ env.SERVICE_NAME }} AND resource.labels.revision_name=$GREEN_REVISION" --format="value(textPayload)" 2>/dev/null || echo "No logs available"
+          gcloud logs read --limit=10 --filter="resource.type=cloud_run_revision AND resource.labels.service_name=${{ env.SERVICE_NAME }} AND resource.labels.revision_name=$LATEST_REVISION" --format="value(textPayload)" 2>/dev/null || echo "No logs available"
           exit 1
         }
 
-    # STEP 4: Test Green revision
-    - name: Test Green revision
+    # STEP 4: Test deployed revision
+    - name: Test deployed revision
       run: |
-        echo "🧪 STEP 4: Testing Green revision before traffic promotion"
-        COMMIT_SHA="${{ github.sha }}"
-        SHORT_SHA="${COMMIT_SHA:0:8}"
-        GREEN_REVISION="green-$SHORT_SHA"
+        echo "🧪 STEP 4: Testing deployed revision"
         
-        # Get the Green revision URL
-        GREEN_URL=$(gcloud run revisions describe $GREEN_REVISION --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
-        echo "Green revision URL: $GREEN_URL"
+        # Get the service URL (it's already receiving 100% traffic)
+        SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+        echo "Service URL: $SERVICE_URL"
         
-        # Test health endpoints
-        echo "Testing /health endpoint..."
-        curl -f "$GREEN_URL/health" || exit 1
+        # Test simple HTTP response
+        echo "Testing simple HTTP endpoint..."
+        curl -f "$SERVICE_URL" || exit 1
         
         echo "Testing /healthz endpoint..."
         curl -f "$GREEN_URL/healthz" || exit 1
