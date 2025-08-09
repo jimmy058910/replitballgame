@@ -62,10 +62,11 @@ jobs:
         SHORT_SHA="${COMMIT_SHA:0:8}"
         echo "Using immutable tag: $SHORT_SHA"
         
+        # DEPLOY #99: Use proven simple Dockerfile pattern
         docker build \
           --no-cache \
           --platform linux/amd64 \
-          -f Dockerfile.backend \
+          -f Dockerfile.simple \
           -t ${{ env.IMAGE_NAME }}:$SHORT_SHA \
           .
         
@@ -79,22 +80,16 @@ jobs:
         COMMIT_SHA="${{ github.sha }}"
         SHORT_SHA="${COMMIT_SHA:0:8}"
         
-        # DEFINITIVE FIX: Complete Cloud SQL deployment with CORRECT SERVICE ACCOUNT
+        # DEPLOY #99: MINIMAL CLOUD RUN DEPLOYMENT - No secrets, no Cloud SQL, no complexity
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image ${{ env.IMAGE_NAME }}:$SHORT_SHA \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
-          --service-account="realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com" \
-          --add-cloudsql-instances="direct-glider-465821-p7:us-central1:realm-rivalry-prod" \
-          --set-env-vars NODE_ENV=production,DEPLOY_TIMESTAMP=$(date +%s),GOOGLE_CLOUD_PROJECT=direct-glider-465821-p7,NODE_OPTIONS="--max-old-space-size=1536" \
-          --set-secrets DATABASE_URL=DATABASE_URL:latest,SESSION_SECRET=SESSION_SECRET:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest \
-          --memory 1Gi \
+          --port 8080 \
+          --memory 512Mi \
           --cpu 1 \
-          --concurrency 20 \
-          --max-instances 3 \
-          --min-instances 0 \
-          --timeout 300s
+          --max-instances 1
         
         echo "✅ Service deployed successfully to us-central1"
 
