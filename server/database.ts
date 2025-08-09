@@ -74,9 +74,7 @@ try {
   if (nodeEnv === 'production') {
     console.log('🔍 PRODUCTION DATABASE DEBUG:', {
       NODE_ENV: process.env.NODE_ENV,
-      DATABASE_URL_PRODUCTION_EXISTS: !!process.env.DATABASE_URL_PRODUCTION,
       DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
-      DATABASE_URL_DEVELOPMENT_EXISTS: !!process.env.DATABASE_URL_DEVELOPMENT,
       SELECTED_DATABASE_URL: databaseUrl ? databaseUrl.substring(0, 50) + '...' : 'NONE',
       DATABASE_HOST: dbHost,
       ALL_ENV_KEYS: Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('VITE_FIREBASE')).sort()
@@ -159,7 +157,7 @@ try {
     nodeEnv: nodeEnv,
     databaseUrl: databaseUrl ? databaseUrl.substring(0, 50) + '...' : 'undefined',
     troubleshooting: {
-      checkSecrets: 'Verify DATABASE_URL_PRODUCTION exists in Google Cloud Secret Manager',
+      checkSecrets: 'Verify DATABASE_URL exists in Google Cloud Secret Manager',
       checkPermissions: 'Verify Cloud Run service account has Secret Manager access',
       checkNetwork: 'Verify Cloud Run can reach Neon database',
       logs: 'Check Cloud Run logs for more details'

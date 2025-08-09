@@ -19,10 +19,11 @@ export class SentryService {
       return;
     }
 
-    const dsn = process.env.SENTRY_DSN_BACKEND;
+    const dsn = process.env.SENTRY_DSN;
     
     if (!dsn) {
-      console.log('⚠️ [SENTRY] Backend DSN not found - error monitoring disabled');
+      console.log('⚠️ [SENTRY] DSN not configured - error monitoring disabled');
+      console.log('🔧 To enable Sentry: Add SENTRY_DSN secret to environment');
       return;
     }
 
