@@ -101,5 +101,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# DEPLOY #94: SECRET CLEANUP COMPLETE
-CMD ["sh", "-c", "echo '🔍 DEPLOY #94: Testing after secret cleanup (no more duplicates)...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ Database connection successful!' && echo 'Starting application with clean secrets...' && dumb-init node dist/server/index.js"]
+# DEPLOY #95: CRASH DETECTION AND LOGGING
+CMD ["sh", "-c", "echo '🔍 DEPLOY #95: Enhanced crash detection...' && echo '=== ENVIRONMENT VALIDATION ===' && env | grep -E '(PORT|NODE_ENV|DATABASE_URL|SESSION_SECRET|GOOGLE_CLIENT)' | head -10 && echo '=== TESTING PRISMA ===' && timeout 30 npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma || echo 'PRISMA FAILED!' && echo '=== STARTING NODE.JS APPLICATION ===' && echo 'About to start Node.js...' && timeout 60 dumb-init node dist/server/index.js 2>&1 | tee /tmp/startup.log || (echo '❌ NODE.JS CRASHED!' && cat /tmp/startup.log && exit 1)"]

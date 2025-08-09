@@ -28,21 +28,41 @@ async function startServer() {
     console.log('🔍 COMPREHENSIVE ENVIRONMENT VALIDATION:');
     const requiredEnvVars = ['DATABASE_URL', 'SESSION_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
     const missingEnvVars: string[] = [];
+    const invalidEnvVars: string[] = [];
     
     requiredEnvVars.forEach(envVar => {
       const value = process.env[envVar];
       const exists = !!value;
       const length = value ? value.length : 0;
-      console.log(`   ${envVar}: ${exists ? '✅ EXISTS' : '❌ MISSING'} (length: ${length})`);
-      if (!exists) missingEnvVars.push(envVar);
+      const preview = value ? value.substring(0, 20) + '...' : 'NONE';
+      console.log(`   ${envVar}: ${exists ? '✅ EXISTS' : '❌ MISSING'} (length: ${length}, preview: ${preview})`);
+      
+      if (!exists) {
+        missingEnvVars.push(envVar);
+      } else {
+        // Validate format
+        if (envVar === 'DATABASE_URL' && !value.includes('postgresql://')) {
+          invalidEnvVars.push(`${envVar} - not a PostgreSQL URL`);
+        }
+        if (envVar === 'GOOGLE_CLIENT_SECRET' && !value.startsWith('GOCSPX-')) {
+          invalidEnvVars.push(`${envVar} - wrong format, should start with GOCSPX-`);
+        }
+      }
     });
     
     if (missingEnvVars.length > 0) {
       console.error('❌ CRITICAL STARTUP FAILURE: Missing required environment variables:', missingEnvVars);
-      console.error('This will cause the application to crash. Check Secret Manager permissions.');
-      console.error('Cloud Run service account needs "Secret Manager Secret Accessor" role');
-      // Don't exit here - let the app try to start and show the actual error
+      console.error('This WILL cause the application to crash. Check Secret Manager permissions.');
+      throw new Error(`Missing environment variables: ${missingEnvVars.join(', ')}`);
     }
+    
+    if (invalidEnvVars.length > 0) {
+      console.error('❌ CRITICAL STARTUP FAILURE: Invalid environment variables:', invalidEnvVars);
+      console.error('Secret values are malformed or corrupted.');
+      throw new Error(`Invalid environment variables: ${invalidEnvVars.join(', ')}`);
+    }
+    
+    console.log('✅ All required environment variables are present and valid');
     
     console.log('🔍 CLOUD RUN ENVIRONMENT DETECTION:');
     console.log(`   K_SERVICE: ${process.env.K_SERVICE || 'NOT_SET'}`);
