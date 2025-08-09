@@ -9,14 +9,18 @@ let lastDatabaseTest: { connected: boolean; error: string | null; timestamp: Dat
   timestamp: new Date()
 };
 
-// Test database connection (used by health check) - DYNAMIC IMPORT ONLY
+// Test database connection (used by health check) - LAZY INITIALIZATION COMPATIBLE
 async function testDatabaseConnection() {
   try {
-    // CRITICAL FIX: Dynamic import to prevent startup database connections
-    const { prisma } = await import('./db.js');
-    await prisma.$queryRaw`SELECT 1 as test`;
-    lastDatabaseTest = { connected: true, error: null, timestamp: new Date() };
-    return true;
+    // CRITICAL FIX: Use new lazy initialization pattern to prevent startup database connections
+    const { testDatabaseConnection: dbTest } = await import('./database.js');
+    const result = await dbTest();
+    lastDatabaseTest = { 
+      connected: result.connected, 
+      error: result.error || null, 
+      timestamp: new Date() 
+    };
+    return result.connected;
   } catch (error) {
     lastDatabaseTest = { 
       connected: false, 

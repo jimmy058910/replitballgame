@@ -55,9 +55,11 @@ function getDatabaseUrl(): string {
   }
 }
 
-// CRITICAL FIX: Make database connection completely lazy to prevent startup crashes
+// CRITICAL CLOUD RUN FIX: Make database connection COMPLETELY lazy to prevent startup crashes
+// NOTHING should execute during module import - only variable declarations
 let _databaseUrl: string | null = null;
 let _prismaClient: PrismaClient | null = null;
+let _optimizationInitialized = false;
 
 function getDatabaseUrlLazy(): string {
   if (_databaseUrl) return _databaseUrl;
@@ -129,8 +131,8 @@ function createPrismaClientLazy(): PrismaClient {
       log: nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
     });
     
-    // Initialize aggressive connection optimization
-    const optimizer = ConnectionPoolOptimizer.getInstance(_prismaClient);
+    // Initialize optimization ONLY when client is created (not during module import)
+    initializeConnectionOptimization();
     
     return _prismaClient;
   } catch (error) {
@@ -212,11 +214,15 @@ const trackActivity = () => {
   }, IDLE_TIMEOUT);
 };
 
-// Aggressive connection monitoring with startup grace period - now lazy loaded
-console.log(`🔗 [COMPUTE-SAVER] Database connection monitoring initialized with 10-min startup grace period`);
+// Initialize connection optimization only when database is actually used
+function initializeConnectionOptimization() {
+  if (_optimizationInitialized) return;
+  _optimizationInitialized = true;
 
-// Monitor activity every 30 seconds and auto-disconnect (after grace period)
-const activityMonitor = setInterval(() => {
+  console.log(`🔗 [COMPUTE-SAVER] Database connection monitoring initialized with 10-min startup grace period (LAZY)`);
+
+  // Monitor activity every 30 seconds and auto-disconnect (after grace period)
+  const activityMonitor = setInterval(() => {
   const timeSinceStartup = Date.now() - startupTime;
   
   // Skip optimization during startup grace period
@@ -232,23 +238,31 @@ const activityMonitor = setInterval(() => {
     });
     lastActivity = Date.now();
   }
-}, CHECK_INTERVAL);
+  }, CHECK_INTERVAL);
 
-// Immediate connection cleanup on any process exit
-const immediateCleanup = async () => {
-  console.log('🚨 [COMPUTE-SAVER] Emergency connection cleanup triggered');
-  if (autoDisconnectTimer) clearTimeout(autoDisconnectTimer);
-  if (activityMonitor) clearInterval(activityMonitor);
-  await prisma.$disconnect().catch(() => {});
-};
+  // Set up cleanup handlers
+  setupCleanupHandlers(activityMonitor);
+}
 
-// Multiple emergency cleanup hooks
-process.on('beforeExit', immediateCleanup);
-process.on('exit', immediateCleanup);
-process.on('SIGINT', immediateCleanup);
-process.on('SIGTERM', immediateCleanup);
-process.on('uncaughtException', immediateCleanup);
-process.on('unhandledRejection', immediateCleanup);
+// Setup cleanup handlers (called only when database is initialized)
+function setupCleanupHandlers(activityMonitor: NodeJS.Timeout) {
+  const immediateCleanup = async () => {
+    console.log('🚨 [COMPUTE-SAVER] Emergency connection cleanup triggered');
+    if (autoDisconnectTimer) clearTimeout(autoDisconnectTimer);
+    if (activityMonitor) clearInterval(activityMonitor);
+    if (_prismaClient) {
+      await _prismaClient.$disconnect().catch(() => {});
+    }
+  };
+
+  // Multiple emergency cleanup hooks
+  process.on('beforeExit', immediateCleanup);
+  process.on('exit', immediateCleanup);
+  process.on('SIGINT', immediateCleanup);
+  process.on('SIGTERM', immediateCleanup);
+  process.on('uncaughtException', immediateCleanup);
+  process.on('unhandledRejection', immediateCleanup);
+}
 
 // Wrap Prisma operations to track activity
 const originalQuery = prisma.$queryRaw.bind(prisma);
