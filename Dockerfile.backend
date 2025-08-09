@@ -101,5 +101,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# COMPREHENSIVE DEBUG: Test all Cloud SQL access patterns
-CMD ["sh", "-c", "echo '🔍 TESTING: IAM permissions for Cloud SQL...' && echo 'Service Account:' && gcloud auth list --filter=status:ACTIVE --format='value(account)' && echo 'IAM Roles:' && gcloud projects get-iam-policy direct-glider-465821-p7 --flatten='bindings[].members' --filter='bindings.members:realm-rivalry-runner@direct-glider-465821-p7.iam.gserviceaccount.com' --format='table(bindings.role)' && echo 'Testing Prisma connection...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ IAM SUCCESS: Database connection working!' && dumb-init node dist/server/index.js"]
+# DEBUG: Test Cloud SQL Admin permission fix
+CMD ["sh", "-c", "echo '🔍 TESTING: Cloud SQL Admin permission...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ SUCCESS: Database connection working!' && dumb-init node dist/server/index.js"]
