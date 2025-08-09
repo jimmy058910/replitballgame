@@ -101,5 +101,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# FINAL PRODUCTION STARTUP: Normal application start
-CMD ["dumb-init", "node", "dist/server/index.js"]
+# DEBUG: Test database connection FIRST to prove IAM permissions work
+CMD ["sh", "-c", "echo '🔍 TESTING: IAM permissions for Cloud SQL...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ IAM SUCCESS: Database connection working!' && dumb-init node dist/server/index.js"]
