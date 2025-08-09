@@ -101,5 +101,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# DEPLOY #93: SECRET SYNCHRONIZATION FIX
-CMD ["sh", "-c", "echo '🔍 DEPLOY #93: Testing synchronized secrets after 92 deployments...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ Database connection successful!' && echo 'Starting application with synchronized secrets...' && dumb-init node dist/server/index.js"]
+# DEPLOY #94: SECRET CLEANUP COMPLETE
+CMD ["sh", "-c", "echo '🔍 DEPLOY #94: Testing after secret cleanup (no more duplicates)...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ Database connection successful!' && echo 'Starting application with clean secrets...' && dumb-init node dist/server/index.js"]
