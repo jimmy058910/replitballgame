@@ -32,8 +32,17 @@ function getDatabaseUrl(): string {
   }
 
   if (nodeEnv === 'production') {
-    // Production: Use Cloud SQL socket path (native Cloud Run integration)
+    // Production: Use Cloud SQL socket path for native Cloud Run integration
     console.log('✅ Production: Using Cloud SQL socket connection for Cloud Run');
+    
+    // Ensure production uses realm-rivalry-prod instance
+    if (rawUrl.includes('realm-rivalry-dev')) {
+      console.log('🔄 Production: Converting dev instance to prod instance...');
+      const prodUrl = rawUrl.replace('realm-rivalry-dev', 'realm-rivalry-prod');
+      console.log('✅ Production database URL updated to use realm-rivalry-prod instance');
+      return prodUrl;
+    }
+    
     return rawUrl;
   } else {
     // Development: Convert socket path to TCP connection for Replit environment
@@ -49,15 +58,16 @@ function getDatabaseUrl(): string {
       
       const [, username, password, database, project, region, instance] = match;
       
-      // For development, use the public IP of the Cloud SQL instance
-      const publicIP = '35.225.150.44'; // realm-rivalry-dev public IP from Cloud Console
+      // Use appropriate public IP based on instance
+      const publicIP = instance === 'realm-rivalry-prod' ? '34.171.83.78' : '35.225.150.44';
       const devTcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require`;
       
       console.log('⚠️  DEVELOPMENT DATABASE CONNECTION:', {
         message: 'Using TCP connection to Cloud SQL public IP for development',
         instance: `${project}:${region}:${instance}`,
         publicIP: publicIP,
-        connectionType: 'TCP with SSL'
+        connectionType: 'TCP with SSL',
+        note: 'Replit cannot access Cloud SQL socket paths directly'
       });
       
       return devTcpUrl;
@@ -128,7 +138,12 @@ async function initializeDatabase(): Promise<void> {
     try {
       console.log('🚀 [LAZY INIT] Starting database initialization...');
       
+      const originalUrl = process.env.DATABASE_URL;
+      console.log('🔍 ORIGINAL DATABASE_URL (first 80 chars):', originalUrl?.substring(0, 80) + '...');
+      
       databaseUrl = getDatabaseUrl();
+      console.log('🔍 CONVERTED DATABASE_URL (first 80 chars):', databaseUrl?.substring(0, 80) + '...');
+      
       validateDatabaseUrl(databaseUrl);
       
       // Extract host for monitoring (handle both TCP and socket formats)

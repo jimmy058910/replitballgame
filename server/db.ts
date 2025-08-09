@@ -69,7 +69,9 @@ function getDatabaseUrlLazy(): string {
   console.log('🔍 LAZY DATABASE URL RESOLUTION:', {
     NODE_ENV: nodeEnv,
     DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
-    DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0
+    DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0,
+    DATABASE_URL_PREVIEW: process.env.DATABASE_URL?.substring(0, 80) + '...',
+    CONTAINS_CLOUDSQL: process.env.DATABASE_URL?.includes('/cloudsql/') || false
   });
   
   if (nodeEnv === 'production') {
@@ -100,14 +102,44 @@ function getDatabaseUrlLazy(): string {
     _databaseUrl = prodUrl;
     return prodUrl;
   } else {
-    // Development database (testing in Replit)
-    const devUrl = process.env.DATABASE_URL;
-    if (!devUrl) {
+    // Development: Convert socket path to TCP connection for Replit environment
+    const rawUrl = process.env.DATABASE_URL;
+    if (!rawUrl) {
       console.error('❌ CRITICAL: Development database URL not configured (DATABASE_URL)');
       throw new Error('Development database URL not configured (DATABASE_URL)');
     }
-    _databaseUrl = devUrl;
-    return devUrl;
+    
+    if (rawUrl.includes('/cloudsql/')) {
+      console.log('🔄 Development: Converting Cloud SQL socket to TCP connection...');
+      
+      // Extract database details from socket URL
+      const match = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@localhost\/([^?]+)\?host=\/cloudsql\/([^:]+):([^:]+):([^&]+)/);
+      if (!match) {
+        console.error('❌ Unable to parse Cloud SQL socket URL format');
+        throw new Error('Invalid Cloud SQL URL format for development conversion');
+      }
+      
+      const [, username, password, database, project, region, instance] = match;
+      
+      // Use appropriate public IP based on instance
+      const publicIP = instance === 'realm-rivalry-prod' ? '34.171.83.78' : '35.225.150.44';
+      const devTcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require`;
+      
+      console.log('⚠️  DEVELOPMENT DATABASE CONNECTION:', {
+        message: 'Using TCP connection to Cloud SQL public IP for development',
+        instance: `${project}:${region}:${instance}`,
+        publicIP: publicIP,
+        connectionType: 'TCP with SSL',
+        note: 'Replit cannot access Cloud SQL socket paths directly'
+      });
+      
+      _databaseUrl = devTcpUrl;
+      return devTcpUrl;
+    } else {
+      console.log('✅ Development: Using provided TCP connection');
+      _databaseUrl = rawUrl;
+      return rawUrl;
+    }
   }
 }
 

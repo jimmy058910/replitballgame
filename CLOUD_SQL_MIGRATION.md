@@ -11,15 +11,19 @@ chmod +x scripts/setup-cloud-sql.sh
 
 ### 2. Configure Connection Strings
 
-**Production Database URL:**
-```
-postgresql://realm_app:PASSWORD@INSTANCE_IP:5432/realm_rivalry?sslmode=require
-```
+**Production Database (realm-rivalry-prod):**
+- Instance: `direct-glider-465821-p7:us-central1:realm-rivalry-prod`
+- Public IP: `34.171.83.78`
+- Socket: `/cloudsql/direct-glider-465821-p7:us-central1:realm-rivalry-prod`
+- Connection URL (Cloud Run): `postgresql://realm_app:PASSWORD@localhost/realm_rivalry?host=/cloudsql/direct-glider-465821-p7:us-central1:realm-rivalry-prod`
+- Connection URL (TCP): `postgresql://realm_app:PASSWORD@34.171.83.78:5432/realm_rivalry?sslmode=require`
 
-**Development Database URL:**
-```
-postgresql://realm_app:PASSWORD@INSTANCE_IP:5432/realm_rivalry?sslmode=require
-```
+**Development Database (realm-rivalry-dev):**
+- Instance: `direct-glider-465821-p7:us-central1:realm-rivalry-dev`
+- Public IP: `35.225.150.44`
+- Socket: `/cloudsql/direct-glider-465821-p7:us-central1:realm-rivalry-dev`
+- Connection URL (Cloud Run): `postgresql://realm_app:PASSWORD@localhost/realm_rivalry?host=/cloudsql/direct-glider-465821-p7:us-central1:realm-rivalry-dev`
+- Connection URL (TCP): `postgresql://realm_app:PASSWORD@35.225.150.44:5432/realm_rivalry?sslmode=require`
 
 ### 3. Update Secret Manager
 
