@@ -1,0 +1,12 @@
+{
+  "name": "realm-rivalry-simple",
+  "version": "1.0.0",
+  "description": "Minimal Cloud Run test server",
+  "main": "simple-server.js",
+  "scripts": {
+    "start": "node simple-server.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
