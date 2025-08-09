@@ -101,5 +101,6 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# RESTORE ORIGINAL APPLICATION - Database firewall issue identified
-CMD ["dumb-init", "node", "dist/server/index.js"]
+# DEFINITIVE DEBUGGING: Test database connection FIRST, then start application
+# This will give us verbose Prisma error messages if the database connection fails
+CMD ["sh", "-c", "echo '🔍 CONTAINER DEBUG: Testing database connectivity first...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ DATABASE CONNECTION SUCCESS - Starting application...' && dumb-init node dist/server/index.js"]
