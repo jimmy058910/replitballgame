@@ -67,8 +67,27 @@ jobs:
         echo "This will override Cloud Run's incorrect auto-resolution to project 108005641993"
 
     # ===============================
-    # PHASE 2: BUILD PRODUCTION IMAGE
+    # PHASE 2: BUILD FRONTEND & BACKEND
     # ===============================
+    - name: Setup Node.js for frontend build
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build frontend for production
+      run: |
+        echo "🎨 Building frontend for production deployment"
+        npm run build
+        echo "✅ Frontend build completed"
+      env:
+        VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+        VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+        VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+
     - name: Build production container image
       run: |
         echo "🏗️  PHASE 2: Building production container image"
@@ -151,8 +170,16 @@ jobs:
       run: |
         echo "🔍 PHASE 4: Comprehensive health verification"
         
-        # Get green revision URL (use the tagged URL directly)
-        GREEN_URL="https://green---${{ env.SERVICE_NAME }}-o6fd46yesq-uc.a.run.app"
+        # Get green revision URL dynamically
+        GREEN_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --format="value(status.traffic.url)" \
+          --filter="status.traffic.tag=green" | head -1)
+        
+        # Fallback to direct construction if filter fails
+        if [ -z "$GREEN_URL" ]; then
+          GREEN_URL="https://green---${{ env.SERVICE_NAME }}-o6fd46yesq-uc.a.run.app"
+        fi
         
         echo "Green URL: $GREEN_URL"
         
@@ -191,6 +218,30 @@ jobs:
         echo "✅ Green revision health verification completed"
 
     # ===============================
+    # PHASE 4.5: DEPLOY FRONTEND
+    # ===============================
+    - name: Deploy Frontend to Firebase
+      run: |
+        echo "🎨 PHASE 4.5: Deploying frontend to Firebase Hosting"
+        
+        # Install Firebase CLI
+        npm install -g firebase-tools
+        
+        # Deploy frontend
+        firebase deploy --project ${{ env.PROJECT_ID }}
+        
+        echo "✅ Frontend deployed to Firebase Hosting"
+        
+        # Test frontend deployment
+        sleep 10
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ env.PROJECT_ID }}.web.app)
+        if [ "$STATUS" = "200" ]; then
+          echo "✅ Frontend is live and responding"
+        else
+          echo "⚠️ Frontend deployment status: HTTP $STATUS"
+        fi
+
+    # ===============================
     # PHASE 5: GRADUAL TRAFFIC SHIFT
     # ===============================
     - name: Gradual traffic promotion (10% → 50% → 100%)
@@ -205,7 +256,8 @@ jobs:
         echo "Step 1: Promoting 10% traffic to Green..."
         gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
           --region=${{ env.REGION }} \
-          --to-tags="green=10"
+          --to-tags="green=10" \
+          --platform=managed
         
         # Monitor for 30 seconds
         echo "Monitoring 10% traffic for 30 seconds..."
@@ -215,7 +267,8 @@ jobs:
         echo "Step 2: Promoting 50% traffic to Green..."
         gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
           --region=${{ env.REGION }} \
-          --to-tags="green=50"
+          --to-tags="green=50" \
+          --platform=managed
         
         # Monitor for 30 seconds
         echo "Monitoring 50% traffic for 30 seconds..."
@@ -225,7 +278,8 @@ jobs:
         echo "Step 3: Promoting 100% traffic to Green (Blue-Green completion)..."
         gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
           --region=${{ env.REGION }} \
-          --to-tags="green=100"
+          --to-tags="green=100" \
+          --platform=managed
         
         echo "✅ Blue-Green deployment completed - Green is now Blue"
 
