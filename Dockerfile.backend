@@ -101,5 +101,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# DEPLOY #91: Fix CUSTOM service account permissions
-CMD ["sh", "-c", "echo '🔍 DEPLOY #91: Testing CUSTOM service account with Cloud SQL Admin...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ SUCCESS: After 91 deployments - WE FINALLY FIXED IT!' && dumb-init node dist/server/index.js"]
+# DEPLOY #92: COMPREHENSIVE STARTUP DEBUGGING
+CMD ["sh", "-c", "echo '🔍 DEPLOY #92: Comprehensive startup debugging...' && echo 'Environment Variables:' && env | grep -E '(DATABASE_URL|SESSION_SECRET|GOOGLE_CLIENT|VITE_|NODE_ENV|PORT)' && echo 'Testing database connection...' && npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma && echo '✅ Database connection successful!' && echo 'Starting Node.js application...' && dumb-init node dist/server/index.js"]
