@@ -68,5 +68,4 @@ monitoring-policy.yaml
 Dockerfile.debug
 Dockerfile.fixed
 Dockerfile.minimal
-Dockerfile.simple
 Dockerfile.test

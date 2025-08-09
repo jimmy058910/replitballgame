@@ -1,0 +1,22 @@
+# DEPLOY #99: PROVEN SIMPLE PATTERN - Based on Google's official examples
+FROM --platform=linux/amd64 node:20-slim
+
+WORKDIR /usr/src/app
+
+# Copy minimal dependencies first
+COPY package-simple.json ./package.json
+
+# Install only production dependencies (no build complexity)  
+RUN npm install --only=production
+
+# Copy simple server
+COPY simple-server.js ./
+
+# Set environment
+ENV NODE_ENV=production
+
+# Expose port (documentation only - Cloud Run sets PORT)
+EXPOSE 8080
+
+# Use simple node command
+CMD ["node", "simple-server.js"]
