@@ -107,5 +107,14 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# DEPLOY #97: NUCLEAR OPTION - MINIMAL SERVER ONLY
-CMD ["sh", "-c", "echo '🔥 DEPLOY #97: NUCLEAR OPTION - MINIMAL SERVER...' && echo '=== ENVIRONMENT CHECK ===' && env | grep -E '(PORT|NODE_ENV|K_SERVICE)' && echo '=== STARTING MINIMAL SERVER ===' && node minimal-server.js"]
+# DEPLOY #97: NUCLEAR DEBUGGING - MAXIMUM VISIBILITY
+CMD ["sh", "-c", "\
+echo '🔥 DEPLOY #97: NUCLEAR DEBUGGING STARTING...' && \
+echo '=== NODE.JS VERSION ===' && node --version && \
+echo '=== WORKING DIRECTORY ===' && pwd && ls -la && \
+echo '=== MINIMAL SERVER EXISTS? ===' && test -f minimal-server.js && echo 'YES' || echo 'NO - FATAL ERROR' && \
+echo '=== ENVIRONMENT VARIABLES ===' && env | sort && \
+echo '=== NETWORK INTERFACES ===' && ip addr show || echo 'ip command not available' && \
+echo '=== STARTING MINIMAL SERVER ===' && \
+exec node minimal-server.js \
+"]
