@@ -1,19 +1,17 @@
-name: Blue-Green Deploy (Zero-Downtime)
+name: Simple Test Deployment
 
 on:
   workflow_dispatch:
     inputs:
-      confirm_blue_green:
-        description: 'Confirm Blue-Green deployment strategy'
+      confirm_simple_deploy:
+        description: 'Deploy simple test container'
         required: true
         default: 'yes'
         type: choice
         options:
         - yes
         - no
-  push:
-    branches: [ main ]
-    # Removed paths-ignore to ensure all changes trigger deployment
+  # NOTE: Removed push trigger - Production workflow handles automatic deployments
 
 env:
   PROJECT_ID: direct-glider-465821-p7
@@ -140,9 +138,13 @@ jobs:
           exit 1
         fi
         
-        echo "🎉 DEPLOYMENT COMPLETE: Container successfully deployed and responding"
+        echo "🎉 SIMPLE DEPLOYMENT COMPLETE: Container successfully deployed and responding"
+        echo ""
+        echo "⚠️  NOTICE: This simple deployment is for testing only"
+        echo "🚀 For PRODUCTION deployments, use the Production Blue-Green Deployment workflow"
+        echo "📋 Trigger: Push to main branch or manually run 'Production Blue-Green Deployment'"
 
-    # EMERGENCY ROLLBACK (manual trigger only)
+    # EMERGENCY ROLLBACK (manual trigger only)  
     - name: Prepare rollback information
       if: always()
       run: |

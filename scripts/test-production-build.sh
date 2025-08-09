@@ -50,9 +50,15 @@ else
     exit 1
 fi
 
-echo "📋 Step 6: Test server startup (compilation only)"
-# Test server imports without running
-node -c dist/server/index.js && echo "✅ Server JavaScript syntax valid" || echo "❌ Server syntax errors"
+echo "📋 Step 6: Test server startup (syntax validation only)"
+# Test server JavaScript syntax without executing
+node --check dist/server/index.js && echo "✅ Server JavaScript syntax valid" || echo "❌ Server syntax errors"
+
+# Additional verification without process execution
+echo "📋 Step 7: Verify build integrity"
+echo "Server files:" && ls -la dist/server/ | head -5
+echo "Frontend files:" && ls -la dist/public/ | head -5
+echo "Prisma client:" && ls -la node_modules/.prisma/client/ | head -3
 
 echo ""
 echo "🎉 PRODUCTION BUILD TEST COMPLETED"
