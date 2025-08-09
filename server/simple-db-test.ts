@@ -4,7 +4,7 @@ import { PrismaClient } from '../generated/prisma/index.js';
 const testPrisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL_DEVELOPMENT || process.env.DATABASE_URL
+      url: process.env.DATABASE_URL
     }
   }
 });

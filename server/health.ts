@@ -47,7 +47,7 @@ export function createBasicHealthCheck() {
             K_REVISION: process.env.K_REVISION || 'not-set',
             // Check critical secrets without exposing values
             secrets: {
-              DATABASE_URL_PRODUCTION: !!process.env.DATABASE_URL_PRODUCTION,
+              DATABASE_URL: !!process.env.DATABASE_URL,
               VITE_FIREBASE_API_KEY: !!process.env.VITE_FIREBASE_API_KEY,
               VITE_FIREBASE_PROJECT_ID: !!process.env.VITE_FIREBASE_PROJECT_ID,
               GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
@@ -111,7 +111,6 @@ export function createDetailedHealthCheck() {
         PORT: process.env.PORT,
         GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
         K_SERVICE: process.env.K_SERVICE,
-        DATABASE_URL_PRODUCTION_EXISTS: !!process.env.DATABASE_URL_PRODUCTION,
         DATABASE_URL_EXISTS: !!process.env.DATABASE_URL
       });
 

@@ -12,10 +12,7 @@ function getDatabaseUrl(): string {
   
   console.log('🔍 DATABASE INITIALIZATION DEBUG:', {
     NODE_ENV: nodeEnv,
-    DATABASE_URL_PRODUCTION_EXISTS: !!process.env.DATABASE_URL_PRODUCTION,
     DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
-    DATABASE_URL_DEVELOPMENT_EXISTS: !!process.env.DATABASE_URL_DEVELOPMENT,
-    DATABASE_URL_PRODUCTION_LENGTH: process.env.DATABASE_URL_PRODUCTION?.length || 0,
     DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0,
     ALL_ENV_VARS_COUNT: Object.keys(process.env).length,
     DATABASE_RELATED_VARS: Object.keys(process.env).filter(key => key.includes('DATABASE'))
@@ -23,11 +20,11 @@ function getDatabaseUrl(): string {
   
   if (nodeEnv === 'production') {
     // Production database (live website)
-    const prodUrl = process.env.DATABASE_URL_PRODUCTION || process.env.DATABASE_URL;
+    const prodUrl = process.env.DATABASE_URL;
     if (!prodUrl) {
       console.error('❌ PRODUCTION DATABASE ERROR:', {
         message: 'Production database URL not configured',
-        expectedVars: ['DATABASE_URL_PRODUCTION', 'DATABASE_URL'],
+        expectedVars: ['DATABASE_URL'],
         availableDbVars: Object.keys(process.env).filter(key => key.includes('DATABASE')),
         nodeEnv: nodeEnv,
         troubleshooting: 'Check Google Cloud Secret Manager and IAM permissions'
@@ -38,11 +35,11 @@ function getDatabaseUrl(): string {
     return prodUrl;
   } else {
     // Development database (testing in Replit)
-    const devUrl = process.env.DATABASE_URL_DEVELOPMENT || process.env.DATABASE_URL;
+    const devUrl = process.env.DATABASE_URL;
     if (!devUrl) {
       console.error('❌ DEVELOPMENT DATABASE ERROR:', {
         message: 'Development database URL not configured',
-        expectedVars: ['DATABASE_URL_DEVELOPMENT', 'DATABASE_URL'],
+        expectedVars: ['DATABASE_URL'],
         availableDbVars: Object.keys(process.env).filter(key => key.includes('DATABASE')),
         nodeEnv: nodeEnv
       });

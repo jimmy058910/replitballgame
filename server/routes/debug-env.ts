@@ -17,7 +17,7 @@ router.get('/debug-env', async (req, res) => {
     }
 
     // Get database URL info without exposing full credentials
-    const prodUrl = process.env.DATABASE_URL_PRODUCTION;
+    const prodUrl = process.env.DATABASE_URL;
     const fallbackUrl = process.env.DATABASE_URL;
     
     const getUrlInfo = (url: string | undefined) => {
@@ -32,13 +32,13 @@ router.get('/debug-env', async (req, res) => {
       environment: nodeEnv,
       timestamp: new Date().toISOString(),
       databaseConfig: {
-        DATABASE_URL_PRODUCTION: getUrlInfo(prodUrl),
+        DATABASE_URL: getUrlInfo(prodUrl),
         DATABASE_URL_fallback: getUrlInfo(fallbackUrl),
         usingPrimary: !!prodUrl,
         usingFallback: !prodUrl && !!fallbackUrl
       },
       troubleshooting: {
-        message: 'Check if DATABASE_URL_PRODUCTION points to ep-wandering-firefly-a5tkbktt-pooler.us-east-2.aws.neon.tech',
+        message: 'Check if DATABASE_URL points to ep-wandering-firefly-a5tkbktt-pooler.us-east-2.aws.neon.tech',
         expectedHost: 'ep-wandering-firefly-a5tkbktt-pooler.us-east-2.aws.neon.tech',
         expectedUser: 'neondb_owner'
       }

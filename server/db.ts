@@ -17,22 +17,20 @@ function getDatabaseUrl(): string {
   console.log('🔍 DATABASE URL RESOLUTION DEBUG:', {
     NODE_ENV: nodeEnv,
     DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
-    DATABASE_URL_PRODUCTION_EXISTS: !!process.env.DATABASE_URL_PRODUCTION,
-    DATABASE_URL_DEVELOPMENT_EXISTS: !!process.env.DATABASE_URL_DEVELOPMENT,
     DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0,
     DATABASE_URL_FIRST_30_CHARS: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'NONE'
   });
   
   if (nodeEnv === 'production') {
-    // Production database (live website) - prioritize DATABASE_URL from Secret Manager
-    const prodUrl = process.env.DATABASE_URL || process.env.DATABASE_URL_PRODUCTION;
+    // Production database (live website) - use DATABASE_URL from Secret Manager
+    const prodUrl = process.env.DATABASE_URL;
     if (!prodUrl) {
       console.error('❌ PRODUCTION DATABASE URL MISSING:', {
         availableEnvVars: Object.keys(process.env).filter(k => k.includes('DATABASE')),
         nodeEnv: nodeEnv,
         secretManagerStatus: 'DATABASE_URL secret not loaded'
       });
-      throw new Error('Production database URL not configured (DATABASE_URL or DATABASE_URL_PRODUCTION)');
+      throw new Error('Production database URL not configured (DATABASE_URL)');
     }
     
     // Validate URL is not localhost in production
@@ -49,9 +47,9 @@ function getDatabaseUrl(): string {
     return prodUrl;
   } else {
     // Development database (testing in Replit)
-    const devUrl = process.env.DATABASE_URL_DEVELOPMENT || process.env.DATABASE_URL;
+    const devUrl = process.env.DATABASE_URL;
     if (!devUrl) {
-      throw new Error('Development database URL not configured (DATABASE_URL_DEVELOPMENT or DATABASE_URL)');
+      throw new Error('Development database URL not configured (DATABASE_URL)');
     }
     return devUrl;
   }
@@ -73,11 +71,11 @@ function getDatabaseUrlLazy(): string {
   });
   
   if (nodeEnv === 'production') {
-    // Production database (live website) - prioritize DATABASE_URL from Secret Manager
-    const prodUrl = process.env.DATABASE_URL || process.env.DATABASE_URL_PRODUCTION;
+    // Production database (live website) - use DATABASE_URL from Secret Manager
+    const prodUrl = process.env.DATABASE_URL;
     if (!prodUrl) {
-      console.error('❌ CRITICAL: Production database URL not configured (DATABASE_URL or DATABASE_URL_PRODUCTION)');
-      throw new Error('Production database URL not configured (DATABASE_URL or DATABASE_URL_PRODUCTION)');
+      console.error('❌ CRITICAL: Production database URL not configured (DATABASE_URL)');
+      throw new Error('Production database URL not configured (DATABASE_URL)');
     }
     
     // Validate URL is not localhost in production
@@ -94,10 +92,10 @@ function getDatabaseUrlLazy(): string {
     return prodUrl;
   } else {
     // Development database (testing in Replit)
-    const devUrl = process.env.DATABASE_URL_DEVELOPMENT || process.env.DATABASE_URL;
+    const devUrl = process.env.DATABASE_URL;
     if (!devUrl) {
-      console.error('❌ CRITICAL: Development database URL not configured (DATABASE_URL_DEVELOPMENT or DATABASE_URL)');
-      throw new Error('Development database URL not configured (DATABASE_URL_DEVELOPMENT or DATABASE_URL)');
+      console.error('❌ CRITICAL: Development database URL not configured (DATABASE_URL)');
+      throw new Error('Development database URL not configured (DATABASE_URL)');
     }
     _databaseUrl = devUrl;
     return devUrl;
@@ -117,7 +115,6 @@ function createPrismaClientLazy(): PrismaClient {
     if (nodeEnv === 'production') {
       console.log('🔍 PRODUCTION DB DEBUG:');
       console.log('  - NODE_ENV:', process.env.NODE_ENV);
-      console.log('  - DATABASE_URL_PRODUCTION exists:', !!process.env.DATABASE_URL_PRODUCTION);
       console.log('  - DATABASE_URL exists:', !!process.env.DATABASE_URL);
       console.log('  - Using URL pattern:', databaseUrl.substring(0, 50) + '...');
       console.log('  - Database user:', databaseUrl.split('://')[1]?.split(':')[0] || 'unknown');
