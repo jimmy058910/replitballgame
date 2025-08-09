@@ -265,16 +265,14 @@ async function startServer() {
     const httpServer = createServer(app);
     console.log('✅ HTTP server created (before heavy initialization)');
 
-    // Setup frontend serving (Vite in development, static in production)
-    console.log('🔧 Setting up frontend serving...');
-    if (process.env.NODE_ENV === 'production') {
-      console.log('🏭 Production mode: Serving static frontend files');
-      serveStatic(app);
-    } else {
+    // CRITICAL CLOUD RUN FIX: Only setup Vite in development - defer static serving for production
+    if (process.env.NODE_ENV !== 'production') {
       console.log('🛠️ Development mode: Setting up Vite with hot reload');
       await setupVite(app, httpServer);
+      console.log('✅ Development frontend serving configured');
+    } else {
+      console.log('🏭 Production mode: Frontend serving will be configured after port binding');
     }
-    console.log('✅ Frontend serving configured');
 
     // CRITICAL: Error handler MUST be last in middleware chain
     app.use(errorHandler);
@@ -370,6 +368,17 @@ async function startServer() {
       console.log('🔧 Phase 8: ASYNCHRONOUS HEAVY INITIALIZATION (after server bind)');
       
       try {
+        // CRITICAL CLOUD RUN FIX: Setup production frontend serving asynchronously
+        if (process.env.NODE_ENV === 'production') {
+          console.log('🔧 Setting up production static file serving asynchronously...');
+          try {
+            serveStatic(app);
+            console.log('✅ Production static file serving configured');
+          } catch (staticError) {
+            console.error('❌ Static file serving failed, but server will continue:', staticError);
+          }
+        }
+
         // Initialize Google Auth asynchronously (with error resilience)
         console.log('🔧 Setting up Google authentication asynchronously...');
         try {
