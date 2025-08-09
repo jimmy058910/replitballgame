@@ -151,11 +151,8 @@ jobs:
       run: |
         echo "🔍 PHASE 4: Comprehensive health verification"
         
-        # Get green revision URL
-        GREEN_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
-          --region=${{ env.REGION }} \
-          --format="value(status.traffic[0].url)" \
-          --filter="status.traffic[0].tag=green")
+        # Get green revision URL (use the tagged URL directly)
+        GREEN_URL="https://green---${{ env.SERVICE_NAME }}-o6fd46yesq-uc.a.run.app"
         
         echo "Green URL: $GREEN_URL"
         
