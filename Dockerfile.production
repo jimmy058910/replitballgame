@@ -84,15 +84,19 @@ WORKDIR /app
 # Copy package.json for dependency info
 COPY --from=builder /app/package.json ./
 
-# Copy ONLY production dependencies (excludes devDependencies)
+# Copy ONLY production dependencies (but we need tsx for runtime)
 COPY --from=dependencies /app/node_modules ./node_modules
 
-# Copy compiled application
-COPY --from=builder /app/dist ./dist
-
-# Copy Prisma files for runtime
-COPY --from=builder /app/prisma ./prisma
+# Copy source code (for tsx runtime compilation)
+COPY --from=builder /app/server ./server
 COPY --from=builder /app/shared ./shared
+COPY --from=builder /app/types ./types
+
+# Copy built frontend
+COPY --from=builder /app/dist/public ./server/public
+
+# Copy Prisma files for runtime  
+COPY --from=builder /app/prisma ./prisma
 
 # Create non-root user for security
 RUN groupadd -g 1001 nodejs && \
@@ -109,5 +113,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 
-# Start production server (compiled JavaScript)
-CMD ["node", "dist/server/index.js"]
+# CRITICAL CLOUD RUN FIX: Use tsx for reliable ES module + TypeScript path resolution
+CMD ["npx", "tsx", "server/index.ts"]

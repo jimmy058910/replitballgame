@@ -129,6 +129,36 @@ curl -s http://localhost:8080/healthz
 - ❌ **OLD**: Deploy → Test → Fail → Repeat (100+ failures)
 - ✅ **NEW**: Test locally → Fix issues → Deploy once successfully
 
+### **CRITICAL MODULE RESOLUTION BREAKTHROUGH - August 9, 2025**
+
+**Root Cause Discovery**: The deployment failures were NOT due to port binding issues (our Express server code was correct), but due to **module compilation and path resolution problems** in Cloud Run containers.
+
+#### **The Problem**
+- TypeScript path mappings (`@shared/*`) work perfectly in development with tsx
+- Pre-compiled JavaScript loses these path mappings, causing import failures in Cloud Run
+- Container startup fails when JavaScript can't resolve module imports
+
+#### **The Solution**  
+Use `tsx` at runtime instead of pre-compiled JavaScript:
+```dockerfile
+# OLD (Failed): Pre-compile TypeScript to JavaScript
+CMD ["node", "dist/server/index.js"]
+
+# NEW (Works): Use tsx for runtime compilation
+CMD ["npx", "tsx", "server/index.ts"]
+```
+
+#### **Why This Works**
+- ✅ tsx handles TypeScript compilation AND path mapping at runtime
+- ✅ Eliminates complex import resolution issues in containers
+- ✅ Maintains all ES module features (import.meta, import attributes)
+- ✅ More reliable than manually fixing all import paths in compiled output
+
+#### **Container Changes Required**
+- Copy TypeScript source files (not just compiled JavaScript)
+- Include tsx in production dependencies  
+- Use tsx command in CMD instruction
+
 ### **Local Verification Checklist**
 - [✅] Server starts without database connection
 - [✅] Health endpoints respond < 200ms  
