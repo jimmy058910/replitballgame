@@ -1,0 +1,32 @@
+DEPLOYMENT SECRET MAPPING FIX - Deployment #105
+
+PROBLEM RESOLVED:
+- Deployment workflow was looking for incorrectly named secrets in Google Cloud
+- User's actual Google Cloud secrets have different names
+
+SECRET MAPPING CORRECTIONS:
+❌ Old (incorrect): realm-rivalry-database-url
+✅ New (correct): DATABASE_URL
+
+❌ Old (incorrect): realm-rivalry-session-secret  
+✅ New (correct): SESSION_SECRET
+
+❌ Old (incorrect): realm-rivalry-google-client-id
+✅ New (correct): GOOGLE_CLIENT_ID
+
+❌ Old (incorrect): realm-rivalry-google-client-secret
+✅ New (correct): GOOGLE_CLIENT_SECRET
+
+✅ Already correct: firebase-api-key
+✅ Already correct: firebase-project-id  
+✅ Already correct: firebase-app-id
+
+SERVICE ACCOUNT CONFIRMATION:
+✅ Using: realm-rivalry-github-runner@direct-glider-465821-p7.iam.gserviceaccount.com
+✅ Has active keys (created Jul 31, 2025 and Aug 2, 2025)
+
+NEXT STEPS:
+1. User needs to add GOOGLE_SERVICE_ACCOUNT_KEY to Replit secrets (JSON key content)
+2. Deploy and test - should work with correct secret mapping
+
+STATUS: Ready for deployment once GOOGLE_SERVICE_ACCOUNT_KEY is added

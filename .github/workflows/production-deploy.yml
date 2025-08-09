@@ -131,7 +131,7 @@ jobs:
           --platform=managed \
           --allow-unauthenticated \
           --set-env-vars="NODE_ENV=production" \
-          --set-secrets="DATABASE_URL=projects/$PROJECT_NUMBER/secrets/realm-rivalry-database-url:latest,SESSION_SECRET=projects/$PROJECT_NUMBER/secrets/realm-rivalry-session-secret:latest,GOOGLE_CLIENT_ID=projects/$PROJECT_NUMBER/secrets/realm-rivalry-google-client-id:latest,GOOGLE_CLIENT_SECRET=projects/$PROJECT_NUMBER/secrets/realm-rivalry-google-client-secret:latest,VITE_FIREBASE_API_KEY=projects/$PROJECT_NUMBER/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/$PROJECT_NUMBER/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/$PROJECT_NUMBER/secrets/firebase-app-id:latest" \
+          --set-secrets="DATABASE_URL=projects/$PROJECT_NUMBER/secrets/DATABASE_URL:latest,SESSION_SECRET=projects/$PROJECT_NUMBER/secrets/SESSION_SECRET:latest,GOOGLE_CLIENT_ID=projects/$PROJECT_NUMBER/secrets/GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=projects/$PROJECT_NUMBER/secrets/GOOGLE_CLIENT_SECRET:latest,VITE_FIREBASE_API_KEY=projects/$PROJECT_NUMBER/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/$PROJECT_NUMBER/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/$PROJECT_NUMBER/secrets/firebase-app-id:latest" \
           --memory=${{ env.MEMORY }} \
           --cpu=${{ env.CPU }} \
           --timeout=${{ env.TIMEOUT }} \
