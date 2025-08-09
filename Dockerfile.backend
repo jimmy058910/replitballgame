@@ -26,6 +26,9 @@ COPY vite.config.production.ts ./
 COPY tailwind.config.ts ./
 COPY postcss.config.js ./
 
+# DEPLOY #97: Copy minimal server for nuclear debugging
+COPY minimal-server.js ./
+
 # Generate Prisma client
 RUN npx prisma generate
 
@@ -69,6 +72,9 @@ COPY --from=builder --chown=backend:nodejs /app/shared/ ./shared/
 COPY --from=builder --chown=backend:nodejs /app/prisma/ ./prisma/
 COPY --from=builder --chown=backend:nodejs /app/types/ ./types/
 
+# DEPLOY #97: Copy minimal server for nuclear debugging
+COPY --from=builder --chown=backend:nodejs /app/minimal-server.js ./
+
 # Copy Vite config files needed by server/vite.ts
 COPY --from=builder --chown=backend:nodejs /app/vite.config.ts ./
 COPY --from=builder --chown=backend:nodejs /app/vite.config.production.ts ./
@@ -101,5 +107,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# DEPLOY #96: REMOVED TIMEOUT - LET SERVER RUN INDEFINITELY
-CMD ["sh", "-c", "echo '🔍 DEPLOY #96: Fixed timeout issue...' && echo '=== ENVIRONMENT VALIDATION ===' && env | grep -E '(PORT|NODE_ENV|DATABASE_URL|SESSION_SECRET|GOOGLE_CLIENT)' | head -10 && echo '=== TESTING PRISMA ===' && timeout 30 npx prisma db push --accept-data-loss --schema=./prisma/schema.prisma || echo 'PRISMA FAILED!' && echo '=== STARTING NODE.JS SERVER (NO TIMEOUT) ===' && echo 'About to start Node.js server...' && dumb-init node dist/server/index.js"]
+# DEPLOY #97: NUCLEAR OPTION - MINIMAL SERVER ONLY
+CMD ["sh", "-c", "echo '🔥 DEPLOY #97: NUCLEAR OPTION - MINIMAL SERVER...' && echo '=== ENVIRONMENT CHECK ===' && env | grep -E '(PORT|NODE_ENV|K_SERVICE)' && echo '=== STARTING MINIMAL SERVER ===' && node minimal-server.js"]
