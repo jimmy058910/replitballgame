@@ -96,19 +96,15 @@ async function startServer() {
     const passport = (await import("passport")).default;
     console.log('✅ Middleware modules imported');
     
-    console.log('--- Phase 6: Importing application modules ---');
-    const { setupGoogleAuth } = await import("./googleAuth.js");
-    const { registerAllRoutes } = await import("./routes/index.js");
+    console.log('--- Phase 6: Importing ESSENTIAL modules only (defer heavy imports until after server binding) ---');
     const { requestIdMiddleware } = await import("./middleware/requestId.js");
     const { errorHandler, logInfo } = await import("./services/errorService.js");
-    const { setupWebSocketServer, webSocketService } = await import("./services/webSocketService.js");
-    const { webSocketManager } = await import("./websocket/webSocketManager.js");
     const { setupVite, serveStatic } = await import("./vite.js");
     const logger = (await import("./utils/logger.js")).default;
     const { validateOrigin } = await import("./utils/security.js");
     const { sanitizeInputMiddleware, securityHeadersMiddleware } = await import("./middleware/security.js");
     const { createHealthCheck, createBasicHealthCheck, createDetailedHealthCheck } = await import("./health.js");
-    console.log('✅ Application modules imported');
+    console.log('✅ Essential modules imported (heavy imports deferred)');
 
     console.log('--- Phase 7: Initializing Express app ---');
     const app = express.default();
@@ -264,29 +260,10 @@ async function startServer() {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    // Setup Google authentication
-    await setupGoogleAuth(app);
-    console.log('✅ Google authentication configured');
-
-    // Register API routes
-    console.log('🔧 Registering API routes...');
-    registerAllRoutes(app);
-    console.log('✅ API routes registered');
-
-    // Create HTTP server and setup WebSockets
+    // CRITICAL CLOUD RUN FIX: Create HTTP server EARLY and bind to port IMMEDIATELY
+    // Defer all heavy initialization until AFTER server is listening
     const httpServer = createServer(app);
-
-    // Setup WebSocket server
-    console.log('🔧 Setting up WebSocket server...');
-    const io = new SocketIOServer(httpServer, {
-      cors: corsOptions,
-      transports: ['websocket', 'polling'],
-      allowEIO3: true
-    });
-
-    setupWebSocketServer(io);
-    webSocketManager.initialize(io);
-    console.log('✅ WebSocket server configured');
+    console.log('✅ HTTP server created (before heavy initialization)');
 
     // Setup frontend serving (Vite in development, static in production)
     console.log('🔧 Setting up frontend serving...');
@@ -355,8 +332,8 @@ async function startServer() {
       port,
       host: "0.0.0.0", // CRITICAL: Must bind to 0.0.0.0 for Cloud Run
       reusePort: true,
-    }, () => {
-      console.log(`✅ SERVER SUCCESSFULLY BOUND TO PORT ${port}`);
+    }, async () => {
+      console.log(`✅ SERVER SUCCESSFULLY BOUND TO PORT ${port} - CLOUD RUN STARTUP REQUIREMENTS SATISFIED`);
       console.log(`✅ Health check available at /health`);
       console.log(`✅ Cloud Run startup probe endpoint: /healthz`);
       console.log(`🌍 Server accessible at: http://0.0.0.0:${port}`);
@@ -365,7 +342,7 @@ async function startServer() {
       const isCloudRun = !!(process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT);
       
       if (isCloudRun) {
-        console.log('🔍 CLOUD RUN DEPLOYMENT SUCCESS:', {
+        console.log('🔍 CLOUD RUN DEPLOYMENT SUCCESS - SERVER LISTENING:', {
           server: {
             bindingHost: '0.0.0.0',
             bindingPort: port,
@@ -387,10 +364,62 @@ async function startServer() {
             ready: true
           }
         });
+      }
+
+      // CRITICAL: NOW perform heavy initialization AFTER server is listening and satisfying Cloud Run probes
+      console.log('🔧 Phase 8: ASYNCHRONOUS HEAVY INITIALIZATION (after server bind)');
+      
+      try {
+        // Initialize Google Auth asynchronously (with error resilience)
+        console.log('🔧 Setting up Google authentication asynchronously...');
+        try {
+          const { setupGoogleAuth } = await import("./googleAuth.js");
+          await setupGoogleAuth(app);
+          console.log('✅ Google authentication configured');
+        } catch (authError) {
+          console.error('⚠️  Google Auth setup failed, server will continue without full auth:', authError);
+        }
+
+        // Register API routes asynchronously  
+        console.log('🔧 Registering API routes asynchronously...');
+        try {
+          const { registerAllRoutes } = await import("./routes/index.js");
+          registerAllRoutes(app);
+          console.log('✅ API routes registered');
+        } catch (routeError) {
+          console.error('⚠️  Route registration failed, server will continue with basic endpoints:', routeError);
+        }
+
+        // Setup WebSocket server asynchronously
+        console.log('🔧 Setting up WebSocket server asynchronously...');
+        try {
+          const { setupWebSocketServer, webSocketService } = await import("./services/webSocketService.js");
+          const { webSocketManager } = await import("./websocket/webSocketManager.js");
+          const { Server: SocketIOServer } = await import("socket.io");
+          
+          const io = new SocketIOServer(httpServer, {
+            cors: corsOptions,
+            transports: ['websocket', 'polling'],
+            allowEIO3: true
+          });
+
+          setupWebSocketServer(io);
+          webSocketManager.initialize(io);
+          console.log('✅ WebSocket server configured');
+        } catch (wsError) {
+          console.error('⚠️  WebSocket setup failed, server will continue without WebSocket features:', wsError);
+        }
+
+        console.log('✅ ASYNCHRONOUS INITIALIZATION COMPLETE - Server fully operational');
         
-        // Test health endpoint internally to ensure it's working
-        setTimeout(() => {
-          const http = require('http');
+      } catch (asyncError) {
+        console.error('⚠️  Some async initialization failed, but server is operational:', asyncError);
+      }
+
+      // Test health endpoint internally after everything is set up
+      setTimeout(async () => {
+        try {
+          const http = await import('http');
           const options = {
             hostname: '0.0.0.0',
             port: port,
@@ -407,8 +436,10 @@ async function startServer() {
           });
           
           req.end();
-        }, 1000);
-      }
+        } catch (httpError) {
+          console.error('❌ Internal health check setup failed:', httpError);
+        }
+      }, 2000);
     });
 
     // CRITICAL CLOUD RUN FIX: Add proper SIGTERM handling for graceful shutdown

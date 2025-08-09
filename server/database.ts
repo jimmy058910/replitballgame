@@ -315,8 +315,34 @@ export async function testDatabaseConnection(): Promise<{ connected: boolean; er
   }
 }
 
-// Legacy export for backwards compatibility (will be null until first use)
-export const prisma = prismaClient;
+/**
+ * LAZY PRISMA CLIENT PROXY
+ * This ensures the client is only created when actually used
+ */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(target, prop, receiver) {
+    if (!prismaClient) {
+      // Synchronously throw if database not initialized yet
+      // This forces proper async initialization via getPrismaClient()
+      throw new Error('Database not initialized - use getPrismaClient() for proper async initialization');
+    }
+    return Reflect.get(prismaClient, prop, receiver);
+  }
+});
+
+/**
+ * CLOUD RUN COMPATIBLE: Ensure database connection exists
+ * Returns quickly without blocking startup if database unavailable
+ */
+export async function ensureDatabaseConnection(): Promise<boolean> {
+  try {
+    await initializeDatabase();
+    return !!prismaClient;
+  } catch (error) {
+    console.error('⚠️  Database connection unavailable:', error);
+    return false;
+  }
+}
 
 // Export database connection info for debugging
 export const databaseInfo = {
