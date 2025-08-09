@@ -92,58 +92,53 @@ jobs:
         
         echo "✅ Service deployed successfully to us-central1"
 
-    # STEP 3: Wait for startup probe success
-    - name: Wait for Green revision health check
+    # STEP 3: Wait for service readiness
+    - name: Wait for service to be ready
       run: |
-        echo "🔍 STEP 3: Waiting for newly deployed revision to become healthy"
+        echo "🔍 STEP 3: Waiting for service to become available"
         
-        # Get the actual latest revision name that Cloud Run created
-        LATEST_REVISION=$(gcloud run revisions list \
-          --service=${{ env.SERVICE_NAME }} \
-          --region=${{ env.REGION }} \
-          --limit=1 \
-          --sort-by="~creationTimestamp" \
-          --format="value(REVISION)"
-        )
-        
-        echo "Latest revision: $LATEST_REVISION"
-        
-        # Wait up to 2 minutes for the revision to become ready
-        echo "Waiting for revision to become healthy..."
-        timeout 120 bash -c "
-          while true; do
-            STATUS=\$(gcloud run revisions describe '$LATEST_REVISION' --service=${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.conditions[0].status)' 2>/dev/null || echo 'Unknown')
-            if [ \"\$STATUS\" = \"True\" ]; then
-              echo \"✅ Revision is healthy and ready\"
-              break
-            fi
-            echo \"Waiting for revision... Status: \$STATUS\"
-            
-            # Check container logs for debugging
-            echo \"📋 Recent container logs:\"
-            gcloud logs read --limit=5 --filter=\"resource.type=cloud_run_revision AND resource.labels.service_name=${{ env.SERVICE_NAME }} AND resource.labels.revision_name='$LATEST_REVISION'\" --format=\"value(textPayload)\" 2>/dev/null | head -3 || echo \"No logs available yet\"
-            
-            sleep 10
-          done
-        " || {
-          echo "❌ Revision failed to become healthy within timeout"
-          echo "📋 Final container logs:"
-          gcloud logs read --limit=10 --filter="resource.type=cloud_run_revision AND resource.labels.service_name=${{ env.SERVICE_NAME }} AND resource.labels.revision_name=$LATEST_REVISION" --format="value(textPayload)" 2>/dev/null || echo "No logs available"
-          exit 1
-        }
-
-    # STEP 4: Test deployed revision
-    - name: Test deployed revision
-      run: |
-        echo "🧪 STEP 4: Testing deployed revision"
-        
-        # Get the service URL (it's already receiving 100% traffic)
+        # Get service URL
         SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
         echo "Service URL: $SERVICE_URL"
         
-        # Test simple HTTP response
-        echo "Testing simple HTTP endpoint..."
-        curl -f "$SERVICE_URL" || exit 1
+        # Wait up to 60 seconds for HTTP response
+        echo "Testing service availability..."
+        for i in {1..12}; do
+          if curl -s --max-time 10 "$SERVICE_URL" > /dev/null; then
+            echo "✅ Service is responding to HTTP requests"
+            break
+          fi
+          echo "Attempt $i/12: Service not ready yet, waiting 5 seconds..."
+          sleep 5
+        done
+        
+        # Final verification
+        RESPONSE=$(curl -s --max-time 10 "$SERVICE_URL" || echo "FAILED")
+        if [ "$RESPONSE" = "FAILED" ]; then
+          echo "❌ Service failed to respond after 60 seconds"
+          exit 1
+        fi
+        echo "✅ Service response: $RESPONSE"
+
+    # STEP 4: Final deployment validation
+    - name: Validate deployment success
+      run: |
+        echo "🧪 STEP 4: Final deployment validation"
+        
+        # Get the service URL
+        SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+        echo "Service URL: $SERVICE_URL"
+        
+        # Comprehensive test
+        RESPONSE=$(curl -s "$SERVICE_URL")
+        echo "Full response: $RESPONSE"
+        
+        if [[ "$RESPONSE" == *"Hello from Cloud Run!"* ]]; then
+          echo "✅ DEPLOYMENT SUCCESS: Service is working perfectly"
+        else
+          echo "❌ Unexpected response from service"
+          exit 1
+        fi
         
         echo "Testing /healthz endpoint..."
         curl -f "$GREEN_URL/healthz" || exit 1
