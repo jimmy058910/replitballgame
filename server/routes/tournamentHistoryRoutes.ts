@@ -48,7 +48,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
       orderBy: { registeredAt: 'desc' }
     });
     
-    console.log(`Raw tournament entries for team ${team.id}:`, tournamentEntries.map(e => ({
+    console.log(`Raw tournament entries for team ${team.id}:`, tournamentEntries.map((e: any) => ({
       id: e.id,
       tournamentId: e.tournamentId,
       teamId: e.teamId,

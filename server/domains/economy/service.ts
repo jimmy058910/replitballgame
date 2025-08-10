@@ -79,7 +79,7 @@ export class EconomyDomainService {
         take: limit
       });
 
-      return listings.map(listing => ({
+      return listings.map((listing: any) => ({
         id: Number(listing.id),
         playerId: Number(listing.playerId),
         teamId: Number(listing.sellerTeamId),
@@ -162,11 +162,11 @@ export class EconomyDomainService {
         throw new NotFoundError('Team');
       }
 
-      const playerSalaries = team.players.reduce((total, player) => 
+      const playerSalaries = team.players.reduce((total: number, player: any) => 
         total + (player.contract?.salary || 0), 0
       );
 
-      const staffSalaries = team.staff.reduce((total, staff) => 
+      const staffSalaries = team.staff.reduce((total: number, staff: any) => 
         total + 50000, 0 // Staff schema doesn't have salary field
       );
 

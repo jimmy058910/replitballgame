@@ -32,7 +32,7 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
     const availableTournaments = await tournamentService.getAvailableTournaments(team.id.toString());
     
     // Format tournaments with additional info
-    const formattedTournaments = availableTournaments.map(tournament => ({
+    const formattedTournaments = availableTournaments.map((tournament: any) => ({
       id: tournament.id,
       name: tournament.name,
       tournamentId: tournament.tournamentId,
@@ -268,7 +268,7 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
     });
 
     // Convert BigInt fields to numbers for JSON serialization
-    const serializedEntries = currentEntries.map(entry => ({
+    const serializedEntries = currentEntries.map((entry: any) => ({
       ...entry,
       teamId: Number(entry.teamId),
       tournamentId: Number(entry.tournamentId),
@@ -331,7 +331,7 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
     });
 
     // Convert BigInt fields to numbers for JSON serialization
-    const serializedHistory = history.map(entry => ({
+    const serializedHistory = history.map((entry: any) => ({
       ...entry,
       teamId: Number(entry.teamId),
       tournamentId: Number(entry.tournamentId),

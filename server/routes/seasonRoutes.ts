@@ -400,7 +400,7 @@ router.post('/test-catch-up', isAuthenticated, async (req: Request, res: Respons
       success: true, 
       message: `Catch-up mechanism triggered successfully for ${missedMatches.length} missed matches`,
       missedMatches: missedMatches.length,
-      matchDetails: missedMatches.map(match => ({
+      matchDetails: missedMatches.map((match: any) => ({
         id: match.id,
         gameDate: match.gameDate,
         minutesPastDue: Math.floor((now.getTime() - match.gameDate.getTime()) / (1000 * 60))

@@ -99,7 +99,7 @@ router.get('/accepted-users', asyncHandler(async (req: any, res: Response) => {
       orderBy: { ndaAcceptedAt: 'desc' }
     });
     
-    const formattedUsers = users.map(user => ({
+    const formattedUsers = users.map((user: any) => ({
       userId: user.userId,
       email: user.email,
       name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),

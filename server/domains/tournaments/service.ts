@@ -161,7 +161,7 @@ export class TournamentDomainService {
         maxParticipants: 8,
         startTime: tournament.startTime || undefined,
         registrationEndTime: tournament.registrationEndTime || undefined,
-        participants: tournament.entries.map(p => ({
+        participants: tournament.entries.map((p: any) => ({
           id: Number(p.team.id),
           name: p.team.name,
           division: p.team.division ?? 0,

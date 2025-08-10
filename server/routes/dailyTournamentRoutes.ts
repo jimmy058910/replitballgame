@@ -33,7 +33,7 @@ router.get("/stats", isAuthenticated, async (req: any, res: Response, next: Next
     });
 
     // Count tournament entries used today - check tournament matches created today
-    const tournamentEntriesUsedToday = tournamentMatchesToday.filter(match => 
+    const tournamentEntriesUsedToday = tournamentMatchesToday.filter((match: any) => 
       match.createdAt && match.createdAt >= todayStart
     );
 

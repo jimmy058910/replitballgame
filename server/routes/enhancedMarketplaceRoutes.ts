@@ -255,7 +255,7 @@ router.get('/listings/:listingId/history', async (req, res) => {
     });
 
     // Convert BigInt fields for response
-    const serializedHistory = history.map(entry => ({
+    const serializedHistory = history.map((entry: any) => ({
       ...entry,
       amount: entry.amount?.toString(),
       oldValue: entry.oldValue?.toString(),

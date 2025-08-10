@@ -43,7 +43,7 @@ router.post('/start-tournament-matches/:tournamentId', isAuthenticated, async (r
     res.json({ 
       success: true, 
       message: `Started ${matches.length} tournament matches`,
-      matches: matches.map(m => ({ id: m.id, round: m.round }))
+      matches: matches.map((m: any) => ({ id: m.id, round: m.round }))
     });
     
   } catch (error) {

@@ -20,7 +20,7 @@ import {
 import { generateRandomPlayer } from "../services/leagueService.js";
 import { generateRandomName } from "../../shared/names.js";
 import gameConfig from "../config/game_config.json" with { type: "json" };
-// import { ABILITIES, rollForAbility } from "@shared/abilities.js"; // Only if used directly in AI team gen
+// import { ABILITIES, rollForAbility } from "../../shared/abilities.js"; // Only if used directly in AI team gen
 
 const router = Router();
 
@@ -465,7 +465,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     });
 
     const teamNamesMap = new Map();
-    teams.forEach(team => {
+    teams.forEach((team: { id: number; name: string }) => {
       teamNamesMap.set(Number(team.id), team.name);
     });
 
@@ -740,7 +740,7 @@ router.get('/:division/schedule', isAuthenticated, async (req: Request, res: Res
     });
 
     // Transform matches for frontend
-    const scheduleMatches = matches.map(match => ({
+    const scheduleMatches = matches.map((match: any) => ({
       id: match.id,
       homeTeam: match.homeTeam.name,
       awayTeam: match.awayTeam.name,

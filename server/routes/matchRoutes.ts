@@ -132,7 +132,7 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
     const allLiveMatches = await matchStorage.getLiveMatches();
 
     // Transform matches for comprehensive live hub display
-    const transformedMatches = allLiveMatches.map(match => {
+    const transformedMatches = allLiveMatches.map((match: any) => {
       // Determine match type based on context - fix to use matchType field from database
       const matchType = match.tournamentId ? 'TOURNAMENT' 
                       : match.matchType === 'EXHIBITION' ? 'EXHIBITION' : 'LEAGUE';
@@ -655,8 +655,8 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
 
     // Create a lookup map for faster team assignment
     const playerTeamMap = new Map<string, number>();
-    liveHomePlayers.forEach(p => playerTeamMap.set(p.id.toString(), p.teamId));
-    liveAwayPlayers.forEach(p => playerTeamMap.set(p.id.toString(), p.teamId));
+    liveHomePlayers.forEach((p: any) => playerTeamMap.set(p.id.toString(), p.teamId));
+    liveAwayPlayers.forEach((p: any) => playerTeamMap.set(p.id.toString(), p.teamId));
     
     console.log(`Team map populated: ${playerTeamMap.size} players`);
     console.log(`Home players: ${liveHomePlayers.length}, Away players: ${liveAwayPlayers.length}`);

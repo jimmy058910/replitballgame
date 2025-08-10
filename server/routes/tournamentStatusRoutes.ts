@@ -48,7 +48,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
     });
 
     // Transform the data for the frontend
-    const statusData = entries.map(entry => ({
+    const statusData = entries.map((entry: any) => ({
       id: entry.id,
       tournamentId: entry.tournament.tournamentId,
       teamId: Number(entry.teamId),
@@ -135,10 +135,10 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
       })
     );
     
-    const participantCountMap = new Map(participantCounts.map(p => [p.tournamentId, p.count]));
+    const participantCountMap = new Map(participantCounts.map((p: any) => [p.tournamentId, p.count]));
 
     // Transform the data for the frontend
-    const statusData = entries.map(entry => ({
+    const statusData = entries.map((entry: any) => ({
       id: entry.id,
       tournamentId: entry.tournament.tournamentId,
       teamId: Number(entry.teamId),
@@ -269,7 +269,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     if (isFull && tournament.status === 'REGISTRATION_OPEN') {
       // Tournament is full but hasn't started yet - calculate 10 minute countdown
       const lastEntryTime = tournament.entries.length > 0 
-        ? Math.max(...tournament.entries.map(e => new Date(e.registeredAt).getTime())) 
+        ? Math.max(...tournament.entries.map((e: any) => new Date(e.registeredAt).getTime())) 
         : now.getTime();
       const startTime = new Date(lastEntryTime + 10 * 60 * 1000); // 10 minutes after last entry
       timeUntilStart = Math.max(0, startTime.getTime() - now.getTime());
@@ -290,7 +290,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     }
 
     // Format participants list
-    const participants = tournament.entries.map(entry => ({
+    const participants = tournament.entries.map((entry: any) => ({
       id: entry.id.toString(),
       teamId: entry.teamId.toString(),
       teamName: entry.team?.name || "Unknown Team",
@@ -317,7 +317,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
       await checkAndAdvanceTournament(tournament.id);
       
       // Fetch team data separately
-      const teamIds = [...new Set([...rawMatches.map(m => m.homeTeamId), ...rawMatches.map(m => m.awayTeamId)])];
+      const teamIds = [...new Set([...rawMatches.map((m: any) => m.homeTeamId), ...rawMatches.map((m: any) => m.awayTeamId)])];
       const teams = await prisma.team.findMany({
         where: { id: { in: teamIds } },
         select: {
@@ -327,10 +327,10 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
         }
       });
       
-      const teamMap = new Map(teams.map(team => [team.id, team]));
+      const teamMap = new Map(teams.map((team: any) => [team.id, team]));
       
       // Serialize BigInt values in matches and include team names
-      matches = rawMatches.map(match => ({
+      matches = rawMatches.map((match: any) => ({
         ...match,
         id: match.id.toString(),
         leagueId: match.leagueId ? match.leagueId.toString() : null,
@@ -443,7 +443,7 @@ router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
     }
 
     // Get all teams except the current tournament participants to fill remaining spots
-    const existingParticipantIds = tournament.entries.map(entry => entry.teamId);
+    const existingParticipantIds = tournament.entries.map((entry: any) => entry.teamId);
     const availableTeams = await prisma.team.findMany({
       where: {
         division: tournament.division,
@@ -461,7 +461,7 @@ router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
     }
 
     // Add available teams to tournament
-    const newEntries = availableTeams.slice(0, spotsRemaining).map(team => ({
+    const newEntries = availableTeams.slice(0, spotsRemaining).map((team: any) => ({
       tournamentId: tournament.id,
       teamId: team.id,
       registeredAt: new Date()
@@ -533,7 +533,7 @@ router.get('/:id/matches', isAuthenticated, async (req: any, res) => {
     });
     
     // Convert BigInt fields to strings for JSON serialization
-    const serializedMatches = matches.map(match => ({
+    const serializedMatches = matches.map((match: any) => ({
       ...match,
       tournament: match.tournament ? {
         ...match.tournament,
@@ -843,7 +843,7 @@ router.get('/:tournamentId/matches', async (req, res) => {
     });
 
     // Transform matches to match frontend interface
-    const transformedMatches = matches.map(match => ({
+    const transformedMatches = matches.map((match: any) => ({
       id: match.id.toString(),
       homeTeam: {
         id: match.homeTeam.id.toString(),
@@ -953,7 +953,7 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
     });
 
     // Determine winners
-    const winners = completedMatches.map(match => {
+    const winners = completedMatches.map((match: any) => {
       const winnerId = (match.homeScore || 0) > (match.awayScore || 0) ? match.homeTeamId : match.awayTeamId;
       return { teamId: winnerId, match: match };
     });

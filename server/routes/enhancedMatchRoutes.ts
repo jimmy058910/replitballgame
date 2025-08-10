@@ -111,7 +111,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
     }
 
     // Calculate team averages for enhanced stats
-    const homePlayerAvg = match.homeTeam.players.reduce((acc, p) => {
+    const homePlayerAvg = match.homeTeam.players.reduce((acc: any, p: any) => {
       return {
         speed: acc.speed + p.speed,
         power: acc.power + p.power,
@@ -122,7 +122,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
       };
     }, { speed: 0, power: 0, throwing: 0, catching: 0, stamina: 0, count: 0 });
 
-    const awayPlayerAvg = match.awayTeam.players.reduce((acc, p) => {
+    const awayPlayerAvg = match.awayTeam.players.reduce((acc: any, p: any) => {
       return {
         speed: acc.speed + p.speed,
         power: acc.power + p.power,
@@ -161,7 +161,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
       mvpPlayers: {
         home: match.homeTeam.players
           .slice(0, 3)
-          .map(p => ({
+          .map((p: any) => ({
             id: p.id,
             name: `${p.firstName} ${p.lastName}`,
             role: p.role,
@@ -170,7 +170,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
           })),
         away: match.awayTeam.players
           .slice(0, 3)
-          .map(p => ({
+          .map((p: any) => ({
             id: p.id,
             name: `${p.firstName} ${p.lastName}`,
             role: p.role,
