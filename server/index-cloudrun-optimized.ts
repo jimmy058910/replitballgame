@@ -49,8 +49,11 @@ async function startCloudRunOptimizedServer() {
         console.log(`🌍 Health checks available at: http://0.0.0.0:${port}/health`);
         
         // PHASE 6: NOW SETUP EVERYTHING ELSE ASYNCHRONOUSLY
+        console.log('🔧 ASYNC MIDDLEWARE SETUP STARTING...');
         setupAsyncMiddleware(app, httpServer).catch(error => {
-          console.error('⚠️  Async setup failed, but server continues:', error);
+          console.error('⚠️  Async setup failed, but server continues running:', error);
+          console.error('⚠️  Stack trace:', error.stack);
+          // CRITICAL: Never exit after port binding - Cloud Run requires the process to stay alive
         });
         
         resolve(httpServer);
@@ -72,6 +75,8 @@ async function setupAsyncMiddleware(app: any, httpServer: any) {
   console.log('🔧 ASYNC MIDDLEWARE SETUP STARTING...');
   
   try {
+    // CRITICAL: Wrap each import in try-catch to prevent process exit
+    console.log('🔧 Importing CORS and middleware modules...');
     // Import all middleware asynchronously
     const cors = (await import("cors")).default;
     const compression = (await import("compression")).default;
@@ -155,18 +160,22 @@ async function setupAsyncMiddleware(app: any, httpServer: any) {
       }
     }
     
-    // Register API routes
+    // Register API routes with enhanced error handling
     try {
+      console.log('🔧 Attempting to import routes...');
       const { registerAllRoutes } = await import("./routes/index.js");
+      console.log('🔧 Routes imported successfully, registering...');
       registerAllRoutes(app);
       console.log('✅ API routes registered');
     } catch (routeError) {
-      console.error('⚠️  Route registration failed:', routeError);
+      console.error('⚠️  Route registration failed (server continues):', routeError);
+      console.error('⚠️  Route error stack:', (routeError as Error).stack);
     }
     
-    // Setup static file serving for production
+    // Setup static file serving for production with enhanced error handling
     if (process.env.NODE_ENV === 'production') {
       try {
+        console.log('🔧 Setting up production static file serving...');
         const path = await import("path");
         const fs = await import("fs");
         const express = await import("express");
