@@ -70,7 +70,7 @@ export class CamaraderieService {
         return 50; // Default camaraderie if no players
       }
 
-      const totalCamaraderie = mainRosterPlayers.reduce((sum, player) => sum + (player.camaraderieScore || 50), 0);
+      const totalCamaraderie = mainRosterPlayers.reduce((sum: any, player: any) => sum + (player.camaraderieScore || 50), 0);
       const teamCamaraderie = Math.round(totalCamaraderie / mainRosterPlayers.length);
       
       logInfo("Team camaraderie calculated", {
@@ -443,18 +443,18 @@ export class CamaraderieService {
 
       const playerStats = {
         _count: { id: mainRosterPlayers.length },
-        _avg: { age: mainRosterPlayers.length > 0 ? mainRosterPlayers.reduce((sum, p) => sum + p.age, 0) / mainRosterPlayers.length : 18 }
+        _avg: { age: mainRosterPlayers.length > 0 ? mainRosterPlayers.reduce((sum: any, p: any) => sum + p.age, 0) / mainRosterPlayers.length : 18 }
       };
       
-      const highMoraleCount = mainRosterPlayers.filter(p => (p.camaraderieScore || 50) >= 70).length;
-      const lowMoraleCount = mainRosterPlayers.filter(p => (p.camaraderieScore || 50) <= 30).length;
+      const highMoraleCount = mainRosterPlayers.filter((p: any) => (p.camaraderieScore || 50) >= 70).length;
+      const lowMoraleCount = mainRosterPlayers.filter((p: any) => (p.camaraderieScore || 50) <= 30).length;
       
       // Get top performers from main roster players (high camaraderie)
       const topPerformers = mainRosterPlayers
-        .filter(p => (p.camaraderieScore || 50) >= 70)
-        .sort((a, b) => (b.camaraderieScore || 50) - (a.camaraderieScore || 50))
+        .filter((p: any) => (p.camaraderieScore || 50) >= 70)
+        .sort((a: any, b: any) => (b.camaraderieScore || 50) - (a.camaraderieScore || 50))
         .slice(0, 5)
-        .map(p => ({
+        .map((p: any) => ({
           id: p.id,
           firstName: p.firstName,
           lastName: p.lastName,
@@ -466,10 +466,10 @@ export class CamaraderieService {
       
       // Get players of concern from main roster players (low camaraderie)
       const concernedPlayers = mainRosterPlayers
-        .filter(p => (p.camaraderieScore || 50) <= 30)
-        .sort((a, b) => (a.camaraderieScore || 50) - (b.camaraderieScore || 50))
+        .filter((p: any) => (p.camaraderieScore || 50) <= 30)
+        .sort((a: any, b: any) => (a.camaraderieScore || 50) - (b.camaraderieScore || 50))
         .slice(0, 5)
-        .map(p => ({
+        .map((p: any) => ({
           id: p.id,
           firstName: p.firstName,
           lastName: p.lastName,

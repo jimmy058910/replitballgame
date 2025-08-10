@@ -96,7 +96,7 @@ export class DynamicMarketplaceService {
       });
 
       // Find player's position in roster (0-indexed)
-      const playerIndex = teamPlayers.findIndex(p => p.id === playerId);
+      const playerIndex = teamPlayers.findIndex((p: any) => p.id === playerId);
       const isTaxiSquadPlayer = playerIndex >= 12; // Players at index 12+ are taxi squad
 
       if (isTaxiSquadPlayer) {
@@ -534,7 +534,7 @@ export class DynamicMarketplaceService {
       skip: offset
     });
 
-    return listings.map(listing => ({
+    return listings.map((listing: any) => ({
       listingId: listing.id,
       playerId: listing.playerId,
       sellerTeamId: listing.sellerTeamId,
@@ -573,7 +573,7 @@ export class DynamicMarketplaceService {
       orderBy: { createdAt: 'desc' }
     });
 
-    return listings.map(listing => ({
+    return listings.map((listing: any) => ({
       listingId: listing.id,
       playerId: listing.playerId,
       startBid: listing.startBid,
@@ -725,7 +725,7 @@ export class DynamicMarketplaceService {
         orderBy: { placedAt: 'desc' }
       });
 
-      return bids.map(bid => ({
+      return bids.map((bid: any) => ({
         id: bid.id,
         listingId: bid.listingId,
         bidAmount: bid.bidAmount,

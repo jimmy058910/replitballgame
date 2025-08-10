@@ -69,14 +69,14 @@ async function createAITeamsForDivision(division: number) {
       let position = additionalPositions[Math.floor(Math.random() * additionalPositions.length)];
       
       // Count current positions
-      const currentCount = requiredPositions.filter(p => p === position).length;
+      const currentCount = requiredPositions.filter((p: any) => p === position).length;
       
       // Prevent overstocking: max 3 passers, max 4 runners, max 4 blockers
       if ((position === "Passer" && currentCount >= 3) ||
           (position === "Runner" && currentCount >= 4) ||
           (position === "Blocker" && currentCount >= 4)) {
         // Try other positions
-        const alternatives = additionalPositions.filter(p => {
+        const alternatives = additionalPositions.filter((p: any) => {
           const count = requiredPositions.filter(pos => pos === p).length;
           return (p === "Passer" && count < 3) ||
                  (p === "Runner" && count < 4) ||
@@ -120,9 +120,9 @@ function calculateTeamPower(players: any[]): number {
                                 (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20)) / 6)
   }));
   const topPlayers = playersWithPower
-    .sort((a, b) => b.individualPower - a.individualPower)
+    .sort((a: any, b: any) => b.individualPower - a.individualPower)
     .slice(0, 9);
-  const totalPower = topPlayers.reduce((sum, player) => sum + player.individualPower, 0);
+  const totalPower = topPlayers.reduce((sum: any, player: any) => sum + player.individualPower, 0);
   return Math.round(totalPower / Math.max(1, topPlayers.length));
 }
 
@@ -158,8 +158,8 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
         matchType: 'LEAGUE',
         status: 'COMPLETED',
         OR: [
-          { homeTeamId: { in: teamsInDivision.map(t => t.id) } },
-          { awayTeamId: { in: teamsInDivision.map(t => t.id) } }
+          { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
+          { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
         ]
       }
     });
@@ -227,7 +227,7 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
       };
     });
 
-    const sortedTeams = enhancedTeams.sort((a, b) => {
+    const sortedTeams = enhancedTeams.sort((a: any, b: any) => {
       const aPoints = a.points || 0;
       const bPoints = b.points || 0;
       const aWins = a.wins || 0;
@@ -334,7 +334,7 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
 
     res.status(201).json({
       message: `Created ${createdTeams.length} AI teams for Division ${division}`,
-      teams: createdTeams.map(t => ({ id: t.id, name: t.name, division: t.division }))
+      teams: createdTeams.map((t: any) => ({ id: t.id, name: t.name, division: t.division }))
     });
   } catch (error) {
     console.error("Error creating AI teams:", error);
@@ -423,7 +423,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     const divisionMatches = await matchStorage.getMatchesByDivision(userTeam.division as any);
     
     // ✅ CRITICAL FIX: Filter out exhibition games - only show league games
-    const leagueMatches = divisionMatches.filter(match => match.matchType === 'LEAGUE');
+    const leagueMatches = divisionMatches.filter((match: any) => match.matchType === 'LEAGUE');
     
     // Get all teams in the user's subdivision
     const subdivisionTeams = await prisma.team.findMany({
@@ -437,12 +437,12 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     const subdivisionTeamIds = subdivisionTeams.map((team: any) => team.id);
 
     // Show user's team games + fill to exactly 4 games per day
-    const userTeamMatches = leagueMatches.filter(match => 
+    const userTeamMatches = leagueMatches.filter((match: any) => 
       Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id)
     );
     
     // Filter other matches to only include games within the user's subdivision
-    const otherMatches = leagueMatches.filter(match => {
+    const otherMatches = leagueMatches.filter((match: any) => {
       const isNotUserTeam = Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id);
       const bothTeamsInSubdivision = subdivisionTeamIds.includes(Number(match.homeTeamId)) && subdivisionTeamIds.includes(Number(match.awayTeamId));
       return isNotUserTeam && bothTeamsInSubdivision;
@@ -472,7 +472,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
     const scheduleByDay: { [key: number]: any[] } = {};
 
     for (let day = 1; day <= 14; day++) {
-      const dayMatches = allMatches.filter(match => {
+      const dayMatches = allMatches.filter((match: any) => {
         if (match.gameDate) {
           // Use simple UTC date comparison for day calculation
           const gameDate = new Date(match.gameDate);
@@ -491,10 +491,10 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
 
       if (dayMatches.length > 0) {
         // Ensure exactly 4 games per day: user's team games first, then fill to 4 total
-        const userTeamDayMatches = dayMatches.filter(match => 
+        const userTeamDayMatches = dayMatches.filter((match: any) => 
           Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id)
         );
-        const otherDayMatches = dayMatches.filter(match => {
+        const otherDayMatches = dayMatches.filter((match: any) => {
           const isNotUserTeam = Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id);
           const bothTeamsInSubdivision = subdivisionTeamIds.includes(Number(match.homeTeamId)) && subdivisionTeamIds.includes(Number(match.awayTeamId));
           return isNotUserTeam && bothTeamsInSubdivision;
@@ -721,7 +721,7 @@ router.get('/:division/schedule', isAuthenticated, async (req: Request, res: Res
 
     // Get teams in this division to filter matches
     const teamsInDivision = await storage.teams.getTeamsByDivision(division);
-    const teamIds = teamsInDivision.map(team => team.id);
+    const teamIds = teamsInDivision.map((team: any) => team.id);
 
     // Get all league matches involving teams in this division
     const matches = await prisma.game.findMany({

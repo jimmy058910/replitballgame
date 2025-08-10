@@ -321,7 +321,7 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
     const player = generatePlayerForTeam(teamId, "HUMAN", 1); // 1 = PASSER role ID
-    await storage.players.createPlayer(player);
+    await storage.players.createPlayer(player as any);
     newPlayers.push(player);
   }
 

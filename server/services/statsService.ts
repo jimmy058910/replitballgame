@@ -187,7 +187,7 @@ export class StatsService {
 
       // Calculate team score from meaningful games
       let totalScore = 0;
-      meaningfulGames.forEach(game => {
+      meaningfulGames.forEach((game: any) => {
         if (game.homeTeamId === parseInt(teamId)) {
           totalScore += game.homeScore || 0;
         } else {

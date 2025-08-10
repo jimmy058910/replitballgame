@@ -246,7 +246,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
     console.log('DEBUG: First player:', JSON.stringify(players?.[0], null, 2));
     
     // For demo purposes, be more lenient with player selection
-    const activePlayers = players.filter(p => p && !p.isRetired).slice(0, 6);
+    const activePlayers = players.filter((p: any) => p && !p.isRetired).slice(0, 6);
     
     if (activePlayers.length === 0) {
       console.log('DEBUG: No players passed after filtering. Original players:', players);
@@ -256,9 +256,9 @@ class LiveMatchEngineService implements LiveMatchEngine {
     console.log('DEBUG: Using', activePlayers.length, 'active players for formation');
 
     // Get players by role with fallbacks
-    const passers = activePlayers.filter(p => p.role === 'Passer');
-    const runners = activePlayers.filter(p => p.role === 'Runner');
-    const blockers = activePlayers.filter(p => p.role === 'Blocker');
+    const passers = activePlayers.filter((p: any) => p.role === 'Passer');
+    const runners = activePlayers.filter((p: any) => p.role === 'Runner');
+    const blockers = activePlayers.filter((p: any) => p.role === 'Blocker');
     
     // Create formation with fallbacks
     const passer = passers[0] || activePlayers[0];

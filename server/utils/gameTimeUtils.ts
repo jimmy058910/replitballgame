@@ -56,14 +56,14 @@ export function getGameDurationSeconds(matchType: MatchType): number {
 /**
  * Get game duration in minutes based on match type
  */
-export function getGameDurationMinutes(matchType: MatchType): number {
+export function getGameDurationMinutes(matchType: any): number {
   return getGameDurationSeconds(matchType) / 60;
 }
 
 /**
  * Get half duration in seconds based on match type
  */
-export function getHalfDurationSeconds(matchType: MatchType): number {
+export function getHalfDurationSeconds(matchType: any): number {
   const durations = gameConfig?.gameParameters?.matchSettings?.gameDuration;
   
   if (!durations) {
@@ -93,14 +93,14 @@ export function getHalfDurationSeconds(matchType: MatchType): number {
 /**
  * Get half duration in minutes based on match type
  */
-export function getHalfDurationMinutes(matchType: MatchType): number {
+export function getHalfDurationMinutes(matchType: any): number {
   return getHalfDurationSeconds(matchType) / 60;
 }
 
 /**
  * Check if match type supports overtime
  */
-export function supportsOvertime(matchType: MatchType): boolean {
+export function supportsOvertime(matchType: any): boolean {
   const durations = gameConfig?.gameParameters?.matchSettings?.gameDuration;
   
   switch (matchType) {
@@ -117,7 +117,7 @@ export function supportsOvertime(matchType: MatchType): boolean {
 /**
  * Get display name for match duration
  */
-export function getMatchDurationDisplay(matchType: MatchType): string {
+export function getMatchDurationDisplay(matchType: any): string {
   const totalMinutes = getGameDurationMinutes(matchType);
   const halfMinutes = getHalfDurationMinutes(matchType);
   

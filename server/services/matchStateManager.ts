@@ -126,7 +126,7 @@ class MatchStateManager {
     try {
       // Find all live matches involving this team
       const matchesToCleanup = Array.from(this.liveMatches.values())
-        .filter(match => match.homeTeamId === teamId || match.awayTeamId === teamId);
+        .filter((match: any) => match.homeTeamId === teamId || match.awayTeamId === teamId);
       
       logger.info(`🧹 Found ${matchesToCleanup.length} live matches to clean up for team ${teamId}`);
       
@@ -206,7 +206,7 @@ class MatchStateManager {
     for (const [playerId, playerTime] of state.playerMatchTimes.entries()) {
       if (!playerTime.isCurrentlyPlaying) continue;
 
-      const player = allPlayers.find(p => p.id.toString() === playerId);
+      const player = allPlayers.find((p: any) => p.id.toString() === playerId);
       if (!player) continue;
 
       const currentStamina = player.dailyStaminaLevel || 100;
@@ -506,7 +506,7 @@ class MatchStateManager {
 
     // Formation data exists - use the specified starters
     logger.info(`🎯 Using formation starters:`, formation.starters);
-    logger.info(`🔍 Available players:`, teamPlayers.map(p => `${p.id}: ${p.firstName} ${p.lastName} (${p.role})`));
+    logger.info(`🔍 Available players:`, teamPlayers.map((p: any) => `${p.id}: ${p.firstName} ${p.lastName} (${p.role})`));
     
     // Handle both formats: array of objects with id property or array of numbers
     const starterIds = formation.starters.map(s => {
@@ -532,19 +532,19 @@ class MatchStateManager {
     
     if (selectedStarters.length !== 6) {
       console.warn(`⚠️ Formation has ${selectedStarters.length} starters instead of 6, falling back to default selection`);
-      logger.info(`⚠️ Missing starters. Expected: ${starterIds}, Found: ${selectedStarters.map(p => p.id)}`);
+      logger.info(`⚠️ Missing starters. Expected: ${starterIds}, Found: ${selectedStarters.map((p: any) => p.id)}`);
       return this.selectDefaultStarters(teamPlayers);
     }
     
-    logger.info(`✅ Selected formation starters:`, selectedStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`));
+    logger.info(`✅ Selected formation starters:`, selectedStarters.map((p: any) => `${p.firstName} ${p.lastName} (${p.role})`));
     return selectedStarters;
   }
 
   // Helper function to select default starters when no formation exists
   private selectDefaultStarters(teamPlayers: Player[]): Player[] {
-    const blockers = teamPlayers.filter(p => p.role === 'BLOCKER');
-    const runners = teamPlayers.filter(p => p.role === 'RUNNER');
-    const passers = teamPlayers.filter(p => p.role === 'PASSER');
+    const blockers = teamPlayers.filter((p: any) => p.role === 'BLOCKER');
+    const runners = teamPlayers.filter((p: any) => p.role === 'RUNNER');
+    const passers = teamPlayers.filter((p: any) => p.role === 'PASSER');
     
     // Select 2 blockers, 2 runners, 2 passers (standard formation)
     const starters = [
@@ -553,7 +553,7 @@ class MatchStateManager {
       ...passers.slice(0, 2)
     ];
     
-    logger.info(`🎯 Default starters selected:`, starters.map(p => `${p.firstName} ${p.lastName} (${p.role})`));
+    logger.info(`🎯 Default starters selected:`, starters.map((p: any) => `${p.firstName} ${p.lastName} (${p.role})`));
     return starters;
   }
 
@@ -591,12 +591,12 @@ class MatchStateManager {
     const awayStarters = this.applyFormationToPlayers(awayTeamPlayers, awayFormation);
 
     logger.info(`🏟️ Match ${matchId} starters:`, {
-      home: homeStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`),
-      away: awayStarters.map(p => `${p.firstName} ${p.lastName} (${p.role})`)
+      home: homeStarters.map((p: any) => `${p.firstName} ${p.lastName} (${p.role})`),
+      away: awayStarters.map((p: any) => `${p.firstName} ${p.lastName} (${p.role})`)
     });
     logger.info(`🔍 STARTER COUNT CHECK: Home has ${homeStarters.length} starters, Away has ${awayStarters.length} starters`);
 
-    const matchType: MatchType = isExhibition ? 'EXHIBITION' : 'LEAGUE';
+    const matchType: any = isExhibition ? 'EXHIBITION' : 'LEAGUE';
     const maxTime = getGameDurationSeconds(matchType);
 
     const initialPlayerStats = new Map<string, PlayerStatsSnapshot>();
@@ -1247,7 +1247,7 @@ class MatchStateManager {
     }
     
     for (const [playerId, stats] of state.playerStats.entries()) {
-      const player = [...homePlayers, ...awayPlayers].find(p => p.id.toString() === playerId);
+      const player = [...homePlayers, ...awayPlayers].find((p: any) => p.id.toString() === playerId);
       if (!player) continue;
       
       const mvpScore = (stats.scores * 10) + (stats.passingYards * 0.1) + (stats.carrierYards * 0.15) + 

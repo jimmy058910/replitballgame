@@ -1,9 +1,9 @@
-import type { Player, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { generateRandomName, getFullName } from "../../shared/names.js";
 import { generatePotential } from "../../shared/potentialSystem.js";
 import gameConfig from "../config/game_config.json" with { type: "json" };
 
-export function generateRandomPlayer(name: string | null, race: string, teamId: number, position?: string): Omit<Player, 'id' | 'createdAt' | 'updatedAt' | 'teamId'> & { teamId: number } {
+export function generateRandomPlayer(name: string | null, race: string, teamId: number, position?: string): any {
   // Convert race to lowercase for switch statement, but store original for return
   const originalRace = race;
   const lowerRace = race.toLowerCase();

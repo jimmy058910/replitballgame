@@ -172,7 +172,7 @@ export class AwardsService {
 
       // Combine stats with player details
       const enrichedSeasonStats = seasonStats.map((stat: any) => {
-        const playerDetail = playersDetails.find(p => p.id === stat.playerId);
+        const playerDetail = playersDetails.find((p: any) => p.id === stat.playerId);
         return {
           playerId: stat.playerId,
           teamId: stat.teamId,

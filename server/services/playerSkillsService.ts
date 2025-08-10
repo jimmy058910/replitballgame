@@ -53,10 +53,10 @@ export class PlayerSkillsService {
       select: { skillId: true }
     });
 
-    const currentSkillIds = currentPlayerSkills.map(ps => ps.skillId);
+    const currentSkillIds = currentPlayerSkills.map((ps: any) => ps.skillId);
 
     // Filter to eligible skills the player doesn't have
-    return allSkills.filter(skill => 
+    return allSkills.filter((skill: any) => 
       !currentSkillIds.includes(skill.id) && 
       this.isEligibleForSkill(player, skill)
     );
@@ -73,7 +73,7 @@ export class PlayerSkillsService {
       }
     });
 
-    return result.map(ps => ({
+    return result.map((ps: any) => ({
       id: ps.id,
       skillId: ps.skillId,
       currentTier: ps.currentTier,
@@ -206,7 +206,7 @@ export class PlayerSkillsService {
       } else {
         // Upgrade existing skill
         const currentSkills = await this.getPlayerSkills(playerId);
-        const upgradableSkills = currentSkills.filter(skill => skill.currentTier < 4);
+        const upgradableSkills = currentSkills.filter((skill: any) => skill.currentTier < 4);
 
         if (upgradableSkills.length === 0) {
           return { success: false, action: 'none', reason: 'All skills are max tier' };

@@ -2,7 +2,7 @@ import { prisma } from "../db.js";
 import { randomUUID } from "crypto";
 import moment from "moment-timezone";
 import { PaymentHistoryService } from "./paymentHistoryService.js";
-import type { TournamentStatus, TournamentType } from "../../generated/prisma/index.js";
+// Using any types for Prisma enums to avoid import issues
 
 export interface TournamentReward {
   credits: number;
@@ -267,7 +267,7 @@ export class TournamentService {
     }
 
     // Get existing participating team IDs
-    const existingTeamIds = tournament.entries.map(entry => entry.teamId);
+    const existingTeamIds = tournament.entries.map((entry: any) => entry.teamId);
 
     // Find AI teams in the same division that aren't already participating
     const aiTeams = await prisma.team.findMany({
@@ -312,7 +312,7 @@ export class TournamentService {
       }
     } else {
       // Create tournament entries for existing AI teams
-      const aiEntries = aiTeams.map(team => ({
+      const aiEntries = aiTeams.map((team: any) => ({
         tournamentId: Number(tournamentId),
         teamId: team.id,
         registeredAt: new Date()
@@ -530,9 +530,9 @@ export class TournamentService {
       select: { tournamentId: true }
     });
 
-    const registeredTournamentIds = new Set(existingEntries.map(e => e.tournamentId));
+    const registeredTournamentIds = new Set(existingEntries.map((e: any) => e.tournamentId));
 
-    return availableTournaments.filter(t => !registeredTournamentIds.has(t.id));
+    return availableTournaments.filter((t: any) => !registeredTournamentIds.has(t.id));
   }
 
   // Register team for tournament
@@ -705,7 +705,7 @@ export class TournamentService {
       orderBy: { tournament: { startTime: 'desc' } }
     });
 
-    return completedTournaments.map(({ tournament, ...entry }) => ({
+    return completedTournaments.map(({ tournament, ...entry }: any) => ({
       id: tournament.id,
       name: tournament.name,
       type: tournament.type,
@@ -726,11 +726,11 @@ export class TournamentService {
     });
 
     const totalTournaments = entries.length;
-    const wins = entries.filter(e => e.finalRank === 1).length;
-    const runnerUps = entries.filter(e => e.finalRank === 2).length;
-    const totalCreditsWon = entries.reduce((sum, e) => sum + (e.finalRank === 1 ? 100 : 0), 0);
-    const totalGemsWon = entries.reduce((sum, e) => sum + (e.finalRank === 1 ? 10 : 0), 0);
-    const trophiesWon = entries.filter(e => e.finalRank === 1).length;
+    const wins = entries.filter((e: any) => e.finalRank === 1).length;
+    const runnerUps = entries.filter((e: any) => e.finalRank === 2).length;
+    const totalCreditsWon = entries.reduce((sum: any, e: any) => sum + (e.finalRank === 1 ? 100 : 0), 0);
+    const totalGemsWon = entries.reduce((sum: any, e: any) => sum + (e.finalRank === 1 ? 10 : 0), 0);
+    const trophiesWon = entries.filter((e: any) => e.finalRank === 1).length;
 
     return {
       totalTournaments,
@@ -981,7 +981,7 @@ export class TournamentService {
     }
 
     // Get teams already in this tournament
-    const participatingTeamIds = tournament.entries.map(entry => entry.teamId);
+    const participatingTeamIds = tournament.entries.map((entry: any) => entry.teamId);
 
     // Get available AI teams for this division (excluding already participating teams)
     const aiTeams = await prisma.team.findMany({
@@ -995,7 +995,7 @@ export class TournamentService {
     });
 
     // Create tournament entries for AI teams
-    const aiEntries = aiTeams.map(team => ({
+    const aiEntries = aiTeams.map((team: any) => ({
       tournamentId: Number(tournamentId),
       teamId: team.id,
       registeredAt: new Date()
@@ -1058,7 +1058,7 @@ export class TournamentService {
       if (currentParticipants >= maxParticipants) {
         // Check if 10 minutes have passed since last registration
         const lastEntryTime = tournament.entries.length > 0 ? 
-          Math.max(...tournament.entries.map(e => new Date(e.registeredAt).getTime())) : 
+          Math.max(...tournament.entries.map((e: any) => new Date(e.registeredAt).getTime())) : 
           now.getTime();
         
         const timeSinceFullMs = now.getTime() - lastEntryTime;
@@ -1131,7 +1131,7 @@ export class TournamentService {
       throw new Error("Tournament not found");
     }
 
-    const teams = tournament.entries.map(entry => entry.team);
+    const teams = tournament.entries.map((entry: any) => entry.team);
     const expectedTeams = tournament.type === 'MID_SEASON_CLASSIC' ? 16 : 8;
     
     if (teams.length !== expectedTeams) {
@@ -1218,7 +1218,7 @@ export class TournamentService {
       }
     });
 
-    const winners = completedMatches.map(match => {
+    const winners = completedMatches.map((match: any) => {
       return (match.homeScore || 0) > (match.awayScore || 0) ? match.homeTeam : match.awayTeam;
     });
 

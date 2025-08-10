@@ -1,13 +1,13 @@
 import { prisma } from '../db';
-import { PrismaClient, Game, GameStatus, MatchType } from '../../generated/prisma/index.js';
+import { PrismaClient, Game } from '../../generated/prisma/index.js';
 
 export class MatchStorage {
   async createMatch(matchData: {
     homeTeamId: number;
     awayTeamId: number;
     gameDate?: Date;
-    status?: GameStatus;
-    matchType?: MatchType;
+    status?: any;
+    matchType?: any;
     leagueId?: number;
     tournamentId?: number;
     round?: number;
@@ -65,7 +65,7 @@ export class MatchStorage {
           { awayTeamId: teamId }
         ],
         AND: [
-          { status: { not: GameStatus.COMPLETED } },
+          { status: { not: 'COMPLETED' } },
           { gameDate: { gte: new Date() } }
         ]
       },
@@ -85,7 +85,7 @@ export class MatchStorage {
       select: { id: true }
     });
     
-    const teamIdsInDivision = divisionTeams.map(t => t.id);
+    const teamIdsInDivision = divisionTeams.map((t: any) => t.id);
     if (teamIdsInDivision.length === 0) return [];
 
     const divisionMatches = await prisma.game.findMany({
@@ -128,7 +128,7 @@ export class MatchStorage {
   }
 
   async getLiveMatches(teamId?: number): Promise<Game[]> {
-    const whereClause: any = { status: GameStatus.IN_PROGRESS };
+    const whereClause: any = { status: 'IN_PROGRESS' };
     
     // If teamId is provided, only return matches where this team is participating
     if (teamId) {
@@ -175,7 +175,7 @@ export class MatchStorage {
 
     const matches = await prisma.game.findMany({
       where: {
-        status: GameStatus.SCHEDULED,
+        status: 'SCHEDULED',
         gameDate: {
           gte: startOfDay,
           lte: endOfDay

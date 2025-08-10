@@ -170,7 +170,7 @@ export class EnhancedMarketplaceService {
     }
 
     // Begin transaction
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
       // Deduct listing fee
       await tx.teamFinances.update({
         where: { teamId },
@@ -285,7 +285,7 @@ export class EnhancedMarketplaceService {
     }
 
     // Begin transaction
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
       // Release previous high bidder's escrow
       if (listing.currentHighBidderTeamId && listing.escrowAmount > 0) {
         await tx.teamFinances.update({
@@ -433,7 +433,7 @@ export class EnhancedMarketplaceService {
     const sellerReceives = salePrice - marketTax;
 
     // Begin transaction
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
       // Release current high bidder's escrow if exists
       if (listing.currentHighBidderTeamId && listing.escrowAmount > 0) {
         await tx.teamFinances.update({
@@ -526,7 +526,7 @@ export class EnhancedMarketplaceService {
     });
 
     for (const listing of activeListings) {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: any) => {
         // Release current high bidder's escrow
         if (listing.currentHighBidderTeamId && listing.escrowAmount > 0) {
           await tx.teamFinances.update({
@@ -579,7 +579,7 @@ export class EnhancedMarketplaceService {
     });
 
     for (const listing of expiredListings) {
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: any) => {
         // Update listing as expired
         await tx.marketplaceListing.update({
           where: { id: listing.id },
@@ -701,7 +701,7 @@ export class EnhancedMarketplaceService {
     });
 
     // Calculate CAR for each player
-    const enhancedListings = listings.map(listing => ({
+    const enhancedListings = listings.map((listing: any) => ({
       ...listing,
       player: {
         ...listing.player,

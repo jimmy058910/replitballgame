@@ -44,14 +44,14 @@ function generateScoutingNotes(targetTeam: any, targetPlayers: any[], scoutingLe
   notes.push(`${targetTeam.name} currently competes in Division ${targetTeam.division}.`);
 
   if (scoutingLevel >= 2 && targetPlayers.length > 0) {
-    const avgAge = targetPlayers.reduce((sum, p) => sum + (p.age || 24), 0) / targetPlayers.length;
+    const avgAge = targetPlayers.reduce((sum: any, p: any) => sum + (p.age || 24), 0) / targetPlayers.length;
     notes.push(`Estimated average squad age: ${avgAge.toFixed(1)} years.`);
 
     const raceCounts: { [key: string]: number } = {};
     targetPlayers.forEach(p => {
       raceCounts[p.race] = (raceCounts[p.race] || 0) + 1;
     });
-    const dominantRaceEntry = Object.entries(raceCounts).sort((a, b) => b[1] - a[1])[0];
+    const dominantRaceEntry = Object.entries(raceCounts).sort((a: any, b: any) => b[1] - a[1])[0];
     if (dominantRaceEntry) {
       notes.push(`Predominant race: ${dominantRaceEntry[0]} (${dominantRaceEntry[1]} players).`);
     }
@@ -59,7 +59,7 @@ function generateScoutingNotes(targetTeam: any, targetPlayers: any[], scoutingLe
 
   if (scoutingLevel >= 3 && targetPlayers.length > 0) {
     // Simplified overall strength assessment
-    const avgPlayerPower = targetPlayers.reduce((sum, p) => {
+    const avgPlayerPower = targetPlayers.reduce((sum: any, p: any) => {
         return sum + (p.speed || 20) + (p.power || 20) + (p.throwing || 20) + (p.catching || 20) + (p.kicking || 20);
     }, 0) / (targetPlayers.length * 5); // Average of 5 core stats
 
@@ -190,9 +190,9 @@ function calculateTeamPower(players: any[]): number {
                                 (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20)) / 6)
   }));
   const topPlayers = playersWithPower
-    .sort((a, b) => b.individualPower - a.individualPower)
+    .sort((a: any, b: any) => b.individualPower - a.individualPower)
     .slice(0, 9); // Consider only top N players for power
-  const totalPower = topPlayers.reduce((sum, player) => sum + player.individualPower, 0);
+  const totalPower = topPlayers.reduce((sum: any, player: any) => sum + player.individualPower, 0);
   return Math.round(totalPower / Math.max(1, topPlayers.length));
 }
 

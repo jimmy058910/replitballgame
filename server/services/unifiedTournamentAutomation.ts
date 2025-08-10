@@ -1,5 +1,5 @@
 import { prisma } from "../db.js";
-import type { MatchType, GameStatus } from "../../generated/prisma/index.js";
+// Using any types for Prisma enums to avoid import issues
 
 /**
  * Unified Tournament Automation System
@@ -30,7 +30,7 @@ export class UnifiedTournamentAutomation {
 
       // Start live simulation for all matches
       const { matchStateManager } = await import('./matchStateManager');
-      const startPromises = matches.map(async (match) => {
+      const startPromises = matches.map(async (match: any) => {
         try {
           // Update match status to IN_PROGRESS
           await prisma.game.update({
@@ -76,7 +76,7 @@ export class UnifiedTournamentAutomation {
         }
       });
 
-      const completedMatches = roundMatches.filter(m => m.status === 'COMPLETED');
+      const completedMatches = roundMatches.filter((m: any) => m.status === 'COMPLETED');
       
       console.log(`Tournament ${tournamentId} round ${completedRound}: ${completedMatches.length}/${roundMatches.length} matches completed`);
       
@@ -146,7 +146,7 @@ export class UnifiedTournamentAutomation {
       if (completedMatches.length === 0) return;
 
       // Determine winners (with detailed logging)
-      const winners = completedMatches.map(match => {
+      const winners = completedMatches.map((match: any) => {
         const winnerId = (match.homeScore || 0) > (match.awayScore || 0) ? match.homeTeamId : match.awayTeamId;
         const loserId = (match.homeScore || 0) > (match.awayScore || 0) ? match.awayTeamId : match.homeTeamId;
         console.log(`Match ${match.id}: Team ${winnerId} (${(match.homeScore || 0) > (match.awayScore || 0) ? 'home' : 'away'}) beat Team ${loserId} (${match.homeScore || 0}-${match.awayScore || 0})`);
@@ -166,10 +166,10 @@ export class UnifiedTournamentAutomation {
             awayTeamId: winners[i + 1],
             homeScore: 0,
             awayScore: 0,
-            status: 'SCHEDULED' as GameStatus,
+            status: 'SCHEDULED' as any,
             round: nextRound,
             gameDate: new Date(),
-            matchType: 'TOURNAMENT_DAILY' as MatchType
+            matchType: 'TOURNAMENT_DAILY' as any
           };
           nextRoundMatches.push(match);
           console.log(`Created match: Team ${winners[i]} vs Team ${winners[i + 1]} for round ${nextRound}`);
@@ -245,7 +245,7 @@ export class UnifiedTournamentAutomation {
 
         if (!existingThirdPlaceGame) {
           // Create 3rd place playoff game
-          const semifinalLosers = semifinalsMatches.map(match => 
+          const semifinalLosers = semifinalsMatches.map((match: any) => 
             (match.homeScore || 0) > (match.awayScore || 0) ? match.awayTeamId : match.homeTeamId
           );
 

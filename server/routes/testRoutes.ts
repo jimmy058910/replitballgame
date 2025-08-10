@@ -122,7 +122,7 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
       players: {
         created: playersCreated.length,
         verified: finalPlayers.length,
-        positions: finalPlayers.map(p => p.role)
+        positions: finalPlayers.map((p: any) => p.role)
       },
       staff: {
         created: staffCreated.length,

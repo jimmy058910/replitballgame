@@ -225,8 +225,8 @@ router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, nex
 
     // Sort by rarity and recency
     const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
-    shareableMoments.sort((a, b) => {
-      const rarityDiff = rarityOrder[b.rarity] - rarityOrder[a.rarity];
+    shareableMoments.sort((a: any, b: any) => {
+      const rarityDiff = rarityOrder[b.rarity as keyof typeof rarityOrder] - rarityOrder[a.rarity as keyof typeof rarityOrder];
       if (rarityDiff !== 0) return rarityDiff;
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });

@@ -63,7 +63,7 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
     });
     
     // Sort by True Strength Rating (descending)
-    rankedTeams.sort((a, b) => b.trueStrengthRating - a.trueStrengthRating);
+    rankedTeams.sort((a: any, b: any) => b.trueStrengthRating - a.trueStrengthRating);
     
     // Add global rank
     const globalRankings = rankedTeams.slice(0, 100).map((team, index) => ({
@@ -128,20 +128,20 @@ router.get("/rankings", isAuthenticated, async (req, res) => {
     });
     
     // Sort by team power and assign ranks
-    rankedTeams.sort((a, b) => b.teamPower - a.teamPower);
+    rankedTeams.sort((a: any, b: any) => b.teamPower - a.teamPower);
     rankedTeams.forEach((team, index) => {
       team.rank = index + 1;
     });
     
     // Calculate player stats (top performers)
     const playerStats = players
-      .map(p => ({
+      .map((p: any) => ({
         playerName: `${p.firstName} ${p.lastName}`,
         teamName: p.teamName || 'Unknown Team',
         statType: 'power',
         statValue: p.power || 0
       }))
-      .sort((a, b) => b.statValue - a.statValue)
+      .sort((a: any, b: any) => b.statValue - a.statValue)
       .slice(0, 10);
     
     res.json({
@@ -180,24 +180,24 @@ router.get("/statistics", isAuthenticated, async (req, res) => {
     // Rising teams (placeholder - would need historical data)
     const risingTeams = teams
       .filter(t => t.wins > t.losses)
-      .sort((a, b) => b.wins - a.wins)
+      .sort((a: any, b: any) => b.wins - a.wins)
       .slice(0, 10);
     
     // Best records across all divisions
     const bestRecords = teams
-      .map(t => ({
+      .map((t: any) => ({
         ...t,
       }))
-      .sort((a, b) => b.winPercentage - a.winPercentage)
+      .sort((a: any, b: any) => b.winPercentage - a.winPercentage)
       .slice(0, 10);
     
     // Strongest players globally
     const strongestPlayers = players
-      .map(p => ({
+      .map((p: any) => ({
         ...p,
         overallRating: Math.round((p.speed + p.power + p.throwing + p.catching + p.kicking + p.stamina + p.leadership + p.agility) / 8)
       }))
-      .sort((a, b) => b.overallRating - a.overallRating)
+      .sort((a: any, b: any) => b.overallRating - a.overallRating)
       .slice(0, 20);
     
     res.json({
@@ -305,8 +305,8 @@ async function calculateRecentForm(team: any): Promise<number> {
   try {
     const matches = await storage.matches.getMatchesByTeamId(team.id);
     const completedMatches = matches
-      .filter(match => match.status === 'COMPLETED')
-      .sort((a, b) => new Date(b.gameDate || b.createdAt).getTime() - new Date(a.gameDate || a.createdAt).getTime())
+      .filter((match: any) => match.status === 'COMPLETED')
+      .sort((a: any, b: any) => new Date(b.gameDate || b.createdAt).getTime() - new Date(a.gameDate || a.createdAt).getTime())
       .slice(0, 5); // Last 5 completed matches
     
     if (completedMatches.length === 0) return 0;

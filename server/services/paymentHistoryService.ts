@@ -69,7 +69,7 @@ export class PaymentHistoryService {
     console.log('PaymentHistoryService: Total count:', totalCount);
     
     // Convert BigInt fields to strings for JSON serialization
-    const serializedTransactions = transactions.map(transaction => ({
+    const serializedTransactions = transactions.map((transaction: any) => ({
       ...transaction,
       creditsAmount: transaction.creditsAmount ? transaction.creditsAmount.toString() : '0',
       teamId: transaction.teamId ? transaction.teamId : null,
@@ -144,7 +144,7 @@ export class PaymentHistoryService {
     console.log('PaymentHistoryService: Found', transactions.length, 'completed transactions for summary');
 
     const summary = transactions.reduce(
-      (acc, transaction) => {
+      (acc: any, transaction: any) => {
         // Credits
         const creditsAmount = Number(transaction.creditsAmount);
         if (creditsAmount > 0) {

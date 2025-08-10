@@ -7,7 +7,7 @@ import { isAuthenticated } from "../googleAuth";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from "../services/matchStateManager";
 import { z } from "zod";
-import { MatchType } from "../../generated/prisma/index.js";
+// Using string literals for match types
 import { prisma } from "../db";
 
 // TODO: Move to TeamService or similar
@@ -20,9 +20,9 @@ function calculateTeamPower(players: any[]): number {
                                 (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20)) / 6)
   }));
   const topPlayers = playersWithPower
-    .sort((a, b) => b.individualPower - a.individualPower)
+    .sort((a: any, b: any) => b.individualPower - a.individualPower)
     .slice(0, 9);
-  const totalPower = topPlayers.reduce((sum, player) => sum + player.individualPower, 0);
+  const totalPower = topPlayers.reduce((sum: any, player: any) => sum + player.individualPower, 0);
   return Math.round(totalPower / Math.max(1, topPlayers.length));
 }
 
@@ -45,7 +45,7 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     // ALSO get pending exhibition matches from matches table created today (EST)
     const allMatches = await storage.matches.getMatchesByTeamId(team.id);
     console.log(`[DEBUG] Retrieved ${allMatches.length} total matches for team ${team.id}`);
-    const exhibitionMatches = allMatches.filter(match => match.matchType === 'EXHIBITION');
+    const exhibitionMatches = allMatches.filter((match: any) => match.matchType === 'EXHIBITION');
     console.log(`[DEBUG] Found ${exhibitionMatches.length} exhibition matches out of ${allMatches.length} total matches`);
     
     // Use proper Eastern Time-based calculation that matches the 3AM reset time
@@ -55,7 +55,7 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
     console.log(`[DEBUG] Game Day Range: Start: ${todayStart.toISOString()}, End: ${todayEnd.toISOString()}`);
     
     // Get ALL exhibition matches from current game day (pending + completed) using Eastern Time calculation
-    const allExhibitionMatchesToday = allMatches.filter(match => {
+    const allExhibitionMatchesToday = allMatches.filter((match: any) => {
       if (match.matchType !== 'EXHIBITION') return false;
       if (!match.createdAt) return false;
       
@@ -176,7 +176,7 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
         const trueStrengthRating = baseRating + divisionBonus + recordBonus + sosBonus + camaraderieBonus + recentFormBonus + healthBonus;
         
         // Calculate global rank by comparing with all teams
-        const rankedTeams = allTeams.map(t => {
+        const rankedTeams = allTeams.map((t: any) => {
           const tPlayers = t.players || [];
           const tPower = tPlayers.length > 0 ? calculateTeamPower(tPlayers) : (t.teamPower || 20);
           const tDivisionMultiplier = getDivisionMultiplier(t.division);
@@ -188,7 +188,7 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
                                (tSOS * 1.5) + ((t.camaraderie || 50) * 2) + (tRecentForm * 30) + (tHealthFactor * 50);
           
           return { id: t.id, trueStrengthRating: tTrueStrength };
-        }).sort((a, b) => b.trueStrengthRating - a.trueStrengthRating);
+        }).sort((a: any, b: any) => b.trueStrengthRating - a.trueStrengthRating);
         
         const globalRank = rankedTeams.findIndex(t => t.id === opponent.id) + 1;
         
@@ -334,7 +334,7 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
     const match = await matchStorage.createMatch({
       homeTeamId,
       awayTeamId,
-      matchType: MatchType.EXHIBITION,
+      matchType: "EXHIBITION",
       gameDate: new Date(),
     });
 
@@ -434,7 +434,7 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
     const match = await matchStorage.createMatch({
       homeTeamId: isHome ? userTeam.id : randomOpponent.id,
       awayTeamId: isHome ? randomOpponent.id : userTeam.id,
-      matchType: MatchType.EXHIBITION,
+      matchType: "EXHIBITION",
       gameDate: new Date(),
     });
 
@@ -597,7 +597,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
     const match = await matchStorage.createMatch({
       homeTeamId,
       awayTeamId,
-      matchType: MatchType.EXHIBITION,
+      matchType: "EXHIBITION",
       gameDate: new Date(),
     });
 
@@ -672,7 +672,7 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
     const match = await matchStorage.createMatch({
       homeTeamId,
       awayTeamId,
-      matchType: MatchType.EXHIBITION, 
+      matchType: "EXHIBITION", 
       gameDate: new Date(),
     });
 
@@ -713,7 +713,7 @@ router.get('/recent', isAuthenticated, async (req: any, res: Response, next: Nex
     // Fetch all matches for this team and filter for exhibitions
     const allMatches = await storage.matches.getMatchesByTeamId(team.id);
     const recentMatches = allMatches
-      .filter(match => match.matchType === 'EXHIBITION')
+      .filter((match: any) => match.matchType === 'EXHIBITION')
       .slice(0, 10);
 
     // Enhance with complete team information for both home and away teams

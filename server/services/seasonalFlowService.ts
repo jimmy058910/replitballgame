@@ -1,4 +1,5 @@
-import type { GameStatus, MatchType, TournamentStatus, TournamentType, PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
+// Note: Using any types for Prisma enums to avoid import issues
 import { prisma } from '../db';
 import { logInfo } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
@@ -819,7 +820,7 @@ export class SeasonalFlowService {
    * 4. Goals for
    */
   static applyTieBreakers(teams: any[]): any[] {
-    return teams.sort((a, b) => {
+    return teams.sort((a: any, b: any) => {
       // Primary: Points
       if ((b.points || 0) !== (a.points || 0)) {
         return (b.points || 0) - (a.points || 0);
@@ -1262,7 +1263,7 @@ export class SeasonalFlowService {
     }
     
     // Sort promotion pool by win percentage and point differential
-    return promotionPool.sort((a, b) => {
+    return promotionPool.sort((a: any, b: any) => {
       const aWinPct = (a.wins || 0) / Math.max(1, (a.wins || 0) + (a.losses || 0));
       const bWinPct = (b.wins || 0) / Math.max(1, (b.wins || 0) + (b.losses || 0));
       

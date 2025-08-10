@@ -101,7 +101,7 @@ export class PlayerStorage {
     });
 
     // Add calculated rosterPosition field for main roster
-    const playersWithPosition = mainRosterPlayers.map((player, index) => ({
+    const playersWithPosition = mainRosterPlayers.map((player: any, index: any) => ({
       ...player,
       rosterPosition: index + 1 // Position 1, 2, 3, etc.
     }));
@@ -221,8 +221,8 @@ export class PlayerStorage {
 
       // Calculate current roster structure based on contract status
       const totalPlayers = allTeamPlayers.length;
-      const mainRosterPlayers = allTeamPlayers.filter(p => p.contract !== null);
-      const taxiSquadPlayers = allTeamPlayers.filter(p => p.contract === null && p.tryoutHistory.length > 0);
+      const mainRosterPlayers = allTeamPlayers.filter((p: any) => p.contract !== null);
+      const taxiSquadPlayers = allTeamPlayers.filter((p: any) => p.contract === null && p.tryoutHistory.length > 0);
       
       console.log(`[PROMOTION DEBUG] Current roster: ${totalPlayers} total players (${mainRosterPlayers.length} main roster, ${taxiSquadPlayers.length} taxi squad)`);
       console.log(`[PROMOTION DEBUG] Promoting player: ${player.firstName} ${player.lastName} (ID: ${player.id})`);
@@ -319,8 +319,8 @@ export class PlayerStorage {
     // Use proper main roster vs taxi squad detection (contract-based)
     const allPlayers = player.team.players;
     const totalPlayers = allPlayers.length;
-    const mainRosterPlayers = allPlayers.filter(p => p.contract !== null);
-    const taxiSquadPlayers = allPlayers.filter(p => p.contract === null);
+    const mainRosterPlayers = allPlayers.filter((p: any) => p.contract !== null);
+    const taxiSquadPlayers = allPlayers.filter((p: any) => p.contract === null);
 
     // Check minimum main roster count (cannot go below 12 contracted players)
     if (mainRosterPlayers.length <= 12) {

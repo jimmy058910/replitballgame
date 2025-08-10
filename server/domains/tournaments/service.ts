@@ -127,7 +127,7 @@ export class TournamentDomainService {
     }
   }
 
-  static async getTournamentStatus(tournamentId: number): Promise<TournamentStatus> {
+  static async getany(tournamentId: number): Promise<any> {
     try {
       const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId },

@@ -146,7 +146,7 @@ export class TournamentMatchService {
    */
   private static async storeTournamentMatches(tournamentId: number, matches: TournamentMatch[]) {
     try {
-      const matchesToStore = matches.map(match => ({
+      const matchesToStore = matches.map((match: any) => ({
         id: match.id,
         tournamentId: tournamentId,
         round: match.round,
@@ -214,7 +214,7 @@ export class TournamentMatchService {
         ORDER BY start_time ASC
       `;
 
-      return matches.map(match => ({
+      return matches.map((match: any) => ({
         id: match.id,
         round: match.round,
         homeTeam: {

@@ -35,8 +35,8 @@ export class TournamentBracketValidator {
 
         // Get winners from current round
         const winners = currentRound
-          .filter(m => m.status === 'COMPLETED')
-          .map(m => m.homeScore > m.awayScore ? m.homeTeamId : m.awayTeamId);
+          .filter((m: any) => m.status === 'COMPLETED')
+          .map((m: any) => m.homeScore > m.awayScore ? m.homeTeamId : m.awayTeamId);
 
         // Check if next round teams match winners
         const nextRoundTeams = new Set();
@@ -94,8 +94,8 @@ export class TournamentBracketValidator {
 
         // Get winners from current round
         const winners = currentRound
-          .filter(m => m.status === 'COMPLETED')
-          .map(m => m.homeScore > m.awayScore ? m.homeTeamId : m.awayTeamId);
+          .filter((m: any) => m.status === 'COMPLETED')
+          .map((m: any) => m.homeScore > m.awayScore ? m.homeTeamId : m.awayTeamId);
 
         if (winners.length === 0) continue;
 

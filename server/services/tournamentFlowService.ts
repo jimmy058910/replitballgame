@@ -69,7 +69,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
 
       // Start live simulation for all matches in the round
       const { matchStateManager } = await import('./matchStateManager');
-      const matchPromises = matches.map(async (match) => {
+      const matchPromises = matches.map(async (match: any) => {
         try {
           // Set match status to IN_PROGRESS
           await prisma.game.update({
@@ -248,7 +248,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       logInfo(`Found ${roundMatches.length} matches in round ${completedRound}`);
 
       // Check if all matches in this round are completed
-      const completedMatches = roundMatches.filter(m => m.status === 'COMPLETED');
+      const completedMatches = roundMatches.filter((m: any) => m.status === 'COMPLETED');
       
       logInfo(`${completedMatches.length} of ${roundMatches.length} matches completed in round ${completedRound}`);
       

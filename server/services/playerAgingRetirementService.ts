@@ -107,15 +107,15 @@ export class PlayerAgingRetirementService {
         let relevantTrainerRating = 0;
         if (this.DEVELOPMENT_CONFIG.PHYSICAL_STATS.includes(statName)) {
           // Physical stats improved by Physical Trainer
-          const physicalTrainer = trainers.find(t => t.type === ('PHYSICAL_TRAINER' as StaffType));
+          const physicalTrainer = trainers.find((t: any) => t.type === ('PHYSICAL_TRAINER' as StaffType));
           relevantTrainerRating = physicalTrainer?.physiology || 0;
         } else if (['throwing', 'catching'].includes(statName)) {
           // Passing stats improved by Offensive Trainer  
-          const offensiveTrainer = trainers.find(t => t.type === ('TACTICAL_ANALYST' as StaffType));
+          const offensiveTrainer = trainers.find((t: any) => t.type === ('TACTICAL_ANALYST' as StaffType));
           relevantTrainerRating = offensiveTrainer?.tactics || 0;
         } else if (['leadership', 'kicking'].includes(statName)) {
           // Mental/special stats improved by Defensive Trainer
-          const defensiveTrainer = trainers.find(t => t.type === ('MOTIVATIONAL_COACH' as StaffType));
+          const defensiveTrainer = trainers.find((t: any) => t.type === ('MOTIVATIONAL_COACH' as StaffType));
           relevantTrainerRating = defensiveTrainer?.motivation || 0;
         }
         
@@ -579,7 +579,7 @@ export class PlayerAgingRetirementService {
     };
 
     // Group players by team
-    const playersByTeam = allActivePlayers.reduce((acc: any, player) => {
+    const playersByTeam = allActivePlayers.reduce((acc: any, player: any) => {
       if (player.teamId) {
         if (!acc[player.teamId]) acc[player.teamId] = [];
         acc[player.teamId].push(player);

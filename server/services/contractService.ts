@@ -299,7 +299,7 @@ export class ContractService {
       }
     });
 
-    const totalSalary = activeContracts.reduce((sum, contract) => sum + Number(contract.salary), 0);
+    const totalSalary = activeContracts.reduce((sum: any, contract: any) => sum + Number(contract.salary), 0);
     const salaryCap = 5000000; // 5M salary cap
     const capSpace = salaryCap - totalSalary;
 

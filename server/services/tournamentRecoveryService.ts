@@ -33,7 +33,7 @@ export class TournamentRecoveryService {
       
       // Group matches by round
       const matchesByRound = new Map<number, any[]>();
-      scheduledMatches.forEach(match => {
+      scheduledMatches.forEach((match: any) => {
         const round = match.round || 1; // Default to round 1 if null
         if (!matchesByRound.has(round)) {
           matchesByRound.set(round, []);

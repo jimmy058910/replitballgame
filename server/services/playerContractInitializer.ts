@@ -19,12 +19,12 @@ export class PlayerContractInitializer {
     // Get existing active contracts for these players
     const existingContracts = await prisma.contract.findMany({
       where: {
-        playerId: { in: players.map(p => p.id) }
+        playerId: { in: players.map((p: any) => p.id) }
       }
     });
     
-    const playersWithContracts = existingContracts.map(c => c.playerId);
-    const playersWithoutContracts = players.filter(p => !playersWithContracts.includes(p.id));
+    const playersWithContracts = existingContracts.map((c: any) => c.playerId);
+    const playersWithoutContracts = players.filter((p: any) => !playersWithContracts.includes(p.id));
     
     console.log(`[PlayerContractInitializer] Players without contracts: ${playersWithoutContracts.length}`);
     

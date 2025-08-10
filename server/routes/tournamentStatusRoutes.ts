@@ -127,7 +127,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
 
     // Get participant counts for all tournaments
     const participantCounts = await Promise.all(
-      entries.map(async (entry) => {
+      entries.map(async (entry: any) => {
         const count = await prisma.tournamentEntry.count({
           where: { tournamentId: entry.tournament.id }
         });
@@ -258,7 +258,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
     const isFull = currentParticipants >= maxParticipants;
 
     // Check if user's team is registered
-    const userTeamEntry = tournament.entries.find(entry => entry.teamId.toString() === team.id.toString());
+    const userTeamEntry = tournament.entries.find((entry: any) => entry.teamId.toString() === team.id.toString());
     const userTeamRegistered = !!userTeamEntry;
 
     // Calculate time until start (10 minutes after full)
@@ -587,7 +587,7 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
 
     // Start live simulation for all matches in the round
     const { matchStateManager } = await import('../services/matchStateManager');
-    const matchPromises = matches.map(async (match) => {
+    const matchPromises = matches.map(async (match: any) => {
       try {
         // Set match status to IN_PROGRESS
         await prisma.game.update({
@@ -663,7 +663,7 @@ router.post('/:id/matches/manual-start', isAuthenticated, async (req: any, res) 
 
     // Start live simulation for all matches in the round
     const { matchStateManager } = await import('../services/matchStateManager');
-    const matchPromises = matches.map(async (match) => {
+    const matchPromises = matches.map(async (match: any) => {
       try {
         // Start live simulation directly
         await matchStateManager.startLiveMatch(match.id.toString());
@@ -901,7 +901,7 @@ router.post('/:tournamentId/simulate-round', isAuthenticated, async (req: any, r
 
     // Start live simulation for each match
     const { matchStateManager } = await import('../services/matchStateManager');
-    const matchPromises = matches.map(async (match) => {
+    const matchPromises = matches.map(async (match: any) => {
       try {
         // Set match status to IN_PROGRESS
         await prisma.game.update({

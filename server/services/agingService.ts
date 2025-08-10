@@ -289,12 +289,12 @@ export class AgingService {
     const allPlayers = await prisma.player.findMany();
     
     const totalPlayers = allPlayers.length;
-    const retirementEligible = allPlayers.filter(p => p.age >= 35).length;
-    const declineEligible = allPlayers.filter(p => p.age >= 31).length;
-    const averageAge = allPlayers.reduce((sum, p) => sum + p.age, 0) / totalPlayers;
+    const retirementEligible = allPlayers.filter((p: any) => p.age >= 35).length;
+    const declineEligible = allPlayers.filter((p: any) => p.age >= 31).length;
+    const averageAge = allPlayers.reduce((sum: any, p: any) => sum + p.age, 0) / totalPlayers;
 
     const ageDistribution: Record<string, number> = {};
-    allPlayers.forEach(player => {
+    allPlayers.forEach((player: any) => {
       const ageRange = `${Math.floor(player.age / 5) * 5}-${Math.floor(player.age / 5) * 5 + 4}`;
       ageDistribution[ageRange] = (ageDistribution[ageRange] || 0) + 1;
     });

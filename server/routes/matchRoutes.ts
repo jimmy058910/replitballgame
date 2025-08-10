@@ -733,7 +733,7 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
             if (!teamId_fromMap || teamId_fromMap !== teamId) continue;
             
             // Find player in the pre-loaded arrays
-            const player = [...liveHomePlayers, ...liveAwayPlayers].find(p => p.id.toString() === playerId.toString());
+            const player = [...liveHomePlayers, ...liveAwayPlayers].find((p: any) => p.id.toString() === playerId.toString());
             if (!player) continue;
             
             // Calculate MVP score: scores * 10 + passing yards * 0.1 + carrier yards * 0.2 + tackles * 2

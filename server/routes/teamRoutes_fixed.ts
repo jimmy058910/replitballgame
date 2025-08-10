@@ -20,10 +20,10 @@ function calculateTeamPower(players: any[]): number {
   }));
 
   const topPlayers = playersWithPower
-    .sort((a, b) => b.individualPower - a.individualPower)
+    .sort((a: any, b: any) => b.individualPower - a.individualPower)
     .slice(0, 9);
 
-  const totalPower = topPlayers.reduce((sum, player) => sum + player.individualPower, 0);
+  const totalPower = topPlayers.reduce((sum: any, player: any) => sum + player.individualPower, 0);
   return Math.round(totalPower / Math.max(1, topPlayers.length));
 }
 

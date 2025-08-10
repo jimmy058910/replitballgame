@@ -482,9 +482,9 @@ async function initializeEnhancedPlayers(
   const enhancedPlayers: EnhancedPlayer[] = [];
   
   // Performance optimization: Cache expensive operations
-  const playerIds = players.map(p => p.id);
-  const uniqueTeamIds = Array.from(new Set(players.map(p => p.teamId)));
-  const uniqueRoles = Array.from(new Set(players.map(p => p.role)));
+  const playerIds = players.map((p: any) => p.id);
+  const uniqueTeamIds = Array.from(new Set(players.map((p: any) => p.teamId)));
+  const uniqueRoles = Array.from(new Set(players.map((p: any) => p.role)));
   
   // Cache for database call results
   const equipmentEffectsCache = new Map<string, Record<string, number>>();

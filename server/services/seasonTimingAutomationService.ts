@@ -1291,7 +1291,7 @@ export class SeasonTimingAutomationService {
           logInfo(`Semifinals would be generated for tournament ${tournamentId} by UnifiedTournamentAutomation`);
         } else {
           // Check if semifinals need to be started
-          const scheduledSemifinals = semifinalsMatches.filter(m => m.status === 'SCHEDULED');
+          const scheduledSemifinals = semifinalsMatches.filter((m: any) => m.status === 'SCHEDULED');
           if (scheduledSemifinals.length > 0) {
             // Start scheduled semifinals
             await this.startScheduledMatches(tournamentId, 2);
@@ -1299,7 +1299,7 @@ export class SeasonTimingAutomationService {
           }
           
           // Check if semifinals are complete
-          const completedSemifinals = semifinalsMatches.filter(m => m.status === 'COMPLETED');
+          const completedSemifinals = semifinalsMatches.filter((m: any) => m.status === 'COMPLETED');
           if (completedSemifinals.length === 2) {
             // Check if finals exist
             const finalsMatches = await prisma.game.findMany({
@@ -1315,7 +1315,7 @@ export class SeasonTimingAutomationService {
               logInfo(`Finals would be generated for tournament ${tournamentId} by UnifiedTournamentAutomation`);
             } else {
               // Check if finals need to be started
-              const scheduledFinals = finalsMatches.filter(m => m.status === 'SCHEDULED');
+              const scheduledFinals = finalsMatches.filter((m: any) => m.status === 'SCHEDULED');
               if (scheduledFinals.length > 0) {
                 // Start scheduled finals
                 await this.startScheduledMatches(tournamentId, 3);
@@ -1323,7 +1323,7 @@ export class SeasonTimingAutomationService {
               }
               
               // Check if finals are complete
-              const completedFinals = finalsMatches.filter(m => m.status === 'COMPLETED');
+              const completedFinals = finalsMatches.filter((m: any) => m.status === 'COMPLETED');
               if (completedFinals.length === 1) {
                 // Tournament is complete - distribute prizes and move to history
                 await this.completeTournament(tournamentId);

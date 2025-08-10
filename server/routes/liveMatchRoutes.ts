@@ -360,9 +360,9 @@ router.get('/:matchId/summary', async (req, res) => {
         avatar: undefined
       } : undefined,
       keyPerformers: playerStatsArray
-        .sort((a, b) => (b.scores * 10 + b.assists * 5) - (a.scores * 10 + a.assists * 5))
+        .sort((a: any, b: any) => (b.scores * 10 + b.assists * 5) - (a.scores * 10 + a.assists * 5))
         .slice(0, 3)
-        .map(p => ({
+        .map((p: any) => ({
           playerId: p.playerId,
           name: `Player ${p.playerId}`,
           performanceIndex: p.scores * 10 + p.assists * 5 + p.tackles * 3,

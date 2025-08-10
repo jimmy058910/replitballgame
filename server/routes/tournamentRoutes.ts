@@ -297,7 +297,7 @@ router.get('/:division/bracket', isAuthenticated, async (req: Request, res: Resp
         return res.status(400).json({ message: `Not enough teams in Division ${division} to form a 4-team bracket.` });
     }
 
-    const sortedTeams = teamsInDivision.sort((a, b) => (b.points || 0) - (a.points || 0) || (b.wins || 0) - (a.wins || 0) ).slice(0,4);
+    const sortedTeams = teamsInDivision.sort((a: any, b: any) => (b.points || 0) - (a.points || 0) || (b.wins || 0) - (a.wins || 0) ).slice(0,4);
 
     const bracket = {
       tournamentName: `${getDivisionName(division)} Championship Bracket (Top 4)`,

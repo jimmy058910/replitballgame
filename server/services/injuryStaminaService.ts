@@ -171,7 +171,7 @@ export class InjuryStaminaService {
   ): number {
     const S = stamina;
     const M = minutesPlayed;
-    const Mmax = getGameDurationMinutes(matchType as MatchType); // Dynamic based on match type
+    const Mmax = getGameDurationMinutes(matchType as any); // Dynamic based on match type
     const Dbase = this.settings.baseDepletion; // 20
     const K = this.settings.staminaScalingConstant; // 0.30
     const Ccoach = Math.min(0.15, coachBonus); // Cap at 15%

@@ -30,10 +30,10 @@ function calculateTeamPower(players: any[]): number {
   }));
 
   const topPlayers = playersWithPower
-    .sort((a, b) => b.individualPower - a.individualPower)
+    .sort((a: any, b: any) => b.individualPower - a.individualPower)
     .slice(0, 9);
 
-  const totalPower = topPlayers.reduce((sum, player) => sum + player.individualPower, 0);
+  const totalPower = topPlayers.reduce((sum: any, player: any) => sum + player.individualPower, 0);
   return Math.round(totalPower / Math.max(1, topPlayers.length));
 }
 
@@ -1601,7 +1601,7 @@ router.get('/:teamId/finances', requireAuth, asyncHandler(async (req: any, res: 
     where: { teamId: team.id },
     select: { id: true }
   });
-  const playerIds = players.map(p => p.id);
+  const playerIds = players.map((p: any) => p.id);
   
   const contracts = await prisma.contract.findMany({
     where: {
@@ -1898,7 +1898,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', requireAuth, asyncHandler(a
   });
 
   // Calculate roster position based on creation order (same as storage layer)
-  const playerIndex = allTeamPlayers.findIndex(p => p.id === parseInt(playerId));
+  const playerIndex = allTeamPlayers.findIndex((p: any) => p.id === parseInt(playerId));
   if (playerIndex === -1) {
     throw ErrorCreators.notFound("Player not found in team roster");
   }
@@ -2005,7 +2005,7 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
   });
 
   // Calculate roster position based on creation order (same as storage layer)
-  const playerIndex = allTeamPlayers.findIndex(p => p.id === parseInt(playerId));
+  const playerIndex = allTeamPlayers.findIndex((p: any) => p.id === parseInt(playerId));
   if (playerIndex === -1) {
     throw ErrorCreators.notFound("Player not found in team roster");
   }
@@ -2092,9 +2092,9 @@ router.get('/:teamId/taxi-squad/debug', requireAuth, asyncHandler(async (req: an
   res.json({
     teamId: team.id,
     totalPlayers: allPlayers.length,
-    mainRoster: mainRoster.map(p => ({ id: p.id, firstName: p.firstName, lastName: p.lastName, createdAt: p.createdAt })),
-    taxiSquad: taxiSquad.map(p => ({ id: p.id, firstName: p.firstName, lastName: p.lastName, createdAt: p.createdAt })),
-    emberField: allPlayers.find(p => p.firstName === 'Ember' && p.lastName === 'Field')
+    mainRoster: mainRoster.map((p: any) => ({ id: p.id, firstName: p.firstName, lastName: p.lastName, createdAt: p.createdAt })),
+    taxiSquad: taxiSquad.map((p: any) => ({ id: p.id, firstName: p.firstName, lastName: p.lastName, createdAt: p.createdAt })),
+    emberField: allPlayers.find((p: any) => p.firstName === 'Ember' && p.lastName === 'Field')
   });
 }));
 
@@ -2805,22 +2805,22 @@ router.get('/:teamId/scouting', requireAuth, async (req: any, res: Response, nex
 
     // Calculate team metrics
     const teamPower = players.length > 0 ? 
-      Math.round(players.reduce((sum, p) => sum + ((p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6), 0) / players.length * 10) / 10 : 0;
+      Math.round(players.reduce((sum: any, p: any) => sum + ((p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6), 0) / players.length * 10) / 10 : 0;
 
     // Get top 5 players by power
     const topPlayers = players
-      .map(p => ({
+      .map((p: any) => ({
         ...p,
         powerRating: (p.speed + p.power + p.throwing + p.catching + p.kicking + p.agility) / 6
       }))
-      .sort((a, b) => b.powerRating - a.powerRating)
+      .sort((a: any, b: any) => b.powerRating - a.powerRating)
       .slice(0, 5);
 
     // Calculate financial metrics
-    const totalSalary = players.reduce((sum, p) => sum + (p.contract?.salary || 0), 0);
+    const totalSalary = players.reduce((sum: any, p: any) => sum + (p.contract?.salary || 0), 0);
     const highestContract = players
-      .filter(p => p.contract)
-      .sort((a, b) => (b.contract?.salary || 0) - (a.contract?.salary || 0))[0];
+      .filter((p: any) => p.contract)
+      .sort((a: any, b: any) => (b.contract?.salary || 0) - (a.contract?.salary || 0))[0];
 
     // Calculate fan loyalty and attendance (simplified)
     const fanLoyalty = team.fanLoyalty || 50;
@@ -2830,7 +2830,7 @@ router.get('/:teamId/scouting', requireAuth, async (req: any, res: Response, nex
     const allTeams = await prisma.team.findMany({
       select: { id: true, wins: true, losses: true, points: true }
     });
-    const sortedTeams = allTeams.sort((a, b) => b.points - a.points);
+    const sortedTeams = allTeams.sort((a: any, b: any) => b.points - a.points);
     const globalRank = sortedTeams.findIndex(t => t.id === teamId) + 1;
 
     const scoutingData = {
@@ -2892,12 +2892,12 @@ router.get('/:teamId/matches/live', requireAuth, async (req: Request, res: Respo
 
     // Get live matches involving only the specified team
     const allLiveMatches = await matchStorage.getLiveMatches();
-    const userTeamMatches = allLiveMatches.filter(match => 
+    const userTeamMatches = allLiveMatches.filter((match: any) => 
       match.homeTeamId === teamIdNum || match.awayTeamId === teamIdNum
     );
 
     // Transform matches for user team display
-    const transformedMatches = userTeamMatches.map(match => {
+    const transformedMatches = userTeamMatches.map((match: any) => {
       const matchType = match.tournamentId ? 'TOURNAMENT' 
                        : match.type === 'exhibition' ? 'EXHIBITION' : 'LEAGUE';
       

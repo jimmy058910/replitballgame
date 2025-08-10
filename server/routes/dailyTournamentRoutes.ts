@@ -73,7 +73,7 @@ router.get("/available-opponents", isAuthenticated, async (req: any, res: Respon
 
     // Sort by power rating similarity to user's team
     const userPower = Math.round(((team.teamPower || 0) + (team.teamCamaraderie || 50)) / 2);
-    opponentsWithPower.sort((a, b) => {
+    opponentsWithPower.sort((a: any, b: any) => {
       return Math.abs(a.teamPower - userPower) - Math.abs(b.teamPower - userPower);
     });
 
@@ -334,7 +334,7 @@ router.get("/recent", isAuthenticated, async (req: any, res: Response, next: Nex
 
     // Get opponent team data for each match
     const matchesWithOpponents = await Promise.all(
-      recentMatches.map(async (match) => {
+      recentMatches.map(async (match: any) => {
         const opponentId = match.homeTeamId === team.id ? match.awayTeamId : match.homeTeamId;
         const opponentTeam = await storage.teams.getTeamById(opponentId);
         

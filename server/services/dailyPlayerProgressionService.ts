@@ -532,9 +532,9 @@ export class DailyPlayerProgressionService {
     }
     
     const topPerformers = Object.values(playerProgressions)
-      .sort((a, b) => b.count - a.count)
+      .sort((a: any, b: any) => b.count - a.count)
       .slice(0, 10)
-      .map(p => ({
+      .map((p: any) => ({
         playerId: p.playerId,
         playerName: p.playerName,
         totalProgressions: p.count

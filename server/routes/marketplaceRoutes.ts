@@ -94,8 +94,8 @@ router.post('/players/list', isAuthenticated, async (req: any, res: Response, ne
 
     // Check if player is a taxi squad member (beyond main 12-player roster)
     const allTeamPlayers = await storage.players.getPlayersByTeamId(team.id);
-    const sortedPlayers = allTeamPlayers.sort((a, b) => a.id - b.id); // Consistent ordering
-    const playerIndex = sortedPlayers.findIndex(p => p.id === parseInt(playerId));
+    const sortedPlayers = allTeamPlayers.sort((a: any, b: any) => a.id - b.id); // Consistent ordering
+    const playerIndex = sortedPlayers.findIndex((p: any) => p.id === parseInt(playerId));
     const isTaxiSquadPlayer = playerIndex >= 12;
 
     if (isTaxiSquadPlayer) {

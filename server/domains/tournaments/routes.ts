@@ -82,7 +82,7 @@ router.get('/status/:tournamentId',
   async (req, res, next) => {
     try {
       const tournamentId = parseInt(req.params.tournamentId);
-      const status = await TournamentDomainService.getTournamentStatus(tournamentId);
+      const status = await TournamentDomainService.getany(tournamentId);
       
       res.json({
         success: true,

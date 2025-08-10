@@ -225,7 +225,7 @@ router.get("/tactical-analysis", isAuthenticated, async (req: any, res) => {
     }
     
     // Sort by overall effectiveness
-    analyses.sort((a, b) => b.overallEffectiveness - a.overallEffectiveness);
+    analyses.sort((a: any, b: any) => b.overallEffectiveness - a.overallEffectiveness);
     
     res.json({
       currentSetup: {
