@@ -31,10 +31,12 @@
 | `VITE_FIREBASE_PROJECT_ID` | `firebase-project-id` | Frontend Firebase |
 | `VITE_FIREBASE_APP_ID` | `firebase-app-id` | Frontend Firebase |
 
-## Current Deployment Configuration (CORRECTED)
+## Current Deployment Configuration (FIXED WITH PROJECT_NUMBER)
 ```bash
---set-secrets DATABASE_URL=DATABASE_URL:latest,SESSION_SECRET=SESSION_SECRET:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest
+--set-secrets DATABASE_URL=projects/PROJECT_NUMBER/secrets/DATABASE_URL:latest,SESSION_SECRET=projects/PROJECT_NUMBER/secrets/SESSION_SECRET:latest,VITE_FIREBASE_API_KEY=projects/PROJECT_NUMBER/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/PROJECT_NUMBER/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/PROJECT_NUMBER/secrets/firebase-app-id:latest,GOOGLE_CLIENT_ID=projects/PROJECT_NUMBER/secrets/GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=projects/PROJECT_NUMBER/secrets/GOOGLE_CLIENT_SECRET:latest
 ```
+
+**Key Fix**: Using PROJECT_NUMBER instead of PROJECT_ID for secret references, which often resolves Google Cloud secret resolution issues.
 
 ## Verification Checklist
 

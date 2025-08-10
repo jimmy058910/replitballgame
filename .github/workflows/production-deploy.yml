@@ -66,20 +66,11 @@ jobs:
         echo "✅ Project Number: $PROJECT_NUMBER"
         echo "This will override Cloud Run's incorrect auto-resolution to project 108005641993"
         
-        # Verify secrets exist with correct names
-        echo "🔍 Verifying secret names exist in Google Cloud:"
-        echo "All secrets in project:"
-        gcloud secrets list --format="value(name)" | sort
-        
-        echo ""
-        echo "🔍 Checking specific secret names for deployment:"
-        for secret in "DATABASE_URL" "SESSION_SECRET" "GOOGLE_CLIENT_ID" "GOOGLE_CLIENT_SECRET" "firebase-api-key" "firebase-project-id" "firebase-app-id"; do
-          if gcloud secrets describe "$secret" >/dev/null 2>&1; then
-            echo "✅ $secret exists"
-          else
-            echo "❌ $secret does not exist"
-          fi
-        done
+        # Set project context for secret access
+        echo "🔍 Setting project context for secret access:"
+        gcloud config set project ${{ env.PROJECT_ID }}
+        echo "✅ Project context set to: ${{ env.PROJECT_ID }}"
+        echo "✅ Using project number: $PROJECT_NUMBER for secret references"
 
     # ===============================
     # PHASE 2: BUILD FRONTEND & BACKEND
@@ -165,7 +156,7 @@ jobs:
           --platform=managed \
           --allow-unauthenticated \
           --set-env-vars="NODE_ENV=production" \
-          --set-secrets="DATABASE_URL=projects/${{ env.PROJECT_ID }}/secrets/DATABASE_URL:latest,SESSION_SECRET=projects/${{ env.PROJECT_ID }}/secrets/SESSION_SECRET:latest,GOOGLE_CLIENT_ID=projects/${{ env.PROJECT_ID }}/secrets/GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=projects/${{ env.PROJECT_ID }}/secrets/GOOGLE_CLIENT_SECRET:latest,VITE_FIREBASE_API_KEY=projects/${{ env.PROJECT_ID }}/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/${{ env.PROJECT_ID }}/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/${{ env.PROJECT_ID }}/secrets/firebase-app-id:latest" \
+          --set-secrets="DATABASE_URL=projects/$PROJECT_NUMBER/secrets/DATABASE_URL:latest,SESSION_SECRET=projects/$PROJECT_NUMBER/secrets/SESSION_SECRET:latest,GOOGLE_CLIENT_ID=projects/$PROJECT_NUMBER/secrets/GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=projects/$PROJECT_NUMBER/secrets/GOOGLE_CLIENT_SECRET:latest,VITE_FIREBASE_API_KEY=projects/$PROJECT_NUMBER/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/$PROJECT_NUMBER/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/$PROJECT_NUMBER/secrets/firebase-app-id:latest" \
           --memory=${{ env.MEMORY }} \
           --cpu=${{ env.CPU }} \
           --timeout=${{ env.TIMEOUT }} \
