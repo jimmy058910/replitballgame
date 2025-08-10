@@ -97,6 +97,7 @@ export async function setupAuth(app: Express) {
   }
   
   for (const domain of domains) {
+    /*
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -109,6 +110,7 @@ export async function setupAuth(app: Express) {
       verify,
     );
     passport.use(strategy);
+    */
   }
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
