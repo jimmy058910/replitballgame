@@ -19,9 +19,9 @@ export async function setupGoogleAuth(app: Express) {
   try {
     console.log('🔍 Testing AuthService connection...');
     const authModule = await Promise.race([
-      import('./domains/auth/service'),
+      import('./domains/auth/service.js'),
       new Promise((_, reject) => setTimeout(() => reject(new Error('AuthService import timeout')), 10000))
-    ]) as typeof import('./domains/auth/service');
+    ]) as typeof import('./domains/auth/service.js');
     console.log('✅ AuthService imported successfully');
   } catch (error) {
     console.error('⚠️ AuthService import failed, continuing with limited auth:', error);
