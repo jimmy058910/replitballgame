@@ -59,8 +59,13 @@ RUN echo "✅ Frontend built to dist/public/"
 RUN cp -r shared dist/ && cp -r prisma dist/
 RUN echo "✅ Shared resources copied to dist/"
 
+# Ensure Prisma client is available in expected production paths
+RUN mkdir -p dist/generated && cp -r node_modules/.prisma dist/generated/prisma
+RUN echo "✅ Prisma client copied to production location"
+
 # Verify critical build outputs
 RUN test -f dist/server/index.js && echo "✅ Server entry point exists" || (echo "❌ Server build failed" && exit 1)
+RUN test -f dist/server/index-cloudrun-optimized.js && echo "✅ Cloud Run optimized server exists" || (echo "❌ Optimized server build failed" && exit 1)
 RUN test -d dist/public && echo "✅ Frontend build exists" || (echo "❌ Frontend build failed" && exit 1)
 RUN test -f node_modules/.prisma/client/index.js && echo "✅ Prisma client exists" || (echo "❌ Prisma client missing" && exit 1)
 
