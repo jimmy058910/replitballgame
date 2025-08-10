@@ -4,8 +4,8 @@ import { teamFinancesStorage } from "../storage/teamFinancesStorage";
 import { tournamentStorage } from "../storage/tournamentStorage";
 import { isAuthenticated } from "../googleAuth";
 import { z } from "zod";
-import { getDivisionName } from "@shared/divisionUtils.js";
-import { PrismaClient } from "../../generated/prisma/index.js";
+import { getDivisionName } from "../../shared/divisionUtils.js";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 

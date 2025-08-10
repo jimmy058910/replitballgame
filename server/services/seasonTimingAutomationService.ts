@@ -7,7 +7,7 @@ import { LateSignupService } from './lateSignupService.js';
 import { tournamentService } from './tournamentService.js';
 import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
-import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '@shared/timezone.js';
+import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 
 /**
  * Season Timing Automation Service
