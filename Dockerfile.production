@@ -91,6 +91,9 @@ RUN npm prune --production
 RUN groupadd -g 1001 nodejs && \
     useradd -r -u 1001 -g nodejs nodejs
 
+# Copy and make executable the Cloud Run optimized start script (as root)
+COPY --chmod=755 start-cloudrun.sh ./
+
 # Set ownership and permissions
 RUN chown -R nodejs:nodejs /app
 USER nodejs
@@ -101,10 +104,6 @@ EXPOSE 8080
 # Health check for container monitoring
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
-
-# Copy and make executable the Cloud Run optimized start script
-COPY start-cloudrun.sh ./
-RUN chmod +x start-cloudrun.sh
 
 # Run the Cloud Run optimized server directly
 CMD ["./start-cloudrun.sh"]
