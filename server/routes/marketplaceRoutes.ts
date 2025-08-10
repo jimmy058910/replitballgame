@@ -1,9 +1,9 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 // playerStorage imported via storage index
-import { storage } from "../storage/index";
-import { teamFinancesStorage } from "../storage/teamFinancesStorage";
-import { itemStorage } from "../storage/itemStorage";
-import { isAuthenticated } from "../googleAuth";
+import { storage } from "../storage/index.js";
+import { teamFinancesStorage } from "../storage/teamFinancesStorage.js";
+import { itemStorage } from "../storage/itemStorage.js";
+import { isAuthenticated } from "../googleAuth.js";
 // import type { ItemType } from "@prisma/client";
 
 // Schema items handled by itemStorage using Prisma

@@ -176,7 +176,7 @@ jobs:
         echo "Green revision: $GREEN_REVISION"
         echo "Deploying with production configuration..."
         
-        # Deploy green revision with 0% traffic (Blue-Green pattern)
+        # Deploy green revision with 0% traffic (Blue-Green pattern + Cloud Run optimizations)
         gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image=${{ env.IMAGE_NAME }}:${{ github.sha }} \
           --region=${{ env.REGION }} \
@@ -190,6 +190,9 @@ jobs:
           --concurrency=${{ env.CONCURRENCY }} \
           --min-instances=${{ env.MIN_INSTANCES }} \
           --max-instances=${{ env.MAX_INSTANCES }} \
+          --cpu-boost \
+          --execution-environment=gen2 \
+          --port=8080 \
           --revision-suffix="$SHORT_SHA" \
           --tag="green" \
           --no-traffic

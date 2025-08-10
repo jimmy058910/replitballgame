@@ -58,6 +58,8 @@ Preferred communication style: Simple, everyday language.
 
 **CRITICAL DEPENDENCY RESOLUTION (Aug 10, 2025)**: Solved the root cause of Cloud Run container startup timeouts. Fixed TypeScript path alias issues that caused module resolution failures in production: (1) Converted all @shared/* imports to relative paths since TypeScript aliases don't work in compiled JS runtime, (2) Fixed Prisma client imports from custom paths to standard @prisma/client. Server now binds to port 8080 immediately and stays operational even with minor dependency issues. Comprehensive testing shows health checks working and container startup requirements satisfied.
 
+**TYPESCRIPT ES MODULE RESOLUTION FIX (Aug 10, 2025)**: Fixed critical TypeScript build system issue where .js extensions were being stripped from compiled output, breaking ES Module resolution in Node.js production. Updated tsconfig.server.json to use "moduleResolution": "bundler" to preserve .js extensions in compiled JavaScript. Container now passes all health checks and meets Cloud Run startup requirements with optimized Gen2 execution environment and CPU boost enabled.
+
 **DEPLOYMENT WORKFLOW ENHANCEMENT (Aug 10, 2025)**: Added secret verification step to production-deploy.yml workflow based on Jules's recommendation. New verification step validates secret configuration immediately after green revision deployment, failing fast with clear diagnostics if project number is incorrect. Prevents wasted time on deployments that will fail during health checks due to secret misconfiguration.
 
 # System Architecture
