@@ -102,5 +102,9 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 
-# Run the compiled application using the production start script
-CMD ["npm", "start"]
+# Copy and make executable the Cloud Run optimized start script
+COPY start-cloudrun.sh ./
+RUN chmod +x start-cloudrun.sh
+
+# Run the Cloud Run optimized server directly
+CMD ["./start-cloudrun.sh"]
