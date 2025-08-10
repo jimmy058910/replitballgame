@@ -1,7 +1,7 @@
 import express from 'express';
-import { isAuthenticated } from '../googleAuth';
-import { LateSignupService } from '../services/lateSignupService';
-import { asyncHandler } from '../services/errorService';
+import { isAuthenticated } from '../googleAuth.js';
+import { LateSignupService } from '../services/lateSignupService.js';
+import { asyncHandler } from '../services/errorService.js';
 
 const router = express.Router();
 

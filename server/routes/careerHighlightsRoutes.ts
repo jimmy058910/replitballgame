@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { storage } from "../storage/index.js";
-import { isAuthenticated } from "../googleAuth";
+import { storage } from '../storage/index.js';
+import { isAuthenticated } from '../googleAuth.js';
 
 const router = Router();
 

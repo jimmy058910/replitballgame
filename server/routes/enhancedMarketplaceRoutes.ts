@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { EnhancedMarketplaceService } from '../services/enhancedMarketplaceService.js';
-import { isAuthenticated } from '../googleAuth';
+import { isAuthenticated } from '../googleAuth.js';
 import { prisma } from '../db.js';
 
 const router = Router();

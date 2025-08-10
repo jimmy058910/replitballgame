@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { isAuthenticated } from "../googleAuth";
-import { storage } from "../storage";
+import { isAuthenticated } from '../googleAuth.js';
+import { storage } from '../storage/index.js';
 import { 
   FIELD_SIZE_CONFIG, 
   TACTICAL_FOCUS_CONFIG, 
@@ -8,10 +8,10 @@ import {
   calculateTacticalEffectiveness,
   getFieldSizeInfo,
   getTacticalFocusInfo 
-} from "../../shared/tacticalSystem";
-import { prisma } from "../db";
-import { SeasonalFlowService } from "../services/seasonalFlowService";
-import { CamaraderieService } from "../services/camaraderieService";
+} from "../../shared/tacticalSystem.js";
+import { prisma } from '../db.js';
+import { SeasonalFlowService } from '../services/seasonalFlowService.js';
+import { CamaraderieService } from '../services/camaraderieService.js';
 
 const router = Router();
 

@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { prisma } from '../db';
-import { isAuthenticated } from '../googleAuth';
+import { prisma } from '../db.js';
+import { isAuthenticated } from '../googleAuth.js';
 import {
   calculateFanLoyalty,
   calculateHomeAdvantage,

@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { TeamNameValidator } from '../services/teamNameValidation';
-import { isAuthenticated } from '../googleAuth';
-import { asyncHandler } from '../services/errorService';
+import { TeamNameValidator } from '../services/teamNameValidation.js';
+import { isAuthenticated } from '../googleAuth.js';
+import { asyncHandler } from '../services/errorService.js';
 
 const router = Router();
 

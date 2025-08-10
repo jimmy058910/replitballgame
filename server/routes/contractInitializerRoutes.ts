@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { PlayerContractInitializer } from '../services/playerContractInitializer';
-import { isAuthenticated } from '../googleAuth';
+import { PlayerContractInitializer } from '../services/playerContractInitializer.js';
+import { isAuthenticated } from '../googleAuth.js';
 
 const router = Router();
 

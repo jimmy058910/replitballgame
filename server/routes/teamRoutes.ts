@@ -1,10 +1,10 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index.js";
+import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
-import { ErrorCreators, asyncHandler } from "../services/errorService.js";
-import { TeamNameValidator } from "../services/teamNameValidation.js";
-import { CamaraderieService } from "../services/camaraderieService.js";
+import { ErrorCreators, asyncHandler } from '../services/errorService.js';
+import { TeamNameValidator } from '../services/teamNameValidation.js';
+import { CamaraderieService } from '../services/camaraderieService.js';
 import { cacheResponse } from "../middleware/cacheMiddleware.js";
 
 const router = Router();

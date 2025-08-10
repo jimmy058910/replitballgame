@@ -1,8 +1,8 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index";
-import { teamFinancesStorage } from "../storage/teamFinancesStorage";
-import { tournamentStorage } from "../storage/tournamentStorage";
-import { isAuthenticated } from "../googleAuth";
+import { storage } from '../storage/index.js';
+import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
+import { tournamentStorage } from '../storage/tournamentStorage.js';
+import { isAuthenticated } from "../googleAuth.js";
 import { z } from "zod";
 import { getDivisionName } from "../../shared/divisionUtils.js";
 import { PrismaClient } from "@prisma/client";

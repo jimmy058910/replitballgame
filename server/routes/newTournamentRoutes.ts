@@ -1,9 +1,9 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index";
-import { isAuthenticated } from "../googleAuth";
+import { storage } from '../storage/index.js';
+import { isAuthenticated } from '../googleAuth.js';
 import { z } from "zod";
-import { tournamentService } from "../services/tournamentService";
-import { prisma } from "../db";
+import { tournamentService } from '../services/tournamentService.js';
+import { prisma } from '../db.js';
 import moment from "moment-timezone";
 
 const router = Router();

@@ -8,7 +8,7 @@ import { memoryCache } from '../utils/memoryCache';
 import { cachedUserStorage } from '../storage/cachedUserStorage.js';
 import { cachedTeamStorage } from '../storage/cachedTeamStorage.js';
 import { cachedPlayerStorage } from '../storage/cachedPlayerStorage.js';
-import { asyncHandler } from '../services/errorService';
+import { asyncHandler } from '../services/errorService.js';
 
 const router = Router();
 

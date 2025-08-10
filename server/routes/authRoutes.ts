@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express"; // Added Request, Response, NextFunction
-import { userStorage } from "../storage/userStorage.js"; // Updated import
+import { userStorage } from '../storage/userStorage.js'; // Updated import
 import { requireAuth } from "../middleware/firebaseAuth.js";
-import { RBACService, Permission, UserRole } from "../services/rbacService.js"; // Add UserRole import
+import { RBACService, Permission, UserRole } from '../services/rbacService.js'; // Add UserRole import
 import passport from 'passport';
 
 const router = Router();

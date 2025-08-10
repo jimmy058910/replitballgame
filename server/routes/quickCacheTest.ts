@@ -4,8 +4,8 @@
  */
 
 import { Router, type Response } from "express";
-import { cacheResponse, simpleCache } from "../middleware/cacheMiddleware";
-import { asyncHandler } from "../services/errorService";
+import { cacheResponse, simpleCache } from "../middleware/cacheMiddleware.js";
+import { asyncHandler } from '../services/errorService.js';
 
 const router = Router();
 

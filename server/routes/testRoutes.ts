@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
-import { prisma } from "../db";
-import { storage } from "../storage/index"; 
-import { generateRandomPlayer } from "../services/leagueService";
+import { prisma } from '../db.js';
+import { storage } from '../storage/index.js'; 
+import { generateRandomPlayer } from '../services/leagueService.js';
 import { Race, PlayerRole, InjuryStatus } from "@prisma/client";
 
 const router = Router();

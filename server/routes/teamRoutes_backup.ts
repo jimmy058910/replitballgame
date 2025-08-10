@@ -1,18 +1,18 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index";
-import { teamFinancesStorage } from "../storage/teamFinancesStorage";
+import { storage } from '../storage/index.js';
+import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 import { requireAuth } from "../middleware/firebaseAuth";
-import { generateRandomPlayer } from "../services/leagueService";
+import { generateRandomPlayer } from '../services/leagueService.js';
 import { z } from "zod";
-import { ErrorCreators, asyncHandler, logInfo } from "../services/errorService";
-import { TeamNameValidator } from "../services/teamNameValidation";
-import { AgingService } from "../services/agingService";
+import { ErrorCreators, asyncHandler, logInfo } from '../services/errorService.js';
+import { TeamNameValidator } from '../services/teamNameValidation.js';
+import { AgingService } from '../services/agingService.js';
 import { generateRandomName } from "../../shared/names.js";
 import { Race, PlayerRole, InjuryStatus } from "@prisma/client";
-import { prisma } from '../db';
+import { prisma } from '../db.js';
 import { getPlayerRole } from "../../shared/playerUtils.js";
 import { formatSubdivisionName, getSubdivisionCapacityInfo } from "../../shared/subdivisionUtils.js";
-import { CamaraderieService } from "../services/camaraderieService";
+import { CamaraderieService } from '../services/camaraderieService.js';
 // Database operations handled through storage layer
 
 const router = Router();

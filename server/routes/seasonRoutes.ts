@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage"; // Adjusted path
-import { isAuthenticated } from "../googleAuth"; // Adjusted path
+import { storage } from '../storage/index.js'; // Adjusted path
+import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
 import { z } from "zod"; // For validation
 
 const router = Router();

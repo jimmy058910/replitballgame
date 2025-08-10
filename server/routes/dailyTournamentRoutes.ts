@@ -1,10 +1,10 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage/index";
-import { isAuthenticated } from "../googleAuth";
-import { prisma } from "../db";
+import { storage } from '../storage/index.js';
+import { isAuthenticated } from '../googleAuth.js';
+import { prisma } from '../db.js';
 import moment from "moment-timezone";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
-// import { matchStateManager } from "../services/matchStateManager";
+// import { matchStateManager } from '../services/matchStateManager.js';
 
 const router = Router();
 

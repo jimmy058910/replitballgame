@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { storage } from "../storage";
-import { isAuthenticated } from "../googleAuth";
-import { cacheMiddleware } from "../middleware/cache";
+import { storage } from '../storage/index.js';
+import { isAuthenticated } from "../googleAuth.js";
+import { cacheMiddleware } from "../middleware/cache.js";
 
 const router = Router();
 
