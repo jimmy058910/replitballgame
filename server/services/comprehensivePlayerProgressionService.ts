@@ -1,5 +1,5 @@
 import { prisma } from "../db.js";
-import type { Player, Staff } from "../../generated/prisma/index.js";
+import type { Player, Staff } from "@prisma/client";
 
 /**
  * Comprehensive Player Aging and Progression System

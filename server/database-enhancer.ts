@@ -4,7 +4,7 @@
  * after it has successfully started and is serving traffic.
  */
 
-import { PrismaClient } from '../generated/prisma/index.js';
+import { PrismaClient } from "@prisma/client";
 
 export class DatabaseEnhancer {
   private static instance: DatabaseEnhancer;

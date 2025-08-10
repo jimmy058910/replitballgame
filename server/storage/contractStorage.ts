@@ -1,4 +1,4 @@
-import { Contract } from '../../generated/prisma/index.js';
+import { Contract } from "@prisma/client";
 import { prisma } from '../db';
 
 // MINIMAL STUB: Contract storage simplified to match actual schema

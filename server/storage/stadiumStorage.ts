@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { PrismaClient, Stadium } from '../../generated/prisma/index.js';
+import { PrismaClient, Stadium } from "@prisma/client";
 
 export class StadiumStorage {
   async createStadium(stadiumData: {

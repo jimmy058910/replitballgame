@@ -1,4 +1,4 @@
-import type { Player, Team, Stadium } from "../../generated/prisma/index.js";
+import type { Player, Team, Stadium } from "@prisma/client";
 import { CamaraderieService } from "./camaraderieService.js";
 import { commentaryService } from "./commentaryService.js";
 import { DeterministicRNG } from '../utils/deterministicRNG.js';

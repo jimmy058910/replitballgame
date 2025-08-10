@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { PrismaClient, UserProfile } from '../../generated/prisma/index.js';
+import { PrismaClient, UserProfile } from "@prisma/client";
 
 // This interface defines the data structure expected from replitAuth.ts
 // It should align with the fields available in Replit user claims

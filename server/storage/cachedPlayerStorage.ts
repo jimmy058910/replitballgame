@@ -5,7 +5,7 @@
 
 import { storage } from './index.js';
 import { memoryCache } from '../utils/memoryCache';
-import type { Player } from '../../generated/prisma/index.js';
+import type { Player } from "@prisma/client";
 
 export class CachedPlayerStorage {
   private readonly PLAYERS_TTL = 8 * 60 * 1000; // 8 minutes (changes during training/games)

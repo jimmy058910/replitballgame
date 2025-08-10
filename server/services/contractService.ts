@@ -1,5 +1,5 @@
 import { prisma } from "../db.js";
-import type { Player, Staff, Team } from "../../generated/prisma/index.js";
+import type { Player, Staff, Team } from "@prisma/client";
 
 export interface ContractCalculation {
   baseSalary: number;

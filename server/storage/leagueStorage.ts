@@ -1,5 +1,5 @@
 import { prisma } from '../db';
-import { PrismaClient, League, LeagueStanding } from '../../generated/prisma/index.js';
+import { PrismaClient, League, LeagueStanding } from "@prisma/client";
 
 export class LeagueStorage {
   async createLeague(leagueData: {
