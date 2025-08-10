@@ -81,22 +81,11 @@ ENV PORT=8080
 
 WORKDIR /app
 
-# Copy package.json for dependency info
-COPY --from=builder /app/package.json ./
+# Copy all built artifacts and dependencies from the builder stage
+COPY --from=builder /app .
 
-# Copy ALL dependencies (including devDependencies containing tsx)
-COPY --from=dependencies /app/node_modules ./node_modules
-
-# Copy source code (for tsx runtime compilation)
-COPY --from=builder /app/server ./server
-COPY --from=builder /app/shared ./shared
-COPY --from=builder /app/types ./types
-
-# Copy built frontend
-COPY --from=builder /app/dist/public ./server/public
-
-# Copy Prisma files for runtime  
-COPY --from=builder /app/prisma ./prisma
+# Prune development dependencies to reduce image size
+RUN npm prune --production
 
 # Create non-root user for security
 RUN groupadd -g 1001 nodejs && \
@@ -113,5 +102,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 
-# CRITICAL CLOUD RUN FIX: Use tsx for reliable ES module + TypeScript path resolution
-CMD ["npx", "tsx", "server/index.ts"]
+# Run the compiled application using the production start script
+CMD ["npm", "start"]
