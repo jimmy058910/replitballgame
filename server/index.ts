@@ -374,7 +374,7 @@ async function startServer() {
         if (process.env.NODE_ENV === 'production') {
           console.log('🔧 Setting up production static file serving asynchronously...');
           try {
-          const distPath = path.resolve(import.meta.dirname, '..', 'public');
+          const distPath = path.resolve(import.meta.dirname, '..', 'dist', 'public');
           if (fs.existsSync(distPath)) {
             app.use(express.static(distPath));
             app.use("*", (_req: any, res: any) => {
