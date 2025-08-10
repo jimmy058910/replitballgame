@@ -196,6 +196,41 @@ jobs:
         
         echo "✅ Green revision deployed with 0% traffic"
 
+    - name: Verify Green revision secret configuration
+      run: |
+        echo "🔍 Verifying secret configuration on Green revision"
+        
+        # Get the name of the green revision
+        GREEN_REVISION_NAME=$(gcloud run revisions list \
+          --service=${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --filter="traffic.tag=green" \
+          --format="value(metadata.name)" | head -n 1)
+          
+        if [ -z "$GREEN_REVISION_NAME" ]; then
+          echo "❌ Could not find Green revision. Something went wrong."
+          exit 1
+        fi
+        
+        echo "Green revision name: $GREEN_REVISION_NAME"
+        
+        # Describe the revision and check the secret configuration
+        SECRET_CONFIG=$(gcloud run revisions describe $GREEN_REVISION_NAME \
+          --region=${{ env.REGION }} \
+          --format="json(spec.template.spec.containers[0].env)")
+          
+        echo "Secret config from new revision: $SECRET_CONFIG"
+        
+        # Check if the correct project number is used
+        if echo "$SECRET_CONFIG" | grep -q "projects/$PROJECT_NUMBER/secrets/"; then
+          echo "✅ Secrets are configured with the correct project number: $PROJECT_NUMBER"
+        else
+          echo "❌ CRITICAL: Secrets are NOT configured with the correct project number!"
+          echo "Expected project number: $PROJECT_NUMBER"
+          echo "Full secret config: $SECRET_CONFIG"
+          exit 1
+        fi
+
     # ===============================
     # PHASE 4: HEALTH CHECK VERIFICATION
     # ===============================
