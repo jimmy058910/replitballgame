@@ -84,6 +84,8 @@ async function startServer() {
     console.log('--- Phase 4: Importing HTTP and WebSocket modules ---');
     const { createServer } = await import("http");
     const http = await import("http");
+    const fs = await import("fs");
+    const path = await import("path");
     const { Server: SocketIOServer } = await import("socket.io");
     console.log('✅ HTTP and WebSocket modules imported');
     
@@ -99,7 +101,6 @@ async function startServer() {
     console.log('--- Phase 6: Importing ESSENTIAL modules only (defer heavy imports until after server binding) ---');
     const { requestIdMiddleware } = await import("./middleware/requestId.js");
     const { errorHandler, logInfo } = await import("./services/errorService.js");
-    const { setupVite, serveStatic } = await import("./vite.js");
     const logger = (await import("./utils/logger.js")).default;
     const { validateOrigin } = await import("./utils/security.js");
     const { sanitizeInputMiddleware, securityHeadersMiddleware } = await import("./middleware/security.js");
@@ -268,6 +269,7 @@ async function startServer() {
     // CRITICAL CLOUD RUN FIX: Only setup Vite in development - defer static serving for production
     if (process.env.NODE_ENV !== 'production') {
       console.log('🛠️ Development mode: Setting up Vite with hot reload');
+      const { setupVite } = await import("./vite.js");
       await setupVite(app, httpServer);
       console.log('✅ Development frontend serving configured');
     } else {
@@ -372,8 +374,16 @@ async function startServer() {
         if (process.env.NODE_ENV === 'production') {
           console.log('🔧 Setting up production static file serving asynchronously...');
           try {
-            serveStatic(app);
+          const distPath = path.resolve(import.meta.dirname, '..', 'public');
+          if (fs.existsSync(distPath)) {
+            app.use(express.static(distPath));
+            app.use("*", (_req: any, res: any) => {
+              res.sendFile(path.resolve(distPath, "index.html"));
+            });
             console.log('✅ Production static file serving configured');
+          } else {
+            console.error(`❌ Production build not found at ${distPath}. Serving API only.`);
+          }
           } catch (staticError) {
             console.error('❌ Static file serving failed, but server will continue:', staticError);
           }
