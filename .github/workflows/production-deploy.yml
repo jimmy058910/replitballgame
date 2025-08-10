@@ -71,6 +71,33 @@ jobs:
         gcloud config set project ${{ env.PROJECT_ID }}
         echo "✅ Project context set to: ${{ env.PROJECT_ID }}"
         echo "✅ Using project number: $PROJECT_NUMBER for secret references"
+        
+        # Create lowercase-hyphenated secrets from uppercase ones (if they don't exist)
+        echo "🔍 Creating lowercase-hyphenated secrets if needed:"
+        
+        # Function to copy secret value to lowercase name
+        create_lowercase_secret() {
+          local uppercase_name=$1
+          local lowercase_name=$2
+          
+          if gcloud secrets describe "$lowercase_name" >/dev/null 2>&1; then
+            echo "✅ $lowercase_name already exists"
+          else
+            echo "📝 Creating $lowercase_name from $uppercase_name"
+            # Get the value from uppercase secret and create lowercase version
+            secret_value=$(gcloud secrets versions access latest --secret="$uppercase_name")
+            echo "$secret_value" | gcloud secrets create "$lowercase_name" --data-file=-
+            echo "✅ Created $lowercase_name"
+          fi
+        }
+        
+        # Create lowercase versions of uppercase secrets
+        create_lowercase_secret "DATABASE_URL" "database-url"
+        create_lowercase_secret "SESSION_SECRET" "session-secret"
+        create_lowercase_secret "GOOGLE_CLIENT_ID" "google-client-id"
+        create_lowercase_secret "GOOGLE_CLIENT_SECRET" "google-client-secret"
+        
+        echo "✅ All required secrets verified/created"
 
     # ===============================
     # PHASE 2: BUILD FRONTEND & BACKEND
@@ -156,7 +183,7 @@ jobs:
           --platform=managed \
           --allow-unauthenticated \
           --set-env-vars="NODE_ENV=production" \
-          --set-secrets="DATABASE_URL=projects/$PROJECT_NUMBER/secrets/DATABASE_URL:latest,SESSION_SECRET=projects/$PROJECT_NUMBER/secrets/SESSION_SECRET:latest,GOOGLE_CLIENT_ID=projects/$PROJECT_NUMBER/secrets/GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=projects/$PROJECT_NUMBER/secrets/GOOGLE_CLIENT_SECRET:latest,VITE_FIREBASE_API_KEY=projects/$PROJECT_NUMBER/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/$PROJECT_NUMBER/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/$PROJECT_NUMBER/secrets/firebase-app-id:latest" \
+          --set-secrets="DATABASE_URL=projects/$PROJECT_NUMBER/secrets/database-url:latest,SESSION_SECRET=projects/$PROJECT_NUMBER/secrets/session-secret:latest,GOOGLE_CLIENT_ID=projects/$PROJECT_NUMBER/secrets/google-client-id:latest,GOOGLE_CLIENT_SECRET=projects/$PROJECT_NUMBER/secrets/google-client-secret:latest,VITE_FIREBASE_API_KEY=projects/$PROJECT_NUMBER/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/$PROJECT_NUMBER/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/$PROJECT_NUMBER/secrets/firebase-app-id:latest" \
           --memory=${{ env.MEMORY }} \
           --cpu=${{ env.CPU }} \
           --timeout=${{ env.TIMEOUT }} \
