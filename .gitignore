@@ -4,7 +4,7 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
-/generated/prisma
+# /generated/prisma - REMOVED: Prisma client needed for production deployment
 
 # Environment files (CRITICAL SECURITY)
 .env
@@ -51,7 +51,7 @@ coverage/
 
 # Development and documentation files (not for production)
 attached_assets/
-replit.md
+# replit.md - REMOVED: Project documentation should be versioned
 AUTH_MIGRATION_GUIDE.md
 DEPLOYMENT_GUIDE_GCP.md
 fix-deployment.md

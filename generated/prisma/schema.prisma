@@ -1,0 +1,830 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserProfile {
+  id                Int                @id @default(autoincrement())
+  userId            String             @unique
+  email             String?            @unique
+  firstName         String?
+  lastName          String?
+  profileImageUrl   String?
+  bio               String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  Team              Team?
+  referralCode      String?            @unique
+  referredBy        String?
+  redeemedCodes     RedeemCodeRecord[]
+  adRewardMilestone AdRewardMilestone? // <<<< ADDED THIS RELATION
+
+  // NDA Acceptance Fields for Pre-Alpha
+  ndaAccepted   Boolean   @default(false)
+  ndaAcceptedAt DateTime?
+  ndaVersion    String?   @default("1.0")
+
+  // Performance indexes
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Session {
+  sid    String   @id @unique
+  sess   Json
+  expire DateTime
+
+  @@index([expire])
+}
+
+model Team {
+  id                   Int                  @id @default(autoincrement())
+  userProfileId        Int                  @unique
+  user                 UserProfile          @relation(fields: [userProfileId], references: [id])
+  name                 String               @unique
+  logoUrl              String?
+  isAI                 Boolean              @default(false)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  players              Player[]
+  staff                Staff[]
+  finances             TeamFinances?
+  stadium              Stadium?
+  inventoryItems       InventoryItem[]
+  camaraderie          Float                @default(75.0)
+  fanLoyalty           Float                @default(50.0)
+  homeField            FieldSize            @default(STANDARD)
+  tacticalFocus        TacticalFocus        @default(BALANCED)
+  leagueId             Int?
+  league               League?              @relation(fields: [leagueId], references: [id])
+  division             Int?                 @default(8)
+  subdivision          String?              @default("main")
+  wins                 Int                  @default(0)
+  losses               Int                  @default(0)
+  points               Int                  @default(0)
+  activeBoosts         ActiveBoost[]
+  strategy             Strategy?
+  marketplaceListings  MarketplaceListing[] @relation("TeamListings")
+  bids                 Bid[]                @relation("TeamBids")
+  highBidderOnListings MarketplaceListing[] @relation("HighBidderListings")
+  listingHistory       ListingHistory[]     @relation("ListingHistoryTeam") // Track marketplace actions
+  notifications        Notification[]
+  tournamentEntries    TournamentEntry[]
+  tryoutHistory        TryoutHistory[]
+  homeTeamGames        Game[]               @relation("HomeTeamGames")
+  awayTeamGames        Game[]               @relation("AwayTeamGames")
+
+  // Performance indexes
+  @@index([userProfileId])
+  @@index([leagueId])
+  @@index([division, subdivision])
+  @@index([wins, losses, points])
+  @@index([createdAt])
+}
+
+enum FieldSize {
+  STANDARD
+  LARGE
+  SMALL
+}
+
+enum TacticalFocus {
+  BALANCED
+  ALL_OUT_ATTACK
+  DEFENSIVE_WALL
+}
+
+model Player {
+  id                          Int                 @id @default(autoincrement())
+  teamId                      Int
+  team                        Team                @relation(fields: [teamId], references: [id])
+  firstName                   String
+  lastName                    String
+  race                        Race
+  age                         Int
+  role                        PlayerRole
+  speed                       Int
+  power                       Int
+  throwing                    Int
+  catching                    Int
+  kicking                     Int
+  staminaAttribute            Int
+  leadership                  Int
+  agility                     Int
+  potentialRating             Float
+  contract                    Contract?
+  skills                      PlayerSkillLink[]
+  dailyStaminaLevel           Int                 @default(100)
+  injuryStatus                InjuryStatus        @default(HEALTHY)
+  injuryRecoveryPointsNeeded  Int                 @default(0)
+  injuryRecoveryPointsCurrent Int                 @default(0)
+  dailyItemsUsed              Int                 @default(0)
+  careerInjuries              Int                 @default(0)
+  gamesPlayedLastSeason       Int                 @default(0)
+  // NEW: Seasonal minutes tracking by match type
+  seasonMinutesLeague         Float               @default(0)
+  seasonMinutesTournament     Float               @default(0)
+  seasonMinutesExhibition     Float               @default(0)
+  seasonMinutesTotal          Float               @default(0)
+  isOnMarket                  Boolean             @default(false)
+  isRetired                   Boolean             @default(false)
+  MarketplaceListing          MarketplaceListing?
+  marketValue                 PlayerMarketValue? // Enhanced market valuation
+  camaraderieScore            Float               @default(75.0)
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+  tryoutHistory               TryoutHistory[]
+  activeBoosts                ActiveBoost[]
+  currentEquipment            PlayerEquipment[]
+
+  // Performance indexes
+  @@index([teamId])
+  @@index([race])
+  @@index([role])
+  @@index([age])
+  @@index([isOnMarket])
+  @@index([isRetired])
+  @@index([injuryStatus])
+  @@index([potentialRating])
+  @@index([createdAt])
+}
+
+model PlayerEquipment {
+  id         Int      @id @default(autoincrement())
+  playerId   Int
+  player     Player   @relation(fields: [playerId], references: [id])
+  itemId     Int
+  item       Item     @relation(fields: [itemId], references: [id])
+  equippedAt DateTime @default(now())
+
+  @@unique([playerId, itemId])
+}
+
+enum Race {
+  HUMAN
+  SYLVAN
+  GRYLL
+  LUMINA
+  UMBRA
+}
+
+enum PlayerRole {
+  PASSER
+  RUNNER
+  BLOCKER
+}
+
+enum InjuryStatus {
+  HEALTHY
+  MINOR_INJURY
+  MODERATE_INJURY
+  SEVERE_INJURY
+}
+
+model Contract {
+  id           Int      @id @default(autoincrement())
+  playerId     Int?     @unique
+  player       Player?  @relation(fields: [playerId], references: [id])
+  staffId      Int?     @unique
+  staff        Staff?   @relation(fields: [staffId], references: [id])
+  salary       Int
+  length       Int
+  signingBonus Int      @default(0)
+  startDate    DateTime @default(now())
+
+  @@index([playerId])
+  @@index([staffId])
+}
+
+model Skill {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  description String
+  type        SkillType
+  category    SkillCategory
+  tiers       Json
+  playerLinks PlayerSkillLink[]
+}
+
+enum SkillType {
+  PASSIVE
+  ACTIVE
+}
+
+enum SkillCategory {
+  UNIVERSAL
+  ROLE
+  RACE
+}
+
+model PlayerSkillLink {
+  id          Int      @id @default(autoincrement())
+  playerId    Int
+  player      Player   @relation(fields: [playerId], references: [id])
+  skillId     Int
+  skill       Skill    @relation(fields: [skillId], references: [id])
+  currentTier Int      @default(1)
+  acquiredAt  DateTime @default(now())
+
+  @@unique([playerId, skillId])
+}
+
+model Staff {
+  id                   Int       @id @default(autoincrement())
+  teamId               Int
+  team                 Team      @relation(fields: [teamId], references: [id])
+  type                 StaffType
+  name                 String
+  level                Int       @default(1)
+  contract             Contract?
+  motivation           Int       @default(5)
+  development          Int       @default(5)
+  teaching             Int       @default(5)
+  physiology           Int       @default(5)
+  talentIdentification Int       @default(5)
+  potentialAssessment  Int       @default(5)
+  tactics              Int       @default(5)
+  age                  Int       @default(30)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Performance indexes
+  @@index([teamId])
+  @@index([type])
+  @@index([teamId, type])
+}
+
+enum StaffType {
+  HEAD_COACH
+  PASSER_TRAINER
+  RUNNER_TRAINER
+  BLOCKER_TRAINER
+  RECOVERY_SPECIALIST
+  SCOUT
+}
+
+model TeamFinances {
+  id                        Int      @id @default(autoincrement())
+  teamId                    Int      @unique
+  team                      Team     @relation(fields: [teamId], references: [id])
+  credits                   BigInt   @default(50000) // Available credits for spending
+  gems                      Int      @default(0) // Available gems for spending
+  escrowCredits             BigInt   @default(0) // Credits held in escrow for active bids
+  escrowGems                Int      @default(0) // Gems held in escrow (future use)
+  projectedIncome           BigInt   @default(0)
+  projectedExpenses         BigInt   @default(0)
+  lastSeasonRevenue         BigInt   @default(0)
+  lastSeasonExpenses        BigInt   @default(0)
+  facilitiesMaintenanceCost BigInt   @default(0)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model Stadium {
+  id                   Int      @id @default(autoincrement())
+  teamId               Int      @unique
+  team                 Team     @relation(fields: [teamId], references: [id])
+  capacity             Int      @default(5000)
+  concessionsLevel     Int      @default(1)
+  parkingLevel         Int      @default(1)
+  vipSuitesLevel       Int      @default(1)
+  merchandisingLevel   Int      @default(1)
+  lightingScreensLevel Int      @default(1)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Item {
+  id                Int               @id @default(autoincrement())
+  name              String            @unique
+  description       String
+  type              ItemType
+  slot              EquipmentSlot?
+  raceRestriction   Race?
+  statEffects       Json?
+  rarity            ItemRarity        @default(COMMON)
+  creditPrice       BigInt?
+  gemPrice          Int?
+  effectValue       Json?
+  inventoryItems    InventoryItem[]
+  activeBoosts      ActiveBoost[]
+  PlayerEquipment   PlayerEquipment[]
+  PremiumBoxRewards EquipmentReward[]
+}
+
+enum ItemType {
+  EQUIPMENT
+  CONSUMABLE_RECOVERY
+  CONSUMABLE_BOOSTER
+  TROPHY
+  GAME_ENTRY
+  COSMETIC
+}
+
+enum EquipmentSlot {
+  HELMET
+  FOOTWEAR
+  GLOVES
+  ARMOR
+}
+
+enum ItemRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+  UNIQUE
+}
+
+model InventoryItem {
+  id         Int      @id @default(autoincrement())
+  teamId     Int
+  team       Team     @relation(fields: [teamId], references: [id])
+  itemId     Int
+  item       Item     @relation(fields: [itemId], references: [id])
+  quantity   Int
+  acquiredAt DateTime @default(now())
+
+  @@unique([teamId, itemId])
+  @@index([teamId])
+  @@index([itemId])
+}
+
+model ActiveBoost {
+  id        Int       @id @default(autoincrement())
+  teamId    Int
+  team      Team      @relation(fields: [teamId], references: [id])
+  playerId  Int?
+  player    Player?   @relation(fields: [playerId], references: [id])
+  itemId    Int
+  item      Item      @relation(fields: [itemId], references: [id])
+  matchType MatchType
+  isActive  Boolean   @default(true)
+  appliedAt DateTime  @default(now())
+
+  // Performance indexes
+  @@index([teamId])
+  @@index([playerId])
+  @@index([matchType])
+  @@index([isActive])
+  @@index([teamId, isActive])
+  @@index([playerId, isActive])
+}
+
+enum MatchType {
+  LEAGUE
+  TOURNAMENT_DAILY
+  TOURNAMENT_MIDSEASON
+  EXHIBITION
+  PLAYOFF
+}
+
+enum MarketplaceStatus {
+  ACTIVE
+  SOLD
+  EXPIRED
+  CANCELLED
+  BUY_NOW_ONLY // Off-season converted
+}
+
+model MarketplaceListing {
+  id                      Int               @id @default(autoincrement())
+  playerId                Int               @unique
+  player                  Player            @relation(fields: [playerId], references: [id])
+  sellerTeamId            Int
+  sellerTeam              Team              @relation("TeamListings", fields: [sellerTeamId], references: [id])
+  startBid                BigInt
+  buyNowPrice             BigInt?
+  minBuyNowPrice          BigInt // Server-calculated minimum based on CAR + potential
+  currentBid              BigInt?
+  currentHighBidderTeamId Int?
+  currentHighBidderTeam   Team?             @relation("HighBidderListings", fields: [currentHighBidderTeamId], references: [id])
+  expiryTimestamp         DateTime
+  originalExpiryTimestamp DateTime // Track original end time for anti-sniping
+  auctionExtensions       Int               @default(0) // Count extensions for anti-sniping cap
+  listingFee              BigInt // 3% of buy_now_price, non-refundable
+  marketTaxRate           Float             @default(5.0) // 5% market tax on sales
+  escrowAmount            BigInt            @default(0) // Amount held in escrow for current high bidder
+  listingStatus           MarketplaceStatus @default(ACTIVE)
+  isOffSeasonConverted    Boolean           @default(false) // Converted to buy-now only during off-season
+  autoDelistAt            DateTime? // Auto-delist timestamp for off-season
+  isActive                Boolean           @default(true)
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  bids                    Bid[]
+  history                 ListingHistory[]
+
+  @@index([sellerTeamId])
+  @@index([isActive, expiryTimestamp])
+  @@index([listingStatus])
+  @@index([isOffSeasonConverted])
+  @@index([autoDelistAt])
+}
+
+model Bid {
+  id           Int                @id @default(autoincrement())
+  listingId    Int
+  listing      MarketplaceListing @relation(fields: [listingId], references: [id])
+  bidderTeamId Int
+  bidderTeam   Team               @relation("TeamBids", fields: [bidderTeamId], references: [id])
+  bidAmount    BigInt
+  escrowAmount BigInt             @default(0) // Amount held in escrow for this bid
+  isWinningBid Boolean            @default(false)
+  isRefunded   Boolean            @default(false) // Track if escrow was refunded
+  placedAt     DateTime           @default(now())
+
+  @@index([listingId])
+  @@index([bidderTeamId])
+  @@index([isWinningBid])
+  @@index([isRefunded])
+}
+
+model ListingHistory {
+  id          Int                @id @default(autoincrement())
+  listingId   Int
+  listing     MarketplaceListing @relation(fields: [listingId], references: [id])
+  actionType  ListingActionType // BID_PLACED, BID_OUTBID, EXTENSION, SOLD, EXPIRED, etc.
+  teamId      Int? // Team that performed the action (nullable for system actions)
+  team        Team?              @relation("ListingHistoryTeam", fields: [teamId], references: [id])
+  amount      BigInt? // Bid amount or sale price
+  oldValue    BigInt? // Previous value (for bid updates)
+  newValue    BigInt? // New value (for bid updates)
+  description String? // Human-readable description of the action
+  timestamp   DateTime           @default(now())
+
+  @@index([listingId])
+  @@index([teamId])
+  @@index([actionType])
+  @@index([timestamp])
+}
+
+enum ListingActionType {
+  LISTING_CREATED
+  BID_PLACED
+  BID_OUTBID
+  AUCTION_EXTENDED
+  BUY_NOW_PURCHASE
+  AUCTION_WON
+  AUCTION_EXPIRED
+  LISTING_CANCELLED
+  OFF_SEASON_CONVERTED
+  AUTO_DELISTED
+}
+
+model PlayerMarketValue {
+  id          Int      @id @default(autoincrement())
+  playerId    Int      @unique
+  player      Player   @relation(fields: [playerId], references: [id])
+  carRating   Float // Cached CAR calculation
+  potential   Float // Cached potential rating  
+  minBuyNow   BigInt // Cached minimum buy-now price
+  marketValue BigInt // Estimated market value based on recent sales
+  lastUpdated DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([playerId])
+  @@index([lastUpdated])
+}
+
+model Strategy {
+  id               Int      @id @default(autoincrement())
+  teamId           Int      @unique
+  team             Team     @relation(fields: [teamId], references: [id])
+  formationJson    Json?
+  substitutionJson Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model League {
+  id        Int              @id @default(autoincrement())
+  division  Int
+  name      String
+  teams     Team[]
+  schedule  Game[]
+  standings LeagueStanding[]
+  seasonId  String
+  season    Season           @relation(fields: [seasonId], references: [id])
+
+  @@unique([name, seasonId])
+  @@index([division])
+  @@index([seasonId])
+  @@index([division, seasonId])
+}
+
+model LeagueStanding {
+  id                Int      @id @default(autoincrement())
+  leagueId          Int
+  league            League   @relation(fields: [leagueId], references: [id])
+  teamId            Int
+  teamName          String
+  wins              Int      @default(0)
+  losses            Int      @default(0)
+  ties              Int      @default(0)
+  pointsFor         Int      @default(0)
+  pointsAgainst     Int      @default(0)
+  pointDifferential Int      @default(0)
+  streak            String   @default("N/A")
+  rank              Int      @default(0)
+  updatedAt         DateTime @updatedAt
+
+  @@unique([leagueId, teamId])
+  @@index([leagueId])
+  @@index([teamId])
+  @@index([wins, losses])
+  @@index([rank])
+}
+
+model Game {
+  id            Int         @id @default(autoincrement())
+  leagueId      Int?
+  league        League?     @relation(fields: [leagueId], references: [id])
+  homeTeamId    Int
+  homeTeam      Team        @relation("HomeTeamGames", fields: [homeTeamId], references: [id])
+  awayTeamId    Int
+  awayTeam      Team        @relation("AwayTeamGames", fields: [awayTeamId], references: [id])
+  homeScore     Int?
+  awayScore     Int?
+  gameDate      DateTime
+  simulated     Boolean     @default(false)
+  simulationLog Json?
+  matchType     MatchType   @default(LEAGUE)
+  tournamentId  Int?
+  tournament    Tournament? @relation(fields: [tournamentId], references: [id])
+  round         Int?
+  status        GameStatus  @default(SCHEDULED)
+  createdAt     DateTime    @default(now())
+
+  // Performance indexes
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@index([gameDate])
+  @@index([status])
+  @@index([matchType])
+  @@index([leagueId])
+  @@index([tournamentId])
+  @@index([status, gameDate])
+  @@index([matchType, gameDate])
+}
+
+enum GameStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  POSTPONED
+  CANCELLED
+}
+
+model Season {
+  id            String          @id @unique
+  seasonNumber  Int             @unique
+  startDate     DateTime
+  endDate       DateTime
+  currentDay    Int             @default(1)
+  phase         SeasonPhase     @default(REGULAR_SEASON)
+  leagues       League[]
+  createdAt     DateTime        @default(now())
+  tryoutHistory TryoutHistory[]
+
+  // Performance indexes
+  @@index([seasonNumber])
+  @@index([currentDay])
+  @@index([phase])
+  @@index([startDate, endDate])
+}
+
+enum SeasonPhase {
+  REGULAR_SEASON
+  PLAYOFFS
+  OFF_SEASON
+  PRE_SEASON
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  teamId    Int
+  team      Team             @relation(fields: [teamId], references: [id])
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  linkTo    String?
+  createdAt DateTime         @default(now())
+
+  @@index([teamId, isRead])
+}
+
+enum NotificationType {
+  CONTRACT_ALERT
+  INJURY_UPDATE
+  MARKETPLACE_BID
+  MARKETPLACE_SOLD
+  MARKETPLACE_EXPIRED
+  SCOUTING_REPORT
+  MATCH_RESULT
+  TOURNAMENT_UPDATE
+  RECRUIT_SIGNED
+  SYSTEM_MESSAGE
+  TRADE_OFFER
+  TRADE_ACCEPTED
+  TRADE_REJECTED
+  LEAGUE_PROMOTION
+  LEAGUE_DEMOTION
+  NEW_SEASON
+  PLAYER_RETIRED
+  PLAYER_PROGRESSED
+}
+
+model TryoutPack {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String
+  creditCost  BigInt
+  gemCost     Int?
+  numPlayers  Int
+  qualityTier String
+}
+
+model TryoutHistory {
+  id           Int      @id @default(autoincrement())
+  teamId       Int
+  team         Team     @relation(fields: [teamId], references: [id])
+  seasonId     String
+  season       Season   @relation(fields: [seasonId], references: [id])
+  tryoutType   String
+  cost         Int
+  playersAdded Int
+  conductedAt  DateTime @default(now())
+  playerId     Int?
+  player       Player?  @relation(fields: [playerId], references: [id])
+
+  @@unique([teamId, seasonId])
+}
+
+model GemPack {
+  id        Int    @id @default(autoincrement())
+  name      String @unique
+  gemAmount Int
+  usdPrice  Float
+  productId String @unique
+}
+
+model CreditExchangeRate {
+  id              Int    @id @default(autoincrement())
+  gems            Int    @unique
+  credits         BigInt
+  bonusPercentage Float  @default(0)
+}
+
+model Referral {
+  id             Int      @id @default(autoincrement())
+  referrerUserId String
+  referredUserId String
+  rewardGiven    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@unique([referrerUserId, referredUserId])
+}
+
+model RedeemCode {
+  id          String             @id @unique
+  description String
+  rewardType  RewardType
+  rewardValue Json
+  maxUses     Int?
+  currentUses Int                @default(0)
+  isActive    Boolean            @default(true)
+  expiryDate  DateTime?
+  createdAt   DateTime           @default(now())
+  redeemedBy  RedeemCodeRecord[]
+}
+
+model RedeemCodeRecord {
+  id            Int         @id @default(autoincrement())
+  redeemCodeId  String
+  redeemCode    RedeemCode  @relation(fields: [redeemCodeId], references: [id])
+  userProfileId Int
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
+  redeemedAt    DateTime    @default(now())
+
+  @@unique([redeemCodeId, userProfileId])
+}
+
+enum RewardType {
+  GEMS
+  CREDITS
+  ITEM
+  PREMIUM_BOX
+}
+
+model AdRewardMilestone {
+  id              Int         @id @default(autoincrement())
+  userProfileId   Int         @unique
+  userProfile     UserProfile @relation(fields: [userProfileId], references: [id]) // <<<< ADDED THIS RELATION
+  totalAdsWatched Int         @default(0) // <<<< RENAMED/CHANGED from adsWatchedCount
+  adsWatchedToday Int         @default(0) // <<<< ADDED THIS FIELD
+  lastAdWatchedAt DateTime?
+}
+
+model PremiumBoxReward {
+  id          Int        @id @default(autoincrement())
+  category    String
+  rewardType  RewardType
+  rewardValue Json
+  weight      Float
+}
+
+model EquipmentReward {
+  id     Int        @id @default(autoincrement())
+  boxId  Int
+  itemId Int
+  item   Item       @relation(fields: [itemId], references: [id])
+  rarity ItemRarity
+  weight Float
+}
+
+model Tournament {
+  id                  Int               @id @default(autoincrement())
+  name                String
+  tournamentId        String?
+  type                TournamentType
+  division            Int?
+  status              TournamentStatus  @default(REGISTRATION_OPEN)
+  startTime           DateTime
+  registrationEndTime DateTime?
+  endTime             DateTime?
+  entryFeeCredits     BigInt?
+  entryFeeGems        Int?
+  entryFeeItemId      Int?
+  prizePoolJson       Json
+  games               Game[]
+  entries             TournamentEntry[]
+  seasonDay           Int?
+  createdAt           DateTime          @default(now())
+
+  // Performance indexes
+  @@index([type])
+  @@index([status])
+  @@index([startTime])
+  @@index([division])
+  @@index([seasonDay])
+  @@index([type, status])
+  @@index([division, status])
+}
+
+enum TournamentType {
+  DAILY_DIVISIONAL
+  MID_SEASON_CLASSIC
+  SPECIAL_EVENT
+}
+
+enum TournamentStatus {
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model TournamentEntry {
+  id             Int        @id @default(autoincrement())
+  tournamentId   Int
+  tournament     Tournament @relation(fields: [tournamentId], references: [id])
+  teamId         Int
+  team           Team       @relation(fields: [teamId], references: [id])
+  registeredAt   DateTime   @default(now())
+  finalRank      Int?
+  rewardsClaimed Boolean    @default(false)
+
+  @@unique([tournamentId, teamId])
+  @@index([tournamentId])
+  @@index([teamId])
+  @@index([finalRank])
+  @@index([rewardsClaimed])
+}
+
+model PaymentTransaction {
+  id              Int      @id @default(autoincrement())
+  userId          String
+  teamId          Int
+  transactionType String // purchase, refund, etc.
+  itemName        String
+  itemType        String // equipment, consumable, etc.
+  creditsAmount   BigInt   @default(0)
+  gemsAmount      Int      @default(0)
+  status          String // pending, completed, failed
+  metadata        Json? // additional transaction info
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([teamId])
+  @@index([transactionType])
+  @@index([status])
+}
