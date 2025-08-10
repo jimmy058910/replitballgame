@@ -68,8 +68,18 @@ jobs:
         
         # Verify secrets exist with correct names
         echo "🔍 Verifying secret names exist in Google Cloud:"
-        gcloud secrets list --filter="name:(google-client-secret OR GOOGLE_CLIENT_SECRET)" --format="value(name)" || echo "⚠️ google-client-secret variations not found"
-        gcloud secrets list --filter="name:(database-url OR DATABASE_URL)" --format="value(name)" || echo "⚠️ database-url variations not found"
+        echo "All secrets in project:"
+        gcloud secrets list --format="value(name)" | sort
+        
+        echo ""
+        echo "🔍 Checking specific secret names for deployment:"
+        for secret in "database-url" "DATABASE_URL" "session-secret" "SESSION_SECRET" "google-client-id" "GOOGLE_CLIENT_ID" "google-client-secret" "GOOGLE_CLIENT_SECRET"; do
+          if gcloud secrets describe "$secret" >/dev/null 2>&1; then
+            echo "✅ $secret exists"
+          else
+            echo "❌ $secret does not exist"
+          fi
+        done
 
     # ===============================
     # PHASE 2: BUILD FRONTEND & BACKEND
@@ -155,7 +165,7 @@ jobs:
           --platform=managed \
           --allow-unauthenticated \
           --set-env-vars="NODE_ENV=production" \
-          --set-secrets="DATABASE_URL=projects/${{ env.PROJECT_ID }}/secrets/DATABASE_URL:latest,SESSION_SECRET=projects/${{ env.PROJECT_ID }}/secrets/SESSION_SECRET:latest,GOOGLE_CLIENT_ID=projects/${{ env.PROJECT_ID }}/secrets/GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=projects/${{ env.PROJECT_ID }}/secrets/GOOGLE_CLIENT_SECRET:latest,VITE_FIREBASE_API_KEY=projects/${{ env.PROJECT_ID }}/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/${{ env.PROJECT_ID }}/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/${{ env.PROJECT_ID }}/secrets/firebase-app-id:latest" \
+          --set-secrets="DATABASE_URL=projects/${{ env.PROJECT_ID }}/secrets/database-url:latest,SESSION_SECRET=projects/${{ env.PROJECT_ID }}/secrets/session-secret:latest,GOOGLE_CLIENT_ID=projects/${{ env.PROJECT_ID }}/secrets/google-client-id:latest,GOOGLE_CLIENT_SECRET=projects/${{ env.PROJECT_ID }}/secrets/google-client-secret:latest,VITE_FIREBASE_API_KEY=projects/${{ env.PROJECT_ID }}/secrets/firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=projects/${{ env.PROJECT_ID }}/secrets/firebase-project-id:latest,VITE_FIREBASE_APP_ID=projects/${{ env.PROJECT_ID }}/secrets/firebase-app-id:latest" \
           --memory=${{ env.MEMORY }} \
           --cpu=${{ env.CPU }} \
           --timeout=${{ env.TIMEOUT }} \

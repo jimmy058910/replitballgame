@@ -23,26 +23,26 @@
 
 | Environment Variable | GCP Secret Name | Purpose |
 |---------------------|-----------------|---------|
-| `DATABASE_URL_PRODUCTION` | `DATABASE_URL` | Production database |
-| `SESSION_SECRET` | `SESSION_SECRET` | Session encryption |
-| `GOOGLE_CLIENT_ID` | `GOOGLE_CLIENT_ID` | OAuth login |
-| `GOOGLE_CLIENT_SECRET` | `GOOGLE_CLIENT_SECRET` | OAuth login |
+| `DATABASE_URL` | `database-url` | Production database |
+| `SESSION_SECRET` | `session-secret` | Session encryption |
+| `GOOGLE_CLIENT_ID` | `google-client-id` | OAuth login |
+| `GOOGLE_CLIENT_SECRET` | `google-client-secret` | OAuth login |
 | `VITE_FIREBASE_API_KEY` | `firebase-api-key` | Frontend Firebase |
 | `VITE_FIREBASE_PROJECT_ID` | `firebase-project-id` | Frontend Firebase |
 | `VITE_FIREBASE_APP_ID` | `firebase-app-id` | Frontend Firebase |
 
 ## Current Deployment Configuration
 ```bash
---set-secrets DATABASE_URL_PRODUCTION=DATABASE_URL:latest,SESSION_SECRET=SESSION_SECRET:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest
+--set-secrets DATABASE_URL=database-url:latest,SESSION_SECRET=session-secret:latest,VITE_FIREBASE_API_KEY=firebase-api-key:latest,VITE_FIREBASE_PROJECT_ID=firebase-project-id:latest,VITE_FIREBASE_APP_ID=firebase-app-id:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest
 ```
 
 ## Verification Checklist
 
 ### ✅ Confirmed Existing in Google Cloud Secret Manager:
-- `DATABASE_URL` ✅
-- `SESSION_SECRET` ✅
-- `GOOGLE_CLIENT_ID` ✅
-- `GOOGLE_CLIENT_SECRET` ✅
+- `database-url` ✅
+- `session-secret` ✅  
+- `google-client-id` ✅
+- `google-client-secret` ✅
 - `firebase-api-key` ✅
 - `firebase-project-id` ✅
 - `firebase-app-id` ✅
