@@ -47,14 +47,12 @@ COPY components.json ./
 RUN npx prisma generate
 RUN echo "✅ Prisma client generated at: $(find . -name 'index.js' -path '*/prisma/*' | head -1)"
 
-# Use tsx for TypeScript transpilation instead of strict tsc compilation
-# This avoids the 471+ TypeScript errors while maintaining functionality
+# CRITICAL FIX: tsx doesn't support --build flag, use proper runtime approach
+# Copy TypeScript source files to dist for tsx runtime transpilation
 RUN mkdir -p dist/server
-RUN npx tsx --build server/index.ts --outDir dist/server || \
-    (echo "tsx build failed, using runtime transpilation approach..." && \
-     cp -r server dist/ && \
-     echo "✅ Server files copied for runtime transpilation")
-RUN echo "✅ Server prepared for production"
+RUN echo "🔧 Using tsx runtime transpilation (tsx --build is not supported)"
+RUN cp -r server/* dist/server/
+RUN echo "✅ TypeScript source files copied for tsx runtime transpilation"
 
 # Build optimized React frontend
 RUN npm run build
@@ -68,8 +66,8 @@ RUN echo "✅ Shared resources copied to dist/"
 RUN mkdir -p dist/generated && cp -r node_modules/.prisma dist/generated/prisma
 RUN echo "✅ Prisma client copied to production location"
 
-# Verify critical build outputs (flexible for both compiled and transpiled approaches)
-RUN (test -f dist/server/index.js || test -f dist/server/index.ts) && echo "✅ Server entry point exists" || (echo "❌ Server build failed" && exit 1)
+# Verify server entry point exists for tsx runtime transpilation
+RUN test -f dist/server/index.ts && echo "✅ Server entry point exists (TypeScript for tsx)" || (echo "❌ Server TypeScript file missing" && exit 1)
 RUN test -d dist/public && echo "✅ Frontend build exists" || (echo "❌ Frontend build failed" && exit 1)
 RUN test -f node_modules/.prisma/client/index.js && echo "✅ Prisma client exists" || (echo "❌ Prisma client missing" && exit 1)
 
