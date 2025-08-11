@@ -73,7 +73,7 @@ async function initDatabase() {
     const databaseUrl = getDatabaseUrl();
     console.log(`🔍 DATABASE_URL preview: ${databaseUrl.substring(0, 30)}...`);
     
-    // Create Prisma client with EXPLICIT PostgreSQL (NO ADAPTERS)
+    // ENHANCED NUCLEAR FIX: Force PostgreSQL-only connection (eliminate ALL adapter paths)
     const prismaConfig = {
       datasources: {
         db: {
@@ -82,13 +82,18 @@ async function initDatabase() {
       },
       log: ['error'],
       // CRITICAL: Force standard PostgreSQL engine (prevent WebSocket/Neon adapters)
-      // Note: engineType removed as deprecated in newer Prisma versions
       __internal: {
         engine: {
           protocol: 'postgresql'
         }
       }
     };
+
+    // NUCLEAR FIX ENHANCEMENT: Set environment variables to force PostgreSQL mode
+    process.env.PRISMA_ENGINE_TYPE = 'library';
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = 'library';
+    process.env.PRISMA_FORCE_NAPI = 'true';
+    process.env.DATABASE_URL = databaseUrl; // Override any runtime URL parsing
 
     // Add production optimizations
     if (process.env.NODE_ENV === 'production') {

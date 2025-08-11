@@ -46,7 +46,7 @@ jobs:
     - name: Validate deployment files
       run: |
         echo "Validating Step 2 deployment files..."
-        test -f server-express-database.js || (echo "❌ server-express-database.js missing" && exit 1)
+        test -f server-express-database-nuclear.js || (echo "❌ server-express-database-nuclear.js missing" && exit 1)
         test -f Dockerfile.express-database || (echo "❌ Dockerfile.express-database missing" && exit 1)
         test -f package.json || (echo "❌ package.json missing" && exit 1)
         test -f prisma/schema.prisma || (echo "❌ prisma/schema.prisma missing" && exit 1)
@@ -88,7 +88,7 @@ jobs:
         
         # Create isolated build directory to eliminate ALL external dependencies
         mkdir -p isolated-build
-        cp server-express-database.js isolated-build/
+        cp server-express-database-nuclear.js isolated-build/server.js
         cp package.json package-lock.json isolated-build/
         cp -r prisma isolated-build/
         
@@ -99,7 +99,7 @@ jobs:
         WORKDIR /app
         COPY package.json package-lock.json ./
         RUN npm ci --only=production && npm cache clean --force
-        COPY server-express-database.js ./
+        COPY server-express-database-nuclear.js ./server.js
         COPY prisma ./prisma/
         RUN npx prisma generate
         RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001 -G nodejs
@@ -109,7 +109,7 @@ jobs:
         ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080
         HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
           CMD curl -f http://localhost:8080/health || exit 1
-        CMD ["node", "server-express-database.js"]
+        CMD ["node", "server.js"]
         EOF
         
         # Build from completely isolated context

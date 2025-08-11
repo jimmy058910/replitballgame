@@ -1,14 +1,17 @@
 generator client {
   provider = "prisma-client-js"
-  // CRITICAL: Disable adapter generation to prevent Neon/WebSocket contamination
-  // Note: engineType removed as deprecated in newer Prisma versions
+  // ENHANCED NUCLEAR FIX: Disable ALL adapter generation and force PostgreSQL-only
   previewFeatures = []
+  output = "./generated/client"
+  engineType = "library"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // CRITICAL: Force standard PostgreSQL connection (no adapters)
+  // ENHANCED NUCLEAR FIX: Force standard PostgreSQL connection (no adapters)
+  relationMode = "prisma"
 }
 
 model UserProfile {
