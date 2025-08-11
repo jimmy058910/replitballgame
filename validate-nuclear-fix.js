@@ -13,6 +13,8 @@ async function validateNuclearFix() {
   // NEW revision URL (always gets latest deployment)
   const newRevisionUrl = 'https://latest---realm-rivalry-express-database-o6fd46yesq-uc.a.run.app';
   
+  console.log('🔍 CRITICAL: Testing if nuclear fix worked in NEW revision 88bc9e71...');
+  
   // OLD service URL (routes to contaminated revision b558148f)  
   const oldServiceUrl = 'https://realm-rivalry-express-database-108005641993.us-central1.run.app';
   
