@@ -5,6 +5,8 @@ Realm Rivalry is a mobile-first fantasy sports management game that offers a dee
 
 **STEP 3 DEPLOYMENT SUCCESS (Aug 11, 2025)**: Successfully deployed Express + Database + Firebase Authentication server to Cloud Run with comprehensive Base64 encoding solution. Service operational at `https://realm-rivalry-auth-server-108005641993.us-central1.run.app` with proper Firebase Admin SDK initialization and dual-mode service account key handling. Base64 encoding approach eliminated all gcloud JSON parsing issues while maintaining local development compatibility. Architecture now includes Firebase Authentication frontend integration with Cloud SQL PostgreSQL backend.
 
+**STEP 4 DEPLOYMENT APPROACH CORRECTED (Aug 11, 2025)**: Fixed deployment approach to use established architecture instead of creating separate server. The existing server/index.ts already includes production frontend serving (dist/public/) and Firebase Authentication. Updated deployment workflow to use proven Dockerfile.production build system that compiles TypeScript server and builds React frontend. This eliminates the 73+ TypeScript compilation errors by leveraging the established tech stack architecture.
+
 # User Preferences
 Preferred communication style: Simple, everyday language.
 

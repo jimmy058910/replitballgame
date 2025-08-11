@@ -1,4 +1,4 @@
-name: Deploy Frontend + Authentication Server (Step 4)
+name: Deploy Full Stack Application (Step 4)
 
 on:
   workflow_dispatch:
@@ -12,9 +12,9 @@ env:
   PROJECT_ID: direct-glider-465821-p7
   PROJECT_NUMBER: 465821
   REGION: us-central1
-  SERVICE_NAME: realm-rivalry-frontend-auth
+  SERVICE_NAME: realm-rivalry-fullstack
   REPOSITORY: realm-rivalry
-  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/frontend-auth
+  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/fullstack
   MIN_INSTANCES: 1
   MAX_INSTANCES: 3
   MEMORY: 1Gi
@@ -78,12 +78,22 @@ jobs:
           ls -la
           
           echo ""
-          echo "📄 Checking Step 4 server file:"
-          if [ -f "server-frontend-auth.js" ]; then
-            echo "✅ server-frontend-auth.js exists"
-            echo "Size: $(wc -c < server-frontend-auth.js) bytes"
+          echo "📄 Checking established server architecture:"
+          if [ -f "server/index.ts" ]; then
+            echo "✅ server/index.ts exists (main server)"
+            echo "Size: $(wc -c < server/index.ts) bytes"
           else
-            echo "❌ server-frontend-auth.js not found"
+            echo "❌ server/index.ts not found"
+            exit 1
+          fi
+          
+          echo ""
+          echo "📄 Checking React frontend:"
+          if [ -d "client/src" ]; then
+            echo "✅ client/src exists (React app)"
+            echo "Files: $(find client/src -name "*.tsx" -o -name "*.ts" | wc -l) TypeScript files"
+          else
+            echo "❌ client/src not found"
             exit 1
           fi
           
@@ -107,11 +117,10 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          echo "🔨 Building Step 4: Frontend + Authentication server..."
+          echo "🔨 Building Step 4: Full stack application with established architecture..."
           
-          # Build and push the Docker image with Step 4 server
+          # Use the proven Dockerfile.production with existing architecture
           docker build -f Dockerfile.production \
-            --build-arg SERVER_FILE=server-frontend-auth.js \
             -t ${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} .
           
           docker push ${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }}
@@ -143,7 +152,7 @@ jobs:
             --set-env-vars DATABASE_URL="${{ secrets.DATABASE_URL }}" \
             --set-env-vars GOOGLE_SERVICE_ACCOUNT_KEY_B64="$ENCODED_SERVICE_ACCOUNT"
 
-          echo "✅ Step 4 deployment completed successfully"
+          echo "✅ Step 4: Full stack deployment completed successfully"
 
       - name: Verify deployment
         run: |
