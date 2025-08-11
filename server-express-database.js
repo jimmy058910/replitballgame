@@ -3,6 +3,9 @@
 /**
  * GRADUAL BUILD-UP: STEP 2 - EXPRESS + DATABASE
  * Add Cloud SQL PostgreSQL database connectivity to working Express server
+ * CRITICAL FIX: Eliminated ALL Neon/WebSocket database references from entire codebase
+ * - server/routes/debug-env.ts: Fixed Neon hardcoded references → Cloud SQL
+ * - server/index.ts: Disabled WebSocket services with external DB dependencies
  * FIXED: External database removal + Prisma schema copying for successful build
  */
 

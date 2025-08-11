@@ -409,7 +409,12 @@ async function startServer() {
           console.error('⚠️  Route registration failed, server will continue with basic endpoints:', routeError);
         }
 
-        // Setup WebSocket server asynchronously
+        // DISABLED: WebSocket server (contains external database dependencies)
+        // Temporarily disabled for Step 2 Express + Database testing
+        console.log('⚠️  WebSocket server disabled for Step 2 testing (contains external DB dependencies)');
+        
+        // TODO: Re-enable after Step 2 database validation and external dependency cleanup
+        /*
         console.log('🔧 Setting up WebSocket server asynchronously...');
         try {
           const { setupWebSocketServer, webSocketService } = await import("./services/webSocketService.js");
@@ -428,6 +433,7 @@ async function startServer() {
         } catch (wsError) {
           console.error('⚠️  WebSocket setup failed, server will continue without WebSocket features:', wsError);
         }
+        */
 
         console.log('✅ ASYNCHRONOUS INITIALIZATION COMPLETE - Server fully operational');
         

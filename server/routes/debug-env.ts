@@ -38,9 +38,9 @@ router.get('/debug-env', async (req, res) => {
         usingFallback: !prodUrl && !!fallbackUrl
       },
       troubleshooting: {
-        message: 'Check if DATABASE_URL points to ep-wandering-firefly-a5tkbktt-pooler.us-east-2.aws.neon.tech',
-        expectedHost: 'ep-wandering-firefly-a5tkbktt-pooler.us-east-2.aws.neon.tech',
-        expectedUser: 'neondb_owner'
+        message: 'Check if DATABASE_URL points to Google Cloud SQL instance',
+        expectedHost: 'localhost (Cloud SQL socket) or public IP for TCP',
+        expectedUser: 'postgres'
       }
     });
     
