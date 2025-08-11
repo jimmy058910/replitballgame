@@ -174,7 +174,7 @@ jobs:
             --concurrency=${{ env.CONCURRENCY }} \
             --min-instances=${{ env.MIN_INSTANCES }} \
             --max-instances=${{ env.MAX_INSTANCES }} \
-            --set-env-vars="NODE_ENV=production,PORT=8080,GOOGLE_CLOUD_PROJECT=${{ env.PROJECT_ID }}" \
+            --set-env-vars="NODE_ENV=production,GOOGLE_CLOUD_PROJECT=${{ env.PROJECT_ID }}" \
             --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}" \
             --set-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY_BASE64=${ENCODED_SERVICE_ACCOUNT}" \
             --set-env-vars="SESSION_SECRET=${{ secrets.SESSION_SECRET }}" \
