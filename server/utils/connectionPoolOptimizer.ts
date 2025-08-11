@@ -1,6 +1,6 @@
 /**
- * NEON COMPUTE COST OPTIMIZATION UTILITY
- * Implements aggressive connection management to minimize branch compute hours
+ * CLOUD SQL CONNECTION POOL OPTIMIZER
+ * Implements connection management for Google Cloud SQL PostgreSQL
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -11,9 +11,9 @@ export class ConnectionPoolOptimizer {
   private autoDisconnectTimer: NodeJS.Timeout | null = null;
   private isConnected: boolean = false;
   
-  // Ultra-aggressive settings for free tier
-  private readonly IDLE_TIMEOUT = 60 * 1000; // 60 seconds
-  private readonly FORCE_DISCONNECT_INTERVAL = 45 * 1000; // 45 seconds
+  // Cloud SQL optimized settings
+  private readonly IDLE_TIMEOUT = 300 * 1000; // 5 minutes
+  private readonly FORCE_DISCONNECT_INTERVAL = 240 * 1000; // 4 minutes
   
   constructor(private prisma: PrismaClient) {
     this.startAggressiveOptimization();
@@ -27,11 +27,11 @@ export class ConnectionPoolOptimizer {
   }
   
   private startAggressiveOptimization() {
-    console.log('🔧 [OPTIMIZER] Starting ultra-aggressive connection optimization');
+    console.log('🔧 [OPTIMIZER] Starting Cloud SQL connection optimization');
     
-    // Force disconnect every 45 seconds regardless of activity
+    // Force disconnect every 4 minutes for connection pool management
     setInterval(async () => {
-      console.log('🔧 [OPTIMIZER] Scheduled force disconnect to minimize compute hours');
+      console.log('🔧 [OPTIMIZER] Scheduled disconnect for Cloud SQL pool management');
       await this.forceDisconnect();
     }, this.FORCE_DISCONNECT_INTERVAL);
     
@@ -64,7 +64,7 @@ export class ConnectionPoolOptimizer {
     try {
       await this.prisma.$disconnect();
       this.isConnected = false;
-      console.log('✅ [OPTIMIZER] Database disconnected - compute hours saved');
+      console.log('✅ [OPTIMIZER] Database disconnected - Cloud SQL pool optimized');
     } catch (error) {
       console.log('⚠️ [OPTIMIZER] Disconnect completed (connection may have been closed)');
       this.isConnected = false;

@@ -1,11 +1,14 @@
 generator client {
   provider = "prisma-client-js"
-  // output removed - use default location for @prisma/client imports
+  // CRITICAL: Disable adapter generation to prevent Neon/WebSocket contamination
+  engineType = "library"
+  previewFeatures = []
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // CRITICAL: Force standard PostgreSQL connection (no adapters)
 }
 
 model UserProfile {
