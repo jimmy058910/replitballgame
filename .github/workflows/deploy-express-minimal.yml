@@ -175,25 +175,46 @@ jobs:
         
         REVISION_SUFFIX="${{ needs.pre-deployment-validation.outputs.image-tag }}"
         
-        gcloud run deploy ${{ env.SERVICE_NAME }} \
-          --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
-          --region=${{ env.REGION }} \
-          --platform=managed \
-          --allow-unauthenticated \
-          --memory=${{ env.MEMORY }} \
-          --cpu=${{ env.CPU }} \
-          --timeout=${{ env.TIMEOUT }} \
-          --concurrency=${{ env.CONCURRENCY }} \
-          --min-instances=${{ env.MIN_INSTANCES }} \
-          --max-instances=${{ env.MAX_INSTANCES }} \
-          --port=8080 \
-          --execution-environment=gen2 \
-          --cpu-boost \
-          --revision-suffix="${REVISION_SUFFIX}" \
-          --tag="latest" \
-          --no-traffic
+        # Check if service exists
+        if gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --quiet 2>/dev/null; then
+          echo "📦 Updating existing service with Blue-Green deployment"
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --memory=${{ env.MEMORY }} \
+            --cpu=${{ env.CPU }} \
+            --timeout=${{ env.TIMEOUT }} \
+            --concurrency=${{ env.CONCURRENCY }} \
+            --min-instances=${{ env.MIN_INSTANCES }} \
+            --max-instances=${{ env.MAX_INSTANCES }} \
+            --port=8080 \
+            --execution-environment=gen2 \
+            --cpu-boost \
+            --revision-suffix="${REVISION_SUFFIX}" \
+            --tag="latest" \
+            --no-traffic
+        else
+          echo "🆕 Creating new service"
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --memory=${{ env.MEMORY }} \
+            --cpu=${{ env.CPU }} \
+            --timeout=${{ env.TIMEOUT }} \
+            --concurrency=${{ env.CONCURRENCY }} \
+            --min-instances=${{ env.MIN_INSTANCES }} \
+            --max-instances=${{ env.MAX_INSTANCES }} \
+            --port=8080 \
+            --execution-environment=gen2 \
+            --cpu-boost \
+            --revision-suffix="${REVISION_SUFFIX}"
+        fi
           
-        echo "✅ Green revision deployed with 0% traffic"
+        echo "✅ Service deployment completed"
         
     - name: Health check verification
       run: |

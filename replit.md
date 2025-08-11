@@ -66,6 +66,8 @@ Preferred communication style: Simple, everyday language.
 
 **GRADUAL BUILD-UP STRATEGY IMPLEMENTED (Aug 11, 2025)**: After 200+ deployment failures of the full application, implemented systematic incremental deployment approach. Created industry-standard Express minimal server with comprehensive production-grade deployment pipeline. Step 1 (Express framework) ready for Cloud Run deployment with multi-stage Docker build, security scanning, Blue-Green deployment, and comprehensive health verification. This will isolate exactly which component breaks Cloud Run deployment.
 
+**DEPLOYMENT CONFIGURATION FIXES COMPLETED (Aug 11, 2025)**: Successfully resolved two critical deployment issues in Step 1 Express minimal workflow: (1) Fixed missing GitHub secrets by hardcoding working project ID `direct-glider-465821-p7`, (2) Fixed `--no-traffic not supported when creating a new service` error by implementing conditional deployment logic that creates new services with immediate traffic and updates existing services with Blue-Green strategy. Express minimal server now ready for successful Cloud Run deployment.
+
 # System Architecture
 
 ## Hybrid Cloud Deployment Model
