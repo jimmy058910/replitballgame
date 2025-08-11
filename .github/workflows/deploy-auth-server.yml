@@ -123,15 +123,8 @@ jobs:
         run: |
           echo "Deploying Step 3: Authentication server..."
 
-          # Create env vars file with proper YAML quoting for JSON values
-          cat > env_vars.yaml << 'ENV_EOF'
-          DATABASE_URL: "${{ secrets.DATABASE_URL }}"
-          NODE_ENV: "production"
-          ENV_EOF
-          
-          # Add GOOGLE_SERVICE_ACCOUNT_KEY with proper YAML string quoting
-          echo 'GOOGLE_SERVICE_ACCOUNT_KEY: "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"' >> env_vars.yaml
-
+          # Use direct environment variable setting to avoid YAML parsing issues
+          # This method is more reliable for complex JSON values
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
             --region=${{ env.REGION }} \
@@ -147,6 +140,8 @@ jobs:
             --execution-environment=gen2 \
             --cpu-boost \
             --add-cloudsql-instances=direct-glider-465821-p7:us-central1:realm-rivalry-prod \
-            --env-vars-file=env_vars.yaml
+            --set-env-vars="NODE_ENV=production" \
+            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}" \
+            --update-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY=${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"
 
           echo "✅ Step 3 deployment completed successfully"
