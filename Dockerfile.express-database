@@ -15,7 +15,7 @@ COPY package.json package-lock.json ./
 # Install ALL dependencies including devDependencies for build
 RUN npm ci --include=dev
 
-# Copy source code
+# FORCE CACHE INVALIDATION: Copy source code with corrected Cloud SQL configuration
 COPY server-express-database.js ./
 
 # ===== PRODUCTION STAGE =====

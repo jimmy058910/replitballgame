@@ -15,20 +15,18 @@ After 200+ failed deployments, we're using a systematic approach to identify wha
 - **Service**: `realm-rivalry-express-minimal`
 - **URL**: https://realm-rivalry-express-minimal-108005641993.us-central1.run.app
 
-### **Step 2: Database Connection** 🔧 CONFIGURATION CORRECTED
+### **Step 2: Database Connection** 🔧 DOCKER CACHE ISSUE IDENTIFIED
 - **File**: `server-express-database.js` 
 - **Test**: Add Cloud SQL PostgreSQL database connection to working Express server
 - **Components**: Prisma Client, Cloud SQL connection, health checks, database test endpoint
-- **Status**: ✅ Service deployed successfully, ❌ Wrong database configuration (used external serverless database instead of Cloud SQL)
+- **Status**: ✅ Code corrected, ❌ Deployed container still using cached old configuration
 - **Service**: `realm-rivalry-express-database`
-- **URL**: https://realm-rivalry-express-database-o6fd46yesq-uc.a.run.app
-- **Issue Found**: Incorrectly implemented external serverless database setup instead of Cloud SQL + Prisma
-- **Fix Applied**: 
-  - Removed external serverless database dependencies and WebSocket configurations
-  - Added Prisma Client for Cloud SQL database access
-  - Implemented production database URL conversion logic (socket/TCP)
-  - Added Cloud SQL connection optimizations for Cloud Run
-- **Ready for**: Re-deployment with correct Cloud SQL + Prisma configuration
+- **URL**: https://realm-rivalry-express-database-108005641993.us-central1.run.app
+- **Issue Found**: Docker build is caching old image with external serverless database code
+- **Root Cause**: Deployment still showing WebSocket errors from cached container with old configuration
+- **Fix Required**: Force fresh Docker build without cache to deploy corrected Cloud SQL code
+- **Current Code**: ✅ Correctly uses Prisma Client with Cloud SQL configuration
+- **Ready for**: Fresh deployment with cache invalidation
 
 ### **Step 3: Authentication**
 - **File**: `server-auth-minimal.js`
