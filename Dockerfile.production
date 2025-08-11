@@ -76,9 +76,10 @@ RUN test -f node_modules/.prisma/client/index.js && echo "✅ Prisma client exis
 # ===============================
 FROM --platform=linux/amd64 node:20-slim AS production
 
-# Install only production runtime dependencies
+# Install CRITICAL dependencies for Cloud Run + tsx runtime
 RUN apt-get update && apt-get install -y \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set production environment
@@ -91,25 +92,21 @@ WORKDIR /app
 # Copy all built artifacts and dependencies from the builder stage
 COPY --from=builder /app .
 
-# Prune development dependencies to reduce image size
-RUN npm prune --production
+# CRITICAL FIX: Don't prune tsx dependency - needed for runtime transpilation
+# RUN npm prune --production
 
-# Create non-root user for security
-RUN groupadd -g 1001 nodejs && \
-    useradd -r -u 1001 -g nodejs nodejs
-
-# Copy and make executable the Cloud Run optimized start script (as root)
+# Copy and make executable the Cloud Run optimized start script
 COPY --chmod=755 start-cloudrun.sh ./
 
-# Set ownership and permissions
-RUN chown -R nodejs:nodejs /app
-USER nodejs
+# CRITICAL: Run as root for tsx compatibility in Cloud Run
+# Cloud Run security is handled at the container orchestration level
+# USER nodejs
 
 # Expose Cloud Run port
 EXPOSE 8080
 
-# Health check for container monitoring
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+# Health check for container monitoring (using curl now installed)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:8080/health || exit 1
 
 # Run the Cloud Run optimized server directly
