@@ -18,6 +18,9 @@ RUN npm ci --include=dev
 # FORCE CACHE INVALIDATION: Copy source code with corrected Cloud SQL configuration
 COPY server-express-database.js ./
 
+# Generate Prisma Client for production
+RUN npx prisma generate
+
 # ===== PRODUCTION STAGE =====
 FROM node:20.19.4-alpine AS production
 
