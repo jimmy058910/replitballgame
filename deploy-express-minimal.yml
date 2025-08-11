@@ -1,0 +1,68 @@
+# STEP 1: Deploy Express minimal server
+name: Deploy Express Minimal
+
+on:
+  workflow_dispatch:
+  
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  SERVICE_NAME: realm-rivalry-express-test
+  IMAGE_NAME: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/realm-rivalry/express-test
+
+jobs:
+  deploy-express-minimal:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+        
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        version: latest
+        
+    - name: Configure Docker for GCP
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev
+      
+    - name: Build Express minimal image
+      run: |
+        echo "Building Express minimal container..."
+        docker build -f Dockerfile.express-minimal -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        docker build -f Dockerfile.express-minimal -t ${{ env.IMAGE_NAME }}:latest .
+        
+    - name: Push to Artifact Registry  
+      run: |
+        echo "Pushing Express minimal image..."
+        docker push ${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.IMAGE_NAME }}:latest
+        
+    - name: Deploy to Cloud Run
+      run: |
+        echo "Deploying Express minimal service..."
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
+          --image=${{ env.IMAGE_NAME }}:${{ github.sha }} \
+          --region=${{ env.REGION }} \
+          --platform=managed \
+          --allow-unauthenticated \
+          --memory=1Gi \
+          --cpu=1 \
+          --timeout=60 \
+          --max-instances=3 \
+          --port=8080
+          
+        echo "✅ Express minimal deployed!"
+        
+        # Get the service URL
+        SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --format='value(status.url)')
+          
+        echo "🌐 Test Express server at: $SERVICE_URL"
+        echo "🏥 Health check: $SERVICE_URL/health"
