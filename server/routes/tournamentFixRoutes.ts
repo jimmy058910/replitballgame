@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { prisma } from '../db.js';
 import { isAuthenticated } from '../googleAuth.js';
-import logger from '../utils/logger.js';
 import { tournamentFlowService } from '../services/tournamentFlowService.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
@@ -14,7 +13,7 @@ router.post('/start-tournament-matches/:tournamentId', isAuthenticated, async (r
     const { tournamentId } = req.params;
     const tournamentIdNum = parseInt(tournamentId);
     
-    logger.info(`Starting tournament matches for tournament ${tournamentId}`);
+    console.log(`Starting tournament matches for tournament ${tournamentId}`);
     
     // Get all scheduled matches for this tournament
     const matches = await prisma.game.findMany({
@@ -27,14 +26,14 @@ router.post('/start-tournament-matches/:tournamentId', isAuthenticated, async (r
       }
     });
     
-    logger.info(`Found ${matches.length} IN_PROGRESS matches for tournament ${tournamentId}`);
+    console.log(`Found ${matches.length} IN_PROGRESS matches for tournament ${tournamentId}`);
     
     // Start live simulation for each match
     for (const match of matches) {
       try {
         const { matchStateManager } = await import('../services/matchStateManager');
         await matchStateManager.startLiveMatch(match.id.toString());
-        logger.info(`Started live simulation for match ${match.id}`);
+        console.log(`Started live simulation for match ${match.id}`);
       } catch (error: any) {
         console.error(`Error starting match ${match.id}:`, error);
       }
