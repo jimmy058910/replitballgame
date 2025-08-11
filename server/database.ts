@@ -180,10 +180,7 @@ async function initializeDatabase(): Promise<void> {
       if (nodeEnv === 'production') {
         console.log('🔧 Applying Cloud Run + Neon optimizations...');
         
-        // Serverless environment optimizations
-        prismaConfig.engineType = 'library';
-        
-        // Connection pool settings for serverless
+        // Connection pool settings for serverless (removed invalid engineType property)
         const optimizedUrl = databaseUrl + (databaseUrl.includes('?') ? '&' : '?') + 
           'connection_limit=1&pool_timeout=20&connect_timeout=60';
         
