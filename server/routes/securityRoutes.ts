@@ -4,7 +4,7 @@
 
 import express from 'express';
 import { runSecurityValidation } from '../utils/securityValidator';
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 import { adminAuth } from '../middleware/adminAuth';
 
 const router = express.Router();
