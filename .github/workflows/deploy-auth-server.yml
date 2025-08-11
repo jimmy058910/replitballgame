@@ -84,9 +84,7 @@ jobs:
             "type": "module",
             "dependencies": {
               "express": "^4.19.2",
-              "express-session": "^1.18.0",
-              "passport": "^0.7.0",
-              "passport-google-oauth20": "^2.0.0",
+              "firebase-admin": "^12.0.0",
               "pg": "^8.11.3"
             },
             "engines": {
@@ -141,9 +139,7 @@ jobs:
             --cpu-boost \
             --add-cloudsql-instances=direct-glider-465821-p7:us-central1:realm-rivalry-prod \
             --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}" \
-            --set-env-vars="GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \
-            --set-env-vars="GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-            --set-env-vars="SESSION_SECRET=${{ secrets.SESSION_SECRET }}" \
+            --set-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY=${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}" \
             --set-env-vars="NODE_ENV=production"
 
           echo "✅ Step 3 deployment completed successfully"

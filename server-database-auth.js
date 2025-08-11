@@ -1,15 +1,13 @@
-// STEP 3: EXPRESS + DATABASE + AUTHENTICATION SERVER
+// STEP 3: EXPRESS + DATABASE + FIREBASE AUTHENTICATION SERVER
 import express from 'express';
-import session from 'express-session';
-import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import admin from 'firebase-admin';
 import pkg from 'pg';
 const { Pool } = pkg;
 
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
 
-console.log('🚀 STEP 3 SERVER: Starting Express + Database + Authentication...');
+console.log('🚀 STEP 3 SERVER: Starting Express + Database + Firebase Authentication...');
 console.log(`Environment: NODE_ENV=${process.env.NODE_ENV || 'production'}`);
 console.log(`Target: ${HOST}:${PORT}`);
 
@@ -109,188 +107,144 @@ async function initUserTable() {
     
     const client = await dbPool.connect();
     
-    // Create users table if it doesn't exist
+    // Create users table for Firebase Auth if it doesn't exist
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        google_id VARCHAR(255) UNIQUE NOT NULL,
+        firebase_uid VARCHAR(255) UNIQUE NOT NULL,
         email VARCHAR(255) NOT NULL,
-        name VARCHAR(255) NOT NULL,
+        name VARCHAR(255),
         picture TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
     
-    console.log('✅ Users table ready');
+    console.log('✅ Users table ready for Firebase Auth');
     client.release();
   } catch (error) {
     console.error('❌ User table initialization failed:', error);
   }
 }
 
-// Session Configuration
-const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'realm-rivalry-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-};
-
-app.use(session(sessionConfig));
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Google OAuth Strategy
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `/auth/google/callback`
-}, async (accessToken, refreshToken, profile, done) => {
+// Initialize Firebase Admin SDK
+function initFirebaseAdmin() {
   try {
-    console.log(`🔍 STEP 3: Google auth callback for user: ${profile.emails[0].value}`);
+    console.log('🔥 STEP 3: Initializing Firebase Admin SDK...');
     
-    if (!dbPool) {
-      return done(new Error('Database not connected'));
+    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+      throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY environment variable is required');
     }
     
-    const client = await dbPool.connect();
+    const serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
     
-    // Check if user exists
-    const existingUser = await client.query(
-      'SELECT * FROM users WHERE google_id = $1',
-      [profile.id]
-    );
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: serviceAccount.project_id
+    });
     
-    let user;
-    
-    if (existingUser.rows.length > 0) {
-      // Update existing user
-      user = await client.query(
-        'UPDATE users SET email = $1, name = $2, picture = $3, updated_at = CURRENT_TIMESTAMP WHERE google_id = $4 RETURNING *',
-        [
-          profile.emails[0].value,
-          profile.displayName,
-          profile.photos[0]?.value,
-          profile.id
-        ]
-      );
-      console.log(`✅ Updated existing user: ${profile.emails[0].value}`);
-    } else {
-      // Create new user
-      user = await client.query(
-        'INSERT INTO users (google_id, email, name, picture) VALUES ($1, $2, $3, $4) RETURNING *',
-        [
-          profile.id,
-          profile.emails[0].value,
-          profile.displayName,
-          profile.photos[0]?.value
-        ]
-      );
-      console.log(`✅ Created new user: ${profile.emails[0].value}`);
-    }
-    
-    client.release();
-    return done(null, user.rows[0]);
+    console.log('✅ Firebase Admin SDK initialized');
+    return true;
   } catch (error) {
-    console.error('❌ Google auth error:', error);
-    return done(error);
+    console.error('❌ Firebase Admin initialization failed:', error);
+    return false;
   }
-}));
+}
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
+// Firebase Auth middleware
+async function verifyFirebaseToken(req, res, next) {
   try {
-    if (!dbPool) {
-      return done(new Error('Database not connected'));
-    }
+    const authHeader = req.headers.authorization;
     
-    const client = await dbPool.connect();
-    const result = await client.query('SELECT * FROM users WHERE id = $1', [id]);
-    client.release();
-    
-    if (result.rows.length > 0) {
-      done(null, result.rows[0]);
-    } else {
-      done(new Error('User not found'));
-    }
-  } catch (error) {
-    done(error);
-  }
-});
-
-// Authentication Routes
-app.get('/auth/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
-
-app.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/auth/failure' }),
-  (req, res) => {
-    console.log(`✅ STEP 3: User authenticated successfully: ${req.user.email}`);
-    res.redirect('/auth/success');
-  }
-);
-
-app.get('/auth/success', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.json({
-      status: 'success',
-      message: 'Authentication successful',
-      user: {
-        id: req.user.id,
-        email: req.user.email,
-        name: req.user.name,
-        picture: req.user.picture
-      }
-    });
-  } else {
-    res.status(401).json({
-      status: 'error',
-      message: 'Not authenticated'
-    });
-  }
-});
-
-app.get('/auth/failure', (req, res) => {
-  res.status(401).json({
-    status: 'error',
-    message: 'Authentication failed'
-  });
-});
-
-app.get('/auth/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return res.status(500).json({
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
         status: 'error',
-        message: 'Logout failed'
+        message: 'No Firebase ID token provided'
       });
     }
-    res.json({
-      status: 'success',
-      message: 'Logged out successfully'
+    
+    const idToken = authHeader.split('Bearer ')[1];
+    
+    // Verify the Firebase ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    
+    // Get or create user in database
+    if (dbPool) {
+      const client = await dbPool.connect();
+      
+      // Check if user exists
+      const existingUser = await client.query(
+        'SELECT * FROM users WHERE firebase_uid = $1',
+        [decodedToken.uid]
+      );
+      
+      let user;
+      
+      if (existingUser.rows.length > 0) {
+        // Update existing user
+        user = await client.query(
+          'UPDATE users SET email = $1, name = $2, picture = $3, updated_at = CURRENT_TIMESTAMP WHERE firebase_uid = $4 RETURNING *',
+          [
+            decodedToken.email,
+            decodedToken.name,
+            decodedToken.picture,
+            decodedToken.uid
+          ]
+        );
+      } else {
+        // Create new user
+        user = await client.query(
+          'INSERT INTO users (firebase_uid, email, name, picture) VALUES ($1, $2, $3, $4) RETURNING *',
+          [
+            decodedToken.uid,
+            decodedToken.email,
+            decodedToken.name,
+            decodedToken.picture
+          ]
+        );
+      }
+      
+      req.user = user.rows[0];
+      req.firebaseUser = decodedToken;
+      client.release();
+    } else {
+      req.firebaseUser = decodedToken;
+    }
+    
+    next();
+  } catch (error) {
+    console.error('❌ Firebase token verification failed:', error);
+    res.status(401).json({
+      status: 'error',
+      message: 'Invalid Firebase ID token'
     });
+  }
+}
+
+// Firebase Authentication Routes
+app.get('/auth/verify', verifyFirebaseToken, (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'Firebase token verified',
+    user: req.user || null,
+    firebaseUser: {
+      uid: req.firebaseUser.uid,
+      email: req.firebaseUser.email,
+      name: req.firebaseUser.name,
+      picture: req.firebaseUser.picture
+    }
   });
 });
 
 app.get('/auth/status', (req, res) => {
   res.json({
     status: 'success',
-    authenticated: req.isAuthenticated(),
-    user: req.isAuthenticated() ? {
-      id: req.user.id,
-      email: req.user.email,
-      name: req.user.name,
-      picture: req.user.picture
-    } : null
+    message: 'Firebase Auth endpoint available',
+    authentication_method: 'firebase',
+    endpoints: {
+      verify: '/auth/verify (POST with Bearer token)',
+      profile: '/api/user/profile (authenticated)'
+    }
   });
 });
 
@@ -330,9 +284,9 @@ app.get('/health', async (req, res) => {
       details: dbDetails
     },
     authentication: {
-      google_oauth_configured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-      session_configured: true,
-      passport_initialized: true
+      firebase_admin_configured: !!admin.apps.length,
+      service_account_configured: !!process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
+      method: 'firebase'
     },
     environment: {
       node_env: process.env.NODE_ENV || 'production',
@@ -382,22 +336,23 @@ app.get('/db-test', async (req, res) => {
 });
 
 // Protected route example
-app.get('/api/user/profile', (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({
-      status: 'error',
-      message: 'Authentication required'
-    });
-  }
-  
+app.get('/api/user/profile', verifyFirebaseToken, (req, res) => {
   res.json({
     status: 'success',
-    user: {
+    user: req.user ? {
       id: req.user.id,
+      firebase_uid: req.user.firebase_uid,
       email: req.user.email,
       name: req.user.name,
       picture: req.user.picture,
       created_at: req.user.created_at
+    } : null,
+    firebaseUser: {
+      uid: req.firebaseUser.uid,
+      email: req.firebaseUser.email,
+      email_verified: req.firebaseUser.email_verified,
+      name: req.firebaseUser.name,
+      picture: req.firebaseUser.picture
     }
   });
 });
@@ -407,7 +362,13 @@ async function startServer() {
   try {
     console.log('🔍 STEP 3: Starting server initialization...');
     
-    // Initialize database first
+    // Initialize Firebase Admin SDK
+    const firebaseInitialized = initFirebaseAdmin();
+    if (!firebaseInitialized) {
+      console.log('⚠️ Warning: Firebase Admin SDK initialization failed');
+    }
+    
+    // Initialize database
     const dbConnected = await initDatabase();
     if (!dbConnected) {
       console.log('⚠️ Warning: Database connection failed, but server will start anyway');
@@ -418,9 +379,9 @@ async function startServer() {
       console.log('✅ STEP 3 SERVER READY');
       console.log(`🌍 Server running at: http://${HOST}:${PORT}`);
       console.log(`🔍 Database status: ${dbStatus}`);
-      console.log(`🔐 Authentication: Google OAuth configured`);
+      console.log(`🔐 Authentication: Firebase Admin SDK configured`);
       console.log(`📊 Health check: /health`);
-      console.log(`🔑 Auth endpoints: /auth/google, /auth/status`);
+      console.log(`🔑 Auth endpoints: /auth/verify, /auth/status`);
     });
   } catch (error) {
     console.error('❌ STEP 3: Server startup failed:', error);
