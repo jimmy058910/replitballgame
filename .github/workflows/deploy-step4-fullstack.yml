@@ -181,7 +181,7 @@ jobs:
             --set-env-vars="GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \
             --set-env-vars="GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
             --execution-environment=gen2 \
-            --service-account=firebase-adminsdk-qn7n6@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+
 
       - name: Verify deployment success
         run: |
