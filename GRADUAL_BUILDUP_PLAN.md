@@ -19,12 +19,12 @@ After 200+ failed deployments, we're using a systematic approach to identify wha
 - **File**: `server-express-database.js` 
 - **Test**: Add Cloud SQL PostgreSQL database connection to working Express server
 - **Components**: Prisma Client, Cloud SQL connection, health checks, database test endpoint
-- **Status**: ✅ Service deployed successfully, ❌ Wrong database configuration (used Neon instead of Cloud SQL)
+- **Status**: ✅ Service deployed successfully, ❌ Wrong database configuration (used external serverless database instead of Cloud SQL)
 - **Service**: `realm-rivalry-express-database`
 - **URL**: https://realm-rivalry-express-database-o6fd46yesq-uc.a.run.app
-- **Issue Found**: Incorrectly implemented Neon database setup instead of Cloud SQL + Prisma
+- **Issue Found**: Incorrectly implemented external serverless database setup instead of Cloud SQL + Prisma
 - **Fix Applied**: 
-  - Removed Neon-specific code (@neondatabase/serverless, WebSocket config)
+  - Removed external serverless database dependencies and WebSocket configurations
   - Added Prisma Client for Cloud SQL database access
   - Implemented production database URL conversion logic (socket/TCP)
   - Added Cloud SQL connection optimizations for Cloud Run

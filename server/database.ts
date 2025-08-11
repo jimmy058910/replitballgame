@@ -166,7 +166,7 @@ async function initializeDatabase(): Promise<void> {
         });
       }
 
-      // Create Prisma client with Cloud Run + Neon optimized configuration
+      // Create Prisma client with Cloud Run + Cloud SQL optimized configuration
       const prismaConfig: any = {
         datasources: {
           db: {
@@ -178,7 +178,7 @@ async function initializeDatabase(): Promise<void> {
 
       // Add Cloud Run specific configuration for production
       if (nodeEnv === 'production') {
-        console.log('🔧 Applying Cloud Run + Neon optimizations...');
+        console.log('🔧 Applying Cloud Run + Cloud SQL optimizations...');
         
         // Connection pool settings for serverless (removed invalid engineType property)
         const optimizedUrl = databaseUrl + (databaseUrl.includes('?') ? '&' : '?') + 
@@ -241,7 +241,7 @@ async function initializeDatabase(): Promise<void> {
         troubleshooting: {
           checkSecrets: 'Verify DATABASE_URL exists in Google Cloud Secret Manager',
           checkPermissions: 'Verify Cloud Run service account has Secret Manager access',
-          checkNetwork: 'Verify Cloud Run can reach Neon database',
+          checkNetwork: 'Verify Cloud Run can reach Cloud SQL database',
           logs: 'Check Cloud Run logs for more details'
         }
       });
