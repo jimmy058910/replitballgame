@@ -1,6 +1,8 @@
 # Overview
 Realm Rivalry is a mobile-first fantasy sports management game that offers a deep, engaging, and high-fidelity simulation experience. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include deep simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre.
 
+**STEP 2 DEPLOYMENT SUCCESS (Aug 11, 2025)**: Successfully deployed Express + Database server to Cloud Run with full database connectivity. Service operational at `https://realm-rivalry-simple-database-108005641993.us-central1.run.app` with unix socket Cloud SQL connection established. Zero Neon references achieved with production-ready dual-mode architecture.
+
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
