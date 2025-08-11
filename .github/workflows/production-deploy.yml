@@ -1,12 +1,13 @@
 name: Production Blue-Green Deployment
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - 'attached_assets/**'
-      - '*.md'
-      - 'docs/**'
+  # DISABLED: Auto-deploy on push (conflicts with simple database deployment)
+  # push:
+  #   branches: [ main ]
+  #   paths-ignore:
+  #     - 'attached_assets/**'
+  #     - '*.md'
+  #     - 'docs/**'
   workflow_dispatch:
     inputs:
       environment:

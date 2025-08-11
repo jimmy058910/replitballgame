@@ -1,16 +1,17 @@
-name: Deploy Express + Database (Step 2)
+name: Deploy Express + Database (Step 2) - DISABLED
 
 on:
-  workflow_dispatch:
-    inputs:
-      deployment_type:
-        description: 'Deployment type'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
+  # DISABLED: This workflow contains Neon references and conflicts with simple database
+  # workflow_dispatch:
+  #   inputs:
+  #     deployment_type:
+  #       description: 'Deployment type'
+  #       required: true
+  #       default: 'staging'
+  #       type: choice
+  #       options:
+  #         - staging
+  #         - production
 
 env:
   PROJECT_ID: direct-glider-465821-p7

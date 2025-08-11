@@ -58,7 +58,7 @@ router.get('/cache-demo', asyncHandler(async (req: any, res: Response) => {
     },
     computeOptimization: {
       expectedSavings: '30-50% database query reduction',
-      targetOutcome: 'Reduce Neon compute hours from 6.18h to <2h'
+      targetOutcome: 'Reduce Cloud SQL compute usage and optimize performance'
     }
   });
 }));

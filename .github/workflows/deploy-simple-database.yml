@@ -8,6 +8,11 @@ on:
         required: false
         default: 'false'
         type: boolean
+  push:
+    branches: [ main ]
+    paths:
+      - 'server-database-dual.js'
+      - '.github/workflows/deploy-simple-database.yml'
 
 jobs:
   pre-deployment-validation:
