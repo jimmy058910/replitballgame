@@ -132,11 +132,25 @@ function initFirebaseAdmin() {
   try {
     console.log('🔥 STEP 3: Initializing Firebase Admin SDK...');
     
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-      throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY environment variable is required');
+    let serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    let serviceAccountKeyB64 = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_B64;
+    
+    if (!serviceAccountKey && !serviceAccountKeyB64) {
+      throw new Error('Either GOOGLE_SERVICE_ACCOUNT_KEY or GOOGLE_SERVICE_ACCOUNT_KEY_B64 environment variable is required');
     }
     
-    const serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+    let serviceAccount;
+    
+    if (serviceAccountKeyB64) {
+      // Decode Base64 encoded service account key (Cloud Run deployment)
+      console.log('🔍 Using Base64 encoded service account key');
+      const decodedKey = Buffer.from(serviceAccountKeyB64, 'base64').toString('utf-8');
+      serviceAccount = JSON.parse(decodedKey);
+    } else {
+      // Use direct JSON string (local development)
+      console.log('🔍 Using direct JSON service account key');
+      serviceAccount = JSON.parse(serviceAccountKey);
+    }
     
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),

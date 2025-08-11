@@ -3,7 +3,7 @@ Realm Rivalry is a mobile-first fantasy sports management game that offers a dee
 
 **STEP 2 DEPLOYMENT SUCCESS (Aug 11, 2025)**: Successfully deployed Express + Database server to Cloud Run with full database connectivity. Service operational at `https://realm-rivalry-simple-database-108005641993.us-central1.run.app` with unix socket Cloud SQL connection established. Zero Neon references achieved with production-ready dual-mode architecture.
 
-**STEP 3 DEPLOYMENT DEBUGGING (Aug 11, 2025)**: Identified and resolved YAML parsing issues with Google Service Account JSON in GitHub Actions deployment. Root cause: complex JSON values breaking YAML syntax when using --env-vars-file. Solution: Direct environment variable setting using --set-env-vars and --update-env-vars to bypass YAML parsing entirely. Comprehensive local testing confirmed reliability with complex JSON service account keys.
+**STEP 3 DEPLOYMENT DEBUGGING (Aug 11, 2025)**: Systematically identified and resolved gcloud command syntax errors with Google Service Account JSON in GitHub Actions deployment. Root cause: gcloud interpreting JSON strings as shell dictionaries when using --update-env-vars. Solution: Base64 encoding approach implemented with comprehensive local testing. Server code updated to handle both direct JSON (local) and Base64-encoded (Cloud Run) service account keys. This eliminates all shell escaping and YAML parsing issues while maintaining development compatibility.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.

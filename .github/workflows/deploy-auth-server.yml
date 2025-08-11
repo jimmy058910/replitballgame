@@ -123,8 +123,10 @@ jobs:
         run: |
           echo "Deploying Step 3: Authentication server..."
 
-          # Use direct environment variable setting to avoid YAML parsing issues
-          # This method is more reliable for complex JSON values
+          # Base64 encode the service account JSON to avoid all shell/gcloud parsing issues
+          # This is the industry standard approach for complex configuration data
+          ENCODED_SERVICE_ACCOUNT=$(echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' | base64 -w 0)
+
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
             --region=${{ env.REGION }} \
@@ -140,8 +142,8 @@ jobs:
             --execution-environment=gen2 \
             --cpu-boost \
             --add-cloudsql-instances=direct-glider-465821-p7:us-central1:realm-rivalry-prod \
-            --set-env-vars="NODE_ENV=production" \
-            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}" \
-            --update-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY=${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"
+            --set-env-vars NODE_ENV=production \
+            --set-env-vars DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            --set-env-vars GOOGLE_SERVICE_ACCOUNT_KEY_B64="$ENCODED_SERVICE_ACCOUNT"
 
           echo "✅ Step 3 deployment completed successfully"
