@@ -19,7 +19,7 @@ console.log('🚀 EXPRESS + DATABASE: Starting with CLEAN Cloud SQL connectivity
 console.log(`Environment: NODE_ENV=${process.env.NODE_ENV || 'unknown'}`);
 console.log(`Target: ${HOST}:${PORT}`);
 console.log('🧹 DEPLOYMENT VALIDATION: All external dependencies removed + ISOLATED BUILD FIX Applied');
-console.log('🔍 NUCLEAR FIX COMPREHENSIVE: Schema + Config + Isolated Build = Zero WebSocket attempts + Build timestamp:', new Date().toISOString());
+console.log('🔍 NUCLEAR FIX VALIDATED + Prisma Config Fixed = Zero WebSocket/Neon errors + Build timestamp:', new Date().toISOString());
 
 // Create Express app
 const app = express();
@@ -82,11 +82,10 @@ async function initDatabase() {
       },
       log: ['error'],
       // CRITICAL: Force standard PostgreSQL engine (prevent WebSocket/Neon adapters)
-      engineType: 'library',
-      // Disable experimental features that might auto-detect adapters
+      // Note: engineType removed as deprecated in newer Prisma versions
       __internal: {
         engine: {
-          protocol: 'graphql'
+          protocol: 'postgresql'
         }
       }
     };

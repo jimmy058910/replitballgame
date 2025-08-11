@@ -1,7 +1,7 @@
 generator client {
   provider = "prisma-client-js"
   // CRITICAL: Disable adapter generation to prevent Neon/WebSocket contamination
-  engineType = "library"
+  // Note: engineType removed as deprecated in newer Prisma versions
   previewFeatures = []
 }
 
