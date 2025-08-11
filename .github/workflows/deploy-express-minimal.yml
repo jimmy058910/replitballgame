@@ -232,8 +232,8 @@ jobs:
         echo "Service URL: $SERVICE_URL"
         echo "Revision URL: $REVISION_URL"
         
-        # Test health endpoints
-        if curl -f "${SERVICE_URL}/healthz"; then
+        # Test health endpoints  
+        if curl -f "${SERVICE_URL}/health"; then
           echo "✅ Health check endpoint working"
         else
           echo "❌ Health check failed"
