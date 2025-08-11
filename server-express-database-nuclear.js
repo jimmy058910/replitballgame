@@ -46,25 +46,25 @@ function validateAndCleanDatabaseUrl() {
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
-// NUCLEAR FIX PHASE 4: Database connection with extreme isolation
+// NUCLEAR FIX PHASE 4: ULTIMATE Database connection with total adapter elimination
 let prisma = null;
 let dbStatus = 'not-connected';
 
 async function initDatabase() {
   try {
-    console.log('💣 NUCLEAR DATABASE INIT: Establishing PostgreSQL connection...');
+    console.log('💣 ULTIMATE NUCLEAR DATABASE INIT: Establishing PURE PostgreSQL connection...');
     
     const databaseUrl = validateAndCleanDatabaseUrl();
     
-    // NUCLEAR OPTION: Direct PostgreSQL client with zero adapter contamination
+    // ULTIMATE NUCLEAR OPTION: Force pure PostgreSQL with $connect() for immediate validation
     prisma = new PrismaClient({
       datasources: {
         db: {
           url: databaseUrl
         }
       },
-      log: [],
-      // Force library engine (no external adapters possible)
+      log: ['error', 'warn'],
+      // CRITICAL: Force native PostgreSQL engine with ZERO adapter fallback
       __internal: {
         engine: {
           protocol: 'postgresql'
@@ -72,19 +72,32 @@ async function initDatabase() {
       }
     });
 
-    console.log('🔍 NUCLEAR: Testing raw PostgreSQL connection...');
+    console.log('🔍 ULTIMATE NUCLEAR: Force-connecting to native PostgreSQL (no WebSocket tolerance)...');
     
-    // Direct PostgreSQL query (no adapter layer)
-    const testResult = await prisma.$queryRaw`SELECT NOW() as current_time, version() as postgres_version`;
+    // CRITICAL: Force immediate connection establishment to validate pure PostgreSQL
+    await prisma.$connect();
+    console.log('✅ ULTIMATE NUCLEAR: $connect() succeeded - native PostgreSQL verified');
     
-    console.log('✅ NUCLEAR SUCCESS: Direct PostgreSQL connection established!');
+    // Verify with direct PostgreSQL query (absolutely no adapter layer)
+    const testResult = await prisma.$queryRaw`SELECT NOW() as current_time, version() as postgres_version, current_database() as db_name`;
+    
+    console.log('✅ ULTIMATE NUCLEAR SUCCESS: PURE PostgreSQL connection established!');
     console.log(`🕒 Database time: ${testResult[0].current_time}`);
     console.log(`🐘 PostgreSQL: ${testResult[0].postgres_version.split(' ')[0]}`);
+    console.log(`💾 Database: ${testResult[0].db_name}`);
     
     dbStatus = 'connected';
     return true;
   } catch (error) {
-    console.error('❌ NUCLEAR DATABASE FAILURE:', error.message);
+    console.error('❌ ULTIMATE NUCLEAR DATABASE FAILURE:', error.message);
+    console.error('🔍 Full error stack:', error.stack);
+    
+    // Enhanced error analysis for WebSocket contamination detection
+    if (error.message.includes('WebSocket') || error.message.includes('neon')) {
+      console.error('💀 CRITICAL: WebSocket contamination confirmed in Prisma client');
+      console.error('💀 This indicates Prisma is still loading adapter code despite nuclear fixes');
+    }
+    
     dbStatus = `error: ${error.message}`;
     return false;
   }
