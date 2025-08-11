@@ -1,5 +1,5 @@
 # Overview
-Realm Rivalry is a mobile-first fantasy sports management game focusing on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. It features deep simulation including stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems. The business vision is to capture market share in the mobile sports management genre by offering a deep, engaging, and high-fidelity simulation experience.
+Realm Rivalry is a mobile-first fantasy sports management game that offers a deep, engaging, and high-fidelity simulation experience. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include deep simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
@@ -14,7 +14,7 @@ Preferred communication style: Simple, everyday language.
 
 **DEVELOPMENT APPROACH**: Always prioritize industry-standard practices and proper implementations from the beginning. Avoid shortcuts, bypasses, or band-aid solutions. Research and implement the correct solution first - this saves significant time and effort compared to fixing temporary approaches later.
 
-**COMMITMENT TO EXCELLENCE**: Take additional time for research and comprehensive implementation when it ensures industry-standard compliance. Quality and proper architecture always take precedence over speed of delivery.
+**COMMITMENT TO EXCELLENCE**: Take additional time for research and comprehensive implementation when it ensures industry-standard compliance. Quality and proper architecture always precede speed of delivery.
 
 **ZERO TECHNICAL DEBT POLICY**: No band-aids, no temporary fixes, no shortcuts. Every solution must be implemented correctly from the start using industry-standard practices. If a temporary approach is suggested, it must be rejected in favor of the proper implementation.
 
@@ -51,26 +51,6 @@ Preferred communication style: Simple, everyday language.
 - **NO TECHNICAL DEBT**: Every solution must be the correct, long-term implementation from the start
 
 **CRITICAL DEPLOYMENT PREFERENCE**: NEVER use Replit's Deploy button. User has custom hybrid deployment pipeline (Google Cloud Run + Firebase + Cloud SQL) that auto-deploys on Git push from Replit using GitHub Actions Blue-Green deployment workflow for zero-downtime releases.
-
-**DEPLOYMENT TROUBLESHOOTING DISCOVERY (Aug 10, 2025)**: After extensive investigation of "Creating Revision" timeout failures, discovered the root cause was SERVICE NAME CONFUSION. Error logs showed failures from 'realm-rivalry' service in us-east5 using buildpacks, while our actual deployment targets 'realm-rivalry-backend' service in us-central1 using our custom Dockerfile.production. The deployment pipeline was working correctly - user was monitoring logs from wrong service.
-
-**CLOUD RUN PORT BINDING OPTIMIZATION (Aug 10, 2025)**: Created optimized server startup sequence to resolve Cloud Run 4-minute startup timeout requirement. New `index-cloudrun-optimized.ts` binds to port 8080 immediately with minimal setup, then defers heavy initialization (authentication, middleware, WebSocket) until after port binding. Updated Dockerfile.production to use optimized startup script.
-
-**CRITICAL DEPENDENCY RESOLUTION (Aug 10, 2025)**: Solved the root cause of Cloud Run container startup timeouts. Fixed TypeScript path alias issues that caused module resolution failures in production: (1) Converted all @shared/* imports to relative paths since TypeScript aliases don't work in compiled JS runtime, (2) Fixed Prisma client imports from custom paths to standard @prisma/client. Server now binds to port 8080 immediately and stays operational even with minor dependency issues. Comprehensive testing shows health checks working and container startup requirements satisfied.
-
-**TYPESCRIPT ES MODULE RESOLUTION FIX (Aug 10, 2025)**: Fixed critical TypeScript build system issue where .js extensions were being stripped from compiled output, breaking ES Module resolution in Node.js production. Updated tsconfig.server.json to use "moduleResolution": "bundler" to preserve .js extensions in compiled JavaScript. Container now passes all health checks and meets Cloud Run startup requirements with optimized Gen2 execution environment and CPU boost enabled.
-
-**DEPLOYMENT WORKFLOW ENHANCEMENT (Aug 10, 2025)**: Added secret verification step to production-deploy.yml workflow based on Jules's recommendation. New verification step validates secret configuration immediately after green revision deployment, failing fast with clear diagnostics if project number is incorrect. Prevents wasted time on deployments that will fail during health checks due to secret misconfiguration.
-
-**DEPLOYMENT SUCCESS ACHIEVED (Aug 10, 2025)**: Successfully resolved Cloud Run container startup timeouts through combination of Jules's dependency fix and comprehensive ES module import resolution. Jules identified critical issue: `tsx` was incorrectly in devDependencies but required at runtime, causing silent container failures. Systematically fixed 100+ ES module imports to include required `.js` extensions for Node.js runtime. Server now binds to port 8080 immediately, passes all health checks, and reaches full operational status. **Deployment ready for Cloud Run with zero-downtime Blue-Green strategy**.
-
-**GRADUAL BUILD-UP STRATEGY IMPLEMENTED (Aug 11, 2025)**: After 200+ deployment failures of the full application, implemented systematic incremental deployment approach. Created industry-standard Express minimal server with comprehensive production-grade deployment pipeline. Step 1 (Express framework) ready for Cloud Run deployment with multi-stage Docker build, security scanning, Blue-Green deployment, and comprehensive health verification. This will isolate exactly which component breaks Cloud Run deployment.
-
-**DEPLOYMENT CONFIGURATION FIXES COMPLETED (Aug 11, 2025)**: Successfully resolved two critical deployment issues in Step 1 Express minimal workflow: (1) Fixed missing GitHub secrets by hardcoding working project ID `direct-glider-465821-p7`, (2) Fixed `--no-traffic not supported when creating a new service` error by implementing conditional deployment logic that creates new services with immediate traffic and updates existing services with Blue-Green strategy. Express minimal server now ready for successful Cloud Run deployment.
-
-**STEP 1 EXPRESS MINIMAL SUCCESS ACHIEVED (Aug 11, 2025)**: Express framework successfully deployed and operational on Cloud Run. Service URL: https://realm-rivalry-express-minimal-108005641993.us-central1.run.app. All core functionality verified: container startup, port binding, HTTP endpoints, and production environment. Fixed minor health check endpoint issue by updating workflow to use working `/health` endpoint. **Ready to proceed to Step 2: Express + Database integration**.
-
-**NUCLEAR NEON ELIMINATION COMPLETED (Aug 11, 2025)**: Performed comprehensive removal of ALL Neon references and workflow conflicts: (1) **Nuclear Workflow Cleanup**: Disabled `production-deploy.yml` auto-trigger that was causing wrong deployments, disabled `deploy-express-database.yml` containing Neon references, (2) **Complete Neon Elimination**: Removed final Neon reference in `quickCacheTest.ts`, verified zero Neon imports or configurations remain, (3) **Clean Deployment Ready**: Only `deploy-simple-database.yml` remains active, deploys `server-database-dual.js` with direct PostgreSQL (no Neon, no WebSocket), (4) **Emergency Deployment Script**: Created `deploy-nuclear-simple.sh` for manual deployment triggering. **STATUS: 100% Neon-free, ready for clean Cloud Run deployment**.
 
 # System Architecture
 
