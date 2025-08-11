@@ -370,23 +370,14 @@ async function startServer() {
       console.log('🔧 Phase 8: ASYNCHRONOUS HEAVY INITIALIZATION (after server bind)');
       
       try {
-        // CRITICAL CLOUD RUN FIX: Setup production frontend serving asynchronously
-        if (process.env.NODE_ENV === 'production') {
-          console.log('🔧 Setting up production static file serving asynchronously...');
-          try {
-          const distPath = path.resolve(import.meta.dirname, '..', 'dist', 'public');
-          if (fs.existsSync(distPath)) {
-            app.use(express.static(distPath));
-            app.use("*", (_req: any, res: any) => {
-              res.sendFile(path.resolve(distPath, "index.html"));
-            });
-            console.log('✅ Production static file serving configured');
-          } else {
-            console.error(`❌ Production build not found at ${distPath}. Serving API only.`);
-          }
-          } catch (staticError) {
-            console.error('❌ Static file serving failed, but server will continue:', staticError);
-          }
+        // CRITICAL: Register API routes FIRST (before static file serving)
+        console.log('🔧 Registering API routes asynchronously...');
+        try {
+          const { registerAllRoutes } = await import("./routes/index.js");
+          await registerAllRoutes(app);
+          console.log('✅ API routes registered');
+        } catch (routeError) {
+          console.error('⚠️  API route registration failed, server will continue:', routeError);
         }
 
         // Initialize Google Auth asynchronously (with error resilience)
@@ -399,14 +390,25 @@ async function startServer() {
           console.error('⚠️  Google Auth setup failed, server will continue without full auth:', authError);
         }
 
-        // Register API routes asynchronously  
-        console.log('🔧 Registering API routes asynchronously...');
-        try {
-          const { registerAllRoutes } = await import("./routes/index.js");
-          registerAllRoutes(app);
-          console.log('✅ API routes registered');
-        } catch (routeError) {
-          console.error('⚠️  Route registration failed, server will continue with basic endpoints:', routeError);
+        // CRITICAL CLOUD RUN FIX: Setup production frontend serving AFTER API routes
+        if (process.env.NODE_ENV === 'production') {
+          console.log('🔧 Setting up production static file serving asynchronously...');
+          try {
+            const distPath = path.resolve(import.meta.dirname, '..', 'dist', 'public');
+            if (fs.existsSync(distPath)) {
+              // Serve static files
+              app.use(express.static(distPath));
+              // Catch-all handler for SPA routing - MUST be last
+              app.use("*", (_req: any, res: any) => {
+                res.sendFile(path.resolve(distPath, "index.html"));
+              });
+              console.log('✅ Production static file serving configured');
+            } else {
+              console.error(`❌ Production build not found at ${distPath}. Serving API only.`);
+            }
+          } catch (staticError) {
+            console.error('❌ Static file serving failed, but server will continue:', staticError);
+          }
         }
 
         // DISABLED: WebSocket server (contains external database dependencies)
