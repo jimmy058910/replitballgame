@@ -78,9 +78,9 @@ jobs:
           }
           EOF
           
-          # Create simple server
+          # Create dual-mode server
           cat > server-database-simple.js << 'EOF'
-          // RADICAL SIMPLIFICATION: Working Express + Database server
+          // DUAL-MODE DATABASE SERVER: Works with both unix socket and public IP
           import express from 'express';
           import pkg from 'pg';
           const { Pool } = pkg;
@@ -88,7 +88,7 @@ jobs:
           const PORT = process.env.PORT || 8080;
           const HOST = '0.0.0.0';
           
-          console.log('🚀 SIMPLE SERVER: Starting Express + Database...');
+          console.log('🚀 DUAL-MODE SERVER: Starting with universal database connectivity...');
           console.log(`Environment: NODE_ENV=${process.env.NODE_ENV || 'production'}`);
           console.log(`Target: ${HOST}:${PORT}`);
           
@@ -97,37 +97,79 @@ jobs:
           
           let dbPool = null;
           let dbStatus = 'not-connected';
+          let connectionMethod = 'unknown';
+          
+          async function createDualModeConnection() {
+            const dbUrl = process.env.DATABASE_URL;
+            
+            if (!dbUrl) {
+              throw new Error('DATABASE_URL not found');
+            }
+          
+            console.log(`🔍 Database URL type: ${dbUrl.substring(0, 30)}...`);
+            
+            const isUnixSocket = dbUrl.includes('/cloudsql/');
+            const isCloudRun = !!(process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT);
+            
+            console.log(`🔍 Connection analysis: isUnixSocket=${isUnixSocket}, isCloudRun=${isCloudRun}`);
+            
+            let connectionConfig = {
+              connectionString: dbUrl,
+              max: 20,
+              idleTimeoutMillis: 30000,
+              connectionTimeoutMillis: 15000,
+            };
+          
+            if (isUnixSocket) {
+              console.log('🔌 Using unix socket connection (Cloud Run native)');
+              connectionMethod = 'unix-socket';
+              connectionConfig.ssl = false;
+            } else {
+              console.log('🌐 Using public IP connection (universal)');
+              connectionMethod = 'public-ip';
+              connectionConfig.ssl = { rejectUnauthorized: false };
+            }
+          
+            return new Pool(connectionConfig);
+          }
           
           async function initDatabase() {
             try {
-              console.log('🔍 SIMPLE DATABASE: Initializing PostgreSQL...');
+              console.log('🔍 DUAL-MODE: Initializing universal database connection...');
               
-              if (!process.env.DATABASE_URL) {
-                throw new Error('DATABASE_URL not found');
+              dbPool = await createDualModeConnection();
+              
+              let retries = 3;
+              let lastError = null;
+              
+              for (let i = 0; i < retries; i++) {
+                try {
+                  console.log(`🔍 Connection attempt ${i + 1}/${retries}...`);
+                  
+                  const client = await dbPool.connect();
+                  const result = await client.query('SELECT NOW() as current_time');
+                  
+                  console.log(`✅ Database connected successfully via ${connectionMethod}!`);
+                  console.log(`🕒 Time: ${result.rows[0].current_time}`);
+                  
+                  client.release();
+                  dbStatus = 'connected';
+                  return true;
+                } catch (error) {
+                  lastError = error;
+                  console.log(`❌ Attempt ${i + 1} failed: ${error.message}`);
+                  
+                  if (i < retries - 1) {
+                    const waitTime = (i + 1) * 2000;
+                    console.log(`⏳ Waiting ${waitTime}ms before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                  }
+                }
               }
-          
-              const dbUrl = process.env.DATABASE_URL;
-              console.log(`🔍 Database URL type: ${dbUrl.substring(0, 20)}...`);
               
-              dbPool = new Pool({
-                connectionString: dbUrl,
-                max: 20,
-                idleTimeoutMillis: 30000,
-                connectionTimeoutMillis: 10000,
-                ssl: dbUrl.includes('localhost') ? false : { rejectUnauthorized: false }
-              });
-          
-              console.log('🔍 Testing database connection...');
-              const client = await dbPool.connect();
-              
-              const result = await client.query('SELECT NOW() as current_time');
-              console.log(`✅ Database connected: ${result.rows[0].current_time}`);
-              
-              client.release();
-              dbStatus = 'connected';
-              return true;
+              throw lastError;
             } catch (error) {
-              console.error('❌ Database failed:', error.message);
+              console.error('❌ All database connection attempts failed:', error.message);
               dbStatus = `error: ${error.message}`;
               return false;
             }
