@@ -123,6 +123,15 @@ jobs:
         run: |
           echo "Deploying Step 3: Authentication server..."
 
+          # Create env vars file to handle special characters properly
+          cat > env_vars.yaml << 'ENV_EOF'
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: production
+          ENV_EOF
+          
+          # Add GOOGLE_SERVICE_ACCOUNT_KEY as base64 to avoid parsing issues
+          echo "GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}" >> env_vars.yaml
+
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
             --region=${{ env.REGION }} \
@@ -138,8 +147,6 @@ jobs:
             --execution-environment=gen2 \
             --cpu-boost \
             --add-cloudsql-instances=direct-glider-465821-p7:us-central1:realm-rivalry-prod \
-            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}" \
-            --set-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY=${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}" \
-            --set-env-vars="NODE_ENV=production"
+            --env-vars-file=env_vars.yaml
 
           echo "✅ Step 3 deployment completed successfully"
