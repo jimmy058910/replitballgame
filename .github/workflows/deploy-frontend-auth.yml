@@ -1,0 +1,166 @@
+name: Deploy Frontend + Authentication Server (Step 4)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deployment:
+        description: 'Type "deploy" to confirm Step 4 deployment'
+        required: true
+        default: ''
+
+env:
+  PROJECT_ID: direct-glider-465821-p7
+  PROJECT_NUMBER: 465821
+  REGION: us-central1
+  SERVICE_NAME: realm-rivalry-frontend-auth
+  REPOSITORY: realm-rivalry
+  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/frontend-auth
+  MIN_INSTANCES: 1
+  MAX_INSTANCES: 3
+  MEMORY: 1Gi
+  CPU: 1
+  TIMEOUT: 60
+  CONCURRENCY: 100
+
+jobs:
+  pre-deployment-validation:
+    runs-on: ubuntu-latest
+    outputs:
+      should-deploy: ${{ steps.validate.outputs.should-deploy }}
+      image-tag: ${{ steps.generate-tag.outputs.tag }}
+    steps:
+      - name: Validate deployment input
+        id: validate
+        run: |
+          if [ "${{ github.event.inputs.confirm_deployment }}" != "deploy" ]; then
+            echo "❌ Deployment not confirmed. Please type 'deploy' to proceed."
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ Step 4 deployment confirmed"
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate image tag
+        id: generate-tag
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+          echo "tag=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "🏷️ Image tag: $SHORT_SHA"
+
+  deploy-to-cloud-run:
+    needs: pre-deployment-validation
+    if: needs.pre-deployment-validation.outputs.should-deploy == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker to use gcloud as a credential helper
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Verify build context and Dockerfile
+        run: |
+          echo "📋 STEP 4 BUILD CONTEXT VERIFICATION"
+          echo "===================================="
+          
+          echo "📁 Root directory contents:"
+          ls -la
+          
+          echo ""
+          echo "📄 Checking Step 4 server file:"
+          if [ -f "server-frontend-auth.js" ]; then
+            echo "✅ server-frontend-auth.js exists"
+            echo "Size: $(wc -c < server-frontend-auth.js) bytes"
+          else
+            echo "❌ server-frontend-auth.js not found"
+            exit 1
+          fi
+          
+          echo ""
+          echo "📄 Checking Dockerfile:"
+          if [ -f "Dockerfile.production" ]; then
+            echo "✅ Dockerfile.production exists"
+          else
+            echo "❌ Dockerfile.production not found"
+            exit 1
+          fi
+          
+          echo ""
+          echo "📦 Checking package.json:"
+          if [ -f "package.json" ]; then
+            echo "✅ package.json exists"
+          else
+            echo "❌ package.json not found"
+            exit 1
+          fi
+
+      - name: Build and push Docker image
+        run: |
+          echo "🔨 Building Step 4: Frontend + Authentication server..."
+          
+          # Build and push the Docker image with Step 4 server
+          docker build -f Dockerfile.production \
+            --build-arg SERVER_FILE=server-frontend-auth.js \
+            -t ${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} .
+          
+          docker push ${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          echo "Deploying Step 4: Frontend + Authentication server..."
+
+          # Base64 encode the service account JSON to avoid all shell/gcloud parsing issues
+          # This is the industry standard approach for complex configuration data
+          ENCODED_SERVICE_ACCOUNT=$(echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' | base64 -w 0)
+
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --memory=${{ env.MEMORY }} \
+            --cpu=${{ env.CPU }} \
+            --timeout=${{ env.TIMEOUT }} \
+            --concurrency=${{ env.CONCURRENCY }} \
+            --min-instances=${{ env.MIN_INSTANCES }} \
+            --max-instances=${{ env.MAX_INSTANCES }} \
+            --port=8080 \
+            --execution-environment=gen2 \
+            --cpu-boost \
+            --add-cloudsql-instances=direct-glider-465821-p7:us-central1:realm-rivalry-prod \
+            --set-env-vars NODE_ENV=production \
+            --set-env-vars DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            --set-env-vars GOOGLE_SERVICE_ACCOUNT_KEY_B64="$ENCODED_SERVICE_ACCOUNT"
+
+          echo "✅ Step 4 deployment completed successfully"
+
+      - name: Verify deployment
+        run: |
+          echo "🧪 Verifying Step 4 deployment..."
+          
+          # Wait for deployment to be ready
+          sleep 30
+          
+          SERVICE_URL="https://${{ env.SERVICE_NAME }}-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app"
+          
+          echo "Testing health endpoint..."
+          curl -f "$SERVICE_URL/health" || echo "Health check failed"
+          
+          echo ""
+          echo "Testing auth status endpoint..."
+          curl -f "$SERVICE_URL/api/auth/status" || echo "Auth status check failed"
+          
+          echo ""
+          echo "✅ Step 4 verification completed"
+          echo "🌐 Service URL: $SERVICE_URL"
