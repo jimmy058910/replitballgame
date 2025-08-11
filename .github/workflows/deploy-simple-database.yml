@@ -132,6 +132,7 @@ jobs:
             --port=8080 \
             --execution-environment=gen2 \
             --cpu-boost \
+            --add-cloudsql-instances=direct-glider-465821-p7:us-central1:realm-rivalry-prod \
             --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}" \
             --set-env-vars="NODE_ENV=production"
 
