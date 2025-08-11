@@ -1,77 +1,82 @@
-// DEPLOY #97: NUCLEAR OPTION - Ultra-simple server for Cloud Run debugging
-const http = require('http');
+#!/usr/bin/env node
 
-console.log('🔥 === MINIMAL SERVER STARTING ===');
-console.log('🔥 Node.js version:', process.version);
-console.log('🔥 Platform:', process.platform);
-console.log('🔥 Working directory:', process.cwd());
+/**
+ * NUCLEAR OPTION: MINIMAL CLOUD RUN SERVER
+ * This is the most basic possible server that should work on Cloud Run
+ * If this fails, the problem is infrastructure, not our code
+ */
 
-// Log ALL environment variables to debug Cloud Run
-console.log('🔥 ALL ENVIRONMENT VARIABLES:');
-Object.keys(process.env).sort().forEach(key => {
-  if (key.includes('PORT') || key.includes('K_') || key.includes('GOOGLE') || key.includes('NODE')) {
-    const value = process.env[key];
-    console.log(`   ${key}: ${value || 'undefined'}`);
-  }
-});
+import http from 'http';
 
-// Force port to 8080 for Cloud Run (Cloud Run ALWAYS expects 8080)
-const port = parseInt(process.env.PORT) || 8080;
-const host = '0.0.0.0';
+const PORT = process.env.PORT || 8080;
+const HOST = '0.0.0.0';
 
-console.log(`🔥 BINDING TO: ${host}:${port}`);
-console.log(`🔥 PORT source: ${process.env.PORT ? 'ENV Variable' : 'Default 8080'}`);
+console.log('🚀 MINIMAL SERVER: Starting immediately...');
+console.log(`Environment: NODE_ENV=${process.env.NODE_ENV || 'unknown'}`);
+console.log(`Target: ${HOST}:${PORT}`);
 
+// Create the most basic possible server
 const server = http.createServer((req, res) => {
-  console.log(`🔥 REQUEST: ${req.method} ${req.url} from ${req.socket.remoteAddress}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   
-  // Simple health check responses
-  if (req.url === '/health' || req.url === '/healthz' || req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(`NUCLEAR SERVER WORKING!\nDeploy #97\nTime: ${new Date().toISOString()}\nPort: ${port}\n`);
+  if (req.url === '/health' || req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      message: 'Minimal server is working'
+    }));
     return;
   }
   
-  // Default response
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Minimal server is alive!\n');
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end(`
+    <!DOCTYPE html>
+    <html>
+    <head><title>Minimal Cloud Run Test</title></head>
+    <body>
+      <h1>🎉 SUCCESS!</h1>
+      <p>If you see this, Cloud Run deployment is working.</p>
+      <p>Time: ${new Date().toISOString()}</p>
+      <p>Environment: ${process.env.NODE_ENV || 'unknown'}</p>
+      <p>Now we can gradually add complexity back.</p>
+    </body>
+    </html>
+  `);
 });
 
-// Add comprehensive error handling
-server.on('error', (error) => {
-  console.error('🔥 FATAL SERVER ERROR:', error.message);
-  console.error('🔥 Error code:', error.code);  
-  console.error('🔥 Error syscall:', error.syscall);
-  console.error('🔥 Error address:', error.address);
-  console.error('🔥 Error port:', error.port);
-  console.error('🔥 Full error:', error);
+// Bind immediately with error handling
+server.listen(PORT, HOST, (err) => {
+  if (err) {
+    console.error('❌ FATAL: Failed to bind to port:', err);
+    process.exit(1);
+  }
+  
+  console.log(`✅ SUCCESS: Minimal server listening on ${HOST}:${PORT}`);
+  console.log(`Health check: http://${HOST}:${PORT}/health`);
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  console.error('❌ Server error:', err);
   process.exit(1);
 });
 
-console.log('🔥 About to call server.listen()...');
-
-server.listen(port, host, () => {
-  console.log('🔥 ========================================');
-  console.log(`🔥 SUCCESS! Server listening on ${host}:${port}`);
-  console.log('🔥 Server is ready for Cloud Run health checks');
-  console.log('🔥 ========================================');
-});
-
-// Graceful shutdown
+// Handle process signals
 process.on('SIGTERM', () => {
-  console.log('🔥 SIGTERM received - graceful shutdown');
+  console.log('📛 SIGTERM received, shutting down gracefully...');
   server.close(() => {
-    console.log('🔥 Server closed gracefully');
+    console.log('✅ Server closed');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('🔥 SIGINT received - graceful shutdown');  
+  console.log('📛 SIGINT received, shutting down gracefully...');
   server.close(() => {
-    console.log('🔥 Server closed gracefully');
+    console.log('✅ Server closed');
     process.exit(0);
   });
 });
 
-console.log('🔥 Minimal server setup complete - waiting for listen callback...');
+console.log('🎯 Minimal server setup complete. Waiting for requests...');
