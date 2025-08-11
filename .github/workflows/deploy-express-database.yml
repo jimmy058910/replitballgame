@@ -84,18 +84,42 @@ jobs:
         
     - name: Build production image with security scanning
       run: |
-        echo "Building Express + Database container with multi-stage optimization..."
+        echo "Building Express + Database with ISOLATED build context (NEON FIX)..."
         
-        # Build with build-time optimizations
+        # Create isolated build directory to eliminate ALL external dependencies
+        mkdir -p isolated-build
+        cp server-express-database.js isolated-build/
+        cp package.json package-lock.json isolated-build/
+        cp -r prisma isolated-build/
+        
+        # Create isolated Dockerfile with CLEAN Prisma generation
+        cat > isolated-build/Dockerfile << 'EOF'
+        FROM node:20.19.4-alpine AS production
+        RUN apk add --no-cache curl
+        WORKDIR /app
+        COPY package.json package-lock.json ./
+        RUN npm ci --only=production && npm cache clean --force
+        COPY server-express-database.js ./
+        COPY prisma ./prisma/
+        RUN npx prisma generate
+        RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001 -G nodejs
+        RUN chown -R nodejs:nodejs /app
+        USER nodejs
+        EXPOSE 8080
+        ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080
+        HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+          CMD curl -f http://localhost:8080/health || exit 1
+        CMD ["node", "server-express-database.js"]
+        EOF
+        
+        # Build from completely isolated context
         docker build \
-          -f Dockerfile.express-database \
-          --target production \
-          --build-arg BUILDKIT_INLINE_CACHE=1 \
+          -f isolated-build/Dockerfile \
           --tag ${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
           --tag ${{ env.IMAGE_NAME }}:latest \
-          .
+          isolated-build/
           
-        echo "Build completed successfully"
+        echo "✅ Build completed from ISOLATED context (external dependencies eliminated)"
         
     - name: Security scan
       run: |

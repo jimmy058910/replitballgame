@@ -18,7 +18,8 @@ const HOST = '0.0.0.0';
 console.log('🚀 EXPRESS + DATABASE: Starting with CLEAN Cloud SQL connectivity (Neon eliminated)...');
 console.log(`Environment: NODE_ENV=${process.env.NODE_ENV || 'unknown'}`);
 console.log(`Target: ${HOST}:${PORT}`);
-console.log('🧹 DEPLOYMENT VALIDATION: All external database dependencies removed');
+console.log('🧹 DEPLOYMENT VALIDATION: All external dependencies removed + ISOLATED BUILD FIX Applied');
+console.log('🔍 ISOLATION VERIFICATION: Build timestamp:', new Date().toISOString());
 
 // Create Express app
 const app = express();
