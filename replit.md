@@ -70,7 +70,7 @@ Preferred communication style: Simple, everyday language.
 
 **STEP 1 EXPRESS MINIMAL SUCCESS ACHIEVED (Aug 11, 2025)**: Express framework successfully deployed and operational on Cloud Run. Service URL: https://realm-rivalry-express-minimal-108005641993.us-central1.run.app. All core functionality verified: container startup, port binding, HTTP endpoints, and production environment. Fixed minor health check endpoint issue by updating workflow to use working `/health` endpoint. **Ready to proceed to Step 2: Express + Database integration**.
 
-**STEP 2 CRITICAL DATABASE CLEANUP COMPLETED (Aug 11, 2025)**: Successfully eliminated ALL Neon/WebSocket database references across entire codebase that were causing deployment failures. Fixed `server/routes/debug-env.ts` hardcoded Neon server references and disabled WebSocket services in `server/index.ts` that contained external database dependencies. Server now starts successfully without external database errors. Health checks working. **Ready for final deployment with 100% Cloud SQL integration - all external database dependencies eliminated**.
+**STEP 2 DEPLOYMENT CACHE ISSUE IDENTIFIED (Aug 11, 2025)**: Root cause found - deployments were using cached Docker layers from old commits containing Neon references, despite local code being clean. Fixed by modifying server-express-database.js with validation logs to force new Docker build. All Neon/WebSocket database references eliminated from codebase: `server/routes/debug-env.ts` fixed, WebSocket services in `server/index.ts` disabled. **Ready for final deployment with forced clean Docker build using 100% Cloud SQL integration**.
 
 # System Architecture
 

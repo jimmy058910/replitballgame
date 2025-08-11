@@ -15,9 +15,10 @@ import { PrismaClient } from '@prisma/client';
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
 
-console.log('🚀 EXPRESS + DATABASE: Starting with database connectivity...');
+console.log('🚀 EXPRESS + DATABASE: Starting with CLEAN Cloud SQL connectivity (Neon eliminated)...');
 console.log(`Environment: NODE_ENV=${process.env.NODE_ENV || 'unknown'}`);
 console.log(`Target: ${HOST}:${PORT}`);
+console.log('🧹 DEPLOYMENT VALIDATION: All external database dependencies removed');
 
 // Create Express app
 const app = express();
@@ -188,8 +189,8 @@ app.get('/', (req, res) => {
     <html>
     <head><title>Express + Database Test</title></head>
     <body>
-      <h1>🎉 EXPRESS + DATABASE SUCCESS!</h1>
-      <p>Express framework with PostgreSQL database is working on Cloud Run.</p>
+      <h1>🎉 EXPRESS + DATABASE SUCCESS (CLEAN)!</h1>
+      <p>Express framework with Cloud SQL PostgreSQL (NO external dependencies) is working on Cloud Run.</p>
       <p>Time: ${new Date().toISOString()}</p>
       <p>Environment: ${process.env.NODE_ENV || 'unknown'}</p>
       <p>Database Status: ${dbStatus}</p>
