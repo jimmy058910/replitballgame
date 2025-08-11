@@ -2,8 +2,8 @@
 // MISSION: Complete elimination of ALL WebSocket/Neon adapter contamination
 // STATUS: Nuclear-grade purification applied to every connection path
 
-const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
