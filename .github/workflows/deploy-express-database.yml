@@ -99,7 +99,7 @@ jobs:
         WORKDIR /app
         COPY package.json package-lock.json ./
         RUN npm ci --only=production && npm cache clean --force
-        COPY server-express-database-nuclear.js ./server.js
+        COPY server.js ./
         COPY prisma ./prisma/
         RUN npx prisma generate
         RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001 -G nodejs
