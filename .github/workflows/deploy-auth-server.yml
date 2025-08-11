@@ -123,14 +123,14 @@ jobs:
         run: |
           echo "Deploying Step 3: Authentication server..."
 
-          # Create env vars file to handle special characters properly
+          # Create env vars file with proper YAML quoting for JSON values
           cat > env_vars.yaml << 'ENV_EOF'
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NODE_ENV: production
+          DATABASE_URL: "${{ secrets.DATABASE_URL }}"
+          NODE_ENV: "production"
           ENV_EOF
           
-          # Add GOOGLE_SERVICE_ACCOUNT_KEY as base64 to avoid parsing issues
-          echo "GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}" >> env_vars.yaml
+          # Add GOOGLE_SERVICE_ACCOUNT_KEY with proper YAML string quoting
+          echo 'GOOGLE_SERVICE_ACCOUNT_KEY: "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"' >> env_vars.yaml
 
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
