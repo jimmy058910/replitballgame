@@ -16,12 +16,12 @@ on:
         - production
 
 env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  PROJECT_NUMBER: ${{ secrets.GCP_PROJECT_NUMBER }}
+  PROJECT_ID: direct-glider-465821-p7
+  PROJECT_NUMBER: 465821
   REGION: us-central1
   SERVICE_NAME: realm-rivalry-express-minimal
   REPOSITORY: realm-rivalry
-  IMAGE_NAME: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/realm-rivalry/express-minimal
+  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/express-minimal
   MIN_INSTANCES: 1
   MAX_INSTANCES: 3
   MEMORY: 1Gi
