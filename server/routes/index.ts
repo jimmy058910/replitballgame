@@ -1,6 +1,6 @@
 import type { Express } from "express";
-// Domain routes (new domain-driven architecture)
-import domainRoutes from "../domains/index.js";
+// Domain routes (new domain-driven architecture) - COMMENTED OUT FOR STEP 4 DEPLOYMENT FIX
+// import domainRoutes from "../domains/index.js";
 import authRoutes from "./authRoutes.js";
 import teamRoutes from "./teamRoutes.js";
 import playerRoutes from "./playerRoutes.js";
@@ -73,8 +73,17 @@ import quickCacheTest from "./quickCacheTest.js";
 export function registerAllRoutes(app: Express): void {
   console.log('🔍 [registerAllRoutes] Starting route registration...');
   
-  // Mount domain routes (new architecture)
-  app.use("/api/v2", domainRoutes);
+  // Mount domain routes (new architecture) - TEMPORARILY DISABLED FOR STEP 4 DEPLOYMENT FIX
+  // app.use("/api/v2", domainRoutes);
+  // Add basic /api/v2 test endpoint to ensure API routing works
+  app.get("/api/v2", (req: any, res: any) => {
+    res.json({
+      success: true,
+      message: "Step 4 API routing is working!",
+      timestamp: new Date().toISOString(),
+      version: "Step 4 Deployment Test"
+    });
+  });
   console.log('🔍 [registerAllRoutes] Registered /api/v2 routes');
   
   // Legacy routes (existing system)
