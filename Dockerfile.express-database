@@ -18,6 +18,9 @@ RUN npm ci --include=dev
 # FORCE CACHE INVALIDATION: Copy source code with corrected Cloud SQL configuration
 COPY server-express-database.js ./
 
+# Copy Prisma schema for client generation
+COPY prisma ./prisma/
+
 # Generate Prisma Client for production
 RUN npx prisma generate
 
@@ -37,6 +40,10 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application from builder
 COPY --from=builder /app/server-express-database.js ./
+
+# Copy generated Prisma Client
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma ./prisma/
 
 # Create non-root user with specific UID/GID for security
 RUN addgroup -g 1001 -S nodejs && \

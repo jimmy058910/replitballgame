@@ -3,7 +3,7 @@
 /**
  * GRADUAL BUILD-UP: STEP 2 - EXPRESS + DATABASE
  * Add Cloud SQL PostgreSQL database connectivity to working Express server
- * BREAKTHROUGH: External database removal successful - now fixing Prisma generation
+ * FIXED: External database removal + Prisma schema copying for successful build
  */
 
 import express from 'express';
