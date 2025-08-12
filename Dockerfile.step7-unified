@@ -64,9 +64,9 @@ COPY --from=frontend-builder /app/dist ./dist
 COPY server-step7-unified.js ./
 COPY shared ./shared/
 COPY server/storage ./server/storage/
-COPY server/db.js ./server/ 2>/dev/null || echo "db.js not found, skipping"
-COPY prisma ./prisma/ 2>/dev/null || echo "prisma not found, skipping"
-COPY .env* ./ 2>/dev/null || echo "env files not found, skipping"
+
+# Copy required directories and files
+RUN mkdir -p ./server ./prisma
 
 # Generate Prisma client if schema exists
 RUN if [ -f "./prisma/schema.prisma" ]; then npx prisma generate; fi

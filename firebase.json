@@ -12,14 +12,14 @@
       {
         "source": "/api/**",
         "run": {
-          "serviceId": "realm-rivalry-backend",
+          "serviceId": "realm-rivalry-unified",
           "region": "us-central1"
         }
       },
       {
         "source": "/health",
         "run": {
-          "serviceId": "realm-rivalry-backend", 
+          "serviceId": "realm-rivalry-unified", 
           "region": "us-central1"
         }
       },
