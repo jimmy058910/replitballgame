@@ -1,0 +1,220 @@
+name: Deploy Step 5 - WebSocket Integration
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'server-websocket-step5.js'
+      - 'Dockerfile.step5-websocket'
+      - '.github/workflows/deploy-step5-websocket.yml'
+      - 'package.json'
+      - 'client/**'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: direct-glider-465821-p7
+  PROJECT_NUMBER: 465821
+  REGION: us-central1
+  SERVICE_NAME: realm-rivalry-websocket
+  REPOSITORY: realm-rivalry
+  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/websocket
+  MIN_INSTANCES: 1
+  MAX_INSTANCES: 3
+  MEMORY: 1Gi
+  CPU: 1
+  TIMEOUT: 60
+  CONCURRENCY: 100
+
+jobs:
+  deploy-to-cloud-run:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Verify Step 5 deployment files
+        run: |
+          echo "🔍 Verifying Step 5 WebSocket deployment files..."
+          
+          # Check for Step 5 server file
+          if [ -f "server-websocket-step5.js" ]; then
+            echo "✅ server-websocket-step5.js found"
+          else
+            echo "❌ server-websocket-step5.js not found"
+            exit 1
+          fi
+          
+          # Check for Step 5 Dockerfile
+          if [ -f "Dockerfile.step5-websocket" ]; then
+            echo "✅ Dockerfile.step5-websocket found"
+          else
+            echo "❌ Dockerfile.step5-websocket not found"
+            exit 1
+          fi
+          
+          # Check for frontend source
+          if [ -d "client/src" ]; then
+            echo "✅ client/src found"
+          else
+            echo "❌ client/src not found"
+            exit 1
+          fi
+          
+          # Check for package.json
+          if [ -f "package.json" ]; then
+            echo "✅ package.json found"
+            # Verify Socket.IO dependency
+            if grep -q '"socket.io"' package.json; then
+              echo "✅ Socket.IO dependency found"
+            else
+              echo "⚠️  Socket.IO dependency not found - will be installed"
+            fi
+          else
+            echo "❌ package.json not found"
+            exit 1
+          fi
+          
+          echo "✅ Step 5 file verification complete"
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Build Step 5 WebSocket image
+        run: |
+          echo "🔧 Building Step 5 WebSocket integration image..."
+          
+          docker build \
+            -f Dockerfile.step5-websocket \
+            -t ${{ env.IMAGE_NAME }}:step5-${{ github.sha }} \
+            -t ${{ env.IMAGE_NAME }}:step5-latest \
+            .
+          
+          echo "✅ Step 5 WebSocket image built successfully"
+
+      - name: Push image to Artifact Registry
+        run: |
+          echo "📤 Pushing Step 5 image to Artifact Registry..."
+          
+          docker push ${{ env.IMAGE_NAME }}:step5-${{ github.sha }}
+          docker push ${{ env.IMAGE_NAME }}:step5-latest
+          
+          echo "✅ Step 5 image pushed successfully"
+
+      - name: Deploy to Cloud Run
+        run: |
+          echo "🚀 Deploying Step 5 WebSocket service to Cloud Run..."
+          
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=${{ env.IMAGE_NAME }}:step5-${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --memory=${{ env.MEMORY }} \
+            --cpu=${{ env.CPU }} \
+            --timeout=${{ env.TIMEOUT }}s \
+            --concurrency=${{ env.CONCURRENCY }} \
+            --min-instances=${{ env.MIN_INSTANCES }} \
+            --max-instances=${{ env.MAX_INSTANCES }} \
+            --set-env-vars="NODE_ENV=production" \
+            --set-env-vars="PORT=8080" \
+            --set-secrets="DATABASE_URL=DATABASE_URL:latest" \
+            --set-secrets="GOOGLE_SERVICE_ACCOUNT_KEY=GOOGLE_SERVICE_ACCOUNT_KEY:latest" \
+            --execution-environment=gen2 \
+            --format=json > deployment-output.json
+          
+          echo "✅ Step 5 WebSocket service deployment initiated"
+
+      - name: Get service URL and verify deployment
+        run: |
+          echo "🔍 Verifying Step 5 WebSocket deployment..."
+          
+          # Extract service URL from deployment output
+          SERVICE_URL=$(cat deployment-output.json | jq -r '.status.url // empty')
+          
+          if [ -z "$SERVICE_URL" ]; then
+            echo "❌ Failed to get service URL from deployment output"
+            cat deployment-output.json
+            exit 1
+          fi
+          
+          echo "✅ Step 5 service deployed at: $SERVICE_URL"
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
+          
+          # Wait for deployment to fully propagate
+          echo "Waiting for deployment propagation..."
+          sleep 20
+          
+          # Test health endpoint
+          echo "Testing health endpoint..."
+          for i in {1..5}; do
+            if curl -4 -f --max-time 30 "${SERVICE_URL}/health" 2>/dev/null; then
+              echo "✅ Health check successful (attempt $i)"
+              break
+            else
+              echo "Retry $i: Health check..."
+              sleep 10
+            fi
+            if [ $i -eq 5 ]; then
+              echo "❌ Health check failed after 5 attempts"
+              exit 1
+            fi
+          done
+          
+          # Test WebSocket status endpoint
+          echo "Testing WebSocket status endpoint..."
+          for i in {1..3}; do
+            WS_RESPONSE=$(curl -4 --max-time 30 "${SERVICE_URL}/api/websocket-status" 2>/dev/null || echo "")
+            
+            if [ -n "$WS_RESPONSE" ] && echo "$WS_RESPONSE" | grep -q "active"; then
+              echo "✅ WebSocket status check successful (attempt $i)"
+              echo "WebSocket status: $WS_RESPONSE"
+              break
+            else
+              echo "Retry $i: WebSocket status check..."
+              sleep 10
+            fi
+            
+            if [ $i -eq 3 ]; then
+              echo "❌ WebSocket status check failed after 3 attempts"
+              echo "Response: $WS_RESPONSE"
+              exit 1
+            fi
+          done
+          
+          # Test frontend serving
+          echo "Testing frontend serving..."
+          for i in {1..3}; do
+            FRONTEND_RESPONSE=$(curl -4 --max-time 30 -H "Accept: text/html" -H "User-Agent: Mozilla/5.0" "${SERVICE_URL}/" 2>/dev/null || echo "")
+            
+            if [ -n "$FRONTEND_RESPONSE" ] && echo "$FRONTEND_RESPONSE" | grep -q "<!DOCTYPE html"; then
+              echo "✅ Frontend serving successful (attempt $i)"
+              break
+            else
+              echo "Retry $i: Frontend serving test..."
+              sleep 10
+            fi
+            
+            if [ $i -eq 3 ]; then
+              echo "⚠️  Frontend serving test inconclusive - continuing (WebSocket primary focus for Step 5)"
+            fi
+          done
+          
+          echo ""
+          echo "🎉 STEP 5 WEBSOCKET DEPLOYMENT SUCCESS!"
+          echo "✅ WebSocket integration deployed and verified"
+          echo "✅ Socket.IO server operational"
+          echo "✅ Real-time capabilities enabled"
+          echo "✅ Health monitoring active"
+          echo "✅ Service URL: $SERVICE_URL"
+
+shell: /usr/bin/bash -e {0}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 5 WebSocket Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status { padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .connected { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .disconnected { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .log { background: #f8f9fa; border: 1px solid #e9ecef; padding: 15px; border-radius: 4px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Step 5 WebSocket Integration Test</h1>
+        
+        <div id="status" class="status disconnected">
+            ❌ Disconnected - Click Connect to start
+        </div>
+        
+        <div>
+            <button onclick="connect()">Connect to WebSocket</button>
+            <button onclick="disconnect()" disabled id="disconnectBtn">Disconnect</button>
+            <button onclick="testEcho()">Test Echo</button>
+            <button onclick="joinGame()">Join Game Room</button>
+            <button onclick="simulateMatch()">Simulate Match</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <div style="margin: 15px 0;">
+            <input type="text" id="gameId" placeholder="Game ID (e.g., game123)" value="game123">
+            <input type="text" id="playerId" placeholder="Player ID (e.g., player1)" value="player1">
+        </div>
+        
+        <div class="log" id="log">
+            <div>WebSocket test console ready...</div>
+            <div>This tests Step 5 WebSocket integration features:</div>
+            <div>✓ Socket.IO connection</div>
+            <div>✓ Game room management</div>
+            <div>✓ Real-time match simulation</div>
+            <div>✓ Echo functionality</div>
+            <div>---</div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket = null;
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.style.color = type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#333';
+            div.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            if (connected) {
+                status.className = 'status connected';
+                status.innerHTML = '✅ Connected to Step 5 WebSocket Server';
+                disconnectBtn.disabled = false;
+            } else {
+                status.className = 'status disconnected';
+                status.innerHTML = '❌ Disconnected from WebSocket Server';
+                disconnectBtn.disabled = true;
+            }
+        }
+
+        function connect() {
+            if (socket && socket.connected) {
+                addLog('Already connected', 'info');
+                return;
+            }
+
+            addLog('Connecting to WebSocket server...', 'info');
+            
+            // Connect to current host (works for both local and deployed)
+            socket = io(window.location.origin, {
+                transports: ['websocket', 'polling'],
+                timeout: 10000
+            });
+
+            socket.on('connect', () => {
+                addLog('Connected to WebSocket server!', 'success');
+                addLog(`Socket ID: ${socket.id}`, 'info');
+                updateStatus(true);
+            });
+
+            socket.on('disconnect', () => {
+                addLog('Disconnected from WebSocket server', 'error');
+                updateStatus(false);
+            });
+
+            socket.on('welcome', (data) => {
+                addLog(`Welcome message: ${data.message}`, 'success');
+                addLog(`Step: ${data.step}`, 'info');
+            });
+
+            socket.on('echo-response', (data) => {
+                addLog(`Echo response: ${JSON.stringify(data)}`, 'success');
+            });
+
+            socket.on('game-joined', (data) => {
+                addLog(`Joined game ${data.gameId} as ${data.playerId}`, 'success');
+                addLog(`Room size: ${data.roomSize} players`, 'info');
+            });
+
+            socket.on('player-joined', (data) => {
+                addLog(`Player ${data.playerId} joined the room`, 'info');
+                addLog(`Room size: ${data.roomSize} players`, 'info');
+            });
+
+            socket.on('match-event', (data) => {
+                addLog(`Match ${data.matchId}: ${JSON.stringify(data.event)}`, 'success');
+            });
+
+            socket.on('connect_error', (error) => {
+                addLog(`Connection error: ${error.message}`, 'error');
+                updateStatus(false);
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                addLog('Manually disconnected', 'info');
+                updateStatus(false);
+            }
+        }
+
+        function testEcho() {
+            if (!socket || !socket.connected) {
+                addLog('Not connected to WebSocket server', 'error');
+                return;
+            }
+
+            const testData = {
+                message: 'Hello from Step 5 WebSocket test!',
+                timestamp: new Date().toISOString()
+            };
+
+            addLog(`Sending echo test: ${JSON.stringify(testData)}`, 'info');
+            socket.emit('echo', testData);
+        }
+
+        function joinGame() {
+            if (!socket || !socket.connected) {
+                addLog('Not connected to WebSocket server', 'error');
+                return;
+            }
+
+            const gameId = document.getElementById('gameId').value || 'game123';
+            const playerId = document.getElementById('playerId').value || 'player1';
+
+            addLog(`Joining game ${gameId} as ${playerId}...`, 'info');
+            socket.emit('join-game', { gameId, playerId });
+        }
+
+        function simulateMatch() {
+            if (!socket || !socket.connected) {
+                addLog('Not connected to WebSocket server', 'error');
+                return;
+            }
+
+            const matchData = {
+                matchId: 'match-' + Date.now(),
+                teams: {
+                    home: 'Dragons',
+                    away: 'Phoenix'
+                }
+            };
+
+            addLog(`Starting match simulation: ${matchData.matchId}`, 'info');
+            socket.emit('simulate-match', matchData);
+        }
+
+        function clearLog() {
+            log.innerHTML = '<div>Log cleared...</div>';
+        }
+
+        // Auto-connect on page load for testing
+        window.addEventListener('load', () => {
+            addLog('Page loaded - Step 5 WebSocket test ready', 'info');
+            addLog('Click "Connect to WebSocket" to start testing', 'info');
+        });
+    </script>
+</body>
+</html>
