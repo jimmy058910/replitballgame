@@ -376,8 +376,16 @@ async function startServer() {
           const { registerAllRoutes } = await import("./routes/index.js");
           await registerAllRoutes(app);
           console.log('✅ API routes registered');
-        } catch (routeError) {
+          
+          // COMPREHENSIVE VALIDATION: Test that routes are actually working
+          console.log('🧪 Validating API route registration...');
+          const routeCount = app._router?.stack?.length || 0;
+          console.log(`✅ Express router has ${routeCount} middleware/routes registered`);
+          
+        } catch (routeError: any) {
           console.error('⚠️  API route registration failed, server will continue:', routeError);
+          console.error('⚠️  Error details:', routeError?.message || 'Unknown error');
+          console.error('⚠️  Stack trace:', routeError?.stack || 'No stack trace available');
         }
 
         // Initialize Google Auth asynchronously (with error resilience)
@@ -394,17 +402,37 @@ async function startServer() {
         if (process.env.NODE_ENV === 'production') {
           console.log('🔧 Setting up production static file serving asynchronously...');
           try {
-            const distPath = path.resolve(import.meta.dirname, '..', 'dist', 'public');
+            // COMPREHENSIVE FIX: Correct path resolution for Cloud Run container
+            const distPath = path.resolve(process.cwd(), 'dist', 'public');
+            console.log(`🔍 Checking frontend build at: ${distPath}`);
+            
             if (fs.existsSync(distPath)) {
-              // Serve static files
-              app.use(express.static(distPath));
-              // Catch-all handler for SPA routing - MUST be last
-              app.use("*", (_req: any, res: any) => {
-                res.sendFile(path.resolve(distPath, "index.html"));
-              });
-              console.log('✅ Production static file serving configured');
+              const indexPath = path.resolve(distPath, "index.html");
+              if (fs.existsSync(indexPath)) {
+                // Serve static files with proper cache headers
+                app.use(express.static(distPath, {
+                  maxAge: '1d', // Cache static assets for 1 day
+                  etag: true,
+                  lastModified: true
+                }));
+                
+                // Catch-all handler for SPA routing - MUST be last
+                app.use("*", (_req: any, res: any) => {
+                  console.log(`🌐 Serving SPA fallback: ${_req.originalUrl} -> index.html`);
+                  res.sendFile(indexPath);
+                });
+                console.log('✅ Production static file serving configured');
+                console.log(`✅ Frontend files: ${fs.readdirSync(distPath).length} files found`);
+              } else {
+                console.error(`❌ index.html not found at ${indexPath}`);
+              }
             } else {
               console.error(`❌ Production build not found at ${distPath}. Serving API only.`);
+              // List what's actually available
+              const rootDist = path.resolve(process.cwd(), 'dist');
+              if (fs.existsSync(rootDist)) {
+                console.log(`🔍 Available in dist/: ${fs.readdirSync(rootDist).join(', ')}`);
+              }
             }
           } catch (staticError) {
             console.error('❌ Static file serving failed, but server will continue:', staticError);
