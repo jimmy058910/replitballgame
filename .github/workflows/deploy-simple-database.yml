@@ -8,11 +8,12 @@ on:
         required: false
         default: 'false'
         type: boolean
-  push:
-    branches: [ main ]
-    paths:
-      - 'server-database-dual.js'
-      - '.github/workflows/deploy-simple-database.yml'
+  # DISABLED: Auto-trigger disabled - use Step 7 unified deployment instead
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'server-database-dual.js'
+  #     - '.github/workflows/deploy-simple-database.yml'
 
 jobs:
   pre-deployment-validation:

@@ -1,14 +1,15 @@
 name: Deploy Step 5 - Real-Time Game Features
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'server-realtime-step5.js'
-      - 'Dockerfile.step5-websocket'
-      - '.github/workflows/deploy-step5-websocket.yml'
-      - 'package.json'
-      - 'client/**'
+  # DISABLED: Auto-trigger disabled - use Step 7 unified deployment instead
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'server-realtime-step5.js'
+  #     - 'Dockerfile.step5-websocket'
+  #     - '.github/workflows/deploy-step5-websocket.yml'
+  #     - 'package.json'
+  #     - 'client/**'
   workflow_dispatch:
 
 env:

@@ -1,8 +1,9 @@
 name: Deploy Step 4 - Complete Fullstack Application
 
 on:
-  push:
-    branches: [ main ]
+  # DISABLED: Auto-trigger disabled - use Step 7 unified deployment instead
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
     inputs:
       force_deploy:

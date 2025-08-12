@@ -8,12 +8,13 @@ on:
         required: false
         default: 'false'
         type: boolean
-  push:
-    branches: [ main ]
-    paths:
-      - 'server-step6-integrated.js'
-      - 'Dockerfile.step6-integration'
-      - '.github/workflows/deploy-step6-integration.yml'
+  # DISABLED: Auto-trigger disabled - use Step 7 unified deployment instead
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'server-step6-integrated.js'
+  #     - 'Dockerfile.step6-integration'
+  #     - '.github/workflows/deploy-step6-integration.yml'
 
 env:
   PROJECT_ID: direct-glider-465821-p7

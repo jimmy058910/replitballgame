@@ -11,12 +11,13 @@ on:
         options:
           - realtime
           - force
-  push:
-    branches: [ main ]
-    paths:
-      - 'server-realtime-step5.js'
-      - 'Dockerfile.step5-websocket'
-      - '.github/workflows/deploy-step5-realtime.yml'
+  # DISABLED: Auto-trigger disabled - use Step 7 unified deployment instead
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'server-realtime-step5.js'
+  #     - 'Dockerfile.step5-websocket'
+  #     - '.github/workflows/deploy-step5-realtime.yml'
 
 env:
   PROJECT_ID: direct-glider-465821-p7
