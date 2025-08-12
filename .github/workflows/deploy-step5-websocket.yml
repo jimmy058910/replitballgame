@@ -1,10 +1,10 @@
-name: Deploy Step 5 - WebSocket Integration
+name: Deploy Step 5 - Real-Time Game Features
 
 on:
   push:
     branches: [ main ]
     paths:
-      - 'server-websocket-step5.js'
+      - 'server-realtime-step5.js'
       - 'Dockerfile.step5-websocket'
       - '.github/workflows/deploy-step5-websocket.yml'
       - 'package.json'
@@ -15,9 +15,9 @@ env:
   PROJECT_ID: direct-glider-465821-p7
   PROJECT_NUMBER: 465821
   REGION: us-central1
-  SERVICE_NAME: realm-rivalry-websocket
-  REPOSITORY: realm-rivalry
-  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/websocket
+  SERVICE_NAME: realm-rivalry-realtime
+  REPOSITORY: realm-rivalry  
+  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/realtime
   MIN_INSTANCES: 1
   MAX_INSTANCES: 3
   MEMORY: 1Gi
@@ -43,13 +43,13 @@ jobs:
 
       - name: Verify Step 5 deployment files
         run: |
-          echo "🔍 Verifying Step 5 WebSocket deployment files..."
+          echo "🔍 Verifying Step 5 Real-Time Game deployment files..."
           
           # Check for Step 5 server file
-          if [ -f "server-websocket-step5.js" ]; then
-            echo "✅ server-websocket-step5.js found"
+          if [ -f "server-realtime-step5.js" ]; then
+            echo "✅ server-realtime-step5.js found"
           else
-            echo "❌ server-websocket-step5.js not found"
+            echo "❌ server-realtime-step5.js not found"
             exit 1
           fi
           
@@ -89,9 +89,9 @@ jobs:
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: Build Step 5 WebSocket image
+      - name: Build Step 5 Real-Time Game image
         run: |
-          echo "🔧 Building Step 5 WebSocket integration image..."
+          echo "🔧 Building Step 5 Real-Time Game features image..."
           
           docker build \
             -f Dockerfile.step5-websocket \
@@ -99,7 +99,7 @@ jobs:
             -t ${{ env.IMAGE_NAME }}:step5-latest \
             .
           
-          echo "✅ Step 5 WebSocket image built successfully"
+          echo "✅ Step 5 Real-Time Game image built successfully"
 
       - name: Push image to Artifact Registry
         run: |
@@ -112,7 +112,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
-          echo "🚀 Deploying Step 5 WebSocket service to Cloud Run..."
+          echo "🚀 Deploying Step 5 Real-Time Game service to Cloud Run..."
           
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.IMAGE_NAME }}:step5-${{ github.sha }} \
@@ -132,11 +132,11 @@ jobs:
             --execution-environment=gen2 \
             --format=json > deployment-output.json
           
-          echo "✅ Step 5 WebSocket service deployment initiated"
+          echo "✅ Step 5 Real-Time Game service deployment initiated"
 
       - name: Get service URL and verify deployment
         run: |
-          echo "🔍 Verifying Step 5 WebSocket deployment..."
+          echo "🔍 Verifying Step 5 Real-Time Game deployment..."
           
           # Extract service URL from deployment output
           SERVICE_URL=$(cat deployment-output.json | jq -r '.status.url // empty')
@@ -170,23 +170,23 @@ jobs:
             fi
           done
           
-          # Test WebSocket status endpoint
-          echo "Testing WebSocket status endpoint..."
+          # Test real-time features status endpoint
+          echo "Testing real-time features status endpoint..."
           for i in {1..3}; do
-            WS_RESPONSE=$(curl -4 --max-time 30 "${SERVICE_URL}/api/websocket-status" 2>/dev/null || echo "")
+            RT_RESPONSE=$(curl -4 --max-time 30 "${SERVICE_URL}/api/realtime-status" 2>/dev/null || echo "")
             
-            if [ -n "$WS_RESPONSE" ] && echo "$WS_RESPONSE" | grep -q "active"; then
-              echo "✅ WebSocket status check successful (attempt $i)"
-              echo "WebSocket status: $WS_RESPONSE"
+            if [ -n "$RT_RESPONSE" ] && echo "$RT_RESPONSE" | grep -q "active"; then
+              echo "✅ Real-time features status check successful (attempt $i)"
+              echo "Real-time status: $RT_RESPONSE"
               break
             else
-              echo "Retry $i: WebSocket status check..."
+              echo "Retry $i: Real-time features status check..."
               sleep 10
             fi
             
             if [ $i -eq 3 ]; then
-              echo "❌ WebSocket status check failed after 3 attempts"
-              echo "Response: $WS_RESPONSE"
+              echo "❌ Real-time features status check failed after 3 attempts"
+              echo "Response: $RT_RESPONSE"
               exit 1
             fi
           done
@@ -205,16 +205,16 @@ jobs:
             fi
             
             if [ $i -eq 3 ]; then
-              echo "⚠️  Frontend serving test inconclusive - continuing (WebSocket primary focus for Step 5)"
+              echo "⚠️  Frontend serving test inconclusive - continuing (Real-time features primary focus for Step 5)"
             fi
           done
           
           echo ""
-          echo "🎉 STEP 5 WEBSOCKET DEPLOYMENT SUCCESS!"
-          echo "✅ WebSocket integration deployed and verified"
-          echo "✅ Socket.IO server operational"
-          echo "✅ Real-time capabilities enabled"
-          echo "✅ Health monitoring active"
+          echo "🎉 STEP 5 REAL-TIME GAME DEPLOYMENT SUCCESS!"
+          echo "✅ Real-time match simulation deployed and verified"
+          echo "✅ Live match features operational"
+          echo "✅ WebSocket game room management enabled"
+          echo "✅ Match simulation engine active"
           echo "✅ Service URL: $SERVICE_URL"
 
 shell: /usr/bin/bash -e {0}

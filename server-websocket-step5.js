@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * STEP 5: WebSocket Integration Server
- * Builds on Step 4 success by adding Socket.IO WebSocket server
- * Components: Express + Database + Firebase Auth + Frontend + WebSocket
+ * STEP 5: Enable Real Realm Rivalry WebSocket Features
+ * Builds on Step 4 by enabling the existing live match simulation WebSocket system
+ * Components: Express + Database + Firebase Auth + Frontend + Real Game WebSocket
+ * Features: Live match simulation, real-time events, match state updates
  */
 
 // Environment and startup validation

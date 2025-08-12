@@ -1,5 +1,5 @@
-# Step 5: WebSocket Integration Dockerfile
-# Builds on Step 4 success by adding Socket.IO WebSocket server
+# Step 5: Real-Time Game Features Dockerfile
+# Builds on Step 4 by enabling real Realm Rivalry live match simulation
 
 FROM node:20-alpine AS builder
 
@@ -45,14 +45,14 @@ RUN npm ci --only=production && \
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server-websocket-step5.js ./
+COPY --from=builder /app/server-realtime-step5.js ./
 
 # Copy static assets if they exist
 COPY --from=builder /app/public ./public 2>/dev/null || true
 
 # Verify required files exist
 RUN echo "✅ Verifying Step 5 files..." && \
-    test -f server-websocket-step5.js && echo "✅ WebSocket server exists" || (echo "❌ WebSocket server missing" && exit 1) && \
+    test -f server-realtime-step5.js && echo "✅ Real-time server exists" || (echo "❌ Real-time server missing" && exit 1) && \
     test -d dist/public && echo "✅ Frontend build exists" || (echo "❌ Frontend build missing" && exit 1) && \
     echo "✅ Step 5 verification complete"
 
@@ -72,5 +72,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start the Step 5 WebSocket server
-CMD ["node", "server-websocket-step5.js"]
+# Start the Step 5 Real-Time Game server
+CMD ["node", "server-realtime-step5.js"]
