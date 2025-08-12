@@ -69,7 +69,6 @@ jobs:
             --max-instances 5 \
             --timeout 120 \
             --concurrency 200 \
-            --max-surge-size 2 \
             --execution-environment gen2
 
       - name: Verify Step 6 Deployment

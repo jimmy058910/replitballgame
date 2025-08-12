@@ -21,7 +21,9 @@ Realm Rivalry is a mobile-first fantasy sports management game that offers a dee
 
 ✅ **CRITICAL CORRECTION COMPLETED**: Agent had initially created completely random fake data that ignored all established game systems. Issue identified and corrected to align with real database schema, division/subdivision system, race names from race_names.json, and established storage services. Server now demonstrates authentic game data integration.
 
-✅ **CURRENT STATUS**: Step 6 Enhanced API Routes corrected and ready for deployment. Local testing verified health endpoint, divisions API (8-tier system), and proper database connection attempts. Real game systems successfully integrated. Next: Deploy Step 6 to Cloud Run with database connectivity.
+✅ **DEPLOYMENT WORKFLOW FIXED (Aug 12, 2025)**: Fixed critical GitHub Actions deployment failure caused by invalid `--max-surge-size` parameter in `deploy-step6-integration.yml`. The `--max-surge-size` parameter is not supported by `gcloud run deploy` and was causing deployment errors. Parameter removed and workflow corrected.
+
+✅ **CURRENT STATUS**: Step 6 Enhanced API Routes deployment workflows fixed and ready for deployment. Local application port conflicts resolved and running successfully. Local testing verified health endpoint, divisions API (8-tier system), and proper database connection attempts. Real game systems successfully integrated. Both deployment workflows (`deploy-step6-integration.yml` and `deploy-step6-api-routes.yml`) are now functional.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
