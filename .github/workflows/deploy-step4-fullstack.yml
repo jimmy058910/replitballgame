@@ -187,27 +187,52 @@ jobs:
         run: |
           echo "🔍 Verifying Step 4 deployment success..."
           
-          # Get the service URL
-          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+          # Wait for deployment to fully propagate and get the service URL with retries
+          echo "Waiting for deployment propagation..."
+          sleep 10
+          
+          for i in {1..3}; do
+            SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+            if [ -n "$SERVICE_URL" ]; then
+              break
+            fi
+            echo "Retry $i: Waiting for service URL..."
+            sleep 5
+          done
+          
           echo "Service deployed at: $SERVICE_URL"
           
-          # Test health endpoint
+          # Test health endpoint with retries
           echo "Testing health endpoint..."
-          if curl -f --max-time 30 "${SERVICE_URL}/health"; then
-            echo "✅ Health check successful"
-          else
-            echo "❌ Health check failed"
-            exit 1
-          fi
+          for i in {1..5}; do
+            if curl -f --max-time 30 "${SERVICE_URL}/health" 2>/dev/null; then
+              echo "✅ Health check successful (attempt $i)"
+              break
+            else
+              echo "Retry $i: Health check..."
+              sleep 10
+            fi
+            if [ $i -eq 5 ]; then
+              echo "❌ Health check failed after 5 attempts"
+              exit 1
+            fi
+          done
           
-          # Test frontend serving (should serve React app)
+          # Test frontend serving (should serve React app) with retries
           echo "Testing frontend serving..."
-          if curl -f --max-time 30 "${SERVICE_URL}/" | grep -q "<!DOCTYPE html>"; then
-            echo "✅ Frontend serving successful - React app accessible"
-          else
-            echo "❌ Frontend serving failed"
-            exit 1
-          fi
+          for i in {1..3}; do
+            if curl -f --max-time 30 "${SERVICE_URL}/" 2>/dev/null | grep -q "<!DOCTYPE html>"; then
+              echo "✅ Frontend serving successful - React app accessible (attempt $i)"
+              break
+            else
+              echo "Retry $i: Frontend serving test..."
+              sleep 5
+            fi
+            if [ $i -eq 3 ]; then
+              echo "❌ Frontend serving failed after 3 attempts"
+              exit 1
+            fi
+          done
           
           echo ""
           echo "🎉 STEP 4 DEPLOYMENT SUCCESS!"
