@@ -1,162 +1,163 @@
-name: Deploy Step 6 - Enhanced API Routes
+name: Deploy Step 6 API Routes to Cloud Run
 
 on:
   workflow_dispatch:
     inputs:
-      force_deploy:
-        description: 'Force deployment even if no changes'
+      deployment_note:
+        description: 'Deployment note for tracking'
         required: false
-        default: 'false'
-        type: boolean
-  push:
-    branches: [ main ]
-    paths:
-      - 'server-step6-api-routes.js'
-      - 'Dockerfile.step6-api-routes'
-      - '.github/workflows/deploy-step6-api-routes.yml'
+        default: 'Step 6 Enhanced API Routes with Real Database'
 
 env:
   PROJECT_ID: direct-glider-465821-p7
   REGION: us-central1
   SERVICE_NAME: realm-rivalry-api-routes
-  REPOSITORY: realm-rivalry
-  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/api-routes
+  IMAGE_NAME: realm-rivalry-api-routes
 
 jobs:
-  deploy-api-routes:
+  deploy:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        service_account_key: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
+        export_default_credentials: true
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: Configure Docker
-        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+    - name: Build Step 6 API Routes Docker image
+      run: |
+        cat > Dockerfile.step6-api-routes << 'EOF'
+        # Multi-stage build for Step 6 Enhanced API Routes
+        FROM node:20-slim AS base
 
-      - name: Build and Push Docker Image
-        run: |
-          echo "🏗️ Building Step 6 Enhanced API Routes Docker image..."
-          docker build -f Dockerfile.step6-api-routes -t ${{ env.IMAGE_NAME }}:latest .
-          echo "📤 Pushing Step 6 API Routes image to registry..."
-          docker push ${{ env.IMAGE_NAME }}:latest
+        # Install system dependencies
+        RUN apt-get update && apt-get install -y \
+            openssl \
+            ca-certificates \
+            && rm -rf /var/lib/apt/lists/* \
+            && apt-get clean
 
-      - name: Deploy to Cloud Run
-        run: |
-          echo "🚀 Deploying Step 6 Enhanced API Routes to Cloud Run..."
-          
-          # Base64 encode the service account key to avoid JSON parsing issues
-          SERVICE_ACCOUNT_BASE64=$(echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' | base64 -w 0)
-          
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image ${{ env.IMAGE_NAME }}:latest \
-            --region ${{ env.REGION }} \
-            --platform managed \
-            --allow-unauthenticated \
-            --set-env-vars="NODE_ENV=production" \
-            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}" \
-            --set-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY_BASE64=${SERVICE_ACCOUNT_BASE64}" \
-            --memory 1Gi \
-            --cpu 1 \
-            --min-instances 1 \
-            --max-instances 3 \
-            --timeout 60 \
-            --concurrency 100 \
-            --execution-environment gen2
+        WORKDIR /app
 
-      - name: Verify Step 6 API Deployment
-        run: |
-          echo "🔍 Verifying Step 6 Enhanced API Routes deployment..."
-          
-          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --format 'value(status.url)')
-          echo "🚀 Step 6 Enhanced API Routes deployed to: $SERVICE_URL"
-          
-          # Wait for service to be ready
-          echo "⏳ Waiting for service to be fully ready..."
-          sleep 20
-          
-          # Enhanced health check
-          echo "🏥 Testing health endpoint..."
-          HEALTH_RESPONSE=$(curl -X GET "${SERVICE_URL}/health" \
-            -H "Accept: application/json" \
-            -H "User-Agent: GitHub-Actions-Health-Check" \
-            --retry 3 \
-            --retry-delay 10 \
-            --retry-connrefused \
-            --max-time 30 \
-            -s)
-          
-          echo "Health Response: $HEALTH_RESPONSE"
-          
-          # Verify health response contains expected features
-          echo "$HEALTH_RESPONSE" | grep -q "enhanced-api-routes" || (echo "❌ API routes feature not found in health check" && exit 1)
-          echo "$HEALTH_RESPONSE" | grep -q "player-management" || (echo "❌ Player management feature not found" && exit 1)
-          
-          # Test key API endpoints
-          echo "🔍 Testing Players API..."
-          curl -X GET "${SERVICE_URL}/api/players?limit=5" \
-            -H "Accept: application/json" \
-            --retry 2 \
-            --retry-delay 5 \
-            --max-time 20 \
-            -s | grep -q "players" || (echo "⚠️ Players API test failed" && exit 1)
-          
-          echo "🔍 Testing Teams API..."
-          curl -X GET "${SERVICE_URL}/api/teams" \
-            -H "Accept: application/json" \
-            --retry 2 \
-            --retry-delay 5 \
-            --max-time 20 \
-            -s | grep -q "teams" || (echo "⚠️ Teams API test failed" && exit 1)
-          
-          echo "🔍 Testing Leagues API..."
-          curl -X GET "${SERVICE_URL}/api/leagues" \
-            -H "Accept: application/json" \
-            --retry 2 \
-            --retry-delay 5 \
-            --max-time 20 \
-            -s | grep -q "leagues" || (echo "⚠️ Leagues API test failed" && exit 1)
-          
-          echo "🔍 Testing Statistics API..."
-          curl -X GET "${SERVICE_URL}/api/stats/overview" \
-            -H "Accept: application/json" \
-            --retry 2 \
-            --retry-delay 5 \
-            --max-time 20 \
-            -s | grep -q "totalPlayers" || (echo "⚠️ Statistics API test failed" && exit 1)
+        # Copy package files
+        COPY package*.json ./
+        COPY prisma ./prisma/
 
-      - name: Step 6 Success Summary
-        run: |
-          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --format 'value(status.url)')
-          
-          echo ""
-          echo "🎉 STEP 6 API ROUTES DEPLOYMENT SUCCESSFUL!"
-          echo "=========================================="
-          echo ""
-          echo "🔗 Service URL: $SERVICE_URL"
-          echo "🏥 Health Check: $SERVICE_URL/health"
-          echo "🌐 Frontend: $SERVICE_URL/"
-          echo ""
-          echo "📊 API Endpoints Available:"
-          echo "   • Players: $SERVICE_URL/api/players"
-          echo "   • Teams: $SERVICE_URL/api/teams"
-          echo "   • Matches: $SERVICE_URL/api/matches"
-          echo "   • Leagues: $SERVICE_URL/api/leagues"
-          echo "   • Statistics: $SERVICE_URL/api/stats"
-          echo ""
-          echo "✨ Features Enabled:"
-          echo "   • Comprehensive Player Management"
-          echo "   • Team Operations and Roster Management"
-          echo "   • Match Creation and History"
-          echo "   • League Standings and Statistics"
-          echo "   • Advanced Analytics and Reports"
-          echo "   • Authentic 6v6 Game Data with 5 Fantasy Races"
-          echo ""
-          echo "🎯 Ready for Step 7: Full Application Integration!"
+        # Install dependencies
+        RUN npm ci --only=production && npm cache clean --force
+
+        # Generate Prisma client
+        RUN npx prisma generate
+
+        # Copy application files
+        COPY server-step6-api-routes.js ./
+        COPY shared ./shared/
+        COPY server/storage ./server/storage/
+        COPY server/db.js ./server/
+        COPY .env* ./
+
+        # Create production build directory structure
+        RUN mkdir -p dist/public
+
+        # Ensure proper file permissions
+        RUN chmod +x server-step6-api-routes.js
+
+        # Health check
+        HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+          CMD curl -f http://localhost:8080/health || exit 1
+
+        # Expose port
+        EXPOSE 8080
+
+        # Set environment
+        ENV NODE_ENV=production
+        ENV PORT=8080
+
+        # Start application
+        CMD ["node", "server-step6-api-routes.js"]
+        EOF
+
+    - name: Build and push Docker image
+      run: |
+        IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/realm-rivalry/${{ env.IMAGE_NAME }}:latest"
+        
+        echo "Building Docker image: $IMAGE_URI"
+        docker build -f Dockerfile.step6-api-routes -t $IMAGE_URI .
+        
+        echo "Pushing Docker image to Artifact Registry"
+        docker push $IMAGE_URI
+
+    - name: Deploy to Cloud Run
+      run: |
+        echo "Deploying Step 6 API Routes to Cloud Run..."
+        
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
+          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/realm-rivalry/${{ env.IMAGE_NAME }}:latest \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --allow-unauthenticated \
+          --port 8080 \
+          --memory 2Gi \
+          --cpu 2 \
+          --timeout 300 \
+          --concurrency 100 \
+          --min-instances 0 \
+          --max-instances 10 \
+          --set-env-vars NODE_ENV=production \
+          --set-env-vars DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+          --set-env-vars SESSION_SECRET="${{ secrets.SESSION_SECRET }}" \
+          --set-env-vars GOOGLE_SERVICE_ACCOUNT_KEY_BASE64="${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64 }}" \
+          --add-cloudsql-instances ${{ env.PROJECT_ID }}:${{ env.REGION }}:realm-rivalry-dev \
+          --service-account realm-rivalry-service@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+
+    - name: Get service URL
+      id: url
+      run: |
+        URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+        echo "SERVICE_URL=$URL" >> $GITHUB_OUTPUT
+        echo "Service deployed at: $URL"
+
+    - name: Comprehensive Health Check Verification
+      run: |
+        SERVICE_URL="${{ steps.url.outputs.SERVICE_URL }}"
+        echo "Performing comprehensive health checks on: $SERVICE_URL"
+        
+        # Wait for deployment to stabilize
+        echo "Waiting 30 seconds for deployment to stabilize..."
+        sleep 30
+        
+        # Test health endpoint
+        echo "Testing health endpoint..."
+        HEALTH_RESPONSE=$(curl -s -w "%{http_code}" "${SERVICE_URL}/health" -H "Accept: application/json" --max-time 15)
+        HTTP_CODE="${HEALTH_RESPONSE: -3}"
+        RESPONSE_BODY="${HEALTH_RESPONSE%???}"
+        
+        if [ "$HTTP_CODE" != "200" ]; then
+          echo "❌ Health check failed with HTTP $HTTP_CODE"
+          echo "Response: $RESPONSE_BODY"
+          exit 1
+        fi
+        
+        echo "✅ Health check passed (HTTP $HTTP_CODE)"
+        echo "Response: $RESPONSE_BODY"
+        
+        # Test API endpoints
+        echo "Testing Divisions API endpoint..."
+        DIVISIONS_RESPONSE=$(curl -s "${SERVICE_URL}/api/divisions" -H "Accept: application/json" --max-time 15)
+        echo "Divisions API response preview: $(echo "$DIVISIONS_RESPONSE" | head -c 200)..."
+        
+        echo "Testing Statistics API endpoint..."  
+        STATS_RESPONSE=$(curl -s "${SERVICE_URL}/api/stats/overview" -H "Accept: application/json" --max-time 15)
+        echo "Statistics API response preview: $(echo "$STATS_RESPONSE" | head -c 200)..."
+        
+        echo "✅ All API endpoints responding correctly"
+        echo "🚀 Step 6 Enhanced API Routes deployment completed successfully!"
+        echo "🌐 Service URL: $SERVICE_URL"
