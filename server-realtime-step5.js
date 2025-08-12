@@ -223,7 +223,6 @@ const io = new SocketIOServer(server, {
 
 // Real-time match simulation state
 let connectedUsers = new Map(); // userId -> socket.id
-let activeMatches = new Map(); // matchId -> simulation state
 let matchRooms = new Map(); // matchId -> Set of user IDs
 
 // WebSocket connection handling for REAL GAME FEATURES
