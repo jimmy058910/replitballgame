@@ -1,5 +1,7 @@
 import type { Express } from "express";
-// Domain routes (new domain-driven architecture) - COMMENTED OUT FOR STEP 4 DEPLOYMENT FIX
+// Domain routes (new domain-driven architecture) - TEMPORARILY DISABLED FOR STEP 4 FIX
+// REASON: Domain imports failing in production due to complex import chains
+// Will re-enable after Step 4 infrastructure is stable
 // import domainRoutes from "../domains/index.js";
 import authRoutes from "./authRoutes.js";
 import teamRoutes from "./teamRoutes.js";
