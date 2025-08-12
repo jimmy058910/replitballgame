@@ -53,22 +53,26 @@ jobs:
         run: |
           echo "🏗️ Building Step 7 Unified Production Docker image..."
           
+          # Create consistent timestamp variable
+          export BUILD_TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          echo "📅 Using build timestamp: $BUILD_TIMESTAMP"
+          
           # Verify Dockerfile exists
           if [ ! -f "Dockerfile.step7-unified" ]; then
             echo "❌ Dockerfile.step7-unified not found!"
             exit 1
           fi
           
-          # Build multi-stage Docker image
+          # Build multi-stage Docker image with consistent tags
           docker build \
             -f Dockerfile.step7-unified \
             -t ${{ env.IMAGE_NAME }}:latest \
-            -t ${{ env.IMAGE_NAME }}:$(date +%Y%m%d-%H%M%S) \
+            -t ${{ env.IMAGE_NAME }}:${BUILD_TIMESTAMP} \
             .
           
           echo "📤 Pushing unified production image to registry..."
           docker push ${{ env.IMAGE_NAME }}:latest
-          docker push ${{ env.IMAGE_NAME }}:$(date +%Y%m%d-%H%M%S)
+          docker push ${{ env.IMAGE_NAME }}:${BUILD_TIMESTAMP}
 
       - name: Deploy to Cloud Run
         run: |
