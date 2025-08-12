@@ -13,6 +13,18 @@ console.log(`🔍 Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`🔍 Platform: ${process.platform}, Node: ${process.version}`);
 console.log(`⏰ Startup timestamp: ${new Date().toISOString()}`);
 
+// Handle Base64 encoded environment variables (Cloud Run deployment compatibility)
+if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64) {
+  console.log('🔧 Decoding Base64 service account key for Firebase compatibility');
+  try {
+    const decodedKey = Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY_BASE64, 'base64').toString('utf-8');
+    process.env.GOOGLE_SERVICE_ACCOUNT_KEY = decodedKey;
+    console.log('✅ Base64 service account key decoded successfully');
+  } catch (error) {
+    console.error('❌ Failed to decode Base64 service account key:', error.message);
+  }
+}
+
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
