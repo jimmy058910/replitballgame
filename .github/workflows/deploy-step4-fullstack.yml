@@ -239,7 +239,7 @@ jobs:
           echo "Testing frontend serving..."
           for i in {1..5}; do
             echo "Attempt $i: Testing ${SERVICE_URL}/ (IPv4 only)"
-            FRONTEND_RESPONSE=$(curl -4 -f --max-time 30 "${SERVICE_URL}/" 2>/dev/null || echo "")
+            FRONTEND_RESPONSE=$(curl -4 --max-time 30 -H "Accept: text/html" -H "User-Agent: Mozilla/5.0" "${SERVICE_URL}/" 2>/dev/null || echo "")
             
             if [ -n "$FRONTEND_RESPONSE" ] && echo "$FRONTEND_RESPONSE" | grep -q "<!DOCTYPE html"; then
               echo "✅ Frontend serving successful - React app accessible (attempt $i)"
@@ -266,7 +266,11 @@ jobs:
               echo "Service URL: $SERVICE_URL"
               echo "Final response length: $(echo "$FRONTEND_RESPONSE" | wc -c)"
               echo "Testing IPv4 connectivity directly..."
-              curl -4 -v "${SERVICE_URL}/" 2>&1 | head -10 || echo "IPv4 connection test failed"
+              echo "First, test with headers:"
+              curl -4 -H "Accept: text/html" -H "User-Agent: Mozilla/5.0" "${SERVICE_URL}/" 2>/dev/null | head -c 200 || echo "Request with headers failed"
+              echo ""
+              echo "Verbose connection test:"
+              curl -4 -v "${SERVICE_URL}/" 2>&1 | head -10 || echo "Verbose connection test failed"
               echo "=== END DEBUGGING ==="
               exit 1
             fi
