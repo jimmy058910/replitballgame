@@ -1,0 +1,99 @@
+# ==================================================
+# STEP 7: UNIFIED COMPREHENSIVE APPLICATION DOCKERFILE
+# Production-ready multi-stage build combining all successful methodologies
+# ==================================================
+
+# ===================================
+# STAGE 1: Frontend Build Stage
+# ===================================
+FROM node:20-slim AS frontend-builder
+
+# Install system dependencies for build
+RUN apt-get update && apt-get install -y \
+    git \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci --include=dev --no-audit --prefer-offline
+
+# Copy source code
+COPY . .
+
+# Build frontend for production
+RUN npm run build
+
+# ===================================
+# STAGE 2: Production Runtime Stage  
+# ===================================
+FROM node:20-slim AS production
+
+# Install production system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    dumb-init \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user for security
+RUN groupadd -r nodeuser && useradd -r -g nodeuser nodeuser
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install ONLY production dependencies
+RUN npm ci --only=production --no-audit --prefer-offline \
+    && npm cache clean --force
+
+# Copy built frontend from previous stage
+COPY --from=frontend-builder /app/dist ./dist
+
+# Copy server files and necessary project structure
+COPY server-step7-unified.js ./
+COPY shared ./shared/
+COPY server/storage ./server/storage/
+COPY server/db.js ./server/ 2>/dev/null || echo "db.js not found, skipping"
+COPY prisma ./prisma/ 2>/dev/null || echo "prisma not found, skipping"
+COPY .env* ./ 2>/dev/null || echo "env files not found, skipping"
+
+# Generate Prisma client if schema exists
+RUN if [ -f "./prisma/schema.prisma" ]; then npx prisma generate; fi
+
+# Create necessary directories with proper permissions
+RUN mkdir -p logs tmp \
+    && chown -R nodeuser:nodeuser /app
+
+# Set executable permissions
+RUN chmod +x server-step7-unified.js
+
+# Configure health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:${PORT:-8080}/health || exit 1
+
+# Switch to non-root user
+USER nodeuser
+
+# Expose port (Cloud Run uses PORT environment variable)
+EXPOSE 8080
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the unified application
+CMD ["node", "server-step7-unified.js"]
