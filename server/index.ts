@@ -409,20 +409,49 @@ async function startServer() {
             if (fs.existsSync(distPath)) {
               const indexPath = path.resolve(distPath, "index.html");
               if (fs.existsSync(indexPath)) {
-                // Serve static files with proper cache headers
+                console.log(`✅ Found index.html at: ${indexPath}`);
+                console.log(`✅ Frontend files: ${fs.readdirSync(distPath).length} files found`);
+                
+                // List key assets for debugging
+                const assetDir = path.resolve(distPath, 'assets');
+                if (fs.existsSync(assetDir)) {
+                  const assets = fs.readdirSync(assetDir).slice(0, 5);
+                  console.log(`✅ Asset files: ${assets.join(', ')}${assets.length === 5 ? '...' : ''}`);
+                }
+                
+                // CRITICAL: Serve static files with proper headers BEFORE catch-all
                 app.use(express.static(distPath, {
-                  maxAge: '1d', // Cache static assets for 1 day
+                  maxAge: process.env.NODE_ENV === 'production' ? '1d' : '0', // Cache in production only
                   etag: true,
-                  lastModified: true
+                  lastModified: true,
+                  index: false // Don't serve index.html automatically for directories
                 }));
                 
-                // Catch-all handler for SPA routing - MUST be last
+                // CRITICAL: Explicit root route handler for better debugging
+                app.get('/', (_req: any, res: any) => {
+                  console.log(`🌐 Serving root route: / -> index.html`);
+                  res.sendFile(indexPath);
+                });
+                
+                // CRITICAL: Catch-all handler for SPA routing - MUST be last
                 app.use("*", (_req: any, res: any) => {
                   console.log(`🌐 Serving SPA fallback: ${_req.originalUrl} -> index.html`);
                   res.sendFile(indexPath);
                 });
-                console.log('✅ Production static file serving configured');
-                console.log(`✅ Frontend files: ${fs.readdirSync(distPath).length} files found`);
+                
+                console.log('✅ Production static file serving configured with explicit root handler');
+                
+                // Test that index.html is readable
+                const indexContent = fs.readFileSync(indexPath, 'utf8');
+                if (indexContent.includes('<!DOCTYPE html>')) {
+                  console.log('✅ index.html validation: Valid HTML document detected');
+                  if (indexContent.includes('Realm Rivalry') || indexContent.includes('react') || indexContent.includes('vite')) {
+                    console.log('✅ index.html validation: React app content detected');
+                  }
+                } else {
+                  console.error('❌ index.html validation: Invalid HTML document');
+                }
+                
               } else {
                 console.error(`❌ index.html not found at ${indexPath}`);
               }
@@ -433,6 +462,8 @@ async function startServer() {
               if (fs.existsSync(rootDist)) {
                 console.log(`🔍 Available in dist/: ${fs.readdirSync(rootDist).join(', ')}`);
               }
+              const cwd = process.cwd();
+              console.log(`🔍 Available in root: ${fs.readdirSync(cwd).filter(f => f.startsWith('dist') || f.includes('public')).join(', ')}`);
             }
           } catch (staticError) {
             console.error('❌ Static file serving failed, but server will continue:', staticError);

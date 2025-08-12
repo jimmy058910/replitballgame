@@ -161,8 +161,8 @@ jobs:
           # This is the industry standard approach for complex configuration data
           ENCODED_SERVICE_ACCOUNT=$(echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' | base64 -w 0)
 
-          # Deploy with comprehensive Cloud Run configuration and capture the actual URL
-          DEPLOY_OUTPUT=$(gcloud run deploy ${{ env.SERVICE_NAME }} \
+          # Deploy with comprehensive Cloud Run configuration
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
             --region=${{ env.REGION }} \
             --platform=managed \
@@ -180,15 +180,24 @@ jobs:
             --set-env-vars="SESSION_SECRET=${{ secrets.SESSION_SECRET }}" \
             --set-env-vars="GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \
             --set-env-vars="GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-            --execution-environment=gen2 \
-            --format="value(status.url)")
-
-          # Extract the actual service URL from deployment output
-          SERVICE_URL=$(echo "$DEPLOY_OUTPUT" | grep -o 'https://[^[:space:]]*' | tail -1)
+            --execution-environment=gen2
           
-          # If URL extraction fails, get it directly from service description
-          if [ -z "$SERVICE_URL" ]; then
-            SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+          # Wait and get the actual service URL with retry logic
+          echo "🔍 Getting service URL with retry logic..."
+          for i in {1..5}; do
+            SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)' 2>/dev/null)
+            if [ -n "$SERVICE_URL" ] && [[ "$SERVICE_URL" == https://* ]]; then
+              echo "✅ Service URL obtained on attempt $i: $SERVICE_URL"
+              break
+            fi
+            echo "Retry $i: Getting service URL..."
+            sleep 3
+          done
+          
+          # Validate we got a proper URL
+          if [ -z "$SERVICE_URL" ] || [[ "$SERVICE_URL" != https://* ]]; then
+            echo "❌ Failed to get valid service URL: '$SERVICE_URL'"
+            exit 1
           fi
           
           echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
@@ -226,21 +235,39 @@ jobs:
             fi
           done
           
-          # Test frontend serving (should serve React app) with retries
+          # Test frontend serving (should serve React app) with enhanced verification
           echo "Testing frontend serving..."
           for i in {1..5}; do
-            FRONTEND_RESPONSE=$(curl -f --max-time 30 "${SERVICE_URL}/" 2>/dev/null)
-            if echo "$FRONTEND_RESPONSE" | grep -q "<!DOCTYPE html>"; then
+            echo "Attempt $i: Testing ${SERVICE_URL}/"
+            FRONTEND_RESPONSE=$(curl -f --max-time 30 "${SERVICE_URL}/" 2>/dev/null || echo "")
+            
+            if [ -n "$FRONTEND_RESPONSE" ] && echo "$FRONTEND_RESPONSE" | grep -q "<!DOCTYPE html"; then
               echo "✅ Frontend serving successful - React app accessible (attempt $i)"
+              
+              # Verify it's actually our React app
+              if echo "$FRONTEND_RESPONSE" | grep -q "Realm Rivalry\|react\|vite"; then
+                echo "✅ Confirmed: React application content detected"
+              fi
               break
             else
-              echo "Retry $i: Frontend serving test..."
-              echo "Response preview: $(echo "$FRONTEND_RESPONSE" | head -c 100)..."
+              echo "Retry $i: Frontend serving test failed"
+              if [ -n "$FRONTEND_RESPONSE" ]; then
+                echo "Response preview: $(echo "$FRONTEND_RESPONSE" | head -c 200 | tr -d '\n')..."
+                echo "Response length: $(echo "$FRONTEND_RESPONSE" | wc -c) characters"
+              else
+                echo "Empty response received"
+              fi
               sleep 10
             fi
+            
             if [ $i -eq 5 ]; then
               echo "❌ Frontend serving failed after 5 attempts"
-              echo "Final response: $(echo "$FRONTEND_RESPONSE" | head -c 500)..."
+              echo "=== DETAILED DEBUGGING ==="
+              echo "Service URL: $SERVICE_URL"
+              echo "Final response length: $(echo "$FRONTEND_RESPONSE" | wc -c)"
+              echo "Final response preview:"
+              echo "$FRONTEND_RESPONSE" | head -c 1000 | cat -v
+              echo "=== END DEBUGGING ==="
               exit 1
             fi
           done
