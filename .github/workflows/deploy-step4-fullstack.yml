@@ -219,10 +219,10 @@ jobs:
           echo "Waiting for deployment propagation..."
           sleep 15
           
-          # Test health endpoint with retries
+          # Test health endpoint with retries (IPv4 only to avoid GitHub Actions IPv6 issues)
           echo "Testing health endpoint..."
           for i in {1..5}; do
-            if curl -f --max-time 30 "${SERVICE_URL}/health" 2>/dev/null; then
+            if curl -4 -f --max-time 30 "${SERVICE_URL}/health" 2>/dev/null; then
               echo "✅ Health check successful (attempt $i)"
               break
             else
@@ -235,11 +235,11 @@ jobs:
             fi
           done
           
-          # Test frontend serving (should serve React app) with enhanced verification
+          # Test frontend serving (should serve React app) with enhanced verification (IPv4 only)
           echo "Testing frontend serving..."
           for i in {1..5}; do
-            echo "Attempt $i: Testing ${SERVICE_URL}/"
-            FRONTEND_RESPONSE=$(curl -f --max-time 30 "${SERVICE_URL}/" 2>/dev/null || echo "")
+            echo "Attempt $i: Testing ${SERVICE_URL}/ (IPv4 only)"
+            FRONTEND_RESPONSE=$(curl -4 -f --max-time 30 "${SERVICE_URL}/" 2>/dev/null || echo "")
             
             if [ -n "$FRONTEND_RESPONSE" ] && echo "$FRONTEND_RESPONSE" | grep -q "<!DOCTYPE html"; then
               echo "✅ Frontend serving successful - React app accessible (attempt $i)"
@@ -255,7 +255,7 @@ jobs:
                 echo "Response preview: $(echo "$FRONTEND_RESPONSE" | head -c 200 | tr -d '\n')..."
                 echo "Response length: $(echo "$FRONTEND_RESPONSE" | wc -c) characters"
               else
-                echo "Empty response received"
+                echo "Empty response received - checking IPv6/IPv4 connectivity issue"
               fi
               sleep 10
             fi
@@ -265,8 +265,8 @@ jobs:
               echo "=== DETAILED DEBUGGING ==="
               echo "Service URL: $SERVICE_URL"
               echo "Final response length: $(echo "$FRONTEND_RESPONSE" | wc -c)"
-              echo "Final response preview:"
-              echo "$FRONTEND_RESPONSE" | head -c 1000 | cat -v
+              echo "Testing IPv4 connectivity directly..."
+              curl -4 -v "${SERVICE_URL}/" 2>&1 | head -10 || echo "IPv4 connection test failed"
               echo "=== END DEBUGGING ==="
               exit 1
             fi
