@@ -98,8 +98,7 @@ jobs:
             --timeout 300 \
             --concurrency 200 \
             --execution-environment gen2 \
-            --add-cloudsql-instances ${{ env.PROJECT_ID }}:${{ env.REGION }}:realm-rivalry-dev \
-            --service-account realm-rivalry-service@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+            --add-cloudsql-instances ${{ env.PROJECT_ID }}:${{ env.REGION }}:realm-rivalry-dev
 
       - name: Comprehensive Health Check Verification
         run: |

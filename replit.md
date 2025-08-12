@@ -29,7 +29,7 @@ Realm Rivalry is a mobile-first fantasy sports management game that offers a dee
 
 ✅ **COMPREHENSIVE TESTING SYSTEM**: Created thorough local testing script that validates all components before deployment including health endpoints, database integration, authentication, API routes, WebSocket functionality, and established game systems.
 
-✅ **STEP 7 DEPLOYMENT READY (Aug 12, 2025)**: All critical deployment blockers resolved and Step 7 Unified Application ready for production deployment to realmrivalry.com. Fixed: (1) Docker syntax errors in Dockerfile COPY commands, (2) Firebase hosting routes updated to realm-rivalry-unified service, (3) Timestamp synchronization in Docker build/push workflow. All components integrated successfully with production-grade security, performance, and monitoring.
+✅ **STEP 7 DEPLOYMENT READY (Aug 12, 2025)**: All critical deployment blockers resolved and Step 7 Unified Application ready for production deployment to realmrivalry.com. Fixed: (1) Docker syntax errors in Dockerfile COPY commands, (2) Firebase hosting routes updated to realm-rivalry-unified service, (3) Timestamp synchronization in Docker build/push workflow, (4) IAM service account permission issue resolved by removing --service-account parameter to match successful Step 6 pattern. All components integrated successfully with production-grade security, performance, and monitoring.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
