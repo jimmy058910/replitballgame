@@ -161,8 +161,8 @@ jobs:
           # This is the industry standard approach for complex configuration data
           ENCODED_SERVICE_ACCOUNT=$(echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' | base64 -w 0)
 
-          # Deploy with comprehensive Cloud Run configuration
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
+          # Deploy with comprehensive Cloud Run configuration and capture the actual URL
+          DEPLOY_OUTPUT=$(gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image=${{ env.IMAGE_NAME }}:${{ needs.pre-deployment-validation.outputs.image-tag }} \
             --region=${{ env.REGION }} \
             --platform=managed \
@@ -181,26 +181,34 @@ jobs:
             --set-env-vars="GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \
             --set-env-vars="GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
             --execution-environment=gen2 \
+            --format="value(status.url)")
+
+          # Extract the actual service URL from deployment output
+          SERVICE_URL=$(echo "$DEPLOY_OUTPUT" | grep -o 'https://[^[:space:]]*' | tail -1)
+          
+          # If URL extraction fails, get it directly from service description
+          if [ -z "$SERVICE_URL" ]; then
+            SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
+          fi
+          
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
+          echo "✅ Service deployed at: $SERVICE_URL"
 
 
       - name: Verify deployment success
         run: |
           echo "🔍 Verifying Step 4 deployment success..."
+          echo "Using SERVICE_URL from deployment: $SERVICE_URL"
           
-          # Wait for deployment to fully propagate and get the service URL with retries
+          # Validate we have the service URL
+          if [ -z "$SERVICE_URL" ]; then
+            echo "❌ SERVICE_URL is empty, cannot proceed with verification"
+            exit 1
+          fi
+          
+          # Wait for deployment to fully propagate
           echo "Waiting for deployment propagation..."
-          sleep 10
-          
-          for i in {1..3}; do
-            SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')
-            if [ -n "$SERVICE_URL" ]; then
-              break
-            fi
-            echo "Retry $i: Waiting for service URL..."
-            sleep 5
-          done
-          
-          echo "Service deployed at: $SERVICE_URL"
+          sleep 15
           
           # Test health endpoint with retries
           echo "Testing health endpoint..."
@@ -220,16 +228,19 @@ jobs:
           
           # Test frontend serving (should serve React app) with retries
           echo "Testing frontend serving..."
-          for i in {1..3}; do
-            if curl -f --max-time 30 "${SERVICE_URL}/" 2>/dev/null | grep -q "<!DOCTYPE html>"; then
+          for i in {1..5}; do
+            FRONTEND_RESPONSE=$(curl -f --max-time 30 "${SERVICE_URL}/" 2>/dev/null)
+            if echo "$FRONTEND_RESPONSE" | grep -q "<!DOCTYPE html>"; then
               echo "✅ Frontend serving successful - React app accessible (attempt $i)"
               break
             else
               echo "Retry $i: Frontend serving test..."
-              sleep 5
+              echo "Response preview: $(echo "$FRONTEND_RESPONSE" | head -c 100)..."
+              sleep 10
             fi
-            if [ $i -eq 3 ]; then
-              echo "❌ Frontend serving failed after 3 attempts"
+            if [ $i -eq 5 ]; then
+              echo "❌ Frontend serving failed after 5 attempts"
+              echo "Final response: $(echo "$FRONTEND_RESPONSE" | head -c 500)..."
               exit 1
             fi
           done
