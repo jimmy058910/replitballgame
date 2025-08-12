@@ -1,0 +1,98 @@
+# Step 6: Enhanced API Routes
+# Multi-stage build for comprehensive API deployment
+
+# Builder stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install system dependencies for building
+RUN apk add --no-cache python3 make g++
+
+# Copy package files for dependency installation
+COPY package*.json ./
+
+# Install ALL dependencies (including dev dependencies for building)
+RUN npm ci --include=dev
+
+# Copy source code
+COPY . .
+
+# Build the frontend application
+RUN npm run build
+
+# Post-build verification and setup
+RUN npm run postbuild
+
+# Verify build outputs
+RUN echo "✅ Checking build outputs..." && \
+    ls -la dist/ && \
+    test -f dist/public/index.html && echo "✅ Frontend built successfully" || (echo "❌ Frontend build failed" && exit 1)
+
+# Production stage
+FROM node:20-alpine AS production
+
+# Create user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S appuser -u 1001
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Copy Step 6 API Routes server file
+COPY --from=builder /app/server-step6-api-routes.js ./
+
+# Create public directory for serving
+RUN mkdir -p ./public
+
+# Copy static assets
+COPY --from=builder /app/public ./public
+
+# Step 6 file verification
+RUN echo "✅ Verifying Step 6 API Routes files..." && \
+    test -f server-step6-api-routes.js && echo "✅ Step 6 API server exists" || (echo "❌ Step 6 API server missing" && exit 1) && \
+    test -d dist/public && echo "✅ Frontend build exists" || (echo "❌ Frontend build missing" && exit 1) && \
+    echo "✅ Step 6 API Routes verification complete"
+
+# Change ownership to non-root user
+RUN chown -R appuser:nodejs /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 8080
+
+# Health check for Step 6 API features
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:8080/health', (res) => { \
+        let data = ''; \
+        res.on('data', (chunk) => data += chunk); \
+        res.on('end', () => { \
+            const health = JSON.parse(data); \
+            if (health.status === 'healthy' && health.features.includes('enhanced-api-routes')) { \
+                process.exit(0); \
+            } else { \
+                console.error('❌ Health check failed:', health); \
+                process.exit(1); \
+            } \
+        }); \
+    }).on('error', (e) => { \
+        console.error('❌ Health check error:', e); \
+        process.exit(1); \
+    });"
+
+# Set NODE_ENV to production
+ENV NODE_ENV=production
+
+# Start Step 6 Enhanced API Routes server
+CMD ["node", "server-step6-api-routes.js"]

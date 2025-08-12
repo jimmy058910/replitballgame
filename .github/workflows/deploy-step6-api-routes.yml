@@ -1,0 +1,162 @@
+name: Deploy Step 6 - Enhanced API Routes
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if no changes'
+        required: false
+        default: 'false'
+        type: boolean
+  push:
+    branches: [ main ]
+    paths:
+      - 'server-step6-api-routes.js'
+      - 'Dockerfile.step6-api-routes'
+      - '.github/workflows/deploy-step6-api-routes.yml'
+
+env:
+  PROJECT_ID: direct-glider-465821-p7
+  REGION: us-central1
+  SERVICE_NAME: realm-rivalry-api-routes
+  REPOSITORY: realm-rivalry
+  IMAGE_NAME: us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/api-routes
+
+jobs:
+  deploy-api-routes:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        run: |
+          echo "🏗️ Building Step 6 Enhanced API Routes Docker image..."
+          docker build -f Dockerfile.step6-api-routes -t ${{ env.IMAGE_NAME }}:latest .
+          echo "📤 Pushing Step 6 API Routes image to registry..."
+          docker push ${{ env.IMAGE_NAME }}:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          echo "🚀 Deploying Step 6 Enhanced API Routes to Cloud Run..."
+          
+          # Base64 encode the service account key to avoid JSON parsing issues
+          SERVICE_ACCOUNT_BASE64=$(echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' | base64 -w 0)
+          
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.IMAGE_NAME }}:latest \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars="NODE_ENV=production" \
+            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }}" \
+            --set-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY_BASE64=${SERVICE_ACCOUNT_BASE64}" \
+            --memory 1Gi \
+            --cpu 1 \
+            --min-instances 1 \
+            --max-instances 3 \
+            --timeout 60 \
+            --concurrency 100 \
+            --execution-environment gen2
+
+      - name: Verify Step 6 API Deployment
+        run: |
+          echo "🔍 Verifying Step 6 Enhanced API Routes deployment..."
+          
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --format 'value(status.url)')
+          echo "🚀 Step 6 Enhanced API Routes deployed to: $SERVICE_URL"
+          
+          # Wait for service to be ready
+          echo "⏳ Waiting for service to be fully ready..."
+          sleep 20
+          
+          # Enhanced health check
+          echo "🏥 Testing health endpoint..."
+          HEALTH_RESPONSE=$(curl -X GET "${SERVICE_URL}/health" \
+            -H "Accept: application/json" \
+            -H "User-Agent: GitHub-Actions-Health-Check" \
+            --retry 3 \
+            --retry-delay 10 \
+            --retry-connrefused \
+            --max-time 30 \
+            -s)
+          
+          echo "Health Response: $HEALTH_RESPONSE"
+          
+          # Verify health response contains expected features
+          echo "$HEALTH_RESPONSE" | grep -q "enhanced-api-routes" || (echo "❌ API routes feature not found in health check" && exit 1)
+          echo "$HEALTH_RESPONSE" | grep -q "player-management" || (echo "❌ Player management feature not found" && exit 1)
+          
+          # Test key API endpoints
+          echo "🔍 Testing Players API..."
+          curl -X GET "${SERVICE_URL}/api/players?limit=5" \
+            -H "Accept: application/json" \
+            --retry 2 \
+            --retry-delay 5 \
+            --max-time 20 \
+            -s | grep -q "players" || (echo "⚠️ Players API test failed" && exit 1)
+          
+          echo "🔍 Testing Teams API..."
+          curl -X GET "${SERVICE_URL}/api/teams" \
+            -H "Accept: application/json" \
+            --retry 2 \
+            --retry-delay 5 \
+            --max-time 20 \
+            -s | grep -q "teams" || (echo "⚠️ Teams API test failed" && exit 1)
+          
+          echo "🔍 Testing Leagues API..."
+          curl -X GET "${SERVICE_URL}/api/leagues" \
+            -H "Accept: application/json" \
+            --retry 2 \
+            --retry-delay 5 \
+            --max-time 20 \
+            -s | grep -q "leagues" || (echo "⚠️ Leagues API test failed" && exit 1)
+          
+          echo "🔍 Testing Statistics API..."
+          curl -X GET "${SERVICE_URL}/api/stats/overview" \
+            -H "Accept: application/json" \
+            --retry 2 \
+            --retry-delay 5 \
+            --max-time 20 \
+            -s | grep -q "totalPlayers" || (echo "⚠️ Statistics API test failed" && exit 1)
+
+      - name: Step 6 Success Summary
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region ${{ env.REGION }} --format 'value(status.url)')
+          
+          echo ""
+          echo "🎉 STEP 6 API ROUTES DEPLOYMENT SUCCESSFUL!"
+          echo "=========================================="
+          echo ""
+          echo "🔗 Service URL: $SERVICE_URL"
+          echo "🏥 Health Check: $SERVICE_URL/health"
+          echo "🌐 Frontend: $SERVICE_URL/"
+          echo ""
+          echo "📊 API Endpoints Available:"
+          echo "   • Players: $SERVICE_URL/api/players"
+          echo "   • Teams: $SERVICE_URL/api/teams"
+          echo "   • Matches: $SERVICE_URL/api/matches"
+          echo "   • Leagues: $SERVICE_URL/api/leagues"
+          echo "   • Statistics: $SERVICE_URL/api/stats"
+          echo ""
+          echo "✨ Features Enabled:"
+          echo "   • Comprehensive Player Management"
+          echo "   • Team Operations and Roster Management"
+          echo "   • Match Creation and History"
+          echo "   • League Standings and Statistics"
+          echo "   • Advanced Analytics and Reports"
+          echo "   • Authentic 6v6 Game Data with 5 Fantasy Races"
+          echo ""
+          echo "🎯 Ready for Step 7: Full Application Integration!"
