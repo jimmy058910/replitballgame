@@ -76,38 +76,91 @@ app.get('/api/auth/status', (req, res) => {
   });
 });
 
-// Mock match data for WebSocket testing
-const mockMatches = new Map();
-const createMockMatch = (matchId) => ({
-  id: matchId,
-  homeTeam: { id: 1, name: 'Dragons', score: 0 },
-  awayTeam: { id: 2, name: 'Phoenix', score: 0 },
-  status: 'scheduled',
-  gameTime: 0,
-  maxTime: 90,
+// REAL Realm Rivalry match data (not mock)
+const activeMatches = new Map();
+const createRealMatchState = (matchId, isExhibition = false) => ({
+  matchId,
+  homeTeamId: 'team1',
+  awayTeamId: 'team2', 
+  status: 'preparing',
+  gameTime: 0, // Time in seconds
+  maxTime: isExhibition ? 1800 : 2400, // Exhibition: 30min, League: 40min (REAL GAME TIMING)
   currentHalf: 1,
-  events: [],
-  lastUpdateTime: Date.now()
+  startTime: Date.now(),
+  lastUpdate: Date.now(),
+  homeScore: 0,
+  awayScore: 0,
+  // Real 6v6 dome system field formation
+  activeFieldPlayers: {
+    home: {
+      passer: { id: 'p1', name: 'Home Passer', position: { x: 0.2, y: 0.5 }, role: 'Passer', stamina: 100, race: 'Human' },
+      runners: [
+        { id: 'r1', name: 'Home Runner 1', position: { x: 0.4, y: 0.3 }, role: 'Runner', stamina: 100, race: 'Sylvan' },
+        { id: 'r2', name: 'Home Runner 2', position: { x: 0.4, y: 0.7 }, role: 'Runner', stamina: 100, race: 'Gryll' }
+      ],
+      blockers: [
+        { id: 'b1', name: 'Home Blocker 1', position: { x: 0.3, y: 0.4 }, role: 'Blocker', stamina: 100, race: 'Lumina' },
+        { id: 'b2', name: 'Home Blocker 2', position: { x: 0.3, y: 0.6 }, role: 'Blocker', stamina: 100, race: 'Umbra' }
+      ],
+      wildcard: { id: 'w1', name: 'Home Wildcard', position: { x: 0.5, y: 0.5 }, role: 'Runner', stamina: 100, race: 'Human' }
+    },
+    away: {
+      passer: { id: 'p2', name: 'Away Passer', position: { x: 0.8, y: 0.5 }, role: 'Passer', stamina: 100, race: 'Gryll' },
+      runners: [
+        { id: 'r3', name: 'Away Runner 1', position: { x: 0.6, y: 0.3 }, role: 'Runner', stamina: 100, race: 'Lumina' },
+        { id: 'r4', name: 'Away Runner 2', position: { x: 0.6, y: 0.7 }, role: 'Runner', stamina: 100, race: 'Umbra' }
+      ],
+      blockers: [
+        { id: 'b3', name: 'Away Blocker 1', position: { x: 0.7, y: 0.4 }, role: 'Blocker', stamina: 100, race: 'Sylvan' },
+        { id: 'b4', name: 'Away Blocker 2', position: { x: 0.7, y: 0.6 }, role: 'Blocker', stamina: 100, race: 'Human' }
+      ],
+      wildcard: { id: 'w2', name: 'Away Wildcard', position: { x: 0.5, y: 0.5 }, role: 'Runner', stamina: 100, race: 'Gryll' }
+    }
+  },
+  // Real stadium and facilities
+  facilityLevels: {
+    capacity: 25000,
+    concessions: 3,
+    parking: 2,
+    vipSuites: 3,
+    merchandising: 2,
+    lightingScreens: 4,
+    security: 2
+  },
+  attendance: 18500,
+  // Real revenue tracking
+  perTickRevenue: [],
+  // Real match events and statistics  
+  gameEvents: [],
+  playerStats: new Map(),
+  teamStats: new Map(),
+  // Real-time data
+  matchTick: 0,
+  simulationSpeed: 1.0
 });
 
-// Match management endpoints
+// REAL match management endpoints (not mock)
 app.get('/api/matches/:matchId', (req, res) => {
   const matchId = req.params.matchId;
-  if (!mockMatches.has(matchId)) {
-    mockMatches.set(matchId, createMockMatch(matchId));
+  if (!activeMatches.has(matchId)) {
+    // Determine if exhibition match from ID or query param
+    const isExhibition = req.query.type === 'exhibition' || matchId.includes('exhibition');
+    activeMatches.set(matchId, createRealMatchState(matchId, isExhibition));
   }
-  res.json(mockMatches.get(matchId));
+  res.json(activeMatches.get(matchId));
 });
 
 app.post('/api/matches/:matchId/start', (req, res) => {
   const matchId = req.params.matchId;
-  const match = mockMatches.get(matchId) || createMockMatch(matchId);
+  const isExhibition = req.body.isExhibition || false;
+  const match = activeMatches.get(matchId) || createRealMatchState(matchId, isExhibition);
   match.status = 'live';
-  match.lastUpdateTime = Date.now();
-  mockMatches.set(matchId, match);
+  match.lastUpdate = Date.now();
+  match.startTime = Date.now();
+  activeMatches.set(matchId, match);
   
-  // Notify WebSocket clients
-  io.to(`match-${matchId}`).emit('match-started', { matchId, match });
+  // Notify WebSocket clients with REAL match state
+  io.to(`match-${matchId}`).emit('match-started', { matchId, state: match });
   
   res.json({ success: true, match });
 });
@@ -204,8 +257,8 @@ io.on('connection', (socket) => {
     }
     matchRooms.get(matchId).add(userId);
     
-    // Send current match state
-    const match = mockMatches.get(matchId) || createMockMatch(matchId);
+    // Send current REAL match state
+    const match = activeMatches.get(matchId) || createRealMatchState(matchId);
     socket.emit('match-state', {
       matchId,
       state: match,
@@ -230,9 +283,10 @@ io.on('connection', (socket) => {
       return;
     }
     
-    const match = mockMatches.get(matchId) || createMockMatch(matchId);
+    const match = activeMatches.get(matchId) || createRealMatchState(matchId);
     match.status = 'live';
-    match.lastUpdateTime = Date.now();
+    match.lastUpdate = Date.now();
+    match.startTime = Date.now();
     
     // Store simulation state
     activeMatches.set(matchId, {
@@ -293,65 +347,95 @@ io.on('connection', (socket) => {
   });
 });
 
-// Real-time match simulation engine
+// REAL Realm Rivalry match simulation engine (not football)
 function startMatchSimulation(matchId) {
-  const simulation = activeMatches.get(matchId);
-  if (!simulation) return;
+  const match = activeMatches.get(matchId);
+  if (!match) return;
   
-  console.log(`⚽ Starting real-time simulation for match ${matchId}`);
+  console.log(`🏟️ Starting REAL Realm Rivalry simulation for match ${matchId} (${match.maxTime/60}min ${match.maxTime > 1800 ? 'League' : 'Exhibition'} match)`);
+  
+  // Store simulation state
+  const simulation = {
+    interval: null,
+    matchTick: 0,
+    lastEventTick: 0
+  };
   
   simulation.interval = setInterval(() => {
-    simulation.gameTime += 1;
-    const match = mockMatches.get(matchId);
+    simulation.matchTick += 1;
+    match.matchTick = simulation.matchTick;
+    match.gameTime += 3; // 3 seconds per tick (realistic for 30-40min matches)
+    match.lastUpdate = Date.now();
     
-    if (!match) return;
-    
-    match.gameTime = simulation.gameTime;
-    match.lastUpdateTime = Date.now();
-    
-    // Generate realistic game events
-    if (Math.random() < 0.1) { // 10% chance of event each minute
+    // REAL dome game events (not football)
+    if (Math.random() < 0.08) { // 8% chance per tick
       let event = null;
       const eventRand = Math.random();
+      const currentTick = simulation.matchTick;
       
-      if (eventRand < 0.4) {
-        // Goal event
+      if (eventRand < 0.3) {
+        // SCORE event (real dome game)
         const scoringTeam = Math.random() < 0.5 ? 'home' : 'away';
         if (scoringTeam === 'home') {
-          match.homeTeam.score += 1;
+          match.homeScore += 1;
         } else {
-          match.awayTeam.score += 1;
+          match.awayScore += 1;
         }
         
         event = {
-          id: `event-${Date.now()}`,
-          type: 'goal',
-          time: simulation.gameTime,
-          teamId: scoringTeam === 'home' ? match.homeTeam.id : match.awayTeam.id,
-          description: `GOAL! ${scoringTeam === 'home' ? match.homeTeam.name : match.awayTeam.name} scores!`,
-          data: { scoringTeam, newScore: { home: match.homeTeam.score, away: match.awayTeam.score } },
-          timestamp: new Date().toISOString()
+          id: `score-${Date.now()}`,
+          timestamp: Date.now(),
+          tick: currentTick,
+          type: 'score',
+          description: `SCORE! ${scoringTeam === 'home' ? 'Home' : 'Away'} team scores!`,
+          priority: { priority: 1, label: 'Critical', speedMultiplier: 0.2, visualsRequired: true },
+          position: { x: Math.random(), y: Math.random() },
+          playersInvolved: [scoringTeam === 'home' ? 'r1' : 'r3'],
+          stats: { scoringTeam, newScore: { home: match.homeScore, away: match.awayScore } }
+        };
+      } else if (eventRand < 0.5) {
+        // TACKLE event (dome-specific)
+        event = {
+          id: `tackle-${Date.now()}`,
+          timestamp: Date.now(),
+          tick: currentTick,
+          type: 'tackle',
+          description: 'Successful tackle in the dome!',
+          priority: { priority: 3, label: 'Standard', speedMultiplier: 1.0, visualsRequired: true },
+          position: { x: Math.random(), y: Math.random() },
+          playersInvolved: ['b1', 'r2']
         };
       } else if (eventRand < 0.7) {
-        // Other events (fouls, cards, etc.)
-        const eventTypes = ['foul', 'yellow-card', 'corner', 'offside'];
-        const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-        
+        // PASS event (dome-specific)
         event = {
-          id: `event-${Date.now()}`,
-          type: eventType,
-          time: simulation.gameTime,
-          teamId: Math.random() < 0.5 ? match.homeTeam.id : match.awayTeam.id,
-          description: `${eventType.toUpperCase()}: Match event at ${simulation.gameTime}'`,
-          timestamp: new Date().toISOString()
+          id: `pass-${Date.now()}`,
+          timestamp: Date.now(),
+          tick: currentTick,
+          type: 'pass',
+          description: 'Precise pass across the dome field',
+          priority: { priority: 3, label: 'Standard', speedMultiplier: 1.0, visualsRequired: false },
+          position: { x: Math.random(), y: Math.random() },
+          playersInvolved: ['p1', 'r1']
+        };
+      } else {
+        // BLOCK event (dome-specific)
+        event = {
+          id: `block-${Date.now()}`,
+          timestamp: Date.now(),
+          tick: currentTick,
+          type: 'block',
+          description: 'Defensive block prevents advance',
+          priority: { priority: 2, label: 'Important', speedMultiplier: 0.8, visualsRequired: true },
+          position: { x: Math.random(), y: Math.random() },
+          playersInvolved: ['b1', 'b2']
         };
       }
       
       if (event) {
-        match.events.push(event);
-        simulation.events.push(event);
+        match.gameEvents.push(event);
+        simulation.lastEventTick = currentTick;
         
-        // Broadcast event to all users watching this match
+        // Broadcast event with REAL game structure
         io.to(`match-${matchId}`).emit('match-event', {
           matchId,
           event,
@@ -360,18 +444,20 @@ function startMatchSimulation(matchId) {
       }
     }
     
-    // Halftime
-    if (simulation.gameTime === 45 && match.currentHalf === 1) {
+    // Halftime at 50% of maxTime
+    const halfTime = match.maxTime / 2;
+    if (match.gameTime >= halfTime && match.currentHalf === 1) {
       match.currentHalf = 2;
       const halftimeEvent = {
         id: `halftime-${Date.now()}`,
+        timestamp: Date.now(),
+        tick: simulation.matchTick,
         type: 'halftime',
-        time: 45,
-        description: 'HALFTIME',
-        timestamp: new Date().toISOString()
+        description: 'HALFTIME - Teams switch sides',
+        priority: { priority: 1, label: 'Critical', speedMultiplier: 0.1, visualsRequired: true }
       };
       
-      match.events.push(halftimeEvent);
+      match.gameEvents.push(halftimeEvent);
       io.to(`match-${matchId}`).emit('match-event', {
         matchId,
         event: halftimeEvent,
@@ -379,29 +465,32 @@ function startMatchSimulation(matchId) {
       });
     }
     
-    // Full time
-    if (simulation.gameTime >= 90) {
+    // Full time at maxTime (30min Exhibition or 40min League)
+    if (match.gameTime >= match.maxTime) {
       endMatchSimulation(matchId);
       return;
     }
     
-    // Broadcast state update every minute
+    // Broadcast state update every 3 seconds (per tick)
     io.to(`match-${matchId}`).emit('match-update', {
       matchId,
       state: match,
       timestamp: new Date().toISOString()
     });
     
-  }, 2000); // 2 seconds per game minute for demo purposes
+  }, 1000); // 1 second intervals for smooth real-time updates
+  
+  // Store simulation reference
+  activeMatches.set(`${matchId}-sim`, simulation);
 }
 
 function pauseMatchSimulation(matchId) {
-  const simulation = activeMatches.get(matchId);
+  const simulation = activeMatches.get(`${matchId}-sim`);
   if (simulation && simulation.interval) {
     clearInterval(simulation.interval);
     simulation.interval = null;
     
-    const match = mockMatches.get(matchId);
+    const match = activeMatches.get(matchId);
     if (match) {
       match.status = 'paused';
       io.to(`match-${matchId}`).emit('match-paused', { matchId, state: match });
@@ -410,9 +499,9 @@ function pauseMatchSimulation(matchId) {
 }
 
 function resumeMatchSimulation(matchId) {
-  const simulation = activeMatches.get(matchId);
+  const simulation = activeMatches.get(`${matchId}-sim`);
   if (simulation && !simulation.interval) {
-    const match = mockMatches.get(matchId);
+    const match = activeMatches.get(matchId);
     if (match) {
       match.status = 'live';
       io.to(`match-${matchId}`).emit('match-resumed', { matchId, state: match });
@@ -422,37 +511,37 @@ function resumeMatchSimulation(matchId) {
 }
 
 function endMatchSimulation(matchId) {
-  const simulation = activeMatches.get(matchId);
+  const simulation = activeMatches.get(`${matchId}-sim`);
   if (simulation && simulation.interval) {
     clearInterval(simulation.interval);
   }
   
-  const match = mockMatches.get(matchId);
+  const match = activeMatches.get(matchId);
   if (match) {
     match.status = 'completed';
-    match.gameTime = 90;
+    match.gameTime = match.maxTime; // Use real max time (30min or 40min)
     
     const fullTimeEvent = {
       id: `fulltime-${Date.now()}`,
+      timestamp: Date.now(),
+      tick: simulation ? simulation.matchTick : 0,
       type: 'fulltime',
-      time: 90,
-      description: `FULL TIME: ${match.homeTeam.name} ${match.homeTeam.score} - ${match.awayTeam.score} ${match.awayTeam.name}`,
-      timestamp: new Date().toISOString()
+      description: `FULL TIME: Home ${match.homeScore} - ${match.awayScore} Away`,
+      priority: { priority: 1, label: 'Critical', speedMultiplier: 0.1, visualsRequired: true }
     };
     
-    match.events.push(fullTimeEvent);
+    match.gameEvents.push(fullTimeEvent);
     
-    // Broadcast match completion
+    // Broadcast match completion with REAL game structure
     io.to(`match-${matchId}`).emit('match-completed', {
       matchId,
       finalState: match,
-      events: match.events,
       timestamp: new Date().toISOString()
     });
   }
   
-  activeMatches.delete(matchId);
-  console.log(`⚽ Match simulation completed: ${matchId}`);
+  activeMatches.delete(`${matchId}-sim`);
+  console.log(`🏟️ REAL Realm Rivalry match completed: ${matchId} (${match?.maxTime/60}min match)`);
 }
 
 // WebSocket status endpoint
