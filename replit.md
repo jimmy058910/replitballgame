@@ -65,7 +65,7 @@ Preferred communication style: Simple, everyday language.
    - Domain: `84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev`
    - Database: Cloud SQL `realm-rivalry-dev` instance (IP: 35.225.150.44)
    - OAuth Callback: `https://84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev/api/auth/google/callback`
-   - Firebase: Firebase Console authorized domains include Replit domain
+   - Firebase: **NEEDS DOMAIN AUTHORIZATION** - Add `84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev` to Firebase Console authorized domains
 
 ✅ **Production Environment (realmrivalry.com)**:
    - Domain: `realmrivalry.com` / `www.realmrivalry.com`
