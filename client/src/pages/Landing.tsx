@@ -68,21 +68,49 @@ export default function Landing() {
               Command teams of <span className="text-[#ff6b35] font-semibold">Humans</span>, <span className="text-green-400 font-semibold">Sylvans</span>, <span className="text-red-400 font-semibold">Gryll</span>, <span className="text-yellow-400 font-semibold">Lumina</span>, and <span className="text-purple-400 font-semibold">Umbra</span> in the most intense fantasy sports experience ever created. Every decision matters. Every match counts. Every season builds your legacy.
             </p>
 
+            {/* Error Display */}
+            {error && (
+              <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
+                  <div className="text-red-200">
+                    <div className="font-semibold">Development Authentication Issue</div>
+                    <div className="text-sm mb-2">{error}</div>
+                    <div className="text-xs text-red-300 border-t border-red-500/30 pt-2">
+                      <strong>For Firebase Console:</strong> Add this domain to authorized domains:<br/>
+                      <code className="bg-red-800/30 px-1 rounded text-red-200">84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Main CTA Section */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
               <Button 
                 onClick={async () => {
+                  console.log('🎯 Start Your Dynasty clicked - initiating authentication...');
                   try {
-                    await login(true); // Use popup method since it works
+                    await login(); // Use redirect authentication
                   } catch (error) {
                     console.error('Login failed:', error);
                   }
                 }}
-                className="bg-gradient-to-r from-[#ff6b35] to-orange-600 hover:from-orange-600 hover:to-red-600 text-white px-12 py-6 text-xl font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-[#ff6b35]/20"
+                disabled={isLoading}
+                className="bg-gradient-to-r from-[#ff6b35] to-orange-600 hover:from-orange-600 hover:to-red-600 text-white px-12 py-6 text-xl font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-[#ff6b35]/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Crown className="w-6 h-6 mr-3" />
-                Start Your Dynasty
-                <ArrowRight className="w-6 h-6 ml-3" />
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full mr-3"></div>
+                    Redirecting to Google...
+                  </>
+                ) : (
+                  <>
+                    <Crown className="w-6 h-6 mr-3" />
+                    Start Your Dynasty
+                    <ArrowRight className="w-6 h-6 ml-3" />
+                  </>
+                )}
               </Button>
               
               <Button 

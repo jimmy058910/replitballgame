@@ -86,25 +86,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (usePopup?: boolean) => {
     console.log('🔥 Starting Firebase Google Auth...');
-    console.log('🔥 Auth method:', usePopup ? 'popup' : 'redirect');
     setIsLoading(true);
     setError(null);
     
     try {
-      if (usePopup) {
-        console.log('🪟 Using popup authentication...');
-        const result = await signInWithPopup(auth, googleProvider);
-        console.log('🎉 Popup authentication successful:', result.user.email);
-      } else {
-        console.log('🔄 Using redirect authentication...');
-        await signInWithRedirect(auth, googleProvider);
-        console.log('🔄 Redirect initiated - user should be redirected to Google...');
-      }
+      // Always use redirect authentication for better cross-domain compatibility
+      console.log('🔄 Using redirect authentication for better compatibility...');
+      await signInWithRedirect(auth, googleProvider);
+      console.log('🔄 Redirect initiated - user should be redirected to Google...');
+      // Don't set isLoading to false here - the redirect will handle the state
     } catch (error: any) {
       console.error('🚨 Authentication error:', error);
       console.error('🚨 Error code:', error.code);
       console.error('🚨 Error message:', error.message);
-      setError(error.message);
+      
+      // Provide user-friendly error messages
+      let userMessage = error.message;
+      if (error.code === 'auth/internal-error') {
+        userMessage = 'Authentication service unavailable. This may be due to domain restrictions in development environment.';
+      } else if (error.code === 'auth/popup-blocked') {
+        userMessage = 'Popup was blocked. Please allow popups and try again.';
+      }
+      
+      setError(userMessage);
       setIsLoading(false);
     }
   };
