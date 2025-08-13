@@ -98,7 +98,7 @@ jobs:
             --timeout 300 \
             --concurrency 200 \
             --execution-environment gen2 \
-            --add-cloudsql-instances ${{ env.PROJECT_ID }}:${{ env.REGION }}:realm-rivalry-dev
+            --add-cloudsql-instances ${{ env.PROJECT_ID }}:${{ env.REGION }}:realm-rivalry-prod
 
       - name: Comprehensive Health Check Verification
         run: |
