@@ -456,6 +456,62 @@ app.get('/api/stats/overview', (req, res) => {
 console.log('✅ Comprehensive API routes registered with established game systems');
 
 // ============================================
+// PHASE 7.5: ADDITIONAL ROUTE IMPORTS
+// ============================================
+
+// Import and mount help routes
+try {
+  const { default: helpRoutes } = await import('./server/routes/helpRoutes.ts');
+  app.use('/api/help', helpRoutes);
+  console.log('✅ Help routes mounted at /api/help');
+} catch (error) {
+  console.error('⚠️ Failed to load help routes:', error.message);
+}
+
+// Mount development auth route for dev environment
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/auth/dev-login', (req, res) => {
+    console.log('🔧 DEV: Development login requested');
+    
+    // Create a mock user session for development
+    const devUser = {
+      uid: 'dev-user-12345',
+      email: 'developer@realmrivalry.com',
+      displayName: 'Development User',
+      teamId: 'dev-team-001'
+    };
+    
+    // In a real app, you'd set up a proper session here
+    req.session = req.session || {};
+    req.session.user = devUser;
+    
+    res.json({
+      success: true,
+      message: 'Development authentication successful',
+      user: devUser
+    });
+  });
+  
+  app.get('/api/auth/user', (req, res) => {
+    console.log('🔧 DEV: Auth status check requested');
+    
+    if (req.session && req.session.user) {
+      res.json({
+        authenticated: true,
+        user: req.session.user
+      });
+    } else {
+      res.json({
+        authenticated: false,
+        user: null
+      });
+    }
+  });
+  
+  console.log('✅ Development auth routes registered');
+}
+
+// ============================================
 // PHASE 8: WEBSOCKET REAL-TIME FEATURES
 // ============================================
 
