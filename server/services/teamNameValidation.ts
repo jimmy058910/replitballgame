@@ -1,5 +1,5 @@
 import { profanity } from '@2toad/profanity';
-import { prisma } from '../db.js';
+import { getPrismaClient } from '../database.js';
 
 // Configure the profanity filter
 profanity.addWords([

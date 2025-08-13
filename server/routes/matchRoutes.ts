@@ -6,7 +6,7 @@ import { isAuthenticated } from "../googleAuth.js";
 import { simulateEnhancedMatch as fullMatchSimulation } from '../services/matchSimulation.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections  
 // import { matchStateManager } from '../services/matchStateManager.js';
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 
 const router = Router();
 

@@ -1,5 +1,5 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from "./matchStateManager";
 import logger from '../utils/logger.js';

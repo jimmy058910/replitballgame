@@ -15,7 +15,7 @@ import {
   MATCH_EVENT_TYPES
 } from '../../shared/types/LiveMatchState';
 import { webSocketManager } from '../websocket/webSocketManager.js';
-import { prisma } from '../db.js';
+import { getPrismaClient } from '../database.js';
 
 class LiveMatchEngineService implements LiveMatchEngine {
   private activeMatches = new Map<string, LiveMatchState>();

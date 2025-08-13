@@ -7,7 +7,7 @@ import { leagueStorage } from '../storage/leagueStorage.js'; // For currentSeaso
 import { matchStorage } from '../storage/matchStorage.js'; // For getMatchesByDivision
 import { seasonStorage } from '../storage/seasonStorage.js'; // For getCurrentSeason
 import { isAuthenticated } from "../googleAuth.js";
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 import {
   generateLeagueGameSchedule,
   generateDailyGameTimes,
