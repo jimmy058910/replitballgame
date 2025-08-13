@@ -14,6 +14,13 @@ import { PrismaClient } from '@prisma/client';
 function getDatabaseUrl(): string {
   const nodeEnv = process.env.NODE_ENV || 'development';
   
+  console.log('🔍 DATABASE URL CONVERSION DEBUG:', {
+    NODE_ENV: process.env.NODE_ENV,
+    resolvedNodeEnv: nodeEnv,
+    isProduction: nodeEnv === 'production',
+    isDevelopment: nodeEnv === 'development'
+  });
+  
   console.log('🔍 CLOUD SQL CONNECTION DEBUG:', {
     NODE_ENV: nodeEnv,
     DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
@@ -48,11 +55,16 @@ function getDatabaseUrl(): string {
     // Development: Convert socket path to TCP connection for Replit environment
     if (rawUrl.includes('/cloudsql/')) {
       console.log('🔄 Development: Converting Cloud SQL socket to TCP connection...');
+      console.log('🔍 Raw URL for parsing:', rawUrl);
       
       // Extract database details from socket URL
       const match = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@localhost\/([^?]+)\?host=\/cloudsql\/([^:]+):([^:]+):([^&]+)/);
+      console.log('🔍 Regex match result:', match ? 'SUCCESS' : 'FAILED');
+      
       if (!match) {
         console.error('❌ Unable to parse Cloud SQL socket URL format');
+        console.error('❌ Expected format: postgresql://user:pass@localhost/db?host=/cloudsql/project:region:instance');
+        console.error('❌ Actual URL:', rawUrl);
         throw new Error('Invalid Cloud SQL URL format for development conversion');
       }
       
@@ -65,7 +77,8 @@ function getDatabaseUrl(): string {
       const publicIP = instance === 'realm-rivalry-prod' ? '34.171.83.78' : '35.225.150.44';
       
       // Use SSL connection to Cloud SQL public endpoint for development
-      const devTcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require&sslcert=/dev/null&sslkey=/dev/null&sslrootcert=/dev/null`;
+      // For development, use SSL without client certificates (Cloud SQL supports this)
+      const devTcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require`;
       
       console.log('⚠️  DEVELOPMENT DATABASE CONNECTION:', {
         message: 'Direct connection to Cloud SQL public IP for development',

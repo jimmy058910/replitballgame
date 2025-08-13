@@ -31,6 +31,14 @@
 - `https://84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev/api/auth/google/callback` (Development)
 - `https://www.realmrivalry.com/api/auth/google/callback` (Production)
 
+### Cloud SQL Authorized Networks (Development Only)
+**Instance**: `realm-rivalry-dev`
+- **Network Name**: `replit-development`
+- **IP Address**: `34.148.183.146/32` (Current Replit IP)
+- **Path**: Google Cloud Console → SQL → realm-rivalry-dev → Connections → Authorized networks
+
+**Note**: Production instance (`realm-rivalry-prod`) uses private Cloud Run connections and doesn't need authorized networks.
+
 ## Environment Variable Configuration
 
 ### Development (.env)
