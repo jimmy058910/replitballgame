@@ -69,3 +69,10 @@ VITE_FIREBASE_APP_ID=[firebase_app_id]
 ✅ **Automatic Environment Detection**: Database and OAuth URLs switch automatically based on NODE_ENV
 ✅ **Fallback Authentication**: Firebase primary, backend OAuth secondary for development compatibility
 ✅ **Production Security**: Socket connections and proper domain authorization for production
+
+## Database Technology Stack
+**IMPORTANT**: This project uses **Prisma ORM ONLY**. 
+- ❌ **NO Drizzle** - Drizzle has been completely removed from the project
+- ✅ **Prisma Only** - All database operations use Prisma Client
+- ✅ **Simple Approach** - Single ORM for all database needs
+- ✅ **Migrations** - Use `npx prisma db push` for schema changes

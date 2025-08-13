@@ -79,7 +79,9 @@ Preferred communication style: Simple, everyday language.
 The application uses a hybrid architecture with the frontend on Firebase Hosting and backend services on Google Cloud Run (Express.js, WebSockets, database connections), allowing for independent failure recovery and flexible release cycles.
 
 ## Database and ORM Architecture
-Google Cloud SQL PostgreSQL is used for both development and production environments with complete separation. Both instances utilize Prisma Client for type-safe database access and schema management with comprehensive indexing, connecting via unix sockets in cloud environments.
+Google Cloud SQL PostgreSQL is used for both development and production environments with complete separation. **PRISMA ORM ONLY** - the project uses Prisma Client exclusively for all database operations, type-safe database access, and schema management with comprehensive indexing. Production connects via unix sockets in cloud environments, development uses direct TCP connections.
+
+**CRITICAL**: NO Drizzle ORM - project uses Prisma only for simplicity and consistency.
 
 ## Frontend Technology Stack
 The frontend is built with React 18 and TypeScript. UI components use Radix UI primitives and shadcn/ui, styled with Tailwind CSS for mobile-first responsiveness. TanStack React Query handles server state, and Wouter is used for client-side routing with lazy loading. The design features a five-hub navigation system optimized for mobile devices with PWA capabilities including service workers for offline functionality, push notifications, and app manifest.
