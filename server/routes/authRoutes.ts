@@ -115,7 +115,7 @@ router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
       console.log('✅ Database connection established for development');
       
       user = await userStorage.getUser(hardcodedUserId);
-    } catch (dbError) {
+    } catch (dbError: any) {
       console.log('Database connection failed, using development user data...', dbError.message);
       // Return development user data without database dependency
       const devUser = {

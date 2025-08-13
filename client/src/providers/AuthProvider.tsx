@@ -100,15 +100,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('🚨 Error code:', error.code);
       console.error('🚨 Error message:', error.message);
       
-      // Provide user-friendly error messages
-      let userMessage = error.message;
-      if (error.code === 'auth/internal-error') {
-        userMessage = 'Authentication service unavailable. This may be due to domain restrictions in development environment.';
-      } else if (error.code === 'auth/popup-blocked') {
-        userMessage = 'Popup was blocked. Please allow popups and try again.';
+      // Check if this is a network connectivity issue in development
+      if (error.code === 'auth/network-request-failed' && !import.meta.env.PROD) {
+        console.log('🔧 Development network issue detected - attempting fallback authentication...');
+        
+        try {
+          // Use the backend Google OAuth as fallback for development
+          const fallbackUrl = '/api/auth/login';
+          console.log('🔄 Redirecting to backend Google OAuth fallback...');
+          window.location.href = fallbackUrl;
+          return; // Don't set loading to false since we're redirecting
+        } catch (fallbackError) {
+          console.error('🚨 Fallback authentication also failed:', fallbackError);
+          setError('Authentication services unavailable in development environment. This will work in production.');
+        }
+      } else {
+        // Provide user-friendly error messages for other errors
+        let userMessage = error.message;
+        if (error.code === 'auth/internal-error') {
+          userMessage = 'Authentication service unavailable. This may be due to domain restrictions in development environment.';
+        } else if (error.code === 'auth/popup-blocked') {
+          userMessage = 'Popup was blocked. Please allow popups and try again.';
+        } else if (error.code === 'auth/network-request-failed') {
+          userMessage = 'Network connection to Firebase failed. Authentication will work in production environment.';
+        }
+        
+        setError(userMessage);
       }
       
-      setError(userMessage);
       setIsLoading(false);
     }
   };
