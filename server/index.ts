@@ -266,6 +266,16 @@ async function startServer() {
     const httpServer = createServer(app);
     console.log('✅ HTTP server created (before heavy initialization)');
 
+    // CRITICAL FIX: Register API routes BEFORE Vite middleware to prevent HTML responses
+    console.log('🔧 Registering API routes BEFORE Vite middleware...');
+    try {
+      const { registerAllRoutes } = await import("./routes/index.js");
+      await registerAllRoutes(app);
+      console.log('✅ API routes registered BEFORE Vite setup');
+    } catch (routeError: any) {
+      console.error('⚠️  API route registration failed:', routeError?.message);
+    }
+
     // CRITICAL CLOUD RUN FIX: Only setup Vite in development - defer static serving for production
     if (process.env.NODE_ENV !== 'production') {
       console.log('🛠️ Development mode: Setting up Vite with hot reload');
@@ -370,23 +380,10 @@ async function startServer() {
       console.log('🔧 Phase 8: ASYNCHRONOUS HEAVY INITIALIZATION (after server bind)');
       
       try {
-        // CRITICAL: Register API routes FIRST (before static file serving)
-        console.log('🔧 Registering API routes asynchronously...');
-        try {
-          const { registerAllRoutes } = await import("./routes/index.js");
-          await registerAllRoutes(app);
-          console.log('✅ API routes registered');
-          
-          // COMPREHENSIVE VALIDATION: Test that routes are actually working
-          console.log('🧪 Validating API route registration...');
-          const routeCount = app._router?.stack?.length || 0;
-          console.log(`✅ Express router has ${routeCount} middleware/routes registered`);
-          
-        } catch (routeError: any) {
-          console.error('⚠️  API route registration failed, server will continue:', routeError);
-          console.error('⚠️  Error details:', routeError?.message || 'Unknown error');
-          console.error('⚠️  Stack trace:', routeError?.stack || 'No stack trace available');
-        }
+        // API routes already registered before Vite middleware - validate registration
+        console.log('🧪 Validating API route registration...');
+        const routeCount = app._router?.stack?.length || 0;
+        console.log(`✅ Express router has ${routeCount} middleware/routes registered`);
 
         // Initialize Google Auth asynchronously (with error resilience)
         console.log('🔧 Setting up Google authentication asynchronously...');
