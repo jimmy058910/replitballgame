@@ -19,61 +19,90 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔥 Setting up SINGLE Firebase Auth listener...');
+    console.log('🔥 Setting up unified authentication system...');
     
-    // Handle redirect result from OAuth flow - only check once
-    const handleRedirectResult = async () => {
+    // Check server authentication status first
+    const checkServerAuthStatus = async () => {
       try {
-        console.log('🔍 Checking for OAuth redirect result...');
-        console.log('🔍 Current URL:', window.location.href);
-        console.log('🔍 URL protocol:', window.location.protocol);
-        console.log('🔍 URL hostname:', window.location.hostname);
-        console.log('🔍 URL has OAuth params:', window.location.href.includes('code=') || window.location.href.includes('state='));
-        console.log('🔍 URL params:', window.location.search);
-        console.log('🔍 URL hash:', window.location.hash);
-        console.log('🔍 Firebase authDomain:', auth.app.options.authDomain);
+        console.log('🔍 Checking server authentication status...');
+        const response = await fetch('/api/auth/status', {
+          credentials: 'include' // Include session cookies
+        });
         
-        const result = await getRedirectResult(auth);
-        console.log('🔍 getRedirectResult returned:', !!result);
-        console.log('🔍 getRedirectResult details:', result ? 'SUCCESS' : 'NO_RESULT');
-        
-        if (result) {
-          console.log('🎉 OAuth redirect successful:', result.user.email);
-          console.log('🎉 User UID:', result.user.uid);
-          console.log('🎉 Provider data:', result.providerId);
-          console.log('🎉 User verified:', result.user.emailVerified);
-          setUser(result.user);
-          setError(null);
-        } else {
-          console.log('🔍 No redirect result found - checking current auth state...');
-          console.log('🔍 Current auth.currentUser:', !!auth.currentUser);
-          if (auth.currentUser) {
-            console.log('🔍 Current user email:', auth.currentUser.email);
-            console.log('🔍 Current user UID:', auth.currentUser.uid);
-            setUser(auth.currentUser);
+        if (response.ok) {
+          const serverAuth = await response.json();
+          console.log('🔍 Server auth status:', serverAuth);
+          
+          if (serverAuth.isAuthenticated && serverAuth.user) {
+            console.log('✅ User authenticated on server:', serverAuth.user.email);
+            // Create a user object compatible with Firebase User interface
+            const serverUser = {
+              uid: serverAuth.user.id,
+              email: serverAuth.user.email,
+              displayName: serverAuth.user.displayName || `${serverAuth.user.firstName} ${serverAuth.user.lastName}`,
+              photoURL: serverAuth.user.profileImageUrl,
+              emailVerified: true,
+              // Add minimal Firebase User interface properties
+              isAnonymous: false,
+              metadata: {
+                creationTime: serverAuth.user.createdAt,
+                lastSignInTime: new Date().toISOString()
+              },
+              providerData: [],
+              refreshToken: '',
+              tenantId: null
+            } as User;
+            
+            setUser(serverUser);
+            setError(null);
+            setIsLoading(false);
+            return; // Skip Firebase check if server auth works
           }
         }
+        
+        console.log('🔍 No server authentication - checking Firebase...');
+      } catch (error) {
+        console.log('🔍 Server auth check failed, falling back to Firebase:', error);
+      }
+      
+      // Fallback to Firebase authentication
+      await handleFirebaseAuth();
+    };
+    
+    // Handle Firebase redirect result
+    const handleFirebaseAuth = async () => {
+      try {
+        console.log('🔍 Checking Firebase redirect result...');
+        const result = await getRedirectResult(auth);
+        
+        if (result) {
+          console.log('🎉 Firebase OAuth successful:', result.user.email);
+          setUser(result.user);
+          setError(null);
+        } else if (auth.currentUser) {
+          console.log('🔍 Using existing Firebase user:', auth.currentUser.email);
+          setUser(auth.currentUser);
+        }
       } catch (error: any) {
-        console.error('🚨 OAuth redirect error:', error);
-        console.error('🚨 Error code:', error.code);
-        console.error('🚨 Error message:', error.message);
-        console.error('🚨 Full error object:', error);
+        console.error('🚨 Firebase auth error:', error);
         setError(error.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    // Check for redirect result on mount
-    handleRedirectResult();
+    // Start with server auth check
+    checkServerAuthStatus();
 
-    // Set up auth state listener
+    // Set up Firebase auth state listener as backup
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log('🔥 Firebase Auth state changed:', user ? `authenticated: ${user.email}` : 'not authenticated');
-      if (user) {
-        console.log('🔍 User details:', { uid: user.uid, email: user.email, displayName: user.displayName });
+      if (user && !isAuthenticated) { // Only update if not already authenticated via server
+        console.log('🔍 Firebase user details:', { uid: user.uid, email: user.email, displayName: user.displayName });
+        setUser(user);
+        setIsLoading(false);
+        setError(null);
       }
-      setUser(user);
-      setIsLoading(false);
-      setError(null);
     });
 
     return () => {
@@ -85,50 +114,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!user;
 
   const login = async (usePopup?: boolean) => {
-    console.log('🔥 Starting Firebase Google Auth...');
+    console.log('🔥 Starting unified authentication...');
     setIsLoading(true);
     setError(null);
     
     try {
-      // Always use redirect authentication for better cross-domain compatibility
-      console.log('🔄 Using redirect authentication for better compatibility...');
+      // In development, use server-side Google OAuth directly for better reliability
+      if (!import.meta.env.PROD) {
+        console.log('🔄 Development mode: Using server-side Google OAuth...');
+        window.location.href = '/api/auth/login';
+        return; // Don't set loading to false since we're redirecting
+      }
+      
+      // In production, try Firebase first
+      console.log('🔄 Production mode: Using Firebase authentication...');
       await signInWithRedirect(auth, googleProvider);
-      console.log('🔄 Redirect initiated - user should be redirected to Google...');
-      // Don't set isLoading to false here - the redirect will handle the state
+      console.log('🔄 Firebase redirect initiated...');
+      
     } catch (error: any) {
       console.error('🚨 Authentication error:', error);
       console.error('🚨 Error code:', error.code);
-      console.error('🚨 Error message:', error.message);
       
-      // Check if this is a network connectivity issue in development
-      if (error.code === 'auth/network-request-failed' && !import.meta.env.PROD) {
-        console.log('🔧 Development network issue detected - attempting fallback authentication...');
-        
-        try {
-          // Use the backend Google OAuth as fallback for development
-          const fallbackUrl = '/api/auth/login';
-          console.log('🔄 Redirecting to backend Google OAuth fallback...');
-          window.location.href = fallbackUrl;
-          return; // Don't set loading to false since we're redirecting
-        } catch (fallbackError) {
-          console.error('🚨 Fallback authentication also failed:', fallbackError);
-          setError('Authentication services unavailable in development environment. This will work in production.');
-        }
-      } else {
-        // Provide user-friendly error messages for other errors
-        let userMessage = error.message;
-        if (error.code === 'auth/internal-error') {
-          userMessage = 'Authentication service unavailable. This may be due to domain restrictions in development environment.';
-        } else if (error.code === 'auth/popup-blocked') {
-          userMessage = 'Popup was blocked. Please allow popups and try again.';
-        } else if (error.code === 'auth/network-request-failed') {
-          userMessage = 'Network connection to Firebase failed. Authentication will work in production environment.';
-        }
-        
-        setError(userMessage);
-      }
-      
-      setIsLoading(false);
+      // Fallback to server auth for any Firebase issues
+      console.log('🔄 Falling back to server-side authentication...');
+      window.location.href = '/api/auth/login';
     }
   };
 
