@@ -1,35 +1,5 @@
 # Overview
-Realm Rivalry is a mobile-first fantasy sports management game that offers a deep, engaging, and high-fidelity simulation experience. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include deep simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre.
-
-**STEP 2 DEPLOYMENT SUCCESS (Aug 11, 2025)**: Successfully deployed Express + Database server to Cloud Run with full database connectivity. Service operational at `https://realm-rivalry-simple-database-108005641993.us-central1.run.app` with unix socket Cloud SQL connection established. Zero Neon references achieved with production-ready dual-mode architecture.
-
-**STEP 3 DEPLOYMENT SUCCESS (Aug 11, 2025)**: Successfully deployed Express + Database + Firebase Authentication server to Cloud Run with comprehensive Base64 encoding solution. Service operational at `https://realm-rivalry-auth-server-108005641993.us-central1.run.app` with proper Firebase Admin SDK initialization and dual-mode service account key handling. Base64 encoding approach eliminated all gcloud JSON parsing issues while maintaining local development compatibility. Architecture now includes Firebase Authentication frontend integration with Cloud SQL PostgreSQL backend.
-
-**STEP 4 DEPLOYMENT SUCCESS (Aug 12, 2025)**: ✅ **COMPLETE SUCCESS ACHIEVED**: Step 4 fullstack application fully deployed and operational on Cloud Run. Service running at `https://realm-rivalry-fullstack-108005641993.us-central1.run.app` with all components working: (1) Health endpoint returning 200 OK, (2) Frontend serving complete React application with proper HTML, (3) Firebase Authentication integrated, (4) Cloud SQL PostgreSQL connected. 
-
-✅ **FINAL VERIFICATION ISSUE RESOLVED (Aug 12, 2025)**: Identified and fixed the curl configuration issue in GitHub Actions verification:
-- **ROOT CAUSE DISCOVERED**: Frontend works perfectly when accessed manually, but GitHub Actions curl `-f` flag and missing headers caused verification failures
-- **EVIDENCE**: Manual testing with proper headers (`Accept: text/html`, `User-Agent: Mozilla/5.0`) returns perfect HTML content
-- **SOLUTION IMPLEMENTED**: Removed `-f` flag, added proper HTML headers, enhanced debugging
-- **VERIFICATION**: Testing confirms the exact command used in GitHub Actions now works perfectly
-
-✅ **COMPREHENSIVE VERIFICATION SYSTEM**: Complete debugging and error handling infrastructure implemented for robust deployment validation. 
-
-**STEP 5 REAL-TIME GAME FEATURES (Aug 12, 2025)**: ✅ **DEPLOYMENT COMPLETE**: Step 5 successfully deployed the real-time WebSocket server at `https://realm-rivalry-realtime-108005641993.us-central1.run.app`. Features include authentic live match simulation with realistic game events, real-time score updates, match room management, and user authentication for match participation.
-
-**STEP 6 ENHANCED API ROUTES (Aug 12, 2025)**: ✅ **REAL DATABASE IMPLEMENTATION COMPLETE**: Step 6 completely rewritten to use ESTABLISHED game systems instead of fake data. Now properly connects to real database via Prisma queries and uses authentic game architecture: established 8-tier division system (Diamond to Copper League), proper race system (Human, Sylvan, Gryll, Lumina, Umbra), correct role system (Passer, Runner, Blocker), and real player/team creation utilities. API endpoints include Players, Teams, Divisions, Leagues, and Statistics - all using actual database data and established game systems.
-
-✅ **CRITICAL CORRECTION COMPLETED**: Agent had initially created completely random fake data that ignored all established game systems. Issue identified and corrected to align with real database schema, division/subdivision system, race names from race_names.json, and established storage services. Server now demonstrates authentic game data integration.
-
-✅ **DEPLOYMENT WORKFLOW FIXED (Aug 12, 2025)**: Fixed critical GitHub Actions deployment failure caused by invalid `--max-surge-size` parameter in `deploy-step6-integration.yml`. The `--max-surge-size` parameter is not supported by `gcloud run deploy` and was causing deployment errors. Parameter removed and workflow corrected.
-
-**STEP 7 UNIFIED PRODUCTION APPLICATION (Aug 12, 2025)**: ✅ **COMPREHENSIVE INTEGRATION COMPLETE**: Created unified production-ready application combining ALL successful methodologies from Steps 1-6. Features include Express framework with security middleware, Cloud SQL PostgreSQL integration, Firebase Authentication, React frontend serving, WebSocket real-time features, enhanced API routes, and established game systems (8-tier divisions, 5 fantasy races, 6v6 dome mechanics).
-
-✅ **PRODUCTION-READY ARCHITECTURE**: Multi-stage Docker build with frontend compilation, comprehensive health checks, security hardening, performance optimization, and Cloud Run deployment workflow with extensive verification system.
-
-✅ **COMPREHENSIVE TESTING SYSTEM**: Created thorough local testing script that validates all components before deployment including health endpoints, database integration, authentication, API routes, WebSocket functionality, and established game systems.
-
-✅ **STEP 7 DEPLOYMENT READY (Aug 12, 2025)**: All critical deployment blockers resolved and Step 7 Unified Application ready for production deployment to realmrivalry.com. Fixed: (1) Docker syntax errors in Dockerfile COPY commands, (2) Firebase hosting routes updated to realm-rivalry-unified service, (3) Timestamp synchronization in Docker build/push workflow, (4) IAM service account permission issue resolved by removing --service-account parameter to match successful Step 6 pattern. All components integrated successfully with production-grade security, performance, and monitoring.
+Realm Rivalry is a mobile-first fantasy sports management game providing a deep, engaging, and high-fidelity simulation. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include detailed simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
@@ -85,10 +55,10 @@ Preferred communication style: Simple, everyday language.
 # System Architecture
 
 ## Hybrid Cloud Deployment Model
-The application uses a hybrid architecture with the frontend on Firebase Hosting and backend services on Google Cloud Run (Express.js, WebSockets, database connections). This provides independent failure recovery and flexible release cycles.
+The application uses a hybrid architecture with the frontend on Firebase Hosting and backend services on Google Cloud Run (Express.js, WebSockets, database connections), allowing for independent failure recovery and flexible release cycles.
 
 ## Database and ORM Architecture
-Google Cloud SQL PostgreSQL is the primary production database. Prisma Client is exclusively used for type-safe database access and schema management, with comprehensive indexing. All database queries must use `prisma.*` methods or storage service abstractions.
+Google Cloud SQL PostgreSQL is used for both development and production environments with complete separation. Both instances utilize Prisma Client for type-safe database access and schema management with comprehensive indexing, connecting via unix sockets in cloud environments.
 
 ## Frontend Technology Stack
 The frontend is built with React 18 and TypeScript. UI components use Radix UI primitives and shadcn/ui, styled with Tailwind CSS for mobile-first responsiveness. TanStack React Query handles server state, and Wouter is used for client-side routing with lazy loading. The design features a five-hub navigation system optimized for mobile devices with PWA capabilities including service workers for offline functionality, push notifications, and app manifest.

@@ -1,9 +1,0 @@
-HTTP/2 200 
-x-powered-by: Express
-content-type: application/json; charset=utf-8
-etag: W/"50-7UyL+B6yRKlpOIpgaxP61arKWKU"
-x-cloud-trace-context: 4369708e74187f05fa44a0eb1e236ea9
-date: Sun, 03 Aug 2025 03:02:19 GMT
-server: Google Frontend
-content-length: 80
-
