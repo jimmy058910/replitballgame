@@ -5,9 +5,7 @@ import { tournamentStorage } from '../storage/tournamentStorage.js';
 import { isAuthenticated } from "../googleAuth.js";
 import { z } from "zod";
 import { getDivisionName } from "../../shared/divisionUtils.js";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { getPrismaClient } from '../database.js';
 
 const router = Router();
 
@@ -18,6 +16,7 @@ const enterTournamentParamsSchema = z.object({
 // History route must come BEFORE the :division route to avoid conflicts
 router.get('/history', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user?.claims?.sub;
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.json([]);
@@ -94,6 +93,7 @@ router.get('/history', isAuthenticated, async (req: Request, res: Response, next
 // Add bracket endpoint
 router.get('/bracket/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const tournamentIdParam = req.params.id;
     
     // First, find the tournament by tournamentId field to get the actual id
@@ -152,6 +152,7 @@ router.get('/bracket/:id', isAuthenticated, async (req: any, res: Response, next
 // Available tournaments endpoint - frontend calls /api/tournaments/available
 router.get('/available', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user?.claims?.sub;
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team || !team.id) return res.json([]);
@@ -185,6 +186,7 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
 
 router.get('/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {
       return res.status(400).json({ message: "Invalid division number." });
@@ -217,6 +219,7 @@ router.get('/:division', isAuthenticated, async (req: Request, res: Response, ne
 
 router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const { id: tournamentId } = enterTournamentParamsSchema.parse(req.params);
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);

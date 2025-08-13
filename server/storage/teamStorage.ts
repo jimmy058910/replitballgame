@@ -28,6 +28,7 @@ async function serializeTeamData(team: any): Promise<any> {
   
   if (team.players && team.players.length > 0 && !team.players[0].contract) {
     // Fetch contracts for all players in this team
+    const prisma = await getPrismaClient();
     const playerIds = team.players.map((p: any) => p.id);
     const contracts = await prisma.contract.findMany({
       where: { playerId: { in: playerIds } }
@@ -64,6 +65,8 @@ export class TeamStorage {
     division?: number;
     subdivision?: string;
   }): Promise<Team> {
+    const prisma = await getPrismaClient();
+    
     // First, find the UserProfile by userId to get the correct id for foreign key
     const userProfile = await prisma.userProfile.findUnique({
       where: { userId: teamData.userId }
@@ -139,6 +142,7 @@ export class TeamStorage {
       throw new Error('Team ID is required');
     }
     
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findUnique({
       where: { 
         id: Number(id) 
@@ -164,6 +168,7 @@ export class TeamStorage {
   }
 
   async getAllTeams(): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const teams = await prisma.team.findMany({
       include: {
         finances: true,
@@ -182,6 +187,7 @@ export class TeamStorage {
   }
 
   async getAllTeamsWithBasicInfo(): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const teams = await prisma.team.findMany({
       include: {
         finances: true,
@@ -200,6 +206,7 @@ export class TeamStorage {
   }
 
   async getTeamsInDivision(division: number, subdivision?: string): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const whereClause: any = { division: division };
     if (subdivision) {
       whereClause.subdivision = subdivision;
@@ -229,6 +236,7 @@ export class TeamStorage {
   }
 
   async updateTeam(teamId: number, updateData: any): Promise<any> {
+    const prisma = await getPrismaClient();
     const updatedTeam = await prisma.team.update({
       where: { id: teamId },
       data: updateData,
@@ -249,6 +257,7 @@ export class TeamStorage {
   }
 
   async updateTeamRecord(teamId: number, wins: number, losses: number, points: number): Promise<void> {
+    const prisma = await getPrismaClient();
     await prisma.team.update({
       where: { id: teamId },
       data: { 
@@ -260,6 +269,7 @@ export class TeamStorage {
   }
 
   async createDefaultFinancesForTeam(teamId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     await prisma.teamFinances.create({
       data: {
         teamId,
@@ -354,6 +364,7 @@ export class TeamStorage {
   }
 
   async createDefaultStadiumForTeam(teamId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     await prisma.stadium.create({
       data: {
         teamId,
@@ -368,6 +379,7 @@ export class TeamStorage {
   }
 
   async deleteTeam(teamId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     // Delete related records first
     await prisma.player.deleteMany({ where: { teamId: teamId } });
     await prisma.staff.deleteMany({ where: { teamId: teamId } });
@@ -380,6 +392,7 @@ export class TeamStorage {
 
   // World rankings method with proper BigInt serialization
   async getWorldRankings(): Promise<any> {
+    const prisma = await getPrismaClient();
     const teams = await prisma.team.findMany({
       include: {
         finances: true,
@@ -414,6 +427,7 @@ export class TeamStorage {
 
   // Add missing getTeamsByDivision method
   async getTeamsByDivision(division: number): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const teams = await prisma.team.findMany({
       where: { division: division },
       include: {
