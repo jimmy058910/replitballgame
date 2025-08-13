@@ -28,12 +28,32 @@ export async function setupGoogleAuth(app: Express) {
     // Don't throw - allow server to start even if auth has issues
   }
   // Configure the Google strategy for use by Passport.
+  // Dynamic callback URL configuration for different environments
+  const getCallbackURL = () => {
+    if (process.env.NODE_ENV === 'production') {
+      return 'https://www.realmrivalry.com/api/auth/google/callback';
+    }
+    
+    // For Replit development environment, use the current domain
+    // This is the current Replit domain that needs to be added to Google Console
+    const currentReplitDomain = '84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev';
+    const callbackURL = `https://${currentReplitDomain}/api/auth/google/callback`;
+    
+    console.log('🔍 Development OAuth Configuration:');
+    console.log('   Domain:', currentReplitDomain);
+    console.log('   Callback URL:', callbackURL);
+    console.log('⚠️  This callback URL must be added to Google Console OAuth configuration');
+    
+    return callbackURL;
+  };
+
+  const callbackURL = getCallbackURL();
+  console.log('🔍 Google OAuth Callback URL:', callbackURL);
+
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: process.env.NODE_ENV === 'production' 
-      ? 'https://www.realmrivalry.com/api/auth/google/callback'
-      : '/api/auth/google/callback',
+    callbackURL: callbackURL,
     scope: ['profile', 'email']
   },
   async (accessToken, refreshToken, profile, done) => {
