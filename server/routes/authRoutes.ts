@@ -40,6 +40,40 @@ router.post('/logout', (req, res): void => {
   });
 });
 
+// ✅ DEVELOPMENT LOGIN - For local testing only
+router.get('/dev-login', async (req: Request, res: Response) => {
+  // Only allow in development
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Development login only available in development mode' 
+    });
+  }
+
+  console.log('🔧 DEV: Development login requested');
+  
+  // Create development user in session
+  const devUser = {
+    uid: '44010914',
+    email: 'jimmy058910@gmail.com',
+    displayName: 'Jimmy Dev',
+    firstName: 'Jimmy',
+    lastName: 'Dev',
+    teamId: 'dev-team-001'
+  };
+
+  // Set up session
+  if (req.session) {
+    (req.session as any).user = devUser;
+  }
+
+  res.json({
+    success: true,
+    message: 'Development authentication successful',
+    user: devUser
+  });
+});
+
 // ✅ GET USER STATUS - NO middleware, handle auth check internally
 router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
   try {

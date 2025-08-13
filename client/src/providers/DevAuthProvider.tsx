@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { DevAuthService } from '../lib/devAuth';
+import DevAuthService from '../services/DevAuthService';
 
 interface DevAuthContextType {
   user: any | null;

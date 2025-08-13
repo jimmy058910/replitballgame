@@ -290,6 +290,49 @@ app.get('/api/auth/status', (req, res) => {
   });
 });
 
+// Development authentication endpoints (only in dev mode)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/auth/dev-login', (req, res) => {
+    console.log('🔧 DEV: Development login requested');
+    
+    // Create a mock user session for development
+    const devUser = {
+      uid: 'dev-user-12345',
+      email: 'developer@realmrivalry.com',
+      displayName: 'Development User',
+      teamId: 'dev-team-001'
+    };
+    
+    // In a real app, you'd set up a proper session here
+    req.session = req.session || {};
+    req.session.user = devUser;
+    
+    res.json({
+      success: true,
+      message: 'Development authentication successful',
+      user: devUser
+    });
+  });
+  
+  app.get('/api/auth/user', (req, res) => {
+    console.log('🔧 DEV: Auth status check requested');
+    
+    if (req.session && req.session.user) {
+      res.json({
+        authenticated: true,
+        user: req.session.user
+      });
+    } else {
+      res.json({
+        authenticated: false,
+        user: null
+      });
+    }
+  });
+  
+  console.log('✅ Development auth routes registered at proper location');
+}
+
 // DIVISIONS API - Using established 8-tier system
 app.get('/api/divisions', (req, res) => {
   const divisions = [];
@@ -479,48 +522,7 @@ try {
   console.log('✅ Fallback help route registered at /api/help/manual');
 }
 
-// Mount development auth route for dev environment
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/api/auth/dev-login', (req, res) => {
-    console.log('🔧 DEV: Development login requested');
-    
-    // Create a mock user session for development
-    const devUser = {
-      uid: 'dev-user-12345',
-      email: 'developer@realmrivalry.com',
-      displayName: 'Development User',
-      teamId: 'dev-team-001'
-    };
-    
-    // In a real app, you'd set up a proper session here
-    req.session = req.session || {};
-    req.session.user = devUser;
-    
-    res.json({
-      success: true,
-      message: 'Development authentication successful',
-      user: devUser
-    });
-  });
-  
-  app.get('/api/auth/user', (req, res) => {
-    console.log('🔧 DEV: Auth status check requested');
-    
-    if (req.session && req.session.user) {
-      res.json({
-        authenticated: true,
-        user: req.session.user
-      });
-    } else {
-      res.json({
-        authenticated: false,
-        user: null
-      });
-    }
-  });
-  
-  console.log('✅ Development auth routes registered');
-}
+
 
 // ============================================
 // PHASE 8: WEBSOCKET REAL-TIME FEATURES
