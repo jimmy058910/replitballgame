@@ -1,4 +1,4 @@
-import { prisma } from '../../db.js';
+import { getPrismaClient } from '../../database.js';
 import { Logger } from '../core/logger.js';
 import { NotFoundError } from '../core/errors.js';
 import { UserProfile } from './schemas.js';
@@ -6,6 +6,7 @@ import { UserProfile } from './schemas.js';
 export class AuthService {
   static async getUserProfile(userId: string): Promise<UserProfile> {
     try {
+      const prisma = await getPrismaClient();
       const user = await prisma.userProfile.findUnique({
         where: { userId }
       });
@@ -32,11 +33,12 @@ export class AuthService {
 
   static async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile> {
     try {
+      const prisma = await getPrismaClient();
       const user = await prisma.userProfile.update({
         where: { userId },
         data: {
-          ...(updates.username && { username: updates.username }),
-          ...(updates.avatar && { avatar: updates.avatar })
+          ...(updates.username && { firstName: updates.username }),
+          ...(updates.avatar && { profileImageUrl: updates.avatar })
         }
       });
 
@@ -56,14 +58,8 @@ export class AuthService {
         name: googleProfile.name
       });
 
-      // Test database connection first
-      try {
-        await prisma.$connect();
-        Logger.logInfo('Database connection successful for user creation');
-      } catch (dbError) {
-        Logger.logError('Database connection failed during user creation', dbError as Error);
-        throw new Error('Database connection failed');
-      }
+      const prisma = await getPrismaClient();
+      Logger.logInfo('Database connection successful for user creation');
 
       const existingUser = await prisma.userProfile.findUnique({
         where: { userId: googleProfile.id }
