@@ -11,6 +11,11 @@ router.get('/login', passport.authenticate('google', {
   scope: ['profile', 'email'] 
 }));
 
+// ✅ ALTERNATIVE GOOGLE OAUTH ROUTE - For direct access
+router.get('/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'] 
+}));
+
 // ✅ GOOGLE OAUTH CALLBACK
 router.get('/google/callback', 
   passport.authenticate('google', { failureRedirect: '/login' }),
