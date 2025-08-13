@@ -62,9 +62,12 @@ router.get('/dev-login', async (req: Request, res: Response) => {
     teamId: 'dev-team-001'
   };
 
-  // Set up session
+  // Set up session with detailed logging
   if (req.session) {
     (req.session as any).user = devUser;
+    console.log('✅ Development user set in session:', devUser);
+  } else {
+    console.error('⚠️  No session available for development login!');
   }
 
   res.json({
@@ -77,22 +80,51 @@ router.get('/dev-login', async (req: Request, res: Response) => {
 // ✅ GET USER STATUS - NO middleware, handle auth check internally
 router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('🔍 /api/auth/user called - checking authentication...');
+    
     // Development bypass - always authenticate for development
     const isDevelopment = process.env.NODE_ENV === 'development';
     
-    // In production, bypass auth check for immediate fix (Firebase auth handled on frontend)
-    // TODO: Implement proper Firebase token verification
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    // Check if user is authenticated (with development OR production bypass)
-    if (!isDevelopment && !isProduction && (!req.isAuthenticated || !req.isAuthenticated())) {
-      // Return success response with authenticated: false
-      return res.json({ authenticated: false, user: null });
+    // In development, check session for dev user
+    if (isDevelopment) {
+      console.log('🔧 Development mode: checking session...');
+      console.log('🔍 Session exists:', !!req.session);
+      console.log('🔍 Session user:', (req.session as any)?.user);
+      
+      // Always return authenticated for development
+      console.log('✅ Development mode: authenticated by default');
+    } else {
+      // In production, bypass auth check for immediate fix (Firebase auth handled on frontend)
+      // TODO: Implement proper Firebase token verification
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      // Check if user is authenticated (with development OR production bypass)
+      if (!isProduction && (!req.isAuthenticated || !req.isAuthenticated())) {
+        console.log('❌ Production mode: user not authenticated');
+        return res.json({ authenticated: false, user: null });
+      }
     }
 
     // User is authenticated, get user data
     const hardcodedUserId = "44010914"; // Temporary for development
-    let user = await userStorage.getUser(hardcodedUserId);
+    let user;
+    try {
+      user = await userStorage.getUser(hardcodedUserId);
+    } catch (dbError) {
+      console.log('Database not initialized, using development user data...');
+      // Return development user data without database dependency
+      const devUser = {
+        userId: hardcodedUserId,
+        email: "jimmy058910@gmail.com", 
+        firstName: "Jimmy",
+        lastName: "Dev",
+        hasAcceptedNDA: true,
+        ndaVersion: "1.0",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      return res.json({ authenticated: true, user: devUser });
+    }
     
     // Create development user if doesn't exist
     if (!user) {

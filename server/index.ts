@@ -208,8 +208,8 @@ async function startServer() {
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://cdn.unity3d.com", "https://replit.com"],
           imgSrc: ["'self'", "data:", "https:"],
           fontSrc: ["'self'", "https://fonts.gstatic.com"],
           connectSrc: ["'self'", "wss:", "ws:", "https://api.stripe.com", "https://accounts.google.com"],
@@ -219,7 +219,8 @@ async function startServer() {
           baseUri: ["'self'"],
           formAction: ["'self'"],
           frameAncestors: ["'none'"],
-          upgradeInsecureRequests: []
+          upgradeInsecureRequests: [],
+          workerSrc: ["'self'", "blob:"] // Allow Sentry worker
         },
       },
       hsts: {
@@ -232,13 +233,20 @@ async function startServer() {
       crossOriginEmbedderPolicy: false
     }));
 
-    // Rate limiting for API endpoints
+    // Rate limiting for API endpoints (more lenient in development)
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 500, // Increased from 100 to 500 for development
+      max: process.env.NODE_ENV === 'development' ? 10000 : 500, // Much higher limit for development
       message: 'Too many requests from this IP, please try again later.',
       standardHeaders: true,
       legacyHeaders: false,
+      // Skip auth endpoints in development to prevent login issues
+      skip: (req) => {
+        if (process.env.NODE_ENV === 'development' && req.path.startsWith('/api/auth/')) {
+          return true; // Skip rate limiting for auth endpoints in development
+        }
+        return false;
+      }
     });
     app.use('/api/', limiter);
 
