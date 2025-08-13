@@ -129,6 +129,22 @@ export const isAuthenticated = (req: any, res: any, next: any) => {
     isDevelopment: process.env.NODE_ENV === 'development'
   });
   
+  // In development mode, set up mock user and bypass authentication
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 Development mode: setting up mock authenticated user');
+    req.user = {
+      claims: {
+        sub: "44010914",
+        email: "jimmy058910@gmail.com",
+        name: "Jimmy Dev"
+      },
+      uid: "44010914",
+      email: "jimmy058910@gmail.com"
+    };
+    console.log('✅ Development user authenticated:', req.user.email);
+    return next();
+  }
+  
   if (typeof req.isAuthenticated !== 'function') {
     console.error('❌ req.isAuthenticated is not a function - passport middleware not working');
     return res.status(500).json({ 

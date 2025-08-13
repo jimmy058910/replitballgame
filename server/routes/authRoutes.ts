@@ -109,9 +109,14 @@ router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
     const hardcodedUserId = "44010914"; // Temporary for development
     let user;
     try {
+      // Initialize database connection first
+      const { getPrismaClient } = await import('../database.js');
+      await getPrismaClient(); // This will initialize the database properly
+      console.log('✅ Database connection established for development');
+      
       user = await userStorage.getUser(hardcodedUserId);
     } catch (dbError) {
-      console.log('Database not initialized, using development user data...');
+      console.log('Database connection failed, using development user data...', dbError.message);
       // Return development user data without database dependency
       const devUser = {
         userId: hardcodedUserId,
