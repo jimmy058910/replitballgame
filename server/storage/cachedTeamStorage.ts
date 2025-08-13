@@ -6,7 +6,7 @@
 import { storage } from './index.js';
 import { memoryCache } from '../utils/memoryCache';
 import type { Team } from "@prisma/client";
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 
 export class CachedTeamStorage {
   // Cache TTL configurations

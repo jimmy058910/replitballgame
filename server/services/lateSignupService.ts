@@ -1,4 +1,4 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { Race, PlayerRole } from "@prisma/client";

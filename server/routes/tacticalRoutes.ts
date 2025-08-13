@@ -9,7 +9,7 @@ import {
   getFieldSizeInfo,
   getTacticalFocusInfo 
 } from "../../shared/tacticalSystem.js";
-import { prisma } from '../db.js';
+import { getPrismaClient } from '../db.js';
 import { SeasonalFlowService } from '../services/seasonalFlowService.js';
 import { CamaraderieService } from '../services/camaraderieService.js';
 

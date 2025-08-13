@@ -1,4 +1,4 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 import { PrismaClient, Notification, NotificationType } from "@prisma/client";
 
 

@@ -1,4 +1,4 @@
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 import { nanoid } from "nanoid";
 import type { 
   Prisma

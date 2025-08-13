@@ -1,4 +1,4 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 import { SeasonalFlowService } from './seasonalFlowService.js';
 import { DailyPlayerProgressionService } from './dailyPlayerProgressionService.js';
 import { AgingService } from './agingService.js';

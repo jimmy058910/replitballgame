@@ -1,4 +1,4 @@
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 import type { Player } from "@prisma/client";
 
 export interface AgingResult {

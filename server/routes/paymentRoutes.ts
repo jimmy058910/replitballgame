@@ -1,7 +1,7 @@
 import express, { Router, type Request, type Response, type NextFunction } from "express";
 import Stripe from "stripe";
 import { storage } from '../storage/index.js'; // Adjusted path
-import { prisma } from '../db.js'; // Add Prisma import
+import { getPrismaClient } from '../db.js'; // Add Prisma import
 import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
 import { z } from "zod"; // For validation
 

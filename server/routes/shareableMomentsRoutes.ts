@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from '../storage/index.js';
 import { isAuthenticated } from '../googleAuth.js';
-import { prisma } from '../db.js';
+import { getPrismaClient } from '../db.js';
 
 const router = Router();
 

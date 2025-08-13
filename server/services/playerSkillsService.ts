@@ -1,4 +1,4 @@
-import { prisma } from '../db.js';
+import { getPrismaClient } from '../db.js';
 import { getPlayerRole } from '../../shared/playerUtils.js';
 
 export class PlayerSkillsService {

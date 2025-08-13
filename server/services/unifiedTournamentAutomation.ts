@@ -1,4 +1,4 @@
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 // Using any types for Prisma enums to avoid import issues
 
 /**

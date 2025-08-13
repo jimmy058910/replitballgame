@@ -1,4 +1,4 @@
-import { prisma } from '../db.js';
+import { getPrismaClient } from '../db.js';
 import { Player } from "@prisma/client";
 import { ContractService } from './contractService.js';
 

@@ -3,7 +3,7 @@
  * Ensures proper scheduling rules and prevents team conflicts
  */
 
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 
 /**
  * Validate that a team doesn't already have a league game scheduled for the given day

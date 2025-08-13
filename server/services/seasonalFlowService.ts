@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 // Note: Using any types for Prisma enums to avoid import issues
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 import { logInfo } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 

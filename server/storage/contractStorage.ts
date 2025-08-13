@@ -1,5 +1,5 @@
 import { Contract } from "@prisma/client";
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 
 // MINIMAL STUB: Contract storage simplified to match actual schema
 // Original had 24 compilation errors due to schema mismatch

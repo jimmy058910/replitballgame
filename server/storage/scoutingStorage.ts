@@ -1,4 +1,4 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 import { PrismaClient, Player, Team } from "@prisma/client";
 
 

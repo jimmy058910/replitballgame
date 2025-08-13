@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { prisma } from '../db.js';
+import { getPrismaClient } from '../database.js';
 import { isAuthenticated } from '../googleAuth.js';
 import { storage } from '../storage/index.js';
 

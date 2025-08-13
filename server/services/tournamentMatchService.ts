@@ -1,4 +1,4 @@
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 import { randomUUID } from "crypto";
 
 interface TournamentMatch {

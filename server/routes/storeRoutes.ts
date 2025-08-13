@@ -4,7 +4,7 @@ import { storage } from '../storage/index.js';
 import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 // import { adSystemStorage } from '../storage/adSystemStorage.js';
 import { consumableStorage } from '../storage/consumableStorage.js';
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 // import { itemStorage } from '../storage/itemStorage.js'; // For fetching actual item details
 import { isAuthenticated } from "../googleAuth.js";
 import { z } from "zod";

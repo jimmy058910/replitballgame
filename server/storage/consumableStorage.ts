@@ -1,4 +1,4 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 import { PrismaClient, InventoryItem } from "@prisma/client";
 
 // Note: MatchConsumable type not yet in schema, using any for now

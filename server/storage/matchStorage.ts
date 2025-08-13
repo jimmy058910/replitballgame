@@ -1,4 +1,4 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../db';
 import { PrismaClient, Game } from "@prisma/client";
 
 export class MatchStorage {

@@ -1,4 +1,4 @@
-import { prisma } from "../db.js";
+import { getPrismaClient } from "../database.js";
 console.log("🔍 DEBUG: prisma object:", typeof prisma, !!prisma);
 import type { Game, Player, Stadium, Team } from "@prisma/client";
 import { commentaryService } from "./commentaryService.js";
