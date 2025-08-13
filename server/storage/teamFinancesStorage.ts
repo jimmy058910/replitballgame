@@ -1,10 +1,11 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../database.js';
 import { PrismaClient, TeamFinances } from "@prisma/client";
 
 
 
 export class TeamFinancesStorage {
   async getTeamFinances(teamId: number): Promise<any> {
+    const prisma = await getPrismaClient();
     const finances = await prisma.teamFinances.findFirst({
       where: { teamId },
       include: {
@@ -41,6 +42,7 @@ export class TeamFinancesStorage {
     lastSeasonExpenses?: bigint;
     facilitiesMaintenanceCost?: bigint;
   }): Promise<any> {
+    const prisma = await getPrismaClient();
     const newFinances = await prisma.teamFinances.create({
       data: {
         teamId: financesData.teamId,
@@ -133,6 +135,7 @@ export class TeamFinancesStorage {
 
       // Convert string credits back to BigInt for proper addition
       const currentCredits = BigInt(existingFinances.credits.toString());
+      const prisma = await getPrismaClient();
       const updatedFinances = await prisma.teamFinances.update({
         where: { id: existingFinances.id },
         data: {
@@ -164,6 +167,7 @@ export class TeamFinancesStorage {
         return null;
       }
 
+      const prisma = await getPrismaClient();
       const updatedFinances = await prisma.teamFinances.update({
         where: { id: existingFinances.id },
         data: {
@@ -188,6 +192,7 @@ export class TeamFinancesStorage {
         return null;
       }
 
+      const prisma = await getPrismaClient();
       const updatedFinances = await prisma.teamFinances.update({
         where: { id: existingFinances.id },
         data: {
@@ -211,6 +216,7 @@ export class TeamFinancesStorage {
   async recalculateAndSaveStaffSalaries(teamId: number): Promise<void> {
     try {
       // Get all active staff members for the team
+      const prisma = await getPrismaClient();
       const staffMembers = await prisma.staff.findMany({
         where: { teamId: teamId }
       });

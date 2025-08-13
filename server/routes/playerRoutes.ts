@@ -4,7 +4,7 @@ import { storage } from '../storage/index.js'; // Updated import
 import { isAuthenticated } from "../googleAuth.js";
 import { z } from "zod";
 import { ContractService } from '../services/contractService.js';
-import { prisma } from '../storage/index.js';
+import { getPrismaClient } from '../storage/index.js';
 
 const router = Router();
 
@@ -74,6 +74,7 @@ router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: R
     }
 
     // Get current contract to determine salary
+    const prisma = await getPrismaClient();
     const currentContract = await prisma.contract.findFirst({
       where: { playerId: parseInt(playerId) }
     });
@@ -168,6 +169,7 @@ router.get('/:playerId/contract-negotiation-data', isAuthenticated, async (req: 
     }
 
     // Get current contract info
+    const prisma = await getPrismaClient();
     const currentContract = await prisma.contract.findFirst({
       where: { playerId: parseInt(playerId) }
     });

@@ -1,7 +1,7 @@
 // This file aggregates all domain-specific storage services.
 // Other parts of the application can import this single 'storage' object.
 
-import { prisma } from '../db';
+import { getPrismaClient } from '../database.js';
 import { userStorage, UserStorage } from './userStorage.js';
 import { teamStorage, TeamStorage } from './teamStorage.js';
 import { playerStorage, PlayerStorage } from './playerStorage.js';
@@ -101,8 +101,8 @@ export const storage: IAppStorage = {
 // const user = await storage.users.getUser('some-id');
 // const team = await storage.teams.createTeam(...);
 
-// Export prisma for direct database access when needed
-export { prisma };
+// Export getPrismaClient for direct database access when needed
+export { getPrismaClient };
 
 // This structure means the old server/storage.ts can eventually be deleted or
 // be refactored to just re-export this `storage` object if a transition period is needed.

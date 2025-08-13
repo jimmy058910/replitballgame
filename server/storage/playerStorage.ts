@@ -1,10 +1,11 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../database.js';
 import { PrismaClient, Player, Race, PlayerRole, InjuryStatus } from "@prisma/client";
 
 
 
 export class PlayerStorage {
   async getAllPlayersWithStats(): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const players = await prisma.player.findMany({
       include: {
         team: {
@@ -44,6 +45,7 @@ export class PlayerStorage {
     camaraderieScore?: number;
     [key: string]: any; // Allow additional fields
   }): Promise<Player> {
+    const prisma = await getPrismaClient();
     const newPlayer = await prisma.player.create({
       data: {
         teamId: playerData.teamId,
@@ -70,6 +72,7 @@ export class PlayerStorage {
   }
 
   async getPlayerById(id: number): Promise<Player | null> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findUnique({
       where: { id: parseInt(id.toString()) },
       include: {
@@ -84,6 +87,7 @@ export class PlayerStorage {
 
   async getPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Get main roster players (contracted players) - excludes taxi squad
+    const prisma = await getPrismaClient();
     const mainRosterPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
@@ -112,6 +116,7 @@ export class PlayerStorage {
   async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Taxi squad players are specifically recruited players without contracts
     // They are in evaluation period until Day 16/17 for promotion decision
+    const prisma = await getPrismaClient();
     const taxiSquadPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
@@ -135,6 +140,7 @@ export class PlayerStorage {
 
   async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Fetches all players associated with a team, including those on marketplace
+    const prisma = await getPrismaClient();
     return await prisma.player.findMany({
       where: { teamId: parseInt(teamId.toString()) },
       include: {
@@ -149,6 +155,7 @@ export class PlayerStorage {
 
   async updatePlayer(id: number, updates: Partial<Player>): Promise<Player | null> {
     try {
+      const prisma = await getPrismaClient();
       const updatedPlayer = await prisma.player.update({
         where: { id },
         data: updates,
@@ -167,6 +174,7 @@ export class PlayerStorage {
 
   async deletePlayer(id: number): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.player.delete({
         where: { id }
       });
@@ -178,6 +186,7 @@ export class PlayerStorage {
   }
 
   async getMarketplacePlayers(): Promise<Player[]> {
+    const prisma = await getPrismaClient();
     return await prisma.player.findMany({
       where: { isOnMarket: true },
       include: {
@@ -198,6 +207,7 @@ export class PlayerStorage {
     // Promotes a taxi squad player to MAIN ROSTER
     // CRITICAL: Never moves main roster players to taxi squad - taxi squad is for recruited players only
     try {
+      const prisma = await getPrismaClient();
       const player = await prisma.player.findUnique({
         where: { id: parseInt(playerId.toString()) }
       });
@@ -263,6 +273,7 @@ export class PlayerStorage {
 
   async releasePlayerFromTaxiSquad(playerId: number): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.player.delete({
         where: { id: playerId }
       });
@@ -275,6 +286,7 @@ export class PlayerStorage {
 
   async releasePlayerFromMainRoster(playerId: number): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.player.delete({
         where: { id: playerId }
       });
@@ -290,6 +302,7 @@ export class PlayerStorage {
     reason?: string;
     releaseFee?: number;
   }> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findUnique({
       where: { id: playerId },
       include: {

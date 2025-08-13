@@ -1,4 +1,4 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../database.js';
 import { PrismaClient, UserProfile } from "@prisma/client";
 
 // This interface defines the data structure expected from replitAuth.ts
@@ -20,6 +20,7 @@ export class UserStorage {
       return null;
     }
     
+    const prisma = await getPrismaClient();
     return prisma.userProfile.findUnique({
       where: { userId: userId },
     });
@@ -27,6 +28,7 @@ export class UserStorage {
 
   async acceptNDA(userId: string, ndaVersion: string = "1.0"): Promise<UserProfile> {
     // Records NDA acceptance for a user
+    const prisma = await getPrismaClient();
     return prisma.userProfile.update({
       where: { userId: userId },
       data: {
@@ -39,6 +41,7 @@ export class UserStorage {
 
   async checkNDAAcceptance(userId: string): Promise<boolean> {
     // Checks if a user has accepted the NDA
+    const prisma = await getPrismaClient();
     const user = await prisma.userProfile.findUnique({
       where: { userId: userId },
       select: { ndaAccepted: true },
@@ -50,6 +53,7 @@ export class UserStorage {
   async getUserByEmail(email: string): Promise<UserProfile | null> {
     if (!email) return null;
     // Fetches a user profile by their email, assuming email is unique as per schema
+    const prisma = await getPrismaClient();
     return prisma.userProfile.findUnique({
       where: { email: email },
     });
@@ -81,6 +85,7 @@ export class UserStorage {
     if (userData.lastName !== undefined) updateData.lastName = userData.lastName;
     if (userData.profileImageUrl !== undefined) updateData.profileImageUrl = userData.profileImageUrl;
 
+    const prisma = await getPrismaClient();
     return prisma.userProfile.upsert({
       where: { userId: userData.userId }, // Use the unique Replit userId for lookup
       update: updateData,
@@ -91,6 +96,7 @@ export class UserStorage {
   async updateUserReferralCode(userId: string, referralCode: string): Promise<UserProfile | null> {
     // Updates a user's referral code
     try {
+      const prisma = await getPrismaClient();
       return await prisma.userProfile.update({
         where: { userId: userId },
         data: { referralCode: referralCode },

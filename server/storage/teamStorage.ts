@@ -1,4 +1,4 @@
-import { prisma } from '../db';
+import { getPrismaClient } from '../database.js';
 import { PrismaClient, Team, Race } from "@prisma/client";
 
 // Helper function to serialize BigInt fields to strings for JSON compatibility
@@ -107,6 +107,7 @@ export class TeamStorage {
       return null;
     }
     
+    const prisma = await getPrismaClient();
     const userProfile = await prisma.userProfile.findUnique({
       where: { userId: userId }
     });
