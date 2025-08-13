@@ -28,7 +28,23 @@ RUN npm ci --include=dev --no-audit --prefer-offline
 # Copy source code
 COPY . .
 
-# Build frontend for production
+# Accept Firebase configuration as build arguments
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_APP_ID
+
+# Set Firebase environment variables for build
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
+ENV VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID
+ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
+
+# Debug: Show Firebase configuration status
+RUN echo "🔥 Firebase Build Config Check:" && \
+    echo "   API Key exists: $(if [ -n "$VITE_FIREBASE_API_KEY" ]; then echo "YES"; else echo "NO"; fi)" && \
+    echo "   Project ID: $VITE_FIREBASE_PROJECT_ID" && \
+    echo "   App ID exists: $(if [ -n "$VITE_FIREBASE_APP_ID" ]; then echo "YES"; else echo "NO"; fi)"
+
+# Build frontend for production with Firebase configuration
 RUN npm run build
 
 # ===================================

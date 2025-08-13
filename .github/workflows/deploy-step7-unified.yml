@@ -63,9 +63,13 @@ jobs:
             exit 1
           fi
           
-          # Build multi-stage Docker image with consistent tags
+          # Build multi-stage Docker image with Firebase environment variables
+          echo "🔥 Building with Firebase configuration..."
           docker build \
             -f Dockerfile.step7-unified \
+            --build-arg VITE_FIREBASE_API_KEY="${{ secrets.VITE_FIREBASE_API_KEY }}" \
+            --build-arg VITE_FIREBASE_PROJECT_ID="${{ secrets.VITE_FIREBASE_PROJECT_ID }}" \
+            --build-arg VITE_FIREBASE_APP_ID="${{ secrets.VITE_FIREBASE_APP_ID }}" \
             -t ${{ env.IMAGE_NAME }}:latest \
             -t ${{ env.IMAGE_NAME }}:${BUILD_TIMESTAMP} \
             .

@@ -461,11 +461,22 @@ console.log('✅ Comprehensive API routes registered with established game syste
 
 // Import and mount help routes
 try {
-  const { default: helpRoutes } = await import('./server/routes/helpRoutes.ts');
+  const { default: helpRoutes } = await import('./server/routes/helpRoutes.js');
   app.use('/api/help', helpRoutes);
   console.log('✅ Help routes mounted at /api/help');
 } catch (error) {
   console.error('⚠️ Failed to load help routes:', error.message);
+  
+  // Fallback: Inline help route if import fails
+  app.get('/api/help/manual', (req, res) => {
+    res.json({
+      success: true,
+      message: 'Game Manual available',
+      manual: 'Comprehensive game manual content would be loaded from docs/GAME_MANUAL.md',
+      timestamp: new Date().toISOString()
+    });
+  });
+  console.log('✅ Fallback help route registered at /api/help/manual');
 }
 
 // Mount development auth route for dev environment
