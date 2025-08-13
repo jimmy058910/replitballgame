@@ -20,6 +20,83 @@ router.get('/google/callback',
   }
 );
 
+// ✅ AUTHENTICATION STATUS ENDPOINT - For client-side auth check
+router.get('/status', async (req: Request, res: Response) => {
+  try {
+    console.log('🔍 /api/auth/status called - checking authentication...');
+    
+    // Check if user is authenticated via Passport session
+    const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
+    console.log('🔍 Passport isAuthenticated:', isAuthenticated);
+    console.log('🔍 Session user:', (req as any).user);
+    
+    if (!isAuthenticated || !(req as any).user) {
+      console.log('❌ User not authenticated');
+      return res.json({ 
+        isAuthenticated: false, 
+        user: null 
+      });
+    }
+    
+    // User is authenticated, get user profile from database
+    const userId = (req as any).user.claims?.sub || (req as any).user.id;
+    console.log('✅ User authenticated, userId:', userId);
+    
+    try {
+      const { getPrismaClient } = await import('../database.js');
+      const prisma = await getPrismaClient();
+      
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId: userId }
+      });
+      
+      if (userProfile) {
+        console.log('✅ User profile found:', userProfile.email);
+        return res.json({
+          isAuthenticated: true,
+          user: {
+            id: userProfile.userId,
+            email: userProfile.email,
+            firstName: userProfile.firstName,
+            lastName: userProfile.lastName,
+            displayName: `${userProfile.firstName} ${userProfile.lastName}`,
+            profileImageUrl: userProfile.profileImageUrl,
+            createdAt: userProfile.createdAt
+          }
+        });
+      } else {
+        console.log('⚠️ User authenticated but no profile found');
+        return res.json({
+          isAuthenticated: true,
+          user: {
+            id: userId,
+            email: (req as any).user.email || 'unknown@example.com',
+            firstName: 'Unknown',
+            lastName: 'User'
+          }
+        });
+      }
+    } catch (dbError: any) {
+      console.error('Database error in /status:', dbError);
+      return res.json({
+        isAuthenticated: true,
+        user: {
+          id: userId,
+          email: (req as any).user.email || 'unknown@example.com',
+          firstName: 'Unknown', 
+          lastName: 'User'
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error('Error in /api/auth/status:', error);
+    return res.json({ 
+      isAuthenticated: false, 
+      user: null 
+    });
+  }
+});
+
 // ✅ LOGOUT ENDPOINT
 router.post('/logout', (req, res): void => {
   req.logout((err) => {
