@@ -222,29 +222,7 @@ router.post('/promote-to-admin', requireAuth, async (req: any, res: Response, ne
   }
 });
 
-// Development bypass endpoint for testing
-router.get("/dev-login", async (req: any, res) => {
-  try {
-    // Create session for development user
-    const hardcodedUserId = "44010914";
-    
-    // Mock passport user structure
-    req.user = {
-      userId: hardcodedUserId,
-      claims: { sub: hardcodedUserId },
-      email: "jimmy058910@gmail.com"
-    };
-    
-    // Set session as authenticated
-    req.session.passport = { user: req.user };
-    
-    console.log('✅ Development login completed for user:', hardcodedUserId);
-    res.json({ success: true, message: "Development login successful", user: req.user });
-  } catch (error) {
-    console.error('Dev login error:', error);
-    res.status(500).json({ error: "Development login failed" });
-  }
-});
+// Duplicate dev-login route removed - using the first implementation above
 
 // ✅ LOGOUT 
 router.get('/logout', (req: any, res: Response, next: NextFunction) => {
