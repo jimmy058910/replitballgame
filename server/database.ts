@@ -58,16 +58,21 @@ function getDatabaseUrl(): string {
       
       const [, username, password, database, project, region, instance] = match;
       
-      // Use appropriate public IP based on instance
+      // For development, connect directly to Cloud SQL public IP with SSL
+      console.log('🔧 Development: Direct Cloud SQL connection with SSL...');
+      
+      // Get the public IP for the Cloud SQL instance
       const publicIP = instance === 'realm-rivalry-prod' ? '34.171.83.78' : '35.225.150.44';
-      const devTcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require`;
+      
+      // Use SSL connection to Cloud SQL public endpoint for development
+      const devTcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require&sslcert=/dev/null&sslkey=/dev/null&sslrootcert=/dev/null`;
       
       console.log('⚠️  DEVELOPMENT DATABASE CONNECTION:', {
-        message: 'Using TCP connection to Cloud SQL public IP for development',
+        message: 'Direct connection to Cloud SQL public IP for development',
         instance: `${project}:${region}:${instance}`,
         publicIP: publicIP,
-        connectionType: 'TCP with SSL',
-        note: 'Replit cannot access Cloud SQL socket paths directly'
+        connectionType: 'Direct TCP with SSL',
+        note: 'Development connects directly to Cloud SQL public IP'
       });
       
       return devTcpUrl;

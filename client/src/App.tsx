@@ -4,9 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/providers/AuthProvider";
-import { useDevAuth } from "@/providers/DevAuthProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
-import { DevAuthProvider } from "@/providers/DevAuthProvider";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import SuperUser from "@/pages/SuperUser";
@@ -49,9 +47,8 @@ const LazyTacticsPage = lazy(() => import("@/pages/TacticsPage").catch(() => ({ 
 function Router() {
   const isDevelopment = import.meta.env.DEV;
   
-  // Use only the appropriate auth hook based on environment
-  const auth = isDevelopment ? useDevAuth() : useAuth();
-  const { isAuthenticated, isLoading } = auth;
+  // Use Firebase Authentication for both development and production
+  const { isAuthenticated, isLoading } = useAuth();
 
   // Debug authentication state
   console.log('🔍 Router - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading, 'environment:', isDevelopment ? 'development' : 'production');
@@ -129,18 +126,9 @@ function Router() {
 }
 
 function App() {
-  // Use DevAuthProvider for development to bypass Firebase authentication
-  const isDevelopment = import.meta.env.DEV;
-  
-  const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
-    if (isDevelopment) {
-      return <DevAuthProvider>{children}</DevAuthProvider>;
-    }
-    return <AuthProvider>{children}</AuthProvider>;
-  };
-
+  // Use Firebase Authentication for both development and production
   return (
-    <AuthWrapper>
+    <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ErrorBoundary level="critical">
@@ -155,7 +143,7 @@ function App() {
           </ErrorBoundary>
         </TooltipProvider>
       </QueryClientProvider>
-    </AuthWrapper>
+    </AuthProvider>
   );
 }
 
