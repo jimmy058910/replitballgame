@@ -30,17 +30,10 @@ function getDatabaseUrl(): string {
     console.log('✅ Production: Using Cloud SQL configuration');
     return rawUrl;
   } else {
-    console.log('✅ Development: Using Replit PostgreSQL database');
-    // For development on Replit, construct URL from individual components
-    const replitUrl = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
-    console.log('🔄 Development: Using Replit local PostgreSQL');
-    console.log('🔍 Connection details:', {
-      host: process.env.PGHOST,
-      port: process.env.PGPORT,
-      database: process.env.PGDATABASE,
-      user: process.env.PGUSER
-    });
-    return replitUrl;
+    console.log('✅ Development: Using Cloud SQL development instance');
+    // DEVELOPMENT: Use proper Cloud SQL dev instance after IP authorization
+    // This restores the intended dev/prod separation architecture
+    return rawUrl;
   }
 }
 
