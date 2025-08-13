@@ -10,89 +10,37 @@ import { PrismaClient } from '@prisma/client';
  * even if external dependencies (like database) are temporarily unavailable.
  */
 
-// Cloud SQL connection management with development/production split
+// Unified database connection management
 function getDatabaseUrl(): string {
   const nodeEnv = process.env.NODE_ENV || 'development';
-  
-  console.log('🔍 DATABASE URL CONVERSION DEBUG:', {
-    NODE_ENV: process.env.NODE_ENV,
-    resolvedNodeEnv: nodeEnv,
-    isProduction: nodeEnv === 'production',
-    isDevelopment: nodeEnv === 'development'
-  });
-  
-  console.log('🔍 CLOUD SQL CONNECTION DEBUG:', {
-    NODE_ENV: nodeEnv,
-    DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
-    DATABASE_URL_LENGTH: process.env.DATABASE_URL?.length || 0,
-    DATABASE_RELATED_VARS: Object.keys(process.env).filter(key => key.includes('DATABASE'))
-  });
-  
   const rawUrl = process.env.DATABASE_URL;
+  
+  console.log('🔍 DATABASE CONNECTION DEBUG:', {
+    NODE_ENV: nodeEnv,
+    DATABASE_URL_EXISTS: !!rawUrl,
+    environment: nodeEnv === 'production' ? 'PRODUCTION' : 'DEVELOPMENT'
+  });
+  
   if (!rawUrl) {
-    console.error('❌ DATABASE URL MISSING:', {
-      nodeEnv: nodeEnv,
-      availableDbVars: Object.keys(process.env).filter(key => key.includes('DATABASE')),
-      troubleshooting: 'Check Secret Manager or environment configuration'
-    });
-    throw new Error(`DATABASE_URL not configured. Available DB vars: ${Object.keys(process.env).filter(key => key.includes('DATABASE')).join(', ')}`);
+    const availableDbVars = Object.keys(process.env).filter(key => key.includes('DATABASE'));
+    throw new Error(`DATABASE_URL not configured. Available DB vars: ${availableDbVars.join(', ')}`);
   }
 
   if (nodeEnv === 'production') {
-    // Production: Use Cloud SQL socket path for native Cloud Run integration
-    console.log('✅ Production: Using Cloud SQL socket connection for Cloud Run');
-    
-    // Ensure production uses realm-rivalry-prod instance
-    if (rawUrl.includes('realm-rivalry-dev')) {
-      console.log('🔄 Production: Converting dev instance to prod instance...');
-      const prodUrl = rawUrl.replace('realm-rivalry-dev', 'realm-rivalry-prod');
-      console.log('✅ Production database URL updated to use realm-rivalry-prod instance');
-      return prodUrl;
-    }
-    
+    console.log('✅ Production: Using Cloud SQL configuration');
     return rawUrl;
   } else {
-    // Development: Convert socket path to TCP connection for Replit environment
-    if (rawUrl.includes('/cloudsql/')) {
-      console.log('🔄 Development: Converting Cloud SQL socket to TCP connection...');
-      console.log('🔍 Raw URL for parsing:', rawUrl);
-      
-      // Extract database details from socket URL
-      const match = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@localhost\/([^?]+)\?host=\/cloudsql\/([^:]+):([^:]+):([^&]+)/);
-      console.log('🔍 Regex match result:', match ? 'SUCCESS' : 'FAILED');
-      
-      if (!match) {
-        console.error('❌ Unable to parse Cloud SQL socket URL format');
-        console.error('❌ Expected format: postgresql://user:pass@localhost/db?host=/cloudsql/project:region:instance');
-        console.error('❌ Actual URL:', rawUrl);
-        throw new Error('Invalid Cloud SQL URL format for development conversion');
-      }
-      
-      const [, username, password, database, project, region, instance] = match;
-      
-      // For development, connect directly to Cloud SQL public IP with SSL
-      console.log('🔧 Development: Direct Cloud SQL connection with SSL...');
-      
-      // Get the public IP for the Cloud SQL instance
-      const publicIP = instance === 'realm-rivalry-prod' ? '34.171.83.78' : '35.225.150.44';
-      
-      // Use SSL connection to Cloud SQL public endpoint for development
-      // For development, use SSL without client certificates (Cloud SQL supports this)
-      const devTcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require`;
-      
-      console.log('⚠️  DEVELOPMENT DATABASE CONNECTION:', {
-        message: 'Direct connection to Cloud SQL public IP for development',
-        instance: `${project}:${region}:${instance}`,
-        publicIP: publicIP,
-        connectionType: 'Direct TCP with SSL',
-        note: 'Development connects directly to Cloud SQL public IP'
-      });
-      
-      return devTcpUrl;
-    } else {
-      console.log('✅ Development: Using provided TCP connection');
-      return rawUrl;
-    }
+    console.log('✅ Development: Using Replit PostgreSQL database');
+    // For development on Replit, construct URL from individual components
+    const replitUrl = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
+    console.log('🔄 Development: Using Replit local PostgreSQL');
+    console.log('🔍 Connection details:', {
+      host: process.env.PGHOST,
+      port: process.env.PGPORT,
+      database: process.env.PGDATABASE,
+      user: process.env.PGUSER
+    });
+    return replitUrl;
   }
 }
 
