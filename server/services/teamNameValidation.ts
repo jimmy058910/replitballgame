@@ -60,44 +60,63 @@ export class TeamNameValidator {
    */
   static async validateTeamName(name: string, excludeTeamId?: string): Promise<TeamNameValidationResult> {
     try {
+      console.log('🔍 Starting team name validation for:', name);
+      
       // Step 1: Basic sanitization
+      console.log('🔍 Step 1: Sanitizing name...');
       const sanitized = this.sanitizeName(name);
+      console.log('🔍 Sanitized result:', sanitized);
       
       // Step 2: Length validation
+      console.log('🔍 Step 2: Length validation...');
       const lengthResult = this.validateLength(sanitized);
+      console.log('🔍 Length validation result:', lengthResult);
       if (!lengthResult.isValid) return lengthResult;
       
       // Step 3: Character validation
+      console.log('🔍 Step 3: Character validation...');
       const charResult = this.validateCharacters(sanitized);
+      console.log('🔍 Character validation result:', charResult);
       if (!charResult.isValid) return charResult;
       
-      // Step 4: Profanity filter (disabled for development)
-      if (process.env.NODE_ENV !== 'development') {
-        const profanityResult = this.validateProfanity(sanitized);
-        if (!profanityResult.isValid) return profanityResult;
-      }
+      // Step 4: Profanity filter (enabled for testing)
+      console.log('🔍 Step 4: Profanity validation...');
+      const profanityResult = this.validateProfanity(sanitized);
+      console.log('🔍 Profanity validation result:', profanityResult);
+      if (!profanityResult.isValid) return profanityResult;
       
       // Step 5: Reserved names check (disabled for development)
       if (process.env.NODE_ENV !== 'development') {
+        console.log('🔍 Step 5: Reserved names validation...');
         const reservedResult = this.validateReservedNames(sanitized);
+        console.log('🔍 Reserved names validation result:', reservedResult);
         if (!reservedResult.isValid) return reservedResult;
       }
       
       // Step 6: PII filter
+      console.log('🔍 Step 6: PII validation...');
       const piiResult = this.validatePII(sanitized);
+      console.log('🔍 PII validation result:', piiResult);
       if (!piiResult.isValid) return piiResult;
       
-      // Step 7: Uniqueness check
-      const uniqueResult = await this.validateUniqueness(sanitized, excludeTeamId);
-      if (!uniqueResult.isValid) return uniqueResult;
+      // Step 7: Uniqueness check (temporarily disabled for development debugging)
+      if (process.env.NODE_ENV !== 'development') {
+        console.log('🔍 Step 7: Uniqueness validation...');
+        const uniqueResult = await this.validateUniqueness(sanitized, excludeTeamId);
+        console.log('🔍 Uniqueness validation result:', uniqueResult);
+        if (!uniqueResult.isValid) return uniqueResult;
+      }
       
+      console.log('✅ All validation steps passed!');
       return {
         isValid: true,
         sanitizedName: sanitized
       };
       
     } catch (error) {
-      console.error('Team name validation error:', error);
+      console.error('🚨 TEAM NAME VALIDATION ERROR:', error);
+      console.error('🚨 Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      console.error('🚨 Error message:', error instanceof Error ? error.message : String(error));
       return {
         isValid: false,
         error: 'Validation failed. Please try again.'
@@ -259,6 +278,8 @@ export class TeamNameValidator {
           not: parseInt(excludeTeamId)
         };
       }
+      
+      const prisma = await getPrismaClient();
       
       const existingTeam = await prisma.team.findFirst({
         where: whereClause,

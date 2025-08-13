@@ -86,11 +86,62 @@ export class UserStorage {
     if (userData.profileImageUrl !== undefined) updateData.profileImageUrl = userData.profileImageUrl;
 
     const prisma = await getPrismaClient();
-    return prisma.userProfile.upsert({
-      where: { userId: userData.userId }, // Use the unique Replit userId for lookup
-      update: updateData,
-      create: createData,
+    
+    // Add detailed logging for debugging
+    console.log('🔍 UpsertUser Debug:', {
+      userId: userData.userId,
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName
     });
+    
+    // Check if user already exists by userId OR email
+    const existingUserByUserId = await prisma.userProfile.findUnique({
+      where: { userId: userData.userId }
+    });
+    console.log('🔍 Existing user by userId:', existingUserByUserId ? 'FOUND' : 'NOT FOUND');
+    
+    const existingUserByEmail = userData.email ? await prisma.userProfile.findUnique({
+      where: { email: userData.email }
+    }) : null;
+    console.log('🔍 Existing user by email:', existingUserByEmail ? 'FOUND' : 'NOT FOUND');
+    
+    // If user exists by userId, update them
+    if (existingUserByUserId) {
+      console.log('✅ Updating existing user by userId');
+      return prisma.userProfile.update({
+        where: { userId: userData.userId },
+        data: updateData
+      });
+    }
+    
+    // If user exists by email but different userId, this is a conflict
+    if (existingUserByEmail && existingUserByEmail.userId !== userData.userId) {
+      console.warn(`⚠️ Email ${userData.email} already exists for different userId: ${existingUserByEmail.userId}`);
+      // For now, update the existing record with new userId to resolve conflict
+      console.log('✅ Resolving email conflict by updating existing record');
+      return prisma.userProfile.update({
+        where: { email: userData.email },
+        data: {
+          userId: userData.userId,
+          ...updateData
+        }
+      });
+    }
+    
+    // Create new user (no conflicts)
+    console.log('✅ Creating new user - no conflicts detected');
+    return prisma.userProfile.create({
+      data: {
+        userId: userData.userId,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        profileImageUrl: userData.profileImageUrl
+      }
+    });
+    
+    /* OLD UPSERT CODE - CAUSING CONSTRAINT ISSUES - REMOVED */
   }
 
   async updateUserReferralCode(userId: string, referralCode: string): Promise<UserProfile | null> {

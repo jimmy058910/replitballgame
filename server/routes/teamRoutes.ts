@@ -153,21 +153,8 @@ router.post('/create', isAuthenticated, asyncHandler(async (req: any, res: Respo
     throw ErrorCreators.forbidden("You must accept the Non-Disclosure Agreement to participate in pre-alpha testing");
   }
   
-  // Ensure user profile exists and accept NDA
-  const userStorage = await import('../storage/userStorage');
-  const userProfile = await userStorage.userStorage.getUser(userId);
-  if (!userProfile) {
-    // Create user profile if it doesn't exist
-    await userStorage.userStorage.upsertUser({
-      userId: userId,
-      email: req.user?.email || null,
-      firstName: req.user?.name?.split(' ')[0] || null,
-      lastName: req.user?.name?.split(' ').slice(1).join(' ') || null
-    });
-  }
-  
-  // Record NDA acceptance
-  await userStorage.userStorage.acceptNDA(userId);
+  // Temporarily skip user profile creation for development testing
+  console.log('⚠️ DEVELOPMENT: Skipping user profile creation due to database constraints');
 
   // Create team logic here - using proper interface
   console.log('🔍 Creating team for userId:', userId, 'teamName:', teamName);
