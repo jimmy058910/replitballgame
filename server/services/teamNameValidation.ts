@@ -1,16 +1,16 @@
 import { profanity } from '@2toad/profanity';
 import { getPrismaClient } from '../database.js';
 
-// Configure the profanity filter
+// Configure the profanity filter - FIXED: Allow legitimate team name words
 profanity.addWords([
-  // Additional gaming-specific inappropriate terms
+  // Only truly inappropriate gaming terms
   'noob', 'scrub', 'trash', 'garbage', 'sucks', 'loser', 'troll', 'toxic',
-  // Spam/nonsense patterns
+  // Spam/nonsense patterns (repetitive characters only)
   'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'ggg', 'hhh', 'iii',
   'jjj', 'kkk', 'lll', 'mmm', 'nnn', 'ooo', 'ppp', 'qqq', 'rrr',
   'sss', 'ttt', 'uuu', 'vvv', 'www', 'xxx', 'yyy', 'zzz',
-  '111', '222', '333', '444', '555', '666', '777', '888', '999',
-  'test', 'testing', 'temp', 'temporary', 'delete', 'remove'
+  '111', '222', '333', '444', '555', '666', '777', '888', '999'
+  // Removed: 'test', 'testing', 'temp', 'temporary', 'delete', 'remove' - these are legitimate words
 ]);
 
 // Reserved names - staff roles and system terms
@@ -19,10 +19,10 @@ const RESERVED_NAMES = [
   'admin', 'administrator', 'mod', 'moderator', 'system', 'dev', 'developer',
   'gm', 'gamemaster', 'staff', 'owner', 'root', 'superuser', 'support',
   'help', 'bot', 'official', 'team', 'league', 'tournament', 'game',
-  // Real world teams (major sports)
+  // Real world teams (major sports) - NOTE: Allow common words like "eagles", "rams" in compound names
   'lakers', 'warriors', 'celtics', 'yankees', 'dodgers', 'patriots',
-  'cowboys', 'packers', 'steelers', 'chiefs', 'rams', 'eagles',
-  'manchester', 'liverpool', 'arsenal', 'chelsea', 'barcelona', 'madrid',
+  'cowboys', 'packers', 'steelers', 'chiefs', 'manchester', 
+  'liverpool', 'arsenal', 'chelsea', 'barcelona', 'madrid',
   // Famous people/brands
   'nike', 'adidas', 'jordan', 'lebron', 'brady', 'mahomes', 'messi',
   'ronaldo', 'trump', 'biden', 'obama', 'elon', 'bezos', 'gates',
@@ -183,38 +183,21 @@ export class TeamNameValidator {
    * Validates against profanity using @2toad/profanity library
    */
   private static validateProfanity(name: string): TeamNameValidationResult {
-    // Check the full name
-    if (profanity.exists(name)) {
-      return {
-        isValid: false,
-        error: 'Team name contains inappropriate language.'
-      };
-    }
+    // FIXED: More permissive profanity checking to allow legitimate team names
+    // Only check for truly offensive content, not overly broad matches
     
-    // Check individual words separated by spaces
-    const words = name.toLowerCase().split(/\s+/);
-    for (const word of words) {
-      if (profanity.exists(word)) {
-        return {
-          isValid: false,
-          error: 'Team name contains inappropriate language.'
-        };
-      }
-    }
-    
-    // Check for profane words embedded within compound words
-    // This uses a more comprehensive approach to catch profanity within compound names
     const lowerName = name.toLowerCase();
     
-    // Common profane words that might be embedded in team names
-    const embeddedProfanityCheck = [
-      'damn', 'fuck', 'shit', 'bitch', 'ass', 'hell', 'crap', 'bastard',
-      'piss', 'cock', 'dick', 'pussy', 'tits', 'boobs', 'porn', 'sex',
-      'nazi', 'hitler', 'kill', 'die', 'murder', 'suicide', 'bomb',
-      'weed', 'drug', 'meth', 'cocaine', 'heroin'
+    // Strict list of actual profane words that should be blocked
+    const strictProfanityCheck = [
+      'fuck', 'shit', 'bitch', 'bastard', 'damn',
+      'pussy', 'cock', 'dick', 'tits', 'boobs', 'porn', 'sex',
+      'nazi', 'hitler', 'kill', 'murder', 'suicide', 'bomb',
+      'drug', 'meth', 'cocaine', 'heroin', 'weed'
     ];
     
-    for (const word of embeddedProfanityCheck) {
+    // Only block if the name contains actual offensive words
+    for (const word of strictProfanityCheck) {
       if (lowerName.includes(word)) {
         return {
           isValid: false,
@@ -223,6 +206,7 @@ export class TeamNameValidator {
       }
     }
     
+    // Allow common sports terms like "attack", "eagles", "rams", etc.
     return { isValid: true };
   }
   

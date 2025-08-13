@@ -51,6 +51,7 @@ export class CamaraderieService {
    */
   static async getTeamCamaraderie(teamId: string): Promise<number> {
     try {
+      const prisma = await getPrismaClient();
       // Get all players sorted by creation date to determine roster positions
       const allPlayers = await prisma.player.findMany({
         where: {
@@ -196,6 +197,7 @@ export class CamaraderieService {
   ): Promise<SeasonEndCamaraderieUpdate> {
     
     try {
+      const prisma = await getPrismaClient();
       // Get current player data
       const player = await prisma.player.findFirst({
         where: {

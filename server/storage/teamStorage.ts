@@ -67,13 +67,23 @@ export class TeamStorage {
   }): Promise<Team> {
     const prisma = await getPrismaClient();
     
-    // First, find the UserProfile by userId to get the correct id for foreign key
-    const userProfile = await prisma.userProfile.findUnique({
+    // Find or create UserProfile by userId for foreign key relationship
+    let userProfile = await prisma.userProfile.findUnique({
       where: { userId: teamData.userId }
     });
     
     if (!userProfile) {
-      throw new Error(`UserProfile not found for userId: ${teamData.userId}`);
+      console.log('🔧 Creating new UserProfile for userId:', teamData.userId);
+      // Create a new UserProfile if it doesn't exist
+      userProfile = await prisma.userProfile.create({
+        data: {
+          userId: teamData.userId,
+          ndaAccepted: true, // Since they're creating a team, they've accepted the NDA
+          ndaAcceptedAt: new Date(),
+          ndaVersion: "1.0"
+        }
+      });
+      console.log('✅ UserProfile created with id:', userProfile.id);
     }
     
     const newTeam = await prisma.team.create({

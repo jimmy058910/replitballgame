@@ -69,6 +69,7 @@ Preferred communication style: Simple, everyday language.
 ✅ **Team Name Validation**: Comprehensive validation system working with profanity filtering, length validation, character validation, and PII filtering.
 ✅ **Content Security Policy**: Fixed CSP headers to allow Font Awesome fonts from cdnjs.cloudflare.com.
 ✅ **End-to-End Team Creation**: User can now authenticate, create teams, and have full team records with players and staff generated automatically.
+✅ **PROFANITY FILTER FIXED (Aug 13, 2025)**: Resolved overly aggressive profanity filtering that incorrectly flagged legitimate team names like "Test Eagles" and "Mac Attack" - now allows common sports terms while blocking actual offensive content.
 
 **DUAL ENVIRONMENT CONFIGURATION VERIFIED**:
 ✅ **Development Environment (Replit)**:

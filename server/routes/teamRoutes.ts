@@ -140,11 +140,8 @@ router.post('/create', isAuthenticated, asyncHandler(async (req: any, res: Respo
   }
 
   // Check if user already has a team
-  console.log('🔍 Checking for existing team for userId:', userId);
   const existingTeam = await storage.teams.getTeamByUserId(userId);
-  console.log('🔍 Existing team found:', existingTeam ? 'YES' : 'NO');
   if (existingTeam) {
-    console.log('🔍 Existing team details:', existingTeam);
     throw ErrorCreators.conflict("User already has a team");
   }
 
@@ -152,18 +149,12 @@ router.post('/create', isAuthenticated, asyncHandler(async (req: any, res: Respo
   if (!ndaAgreed) {
     throw ErrorCreators.forbidden("You must accept the Non-Disclosure Agreement to participate in pre-alpha testing");
   }
-  
-  // Temporarily skip user profile creation for development testing
-  console.log('⚠️ DEVELOPMENT: Skipping user profile creation due to database constraints');
 
-  // Create team logic here - using proper interface
-  console.log('🔍 Creating team for userId:', userId, 'teamName:', teamName);
+  // Create team with complete roster and staff
   const newTeam = await storage.teams.createTeam({
     name: teamName,
     userId: userId
   });
-  console.log('🔍 Team created successfully:', newTeam.id);
-  console.log('🔍 Team creation complete with players and staff generated');
 
   res.json({
     success: true,
