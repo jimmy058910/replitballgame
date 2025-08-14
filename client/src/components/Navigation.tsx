@@ -63,16 +63,29 @@ export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, isLoading, login, logout } = useAuth();
 
+  // TEMPORARY: Force query to run to test if API works
   const { data: team, isLoading: teamLoading, error: teamError } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
-    enabled: isAuthenticated && !isLoading, // Wait for auth to complete AND be authenticated
+    enabled: true, // TEMPORARILY bypass auth check to test
     retry: 3,
-    staleTime: 30000, // Keep data fresh for 30 seconds
+    staleTime: 30000,
   });
 
   // Use credits from team.finances data (already included in team response)  
   const credits = parseInt(String(team?.finances?.credits || "0"));
   const premiumCurrency = parseInt(String(team?.finances?.gems || "0"));
+
+  // IMMEDIATE DEBUG - Log exact values
+  console.log("🚨 NAVIGATION DEBUG:", {
+    isAuthenticated,
+    isLoading,
+    teamLoading,
+    hasTeam: !!team,
+    credits,
+    teamFinancesCredits: team?.finances?.credits,
+    teamError: teamError?.message,
+    rawTeam: team
+  });
 
   const { data: storeData } = useQuery<StoreData>({
     queryKey: ["/api/store/ads"],
