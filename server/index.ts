@@ -256,12 +256,12 @@ async function startServer() {
       secret: process.env.SESSION_SECRET || 'default-secret-key',
       resave: false,
       saveUninitialized: false,
-      name: 'realm-rivalry.sid', // Custom session name
+      name: 'connect.sid', // Standard session name - CRITICAL for session persistence
       cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Allow HTTP in development - CRITICAL for Replit
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        sameSite: 'lax' // Less strict for development - CRITICAL for cross-origin
       }
     }));
 

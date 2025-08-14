@@ -38,41 +38,23 @@ if (!admin.apps.length) {
   }
 }
 
+// PASSPORT SESSION AUTH MIDDLEWARE - Works with existing authenticated sessions
 export const requireAuth = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const authHeader = req.headers.authorization;
+    console.log('🔍 requireAuth middleware - checking Passport session...');
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
-
-    const token = authHeader.split(' ')[1];
-    
-    if (!token) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
-
-    try {
-      // Simple token verification without checkRevoked to avoid metadata server calls
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      req.user = {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
-        claims: decodedToken
-      };
-      console.log('🔒 Token verified for user:', decodedToken.email);
+    // Check if user is authenticated via Passport session
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      console.log('✅ Passport session authenticated, allowing request');
+      req.user = req.user; // Ensure user is available
       next();
-    } catch (tokenError: any) {
-      console.error('🔒 Token verification failed:', {
-        error: tokenError.message,
-        code: tokenError.code
-      });
-      
-      res.status(401).json({ error: 'Invalid or expired token' });
       return;
     }
+
+    console.log('❌ No Passport session found, denying request');
+    res.status(401).json({ message: 'Authentication required' });
+    return;
+    
   } catch (error) {
     console.error('🔒 Authentication middleware error:', error);
     res.status(500).json({ error: 'Authentication system error' });
