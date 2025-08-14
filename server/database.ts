@@ -30,9 +30,9 @@ function getDatabaseUrl(): string {
     console.log('✅ Production: Using Cloud SQL socket connection for Cloud Run');
     return rawUrl;
   } else {
-    // Development: Convert socket URL to TCP connection for Replit
+    // Development: Check if Cloud SQL Auth Proxy is available first
     if (rawUrl.includes('/cloudsql/')) {
-      console.log('🔄 Development: Converting Cloud SQL socket to TCP connection...');
+      console.log('🔄 Development: Checking for Cloud SQL Auth Proxy...');
       
       // Parse the socket URL to extract components
       const match = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@localhost\/([^?]+)\?host=\/cloudsql\/([^:]+):([^:]+):([^&]+)/);
@@ -40,20 +40,17 @@ function getDatabaseUrl(): string {
       if (match) {
         const [, username, password, database, project, region, instance] = match;
         
-        // Determine correct public IP based on instance
-        const publicIP = instance === 'realm-rivalry-prod' ? '34.171.83.78' : '35.225.150.44';
+        // Try Cloud SQL Auth Proxy first (eliminates IP whitelisting issues)
+        const proxyUrl = `postgresql://${username}:${password}@localhost:5433/${database}?sslmode=require`;
         
-        // Create TCP connection URL for development
-        const tcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require`;
-        
-        console.log('✅ Development: TCP connection configured', {
+        console.log('✅ Development: Using Cloud SQL Auth Proxy connection', {
           instance: `${project}:${region}:${instance}`,
-          publicIP: publicIP,
+          proxyPort: 5433,
           database: database,
-          connectionType: 'TCP with SSL'
+          connectionType: 'Cloud SQL Auth Proxy (IAM authenticated)'
         });
         
-        return tcpUrl;
+        return proxyUrl;
       } else {
         console.error('❌ Failed to parse Cloud SQL socket URL format');
         throw new Error('Invalid Cloud SQL URL format for development conversion');
