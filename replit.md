@@ -10,6 +10,8 @@ Preferred communication style: Simple, everyday language.
 - Always distinguish between "What do you think?" vs "Please do this"
 - Confirm implementation plan before making changes to workflows, configurations, or architecture
 
+**LESSON LEARNED (Aug 14, 2025)**: Never abandon industry-standard solutions without explicit user approval. When debugging fails, debug deeper - don't switch approaches. The Cloud SQL Auth Proxy issue was a simple SSL configuration problem, not a fundamental architecture issue. Stick with the correct solution and fix the details.
+
 **COMPREHENSIVE PROBLEM-SOLVING APPROACH**: When encountering development issues, ALWAYS perform complete systematic analysis to identify all root causes simultaneously, rather than fixing the first issue found. Implement comprehensive solutions that address the entire problem domain in a single change, not symptom-by-symptom fixes.
 
 **DEVELOPMENT APPROACH**: Always prioritize industry-standard practices and proper implementations from the beginning. Avoid shortcuts, bypasses, or band-aid solutions. Research and implement the correct solution first - this saves significant time and effort compared to fixing temporary approaches later.
