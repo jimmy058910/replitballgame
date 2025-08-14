@@ -32,7 +32,7 @@ function getDatabaseUrl(): string {
   } else {
     // Development: Check if Cloud SQL Auth Proxy is available first
     if (rawUrl.includes('/cloudsql/')) {
-      console.log('🔄 Development: Checking for Cloud SQL Auth Proxy...');
+      console.log('🔄 Development: Checking for Cloud SQL connection options...');
       
       // Parse the socket URL to extract components
       const match = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@localhost\/([^?]+)\?host=\/cloudsql\/([^:]+):([^:]+):([^&]+)/);
@@ -40,17 +40,19 @@ function getDatabaseUrl(): string {
       if (match) {
         const [, username, password, database, project, region, instance] = match;
         
-        // Try Cloud SQL Auth Proxy first (eliminates IP whitelisting issues)
-        const proxyUrl = `postgresql://${username}:${password}@localhost:5433/${database}?sslmode=require`;
+        // Development strategy: Direct Cloud SQL IP connection (requires IP whitelisting)
+        const devCloudSqlIp = '35.225.150.44'; // realm-rivalry-dev instance IP
+        const directUrl = `postgresql://${username}:${password}@${devCloudSqlIp}:5432/${database}?sslmode=require`;
         
-        console.log('✅ Development: Using Cloud SQL Auth Proxy connection', {
+        console.log('✅ Development: Using direct Cloud SQL IP connection', {
           instance: `${project}:${region}:${instance}`,
-          proxyPort: 5433,
+          cloudSqlIp: devCloudSqlIp,
           database: database,
-          connectionType: 'Cloud SQL Auth Proxy (IAM authenticated)'
+          connectionType: 'Direct IP (requires Replit IP whitelisting)',
+          note: 'Add current Replit IP to Cloud SQL authorized networks'
         });
         
-        return proxyUrl;
+        return directUrl;
       } else {
         console.error('❌ Failed to parse Cloud SQL socket URL format');
         throw new Error('Invalid Cloud SQL URL format for development conversion');

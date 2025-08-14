@@ -9,16 +9,17 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // Hybrid architecture API configuration
-// Production: Direct Cloud Run URL, Development: Relative URLs
+// Production: Direct Cloud Run URL, Development: Relative URLs to local server
 const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://realm-rivalry-backend-108005641993.us-east5.run.app'
+  ? 'https://realm-rivalry-unified-o6fd46yesq-uc.a.run.app'
   : '';
 
 console.log('🔗 QueryClient API Configuration:', {
   baseUrl: API_BASE_URL,
   environment: import.meta.env.PROD ? 'production' : 'development',
   viteApiBaseUrl: import.meta.env.VITE_API_BASE_URL,
-  prodMode: import.meta.env.PROD
+  prodMode: import.meta.env.PROD,
+  note: import.meta.env.PROD ? 'Using Cloud Run backend' : 'Using local Replit server'
 });
 
 export async function apiRequest<T>(

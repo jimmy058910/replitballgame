@@ -79,12 +79,14 @@ Preferred communication style: Simple, everyday language.
 ✅ **Production Deployment Complete**: Successfully deployed to Cloud Run production environment where proxy architecture works seamlessly.
 ✅ **Hybrid Architecture Operational**: Frontend deployed to realmrivalry.com (Firebase Hosting), backend service operational at realm-rivalry-unified-o6fd46yesq-uc.a.run.app (Cloud Run).
 ✅ **Cloud SQL Auth Proxy Verified**: Database connections working perfectly in production with IAM authentication, eliminating IP whitelisting issues permanently.
+✅ **Environment-Specific API Routing**: Frontend configured to use local server for development and Cloud Run backend for production with automatic environment detection.
+⚠️ **Development Setup Required**: Add current Replit IP (34.148.247.147/32) to Cloud SQL authorized networks for dev database access.
 
 **DUAL ENVIRONMENT CONFIGURATION VERIFIED**:
 ✅ **Development Environment (Replit)**:
    - Domain: `84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev`
    - Database: Cloud SQL `realm-rivalry-dev` instance (IP: 35.225.150.44)
-   - **REPLIT IP AUTHORIZATION REQUIRED**: Add `34.148.247.147/32` to Cloud SQL authorized networks (IP changed Aug 14, 2025)
+   - **REPLIT IP AUTHORIZATION REQUIRED**: Add current Replit IP to Cloud SQL authorized networks (IP changes frequently)
    - OAuth Callback: `https://84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev/api/auth/google/callback`
    - Firebase: ✅ Domain authorized in Google Console
 
