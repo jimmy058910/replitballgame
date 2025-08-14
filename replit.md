@@ -12,7 +12,7 @@ Preferred communication style: Simple, everyday language.
 
 **LESSON LEARNED (Aug 14, 2025)**: Never abandon industry-standard solutions without explicit user approval. When debugging fails, debug deeper - don't switch approaches. The Cloud SQL Auth Proxy issue was a simple SSL configuration problem, not a fundamental architecture issue. Stick with the correct solution and fix the details.
 
-**AUTHENTICATION RESTORED (Aug 14, 2025)**: Successfully restored working Passport Google OAuth authentication system. Fixed syntax errors in authRoutes.ts that were preventing route registration. Authentication flow now works correctly: `/api/auth/login` → Google OAuth → `/api/auth/google/callback` → authenticated session. Frontend AuthProvider connects to Passport sessions via `/api/auth/status` endpoint.
+**FIREBASE-ONLY AUTHENTICATION (Aug 14, 2025)**: Completely replaced Passport.js with pure Firebase authentication. Backend now uses Firebase Admin SDK for token verification, frontend uses Firebase Auth with Google OAuth. All authentication flows are 100% Firebase-based. **RECURRING ISSUE**: Replit preview domains change frequently, requiring Firebase Console domain authorization updates each time.
 
 **COMPREHENSIVE PROBLEM-SOLVING APPROACH**: When encountering development issues, ALWAYS perform complete systematic analysis to identify all root causes simultaneously, rather than fixing the first issue found. Implement comprehensive solutions that address the entire problem domain in a single change, not symptom-by-symptom fixes.
 
