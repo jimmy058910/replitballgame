@@ -1,6 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 import { isAuthenticated } from '../googleAuth.js';
 import {
   calculateFanLoyalty,
@@ -16,8 +16,10 @@ const router = Router();
 
 // Get stadium data for authenticated user
 router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+    const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
+    const prisma = await getPrismaClient();
     
     // Get user's team
     const userProfile = await prisma.userProfile.findFirst({
@@ -109,6 +111,7 @@ const upgradeSchema = z.object({
 });
 
 router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+    const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     const { facilityType, upgradeLevel } = upgradeSchema.parse(req.body);
@@ -227,6 +230,7 @@ const fieldSizeSchema = z.object({
 });
 
 router.post('/field-size', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+    const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     const { fieldSize } = fieldSizeSchema.parse(req.body);
@@ -320,6 +324,7 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
 
 // Revenue calculation route
 router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+    const prisma = await getPrismaClient();
   try {
     const teamId = req.params.teamId;
     
