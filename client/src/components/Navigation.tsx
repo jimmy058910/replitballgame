@@ -10,16 +10,47 @@ import {
   Menu, LogOut, Coins, UserPlus, LogIn
 } from "lucide-react";
 
-// Type interfaces for API responses
+// Type interfaces for API responses - match the actual API response exactly
 interface Finances {
+  id: number;
+  teamId: number;
   credits: string;
   gems: string;
+  escrowCredits: string;
+  escrowGems: string;
+  projectedIncome: string;
+  projectedExpenses: string;
+  lastSeasonRevenue: string;
+  lastSeasonExpenses: string;
+  facilitiesMaintenanceCost: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Team {
-  id: string;
+  id: number;
+  userProfileId: number;
   name: string;
+  logoUrl: string | null;
+  isAI: boolean;
+  createdAt: string;
+  updatedAt: string;
+  camaraderie: number;
+  fanLoyalty: number;
+  homeField: string;
+  tacticalFocus: string;
+  leagueId: number | null;
+  division: number;
+  subdivision: string;
+  wins: number;
+  losses: number;
+  points: number;
   finances: Finances;
+  stadium: any;
+  players: any[];
+  staff: any[];
+  teamPower: number;
+  teamCamaraderie: number;
 }
 
 interface StoreData {
@@ -218,7 +249,6 @@ export default function Navigation() {
                     {!isAuthenticated && (
                       <div className="space-y-2">
                         <Button
-                          // @ts-expect-error TS2322
                           onClick={() => {
                             login();
                             setIsMobileMenuOpen(false);
