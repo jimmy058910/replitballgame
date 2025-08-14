@@ -12,6 +12,8 @@ Preferred communication style: Simple, everyday language.
 
 **LESSON LEARNED (Aug 14, 2025)**: Never abandon industry-standard solutions without explicit user approval. When debugging fails, debug deeper - don't switch approaches. The Cloud SQL Auth Proxy issue was a simple SSL configuration problem, not a fundamental architecture issue. Stick with the correct solution and fix the details.
 
+**CRITICAL AUTHENTICATION ISSUE (Aug 14, 2025)**: Firebase Console authentication requires domain authorization. Current Replit domain `84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev` must be added to Firebase Console authorized domains list. This is a one-time configuration fix in Firebase Console → Authentication → Settings → Authorized domains.
+
 **COMPREHENSIVE PROBLEM-SOLVING APPROACH**: When encountering development issues, ALWAYS perform complete systematic analysis to identify all root causes simultaneously, rather than fixing the first issue found. Implement comprehensive solutions that address the entire problem domain in a single change, not symptom-by-symptom fixes.
 
 **DEVELOPMENT APPROACH**: Always prioritize industry-standard practices and proper implementations from the beginning. Avoid shortcuts, bypasses, or band-aid solutions. Research and implement the correct solution first - this saves significant time and effort compared to fixing temporary approaches later.
