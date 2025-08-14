@@ -84,7 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Get the proper Firebase ID token for API requests
       const idToken = await result.user.getIdToken(true); // Force refresh to get fresh token
       localStorage.setItem('firebase_token', idToken);
-      console.log('✅ Firebase ID token stored for API requests (length:', idToken.length, ')');
+      console.log('✅ Firebase ID token stored for API requests');
+      console.log('🔍 Token type verification - First 50 chars:', idToken.substring(0, 50));
+      console.log('🔍 Token is custom token?', idToken.includes('identitytoolkit'));
       
       setUser(result.user);
       setError(null);

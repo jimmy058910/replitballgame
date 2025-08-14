@@ -38,15 +38,17 @@ export async function apiRequest<T>(
     
     if (user) {
       // Get fresh Firebase ID token
-      const idToken = await user.getIdToken();
+      const idToken = await user.getIdToken(true); // Force refresh
       headers['Authorization'] = `Bearer ${idToken}`;
       console.log('🔐 Added Firebase token to API request');
+      console.log('🔍 Sending token first 50 chars:', idToken.substring(0, 50));
     } else {
       // Fallback to stored token if Firebase auth.currentUser is not available
       const storedToken = localStorage.getItem('firebase_token');
       if (storedToken) {
         headers['Authorization'] = `Bearer ${storedToken}`;
         console.log('🔐 Added stored Firebase token to API request');
+        console.log('🔍 Sending stored token first 50 chars:', storedToken.substring(0, 50));
       } else {
         console.warn('⚠️ No Firebase token available for API request');
       }
