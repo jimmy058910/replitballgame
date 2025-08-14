@@ -27,13 +27,41 @@ function getDatabaseUrl(): string {
   }
 
   if (nodeEnv === 'production') {
-    console.log('✅ Production: Using Cloud SQL configuration');
+    console.log('✅ Production: Using Cloud SQL socket connection for Cloud Run');
     return rawUrl;
   } else {
-    console.log('✅ Development: Using Cloud SQL development instance');
-    // DEVELOPMENT: Use proper Cloud SQL dev instance after IP authorization
-    // This restores the intended dev/prod separation architecture
-    return rawUrl;
+    // Development: Convert socket URL to TCP connection for Replit
+    if (rawUrl.includes('/cloudsql/')) {
+      console.log('🔄 Development: Converting Cloud SQL socket to TCP connection...');
+      
+      // Parse the socket URL to extract components
+      const match = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@localhost\/([^?]+)\?host=\/cloudsql\/([^:]+):([^:]+):([^&]+)/);
+      
+      if (match) {
+        const [, username, password, database, project, region, instance] = match;
+        
+        // Determine correct public IP based on instance
+        const publicIP = instance === 'realm-rivalry-prod' ? '34.171.83.78' : '35.225.150.44';
+        
+        // Create TCP connection URL for development
+        const tcpUrl = `postgresql://${username}:${password}@${publicIP}:5432/${database}?sslmode=require`;
+        
+        console.log('✅ Development: TCP connection configured', {
+          instance: `${project}:${region}:${instance}`,
+          publicIP: publicIP,
+          database: database,
+          connectionType: 'TCP with SSL'
+        });
+        
+        return tcpUrl;
+      } else {
+        console.error('❌ Failed to parse Cloud SQL socket URL format');
+        throw new Error('Invalid Cloud SQL URL format for development conversion');
+      }
+    } else {
+      console.log('✅ Development: Using provided TCP connection');
+      return rawUrl;
+    }
   }
 }
 

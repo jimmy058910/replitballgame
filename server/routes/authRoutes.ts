@@ -326,4 +326,32 @@ router.get('/me', requireAuth, (req: any, res: Response) => {
   }
 });
 
+// ✅ DATABASE CONNECTIVITY TEST ENDPOINT
+router.get('/test-db', async (req: Request, res: Response) => {
+  try {
+    console.log('🧪 Testing database connectivity...');
+    
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Test basic connectivity
+    const result = await prisma.$queryRaw`SELECT 1 as test`;
+    console.log('✅ Database connectivity test successful:', result);
+    
+    return res.json({
+      success: true,
+      message: 'Database connection working',
+      result: result
+    });
+    
+  } catch (error: any) {
+    console.error('❌ Database connectivity test failed:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error.stack
+    });
+  }
+});
+
 export default router;
