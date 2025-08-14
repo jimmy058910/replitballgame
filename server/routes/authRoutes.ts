@@ -28,96 +28,41 @@ router.get('/google/callback',
 // ✅ AUTHENTICATION STATUS ENDPOINT - For client-side auth check
 router.get('/status', async (req: Request, res: Response) => {
   try {
-    console.log('🔍 /api/auth/status called - checking Firebase authentication...');
+    console.log('🔍 /api/auth/status called - checking Passport session...');
     
-    // Check for Firebase authentication manually
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ No Firebase Bearer token provided');
-      return res.json({ 
-        isAuthenticated: false, 
-        user: null 
-      });
-    }
-
-    const token = authHeader.split(' ')[1];
-    
-    if (!token) {
-      console.log('❌ Empty Firebase token');
-      return res.json({ 
-        isAuthenticated: false, 
-        user: null 
-      });
-    }
-
-    // Verify Firebase token
-    let firebaseUser;
-    try {
-      const admin = await import('firebase-admin');
-      firebaseUser = await admin.auth().verifyIdToken(token);
-      console.log('✅ Firebase token verified for user:', firebaseUser.email);
-    } catch (tokenError: any) {
-      console.log('❌ Firebase token verification failed:', tokenError.message);
-      return res.json({ 
-        isAuthenticated: false, 
-        user: null 
-      });
-    }
-    
-    // User is authenticated via Firebase, get user profile from database
-    const userId = firebaseUser.uid;
-    console.log('✅ Firebase user authenticated, userId:', userId);
-    
-    try {
-      const { getPrismaClient } = await import('../database.js');
-      const prisma = await getPrismaClient();
+    // Check if user is authenticated via Passport session
+    if ((req as any).isAuthenticated && (req as any).isAuthenticated()) {
+      const user = (req as any).user;
+      console.log('✅ Passport session authenticated for user:', user?.email);
       
-      const userProfile = await prisma.userProfile.findUnique({
-        where: { userId: userId }
-      });
-      
-      if (userProfile) {
-        console.log('✅ User profile found:', userProfile.email);
-        return res.json({
-          requireAuth: true,
-          user: {
-            id: userProfile.userId,
-            email: userProfile.email,
-            firstName: userProfile.firstName,
-            lastName: userProfile.lastName,
-            displayName: `${userProfile.firstName} ${userProfile.lastName}`,
-            profileImageUrl: userProfile.profileImageUrl,
-            createdAt: userProfile.createdAt
-          }
-        });
-      } else {
-        console.log('⚠️ Firebase user authenticated but no profile found');
-        return res.json({
-          requireAuth: true,
-          user: {
-            id: userId,
-            email: firebaseUser.email || 'unknown@example.com',
-            firstName: 'Unknown',
-            lastName: 'User'
-          }
-        });
-      }
-    } catch (dbError: any) {
-      console.error('Database error in /status:', dbError);
       return res.json({
-        requireAuth: true,
+        isAuthenticated: true,
         user: {
-          id: userId,
-          email: firebaseUser.email || 'unknown@example.com',
-          firstName: 'Unknown', 
-          lastName: 'User'
+          id: user.userId || user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          displayName: user.displayName || `${user.firstName} ${user.lastName}`,
+          profileImageUrl: user.profileImageUrl,
+          createdAt: user.createdAt
         }
       });
     }
-  } catch (error: any) {
-    console.error('Error in /api/auth/status:', error);
+    
+    console.log('❌ No Passport session found');
     return res.json({ 
+      isAuthenticated: false, 
+      user: null 
+    });
+    
+  } catch (error: any) {
+    console.error('❌ Auth status error:', error);
+    return res.json({ 
+      isAuthenticated: false, 
+      user: null 
+    });
+  }
+}); 
       requireAuth: false, 
       user: null 
     });
