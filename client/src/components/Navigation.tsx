@@ -11,15 +11,15 @@ import {
 } from "lucide-react";
 
 // Type interfaces for API responses
+interface Finances {
+  credits: string;
+  gems: string;
+}
+
 interface Team {
   id: string;
   name: string;
-  credits: number;
-}
-
-interface Finances {
-  credits: number;
-  gems: number;
+  finances: Finances;
 }
 
 interface StoreData {
@@ -37,20 +37,14 @@ export default function Navigation() {
     enabled: isAuthenticated,
   });
 
-  const { data: finances } = useQuery<Finances>({
-    queryKey: [`/api/teams/${team?.id}/finances`],
-    enabled: !!team?.id && isAuthenticated,
-  });
-
-  // Use credits from finances API, convert string to number
-  const credits = parseInt(String(finances?.credits || "0"));
+  // Use credits from team.finances data (already included in team response)
+  const credits = parseInt(String(team?.finances?.credits || "0"));
+  const premiumCurrency = parseInt(String(team?.finances?.gems || "0"));
 
   const { data: storeData } = useQuery<StoreData>({
     queryKey: ["/api/store/ads"],
     enabled: isAuthenticated,
   });
-
-
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: Home },
@@ -60,10 +54,6 @@ export default function Navigation() {
     { path: "/world", label: "World", icon: Globe },
     { path: "/community", label: "Community", icon: MessageCircle },
   ];
-
-  const premiumCurrency = finances?.gems || 0;
-
-
 
   return (
     <nav className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
@@ -151,111 +141,95 @@ export default function Navigation() {
                   className="hidden sm:flex h-8 px-3 text-xs text-blue-400 hover:bg-blue-400 hover:text-white"
                 >
                   <LogIn className="h-3 w-3 mr-1" />
-                  LOG IN
-                </Button>
-                
-                <Button
-                  size="sm"
-                  variant="outline"
-                  // @ts-expect-error TS2322
-                  onClick={login}
-                  className="hidden sm:flex h-8 px-3 text-xs border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white"
-                >
-                  <UserPlus className="h-3 w-3 mr-1" />
-                  SIGN UP
+                  Login
                 </Button>
               </>
             )}
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Button */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="lg:hidden h-8 px-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="sm:hidden h-8 w-8 p-0 text-gray-300 hover:bg-gray-700 hover:text-white"
+                >
                   <Menu className="h-4 w-4" />
+                  <span className="sr-only">Open mobile menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-gray-800 border-gray-700 w-80">
+              <SheetContent side="right" className="w-72 p-0 bg-gray-800 border-l border-gray-700">
                 <div className="flex flex-col h-full">
                   {/* Header */}
-                  <div className="border-b border-gray-700 pb-4 mb-6">
-                    <h2 className="text-xl font-bold text-white">Realm Rivalry</h2>
-                    
-                    {isAuthenticated ? (
-                      /* Mobile Credits - Clickable */
-                      <div className="flex items-center gap-2 mt-2">
-                        <button
+                  <div className="p-4 border-b border-gray-700">
+                    <h2 className="text-lg font-bold text-white">Menu</h2>
+                  </div>
+
+                  {/* Mobile Navigation */}
+                  <div className="flex-1 overflow-y-auto p-2">
+                    {isAuthenticated && (
+                      <>
+                        {/* Credits Display for Mobile */}
+                        <div className="mb-4 p-3 bg-gray-700 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                              <Coins className="h-4 w-4 text-yellow-400 mr-2" />
+                              <span className="text-sm font-medium text-white">Credits</span>
+                            </div>
+                            <span className="text-sm font-bold text-white">{credits.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Coins className="h-4 w-4 text-purple-300 mr-2" />
+                              <span className="text-sm font-medium text-white">Gems</span>
+                            </div>
+                            <span className="text-sm font-bold text-white">
+                              {premiumCurrency === 0 ? "0" : premiumCurrency.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Navigation Items */}
+                        <div className="space-y-2">
+                          {navItems.map((item) => {
+                            const IconComponent = item.icon;
+                            return (
+                              <button
+                                key={item.path}
+                                onClick={() => {
+                                  setLocation(item.path);
+                                  setIsMobileMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
+                                  location === item.path
+                                    ? "bg-blue-600 text-white"
+                                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                                }`}
+                              >
+                                <IconComponent className="h-4 w-4 mr-3" />
+                                {item.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {!isAuthenticated && (
+                      <div className="space-y-2">
+                        <Button
+                          // @ts-expect-error TS2322
                           onClick={() => {
-                            setLocation("/market");
+                            login();
                             setIsMobileMenuOpen(false);
                           }}
-                          className="flex items-center bg-purple-700 hover:bg-purple-600 px-3 py-2 rounded transition-colors cursor-pointer"
-                        >
-                          <Coins className="h-4 w-4 text-purple-300 mr-2" />
-                          <span className="font-semibold text-white">
-                            {premiumCurrency === 0 ? "BUY" : premiumCurrency.toLocaleString()}
-                          </span>
-                          <span className="text-purple-300 ml-1">💎</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            setLocation("/market");
-                            setIsMobileMenuOpen(false);
-                          }}
-                          className="flex items-center bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded transition-colors cursor-pointer"
-                        >
-                          <Coins className="h-4 w-4 text-yellow-400 mr-2" />
-                          <span className="font-semibold text-white">{credits.toLocaleString()}</span>
-                          <span className="text-yellow-400 ml-1">₡</span>
-                        </button>
-                      </div>
-                    ) : (
-                      /* Mobile Auth Buttons */
-                      <div className="flex flex-col gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          // @ts-expect-error TS2322
-                          onClick={login}
-                          className="w-full border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-white"
-                        >
-                          <LogIn className="h-4 w-4 mr-2" />
-                          LOG IN
-                        </Button>
-                        
-                        <Button
-                          // @ts-expect-error TS2322
-                          onClick={login}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                         >
-                          <UserPlus className="h-4 w-4 mr-2" />
-                          SIGN UP
+                          <LogIn className="h-4 w-4 mr-2" />
+                          Login
                         </Button>
                       </div>
                     )}
-                  </div>
-
-                  {/* Navigation Items */}
-                  <div className="flex-1 space-y-2">
-                    {isAuthenticated && navItems.map((item) => {
-                      const IconComponent = item.icon;
-                      return (
-                        <button
-                          key={item.path}
-                          onClick={() => {
-                            setLocation(item.path);
-                            setIsMobileMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center px-4 py-3 rounded-md text-sm font-medium transition-colors ${
-                            location === item.path
-                              ? "bg-blue-600 text-white"
-                              : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                          }`}
-                        >
-                          <IconComponent className="h-4 w-4 mr-3" />
-                          {item.label}
-                        </button>
-                      );
-                    })}
                   </div>
 
                   {/* Footer */}
