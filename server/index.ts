@@ -212,7 +212,7 @@ async function startServer() {
           scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://cdn.unity3d.com", "https://replit.com", "https://apis.google.com", "https://www.gstatic.com"],
           imgSrc: ["'self'", "data:", "https:"],
           fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-          connectSrc: ["'self'", "wss:", "ws:", "https://api.stripe.com", "https://accounts.google.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebase.googleapis.com"],
+          connectSrc: ["'self'", "wss:", "ws:", "https://api.stripe.com", "https://accounts.google.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebase.googleapis.com", "https://o4509793819361280.ingest.us.sentry.io"],
           frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com", "https://accounts.google.com", "https://direct-glider-465821-p7.firebaseapp.com"],
           objectSrc: ["'none'"],
           mediaSrc: ["'self'"],

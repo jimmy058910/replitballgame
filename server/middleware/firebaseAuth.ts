@@ -1,36 +1,33 @@
 import { Request, Response, NextFunction } from 'express';
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin SDK with Cloud Run optimized configuration
+// Initialize Firebase Admin SDK with proper credentials for all environments
 if (!admin.apps.length) {
   try {
     const projectId = process.env.VITE_FIREBASE_PROJECT_ID || 'direct-glider-465821-p7';
     
-    console.log('🔥 Initializing Firebase Admin SDK for Cloud Run...');
+    console.log('🔥 Initializing Firebase Admin SDK with explicit credentials...');
     
-    // Cloud Run optimized configuration - no explicit credentials needed
-    // Cloud Run automatically provides service account access when properly configured
-    const firebaseConfig: any = {
+    let firebaseConfig: any = {
       projectId: projectId
     };
     
-    // For production, rely on Cloud Run's built-in service account
-    if (process.env.NODE_ENV === 'production' && process.env.K_SERVICE) {
-      console.log('🔧 Production Cloud Run: Using built-in service account');
-      console.log('🔍 Environment check:', {
-        googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
-        kService: process.env.K_SERVICE,
-        projectId: projectId
-      });
-      
-      // Ensure GOOGLE_CLOUD_PROJECT is set for Firebase
-      if (!process.env.GOOGLE_CLOUD_PROJECT) {
-        process.env.GOOGLE_CLOUD_PROJECT = projectId;
+    // Use service account key for authentication (works in all environments)
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+      try {
+        const serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+        firebaseConfig.credential = admin.credential.cert(serviceAccount);
+        console.log('✅ Using service account credentials');
+      } catch (parseError) {
+        console.error('❌ Failed to parse service account key:', parseError);
+        throw new Error('Invalid GOOGLE_SERVICE_ACCOUNT_KEY format');
       }
+    } else {
+      console.log('⚠️ No service account key found, using default credentials');
     }
     
     admin.initializeApp(firebaseConfig);
-    console.log('✅ Firebase Admin SDK initialized for Cloud Run');
+    console.log('✅ Firebase Admin SDK initialized successfully');
     
   } catch (error) {
     console.error('❌ Firebase Admin SDK initialization failed:', error);

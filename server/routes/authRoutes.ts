@@ -3,28 +3,29 @@ import { requireAuth } from "../middleware/firebaseAuth.js";
 
 const router = Router();
 
-// ✅ FIREBASE CUSTOM TOKEN LOGIN - Bypasses domain authorization issues
+// ✅ FIREBASE CUSTOM TOKEN LOGIN - Development authentication
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    console.log('🔥 Creating Firebase custom token for development...');
+    console.log('🔥 Creating Firebase custom token...');
     
-    // In development, create a test user to bypass Google OAuth domain issues
+    // Development user profile
     const testUser = {
       uid: 'dev-user-123',
       email: 'developer@realmrivalry.com',
       displayName: 'Development User'
     };
     
-    // Import Firebase Admin to create custom token
+    // Import Firebase Admin (already initialized in middleware)
     const admin = (await import('firebase-admin')).default;
     
-    // Create custom token that bypasses domain restrictions
+    // Create custom token
     const customToken = await admin.auth().createCustomToken(testUser.uid, {
       email: testUser.email,
-      displayName: testUser.displayName
+      displayName: testUser.displayName,
+      dev: true
     });
     
-    console.log('✅ Firebase custom token created successfully');
+    console.log('✅ Firebase custom token created');
     
     return res.json({
       success: true,
@@ -35,8 +36,9 @@ router.post('/login', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('❌ Custom token creation failed:', error);
     return res.status(500).json({ 
-      error: 'Authentication system error',
-      message: error.message 
+      error: 'Authentication failed',
+      message: error.message,
+      details: error.code || 'unknown'
     });
   }
 });
