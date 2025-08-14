@@ -56,6 +56,8 @@ Preferred communication style: Simple, everyday language.
 
 **CRITICAL DEPLOYMENT PREFERENCE**: NEVER use Replit's Deploy button. User has custom hybrid deployment pipeline (Google Cloud Run + Firebase + Cloud SQL) that auto-deploys on Git push from Replit using GitHub Actions Blue-Green deployment workflow for zero-downtime releases.
 
+**DATABASE SETUP CLARIFICATION (Aug 14, 2025)**: Uses Google Cloud SQL PostgreSQL exclusively. No Drizzle, Neon, or other database technologies. Current development issue: DATABASE_URL contains Cloud SQL socket path for production, but development needs direct TCP connection to Cloud SQL external IP or Cloud SQL Auth Proxy setup.
+
 # System Architecture
 
 ## Hybrid Cloud Deployment Model

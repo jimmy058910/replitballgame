@@ -57,8 +57,9 @@ router.get('/firebase-test', asyncHandler(async (req: any, res: Response) => {
 
 // Get user's team - PRIMARY ROUTE
 router.get('/my', requireAuth, asyncHandler(async (req: any, res: Response) => {
-  const userId = req.user?.uid;
+  const userId = req.user?.uid || req.user?.claims?.sub;
   if (!userId) {
+    console.log('❌ User ID extraction failed. req.user:', req.user);
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
 
@@ -107,8 +108,9 @@ router.get('/my', requireAuth, asyncHandler(async (req: any, res: Response) => {
 
 // Get user's next opponent
 router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: any, res: Response) => {
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid || req.user?.claims?.sub;
   if (!userId) {
+    console.log('❌ User ID extraction failed. req.user:', req.user);
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
 
@@ -126,8 +128,9 @@ router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: any, res: 
 
 // Team creation endpoint
 router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response) => {
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid || req.user?.claims?.sub;
   if (!userId) {
+    console.log('❌ User ID extraction failed. req.user:', req.user);
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
 

@@ -17,8 +17,11 @@ function getDatabaseUrl(): string {
   
   console.log('🔍 DATABASE CONNECTION DEBUG:', {
     NODE_ENV: nodeEnv,
+    NODE_ENV_EXPLICIT: process.env.NODE_ENV,
     DATABASE_URL_EXISTS: !!rawUrl,
-    environment: nodeEnv === 'production' ? 'PRODUCTION' : 'DEVELOPMENT'
+    DATABASE_URL_PREVIEW: rawUrl ? rawUrl.substring(0, 80) + '...' : 'NONE',
+    environment: nodeEnv === 'production' ? 'PRODUCTION' : 'DEVELOPMENT',
+    FORCE_DEVELOPMENT: true
   });
   
   if (!rawUrl) {
@@ -26,18 +29,71 @@ function getDatabaseUrl(): string {
     throw new Error(`DATABASE_URL not configured. Available DB vars: ${availableDbVars.join(', ')}`);
   }
 
-  if (nodeEnv === 'production') {
+  // FORCE DEVELOPMENT BEHAVIOR - Never use Cloud SQL socket in Replit development
+  const isReallySureProduction = nodeEnv === 'production' && process.env.K_SERVICE;
+  
+  if (isReallySureProduction) {
     console.log('✅ Production: Using Cloud SQL socket connection for Cloud Run');
     return rawUrl;
   } else {
-    // Development: Use direct TCP connection (no proxy needed)
-    console.log('✅ Development: Using direct database connection');
+    // Development: Use direct TCP connection (remove Cloud SQL socket parameters)
+    console.log('✅ Development/Replit: Converting Cloud SQL URL to direct TCP connection');
+    console.log('🔍 Detected environment as development because:', {
+      NODE_ENV: nodeEnv,
+      K_SERVICE: process.env.K_SERVICE || 'undefined',
+      forcingDevelopmentMode: true
+    });
+    
+    // Remove Cloud SQL socket parameters for development and use proper connection details
+    let devUrl = rawUrl;
+    if (devUrl.includes('host=/cloudsql/')) {
+      console.log('🔍 Fixing Cloud SQL socket URL for development...');
+      
+      // For development, we need direct TCP connection to Cloud SQL external IP
+      // Extract the database connection details from the original URL
+      const urlMatch = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@[^\/]+\/([^?]+)/);
+      
+      if (urlMatch) {
+        const [, username, password, database] = urlMatch;
+        
+        // In development, connect directly to Cloud SQL instance external IP
+        // You'll need to provide the external IP of your Cloud SQL instance
+        const cloudSqlExternalIp = 'YOUR_CLOUD_SQL_EXTERNAL_IP'; // Replace with actual IP
+        
+        console.log('🔍 Cloud SQL connection details:', {
+          username: username,
+          database: database,
+          needsExternalIp: 'Please provide Cloud SQL external IP',
+          currentHost: 'will be set to external IP'
+        });
+        
+        // Use Cloud SQL Auth Proxy on port 5433 for development
+        devUrl = `postgresql://${username}:${password}@localhost:5433/${database}?schema=public&sslmode=disable`;
+        
+        console.log('🔍 Development: Using Cloud SQL Auth Proxy on localhost:5433');
+        console.log('📝 To start proxy: ./cloud_sql_proxy -instances=direct-glider-465821-p7:us-central1:realm-rivalry-dev=tcp:5433');
+      } else {
+        // Fallback: extract base connection without socket parameters
+        const urlParts = devUrl.split('?');
+        const baseUrl = urlParts[0];
+        devUrl = baseUrl + '?schema=public&sslmode=require';
+        console.log('⚠️ Using fallback URL conversion');
+      }
+      
+      console.log('🔍 Development database URL conversion:', {
+        original: 'contained Cloud SQL socket',
+        converted: 'Direct TCP connection',
+        connectionType: 'Development TCP',
+        hostResolved: devUrl.split('@')[1]?.split(':')[0] || 'unknown'
+      });
+    }
+    
     console.log('🔍 Database connection details:', {
-      host: rawUrl.split('@')[1]?.split('/')[0] || 'unknown',
+      host: devUrl.split('@')[1]?.split('/')[0] || 'unknown',
       connectionType: 'Direct TCP',
       environment: 'Development'
     });
-    return rawUrl;
+    return devUrl;
   }
 }
 
