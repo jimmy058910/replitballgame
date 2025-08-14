@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signInWithRedirect, signOut, GoogleAuthProvider, getRedirectResult, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithRedirect, signInWithPopup, signOut, GoogleAuthProvider, getRedirectResult, User } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -72,13 +72,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     
     try {
-      console.log('🔄 Using Firebase signInWithRedirect...');
-      await signInWithRedirect(auth, googleProvider);
+      console.log('🔄 Using Firebase signInWithPopup to avoid domain issues...');
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log('✅ Firebase popup authentication successful:', result.user.email);
+      setUser(result.user);
+      setError(null);
     } catch (error: any) {
       console.error('🚨 Firebase authentication error:', error);
-      setError(`Authentication failed: ${error.message}`);
-      setIsLoading(false);
+      if (error.code === 'auth/unauthorized-domain') {
+        setError(`Domain authorization required. Add this domain to Firebase Console: ${window.location.hostname}`);
+      } else {
+        setError(`Authentication error: ${error.message}`);
+      }
     }
+    setIsLoading(false);
   };
 
   const logout = async () => {

@@ -209,7 +209,7 @@ async function startServer() {
         directives: {
           defaultSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://cdn.unity3d.com", "https://replit.com"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://cdn.unity3d.com", "https://replit.com", "https://apis.google.com", "https://www.gstatic.com"],
           imgSrc: ["'self'", "data:", "https:"],
           fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
           connectSrc: ["'self'", "wss:", "ws:", "https://api.stripe.com", "https://accounts.google.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebase.googleapis.com"],
