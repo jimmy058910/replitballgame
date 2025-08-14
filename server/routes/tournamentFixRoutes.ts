@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 import { isAuthenticated } from '../googleAuth.js';
 import { tournamentFlowService } from '../services/tournamentFlowService.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections

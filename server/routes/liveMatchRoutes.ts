@@ -5,7 +5,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from '../database.js';
 import { liveMatchEngine } from '../services/liveMatchEngine.js';
 import { webSocketManager } from '../websocket/webSocketManager';
 
@@ -50,6 +50,7 @@ router.post('/demo', async (req, res) => {
     console.log('Creating demo match for live engine testing');
     
     // Find a recent match that we can use for demo (simplified to avoid enum issues)
+    const prisma = await getPrismaClient();
     const recentMatch = await prisma.game.findFirst({
       where: {
         matchType: 'EXHIBITION',

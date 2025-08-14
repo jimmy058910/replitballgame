@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService.js';
 import { isAuthenticated } from '../googleAuth.js';
 import { RBACService, Permission } from '../services/rbacService.js';
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 
 const router = Router();
 

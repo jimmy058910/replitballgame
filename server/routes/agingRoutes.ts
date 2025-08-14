@@ -69,6 +69,7 @@ const playerIdSchema = z.object({
 router.get('/player/:playerId/retirement-chance', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { playerId } = playerIdSchema.parse(req.params);
   
+  const prisma = await getPrismaClient();
   const player = await prisma.player.findFirst({
     where: { id: parseInt(playerId) }
   });
@@ -102,6 +103,7 @@ router.get('/player/:playerId/retirement-chance', isAuthenticated, asyncHandler(
 router.post('/player/:playerId/simulate-aging', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
   const { playerId } = playerIdSchema.parse(req.params);
   
+  const prisma = await getPrismaClient();
   const player = await prisma.player.findFirst({
     where: { id: parseInt(playerId) }
   });

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 import { calculateGameRevenue, calculateAttendance } from '../../shared/stadiumSystem.js';
 // LiveMatchState type import removed - not needed for this endpoint
 

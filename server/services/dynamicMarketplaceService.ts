@@ -1,4 +1,4 @@
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 
 export class DynamicMarketplaceService {
   

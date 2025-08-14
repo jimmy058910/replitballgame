@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js'; // Adjusted path
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
 import { randomUUID } from "crypto"; // For demo notifications
 // import { NotificationService } from '../services/notificationService.js'; // If using service methods here

@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { isAuthenticated } from '../googleAuth.js';
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 import { Race, PlayerRole, SeasonPhase } from "@prisma/client";
 
 const router = Router();

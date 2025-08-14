@@ -2,7 +2,7 @@ import { Router, type Response, type NextFunction, type Request } from "express"
 import { userStorage } from '../storage/userStorage.js';
 import { isAuthenticated } from "../googleAuth.js";
 import { asyncHandler } from '../services/errorService.js';
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 
 const router = Router();
 

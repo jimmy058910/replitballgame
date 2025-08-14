@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { isAuthenticated } from '../googleAuth.js';
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 import { ErrorCreators, asyncHandler } from '../services/errorService.js';
 
 

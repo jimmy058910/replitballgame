@@ -1,6 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { getPrismaClient } from '../db.js';
+import { getPrismaClient } from "../database.js"';
 import { isAuthenticated } from '../googleAuth.js';
 import {
   calculateFanLoyalty,
