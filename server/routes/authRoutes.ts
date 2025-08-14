@@ -62,11 +62,6 @@ router.get('/status', async (req: Request, res: Response) => {
       user: null 
     });
   }
-}); 
-      requireAuth: false, 
-      user: null 
-    });
-  }
 });
 
 // ✅ LOGOUT ENDPOINT
