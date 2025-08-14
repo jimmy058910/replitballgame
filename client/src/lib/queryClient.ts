@@ -41,10 +41,24 @@ export async function apiRequest<T>(
       const idToken = await user.getIdToken();
       headers['Authorization'] = `Bearer ${idToken}`;
       console.log('🔐 Added Firebase token to API request');
+    } else {
+      // Fallback to stored token if Firebase auth.currentUser is not available
+      const storedToken = localStorage.getItem('firebase_token');
+      if (storedToken) {
+        headers['Authorization'] = `Bearer ${storedToken}`;
+        console.log('🔐 Added stored Firebase token to API request');
+      } else {
+        console.warn('⚠️ No Firebase token available for API request');
+      }
     }
   } catch (error) {
     console.warn('⚠️ Failed to get Firebase token:', error);
-    // Continue without token for unauthenticated endpoints
+    // Try stored token as fallback
+    const storedToken = localStorage.getItem('firebase_token');
+    if (storedToken) {
+      headers['Authorization'] = `Bearer ${storedToken}`;
+      console.log('🔐 Added stored Firebase token as fallback');
+    }
   }
   
   const res = await fetch(url, {
@@ -79,9 +93,24 @@ export const getQueryFn: <T>(options: {
         const idToken = await user.getIdToken();
         headers['Authorization'] = `Bearer ${idToken}`;
         console.log('🔐 Added Firebase token to query');
+      } else {
+        // Fallback to stored token if Firebase auth.currentUser is not available
+        const storedToken = localStorage.getItem('firebase_token');
+        if (storedToken) {
+          headers['Authorization'] = `Bearer ${storedToken}`;
+          console.log('🔐 Added stored Firebase token to query');
+        } else {
+          console.warn('⚠️ No Firebase token available (neither currentUser nor stored)');
+        }
       }
     } catch (error) {
       console.warn('⚠️ Failed to get Firebase token for query:', error);
+      // Try stored token as fallback
+      const storedToken = localStorage.getItem('firebase_token');
+      if (storedToken) {
+        headers['Authorization'] = `Bearer ${storedToken}`;
+        console.log('🔐 Added stored Firebase token as fallback');
+      }
     }
     
     const res = await fetch(url, {

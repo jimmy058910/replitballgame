@@ -33,9 +33,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (user) {
         // Store fresh ID token for API requests
         try {
-          const idToken = await user.getIdToken();
+          const idToken = await user.getIdToken(true); // Force refresh
           localStorage.setItem('firebase_token', idToken);
-          console.log('✅ Firebase ID token stored for API requests');
+          console.log('✅ Firebase ID token refreshed and stored (length:', idToken.length, ')');
         } catch (error) {
           console.error('❌ Failed to get ID token:', error);
         }
@@ -81,10 +81,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await signInWithCustomToken(auth, customToken);
       console.log('✅ Firebase custom token authentication successful:', result.user.email);
       
-      // Store the Firebase ID token for API requests
-      const idToken = await result.user.getIdToken();
+      // Get the proper Firebase ID token for API requests
+      const idToken = await result.user.getIdToken(true); // Force refresh to get fresh token
       localStorage.setItem('firebase_token', idToken);
-      console.log('✅ Firebase ID token stored for API requests');
+      console.log('✅ Firebase ID token stored for API requests (length:', idToken.length, ')');
       
       setUser(result.user);
       setError(null);
