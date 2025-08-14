@@ -48,7 +48,7 @@ export async function apiRequest<T>(
       if (storedToken) {
         headers['Authorization'] = `Bearer ${storedToken}`;
         console.log('🔐 Added stored Firebase token to API request');
-        console.log('🔍 Sending stored token first 50 chars:', storedToken.substring(0, 50));
+        console.log('🔍 QueryClient - Sending stored token first 50 chars:', storedToken.substring(0, 50));
       } else {
         console.warn('⚠️ No Firebase token available for API request');
       }

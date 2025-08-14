@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const idToken = await user.getIdToken(true); // Force refresh
           localStorage.setItem('firebase_token', idToken);
           console.log('✅ Firebase ID token refreshed and stored (length:', idToken.length, ')');
+          console.log('🔍 Auth state listener - token first 50 chars:', idToken.substring(0, 50));
         } catch (error) {
           console.error('❌ Failed to get ID token:', error);
         }
@@ -81,13 +82,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await signInWithCustomToken(auth, customToken);
       console.log('✅ Firebase custom token authentication successful:', result.user.email);
       
-      // Get the proper Firebase ID token for API requests
-      const idToken = await result.user.getIdToken(true); // Force refresh to get fresh token
+      // Get the proper Firebase ID token for API requests (this is the critical step)
+      const idToken = await result.user.getIdToken(true); // Force refresh to get fresh ID token
       localStorage.setItem('firebase_token', idToken);
-      console.log('✅ Firebase ID token stored for API requests');
-      console.log('🔍 Token type verification - First 50 chars:', idToken.substring(0, 50));
-      console.log('🔍 Token is custom token?', idToken.includes('identitytoolkit'));
+      console.log('✅ Login function - Firebase ID token stored for API requests');
+      console.log('🔍 Login function - Token first 50 chars:', idToken.substring(0, 50));
+      console.log('🔍 Login function - ID Token vs Custom Token check:', {
+        isCustomToken: idToken.includes('identitytoolkit'),
+        isIdToken: !idToken.includes('identitytoolkit') && idToken.includes('.'),
+        length: idToken.length
+      });
       
+      // Set user state - auth state listener will also handle token storage
       setUser(result.user);
       setError(null);
     } catch (error: any) {
