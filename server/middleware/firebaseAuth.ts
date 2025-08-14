@@ -38,25 +38,44 @@ if (!admin.apps.length) {
   }
 }
 
-// PASSPORT SESSION AUTH MIDDLEWARE - Works with existing authenticated sessions
+// FIREBASE TOKEN AUTH MIDDLEWARE - Pure Firebase authentication
 export const requireAuth = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
-    console.log('🔍 requireAuth middleware - checking Passport session...');
+    console.log('🔍 requireAuth middleware - checking Firebase token...');
     
-    // Check if user is authenticated via Passport session
-    if (req.isAuthenticated && req.isAuthenticated()) {
-      console.log('✅ Passport session authenticated, allowing request');
-      req.user = req.user; // Ensure user is available
-      next();
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No Firebase Bearer token provided');
+      res.status(401).json({ message: 'Authentication required' });
       return;
     }
 
-    console.log('❌ No Passport session found, denying request');
-    res.status(401).json({ message: 'Authentication required' });
-    return;
+    const token = authHeader.split(' ')[1];
     
+    if (!token) {
+      console.log('❌ Empty Firebase token');
+      res.status(401).json({ message: 'Authentication required' });
+      return;
+    }
+
+    try {
+      // Verify Firebase token
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      req.user = {
+        uid: decodedToken.uid,
+        email: decodedToken.email,
+        claims: decodedToken
+      };
+      console.log('✅ Firebase token verified for user:', decodedToken.email);
+      next();
+    } catch (tokenError: any) {
+      console.error('❌ Firebase token verification failed:', tokenError.message);
+      res.status(401).json({ error: 'Invalid or expired token' });
+      return;
+    }
   } catch (error) {
-    console.error('🔒 Authentication middleware error:', error);
+    console.error('❌ Authentication middleware error:', error);
     res.status(500).json({ error: 'Authentication system error' });
     return;
   }

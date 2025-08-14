@@ -25,66 +25,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('🔥 Setting up Firebase authentication system...');
     
-    const checkAuthStatus = async () => {
+    const checkRedirectResult = async () => {
       try {
-        console.log('🔍 Checking authentication status...');
-        const response = await fetch('/api/auth/status', {
-          credentials: 'include'
-        });
+        console.log('🔍 Checking Firebase redirect result...');
+        const result = await getRedirectResult(auth);
         
-        if (response.ok) {
-          const data = await response.json();
-          console.log('🔍 Auth status:', data);
-          
-          if (data.isAuthenticated && data.user) {
-            console.log('✅ User authenticated:', data.user.email);
-            // Create Firebase-compatible user object from server data
-            const serverUser = {
-              uid: data.user.id,
-              email: data.user.email,
-              displayName: data.user.displayName,
-              photoURL: data.user.profileImageUrl,
-              emailVerified: true,
-              isAnonymous: false,
-              metadata: {
-                creationTime: data.user.createdAt,
-                lastSignInTime: new Date().toISOString()
-              },
-              providerData: [],
-              refreshToken: '',
-              tenantId: null
-            } as User;
-            
-            setUser(serverUser);
-            setError(null);
-            setIsLoading(false);
-            return;
-          }
+        if (result && result.user) {
+          console.log('✅ Firebase redirect successful:', result.user.email);
+          setUser(result.user);
+          setError(null);
         }
-        
-        console.log('🔍 No authentication found');
-        setIsLoading(false);
       } catch (error: any) {
-        console.error('🚨 Auth check error:', error);
-        setIsLoading(false);
+        console.error('🚨 Firebase redirect error:', error);
+        setError(`Authentication error: ${error.message}`);
       }
+      setIsLoading(false);
     };
 
-    checkAuthStatus();
+    checkRedirectResult();
+
+    // Set up Firebase auth state listener
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('🔥 Firebase Auth state changed:', user ? `authenticated: ${user.email}` : 'not authenticated');
+      
+      if (user) {
+        setUser(user);
+        setError(null);
+      } else {
+        setUser(null);
+      }
+      
+      setIsLoading(false);
+    });
+
+    return () => {
+      console.log('🧹 Cleaning up Firebase Auth listener');
+      unsubscribe();
+    };
   }, []);
 
   const isAuthenticated = !!user;
 
   const login = async () => {
-    console.log('🔥 Starting authentication...');
+    console.log('🔥 Starting Firebase authentication...');
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log('🔄 Using working Passport authentication...');
-      window.location.href = '/api/auth/login';
+      console.log('🔄 Using Firebase signInWithRedirect...');
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
-      console.error('🚨 Authentication error:', error);
+      console.error('🚨 Firebase authentication error:', error);
       setError(`Authentication failed: ${error.message}`);
       setIsLoading(false);
     }

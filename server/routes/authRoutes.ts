@@ -1,59 +1,81 @@
-import { Router, type Request, type Response, type NextFunction } from "express"; // Added Request, Response, NextFunction
-import { userStorage } from '../storage/userStorage.js'; // Updated import
+import { Router, type Request, type Response, type NextFunction } from "express";
 import { requireAuth } from "../middleware/firebaseAuth.js";
-import { RBACService, Permission, UserRole } from '../services/rbacService.js'; // Add UserRole import
-import passport from 'passport';
 
 const router = Router();
 
-// ✅ LOGIN - Initiate Google OAuth
-router.get('/login', passport.authenticate('google', { 
-  scope: ['profile', 'email'] 
-}));
+// Firebase-only authentication - no Passport routes needed
+// Frontend handles all auth flows directly with Firebase
 
-// ✅ ALTERNATIVE GOOGLE OAUTH ROUTE - For direct access
-router.get('/google', passport.authenticate('google', { 
-  scope: ['profile', 'email'] 
-}));
-
-// ✅ GOOGLE OAUTH CALLBACK
-router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login' }),
-  (req, res) => {
-    console.log('✅ OAuth callback successful, redirecting to homepage');
-    res.redirect('/'); // Redirect home after successful login
-  }
-);
-
-// ✅ AUTHENTICATION STATUS ENDPOINT - For client-side auth check
+// ✅ AUTHENTICATION STATUS ENDPOINT - For client-side auth check  
 router.get('/status', async (req: Request, res: Response) => {
   try {
-    console.log('🔍 /api/auth/status called - checking Passport session...');
+    console.log('🔍 /api/auth/status called - checking Firebase token...');
     
-    // Check if user is authenticated via Passport session
-    if ((req as any).isAuthenticated && (req as any).isAuthenticated()) {
-      const user = (req as any).user;
-      console.log('✅ Passport session authenticated for user:', user?.email);
-      
-      return res.json({
-        isAuthenticated: true,
-        user: {
-          id: user.userId || user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          displayName: user.displayName || `${user.firstName} ${user.lastName}`,
-          profileImageUrl: user.profileImageUrl,
-          createdAt: user.createdAt
-        }
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No Firebase Bearer token provided');
+      return res.json({ 
+        isAuthenticated: false, 
+        user: null 
       });
     }
+
+    const token = authHeader.split(' ')[1];
     
-    console.log('❌ No Passport session found');
-    return res.json({ 
-      isAuthenticated: false, 
-      user: null 
-    });
+    if (!token) {
+      console.log('❌ Empty Firebase token');
+      return res.json({ 
+        isAuthenticated: false, 
+        user: null 
+      });
+    }
+
+    try {
+      // Verify Firebase token
+      const admin = await import('firebase-admin');
+      const firebaseUser = await admin.auth().verifyIdToken(token);
+      console.log('✅ Firebase token verified for user:', firebaseUser.email);
+      
+      // Get user profile from database using Firebase UID
+      const { getPrismaClient } = await import('../database.js');
+      const prisma = await getPrismaClient();
+      
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId: firebaseUser.uid }
+      });
+      
+      if (userProfile) {
+        return res.json({
+          isAuthenticated: true,
+          user: {
+            id: userProfile.userId,
+            email: userProfile.email,
+            firstName: userProfile.firstName,
+            lastName: userProfile.lastName,
+            displayName: `${userProfile.firstName} ${userProfile.lastName}`,
+            profileImageUrl: userProfile.profileImageUrl,
+            createdAt: userProfile.createdAt
+          }
+        });
+      } else {
+        return res.json({
+          isAuthenticated: true,
+          user: {
+            id: firebaseUser.uid,
+            email: firebaseUser.email || 'unknown@example.com',
+            firstName: 'Unknown',
+            lastName: 'User'
+          }
+        });
+      }
+    } catch (tokenError: any) {
+      console.log('❌ Firebase token verification failed:', tokenError.message);
+      return res.json({ 
+        isAuthenticated: false, 
+        user: null 
+      });
+    }
     
   } catch (error: any) {
     console.error('❌ Auth status error:', error);

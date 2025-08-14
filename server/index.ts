@@ -252,22 +252,9 @@ async function startServer() {
 
     // Setup session management with detailed logging
     console.log('🔧 Setting up session management...');
-    app.use(session({
-      secret: process.env.SESSION_SECRET || 'default-secret-key',
-      resave: false,
-      saveUninitialized: false,
-      name: 'connect.sid', // Standard session name - CRITICAL for session persistence
-      cookie: {
-        secure: false, // Allow HTTP in development - CRITICAL for Replit
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'lax' // Less strict for development - CRITICAL for cross-origin
-      }
-    }));
+    // Firebase-only authentication - no sessions needed
 
-    // Passport initialization
-    app.use(passport.initialize());
-    app.use(passport.session());
+    // Firebase-only authentication - no Passport needed
 
     // CRITICAL CLOUD RUN FIX: Create HTTP server EARLY and bind to port IMMEDIATELY
     // Defer all heavy initialization until AFTER server is listening
