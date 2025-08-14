@@ -31,9 +31,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔥 Firebase Auth state changed:', user ? `authenticated: ${user.email}` : 'not authenticated');
       
       if (user) {
+        // Store fresh ID token for API requests
+        try {
+          const idToken = await user.getIdToken();
+          localStorage.setItem('firebase_token', idToken);
+          console.log('✅ Firebase ID token stored for API requests');
+        } catch (error) {
+          console.error('❌ Failed to get ID token:', error);
+        }
         setUser(user);
         setError(null);
       } else {
+        localStorage.removeItem('firebase_token');
         setUser(null);
       }
       
@@ -71,6 +80,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Sign in with custom token (bypasses domain restrictions)
       const result = await signInWithCustomToken(auth, customToken);
       console.log('✅ Firebase custom token authentication successful:', result.user.email);
+      
+      // Store the Firebase ID token for API requests
+      const idToken = await result.user.getIdToken();
+      localStorage.setItem('firebase_token', idToken);
+      console.log('✅ Firebase ID token stored for API requests');
       
       setUser(result.user);
       setError(null);

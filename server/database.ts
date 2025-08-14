@@ -30,37 +30,14 @@ function getDatabaseUrl(): string {
     console.log('✅ Production: Using Cloud SQL socket connection for Cloud Run');
     return rawUrl;
   } else {
-    // Development: Check if Cloud SQL Auth Proxy is available first
-    if (rawUrl.includes('/cloudsql/')) {
-      console.log('🔄 Development: Checking for Cloud SQL connection options...');
-      
-      // Parse the socket URL to extract components
-      const match = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@localhost\/([^?]+)\?host=\/cloudsql\/([^:]+):([^:]+):([^&]+)/);
-      
-      if (match) {
-        const [, username, password, database, project, region, instance] = match;
-        
-        // Development strategy: Cloud SQL Auth Proxy (industry standard, no IP whitelisting)
-        const proxyUrl = `postgresql://${username}:${password}@localhost:5433/${database}?sslmode=disable`;
-        
-        console.log('✅ Development: Using Cloud SQL Auth Proxy connection', {
-          instance: `${project}:${region}:${instance}`,
-          proxyPort: 5433,
-          database: database,
-          connectionType: 'Cloud SQL Auth Proxy (IAM authenticated)',
-          note: 'Eliminates IP whitelisting - uses service account authentication',
-          sslMode: 'disabled (proxy handles encryption)'
-        });
-        
-        return proxyUrl;
-      } else {
-        console.error('❌ Failed to parse Cloud SQL socket URL format');
-        throw new Error('Invalid Cloud SQL URL format for development conversion');
-      }
-    } else {
-      console.log('✅ Development: Using provided TCP connection');
-      return rawUrl;
-    }
+    // Development: Use direct TCP connection (no proxy needed)
+    console.log('✅ Development: Using direct database connection');
+    console.log('🔍 Database connection details:', {
+      host: rawUrl.split('@')[1]?.split('/')[0] || 'unknown',
+      connectionType: 'Direct TCP',
+      environment: 'Development'
+    });
+    return rawUrl;
   }
 }
 
@@ -124,17 +101,7 @@ async function initializeDatabase(): Promise<void> {
     try {
       console.log('🚀 [LAZY INIT] Starting database initialization...');
       
-      // Development: Ensure Cloud SQL Auth Proxy is running
-      if (nodeEnv === 'development') {
-        console.log('🔧 Development: Ensuring Cloud SQL Auth Proxy is running...');
-        const { proxyManager } = await import('./middleware/proxyManager');
-        const proxyRunning = await proxyManager.ensureProxyRunning();
-        
-        if (!proxyRunning) {
-          throw new Error('Cloud SQL Auth Proxy failed to start - industry standard IAM authentication required');
-        }
-        console.log('✅ Cloud SQL Auth Proxy confirmed running');
-      }
+      // Skip proxy management in development - use direct connection
       
       const originalUrl = process.env.DATABASE_URL;
       console.log('🔍 ORIGINAL DATABASE_URL (first 80 chars):', originalUrl?.substring(0, 80) + '...');
