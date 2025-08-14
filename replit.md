@@ -18,6 +18,16 @@ Preferred communication style: Simple, everyday language.
 
 **DEVELOPMENT APPROACH**: Always prioritize industry-standard practices and proper implementations from the beginning. Avoid shortcuts, bypasses, or band-aid solutions. Research and implement the correct solution first - this saves significant time and effort compared to fixing temporary approaches later.
 
+**INDUSTRY STANDARD CODE QUALITY (Aug 14, 2025)**: ALWAYS follow rigorous development practices to prevent syntax errors:
+- View complete function context before making any edits (minimum 50+ lines of context)
+- Use proper TypeScript/JavaScript error handling patterns with complete try-catch-finally blocks
+- Never create orphaned code blocks or incomplete control structures
+- Implement comprehensive async/await error handling following Node.js best practices
+- Test syntax validity after each significant change
+- Make complete, atomic changes rather than piecemeal modifications
+- Follow consistent indentation and code structure patterns
+- Use TypeScript strict mode practices for type safety
+
 **COMMITMENT TO EXCELLENCE**: Take additional time for research and comprehensive implementation when it ensures industry-standard compliance. Quality and proper architecture always precede speed of delivery.
 
 **ZERO TECHNICAL DEBT POLICY**: No band-aids, no temporary fixes, no shortcuts. Every solution must be implemented correctly from the start using industry-standard practices. If a temporary approach is suggested, it must be rejected in favor of the proper implementation.

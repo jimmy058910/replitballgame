@@ -168,67 +168,103 @@ export class TeamStorage {
       throw new Error('Team ID is required');
     }
     
-    const prisma = await getPrismaClient();
-    const team = await prisma.team.findUnique({
-      where: { 
-        id: Number(id) 
-      },
-      include: {
-        finances: true,
-        stadium: true,
-        players: {
-          include: {
-            contract: true,
-            skills: { include: { skill: true } }
-          }
+    try {
+      const prisma = await getPrismaClient();
+      const team = await prisma.team.findUnique({
+        where: { 
+          id: Number(id) 
         },
-        staff: true
+        include: {
+          finances: true,
+          stadium: true,
+          players: {
+            include: {
+              contract: true,
+              skills: { include: { skill: true } }
+            }
+          },
+          staff: true
+        }
+      });
+      
+      if (!team) {
+        return null;
       }
-    });
-    
-    if (!team) {
-      return null;
+      
+      return await serializeTeamData(team);
+    } catch (error) {
+      console.error('❌ Database connection failed in getTeamById:', error.message);
+      
+      // Development fallback: Return null for missing team
+      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+        console.log('🔄 Development: Database unavailable, returning null');
+        return null;
+      }
+      
+      throw error;
     }
-    
-    return await serializeTeamData(team);
   }
 
   async getAllTeams(): Promise<any[]> {
-    const prisma = await getPrismaClient();
-    const teams = await prisma.team.findMany({
-      include: {
-        finances: true,
-        stadium: true,
-        players: {
-          include: {
-            contract: true,
-            skills: { include: { skill: true } }
-          }
-        },
-        staff: true
+    try {
+      const prisma = await getPrismaClient();
+      const teams = await prisma.team.findMany({
+        include: {
+          finances: true,
+          stadium: true,
+          players: {
+            include: {
+              contract: true,
+              skills: { include: { skill: true } }
+            }
+          },
+          staff: true
+        }
+      });
+      
+      return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
+    } catch (error) {
+      console.error('❌ Database connection failed in getAllTeams:', error.message);
+      
+      // Development fallback: Return empty array
+      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+        console.log('🔄 Development: Database unavailable, returning empty array');
+        return [];
       }
-    });
-    
-    return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
+      
+      throw error;
+    }
   }
 
   async getAllTeamsWithBasicInfo(): Promise<any[]> {
-    const prisma = await getPrismaClient();
-    const teams = await prisma.team.findMany({
-      include: {
-        finances: true,
-        stadium: true,
-        players: {
-          include: {
-            contract: true,
-            skills: { include: { skill: true } }
-          }
-        },
-        staff: true
+    try {
+      const prisma = await getPrismaClient();
+      const teams = await prisma.team.findMany({
+        include: {
+          finances: true,
+          stadium: true,
+          players: {
+            include: {
+              contract: true,
+              skills: { include: { skill: true } }
+            }
+          },
+          staff: true
+        }
+      });
+      
+      return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
+    } catch (error) {
+      console.error('❌ Database connection failed in getAllTeamsWithBasicInfo:', error.message);
+      
+      // Development fallback: Return empty array
+      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+        console.log('🔄 Development: Database unavailable, returning empty array');
+        return [];
       }
-    });
-    
-    return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
+      
+      throw error;
+    }
   }
 
   async getTeamsInDivision(division: number, subdivision?: string): Promise<any[]> {
