@@ -1,11 +1,11 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { getPrismaClient } from "../database.js";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 
 const router = Router();
 
 // Get user's team inventory (root route)
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub;
     
@@ -58,7 +58,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
 });
 
 // Get team inventory
-router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     let teamId = req.params.teamId;
 
@@ -121,7 +121,7 @@ router.get('/:teamId', isAuthenticated, async (req: any, res: Response, next: Ne
 });
 
 // Use inventory item
-router.post('/:teamId/use-item', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:teamId/use-item', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     let teamId = req.params.teamId;
     const { itemId, playerId, itemType } = req.body;

@@ -2,7 +2,7 @@ import express, { Router, type Request, type Response, type NextFunction } from 
 import Stripe from "stripe";
 import { storage } from '../storage/index.js'; // Adjusted path
 import { getPrismaClient } from "../database.js"; // Add Prisma import
-import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod"; // For validation
 
 const router = Router();
@@ -109,7 +109,7 @@ const subscribeRealmPassSchema = z.object({
 
 
 // Seed default credit packages (run once, perhaps via SuperUser or deployment script)
-router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/seed-packages', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   // TODO: Add SuperUser/Admin check for this endpoint
   try {
     const defaultPackages = [
@@ -129,7 +129,7 @@ router.post('/seed-packages', isAuthenticated, async (req: any, res: Response, n
 });
 
 // Get available credit packages
-router.get('/packages', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/packages', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const packages: any[] = []; // Credit packages not implemented in current schema
     res.json(packages);
@@ -140,7 +140,7 @@ router.get('/packages', isAuthenticated, async (req: Request, res: Response, nex
 });
 
 // Create payment intent for credit package purchase
-router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post("/create-payment-intent", requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const { packageId } = createPaymentIntentSchema.parse(req.body);
@@ -157,7 +157,7 @@ router.post("/create-payment-intent", isAuthenticated, async (req: any, res: Res
 });
 
 // Create payment intent for premium gem purchase
-router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post("/purchase-gems", requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const { packageId } = purchaseGemsSchema.parse(req.body);
@@ -231,7 +231,7 @@ router.post("/purchase-gems", isAuthenticated, async (req: any, res: Response, n
 });
 
 // Realm Pass Subscription
-router.post("/create-subscription", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post("/create-subscription", requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const { priceId } = subscribeRealmPassSchema.parse(req.body);
@@ -382,7 +382,7 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
 });
 
 // Get user's payment history
-router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/history', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const history = await prisma.paymentTransaction.findMany({ where: { userId: userId } });

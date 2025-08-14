@@ -1,5 +1,5 @@
 import express from 'express';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { LateSignupService } from '../services/lateSignupService.js';
 import { asyncHandler } from '../services/errorService.js';
 
@@ -11,7 +11,7 @@ const router = express.Router();
  */
 import { Request, Response } from 'express';
 
-router.get('/status', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.get('/status', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const stats = await LateSignupService.getLateSignupStats();
   
   res.json({
@@ -24,7 +24,7 @@ router.get('/status', isAuthenticated, asyncHandler(async (req: Request, res: Re
  * GET /api/late-signup/window
  * Check if currently in late signup window
  */
-router.get('/window', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.get('/window', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const isLateSignupWindow = await LateSignupService.isLateSignupWindow();
   
   res.json({

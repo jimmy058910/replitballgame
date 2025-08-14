@@ -1,5 +1,5 @@
 import express from 'express';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
 import { getPrismaClient } from "../database.js";
 
@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * Get recent league matches for the authenticated user's team
  */
-router.get('/', isAuthenticated, async (req: any, res, next) => {
+router.get('/', requireAuth, async (req: any, res, next) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js';
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 import { ErrorCreators, asyncHandler } from '../services/errorService.js';
 import { TeamNameValidator } from '../services/teamNameValidation.js';
@@ -56,8 +56,8 @@ router.get('/firebase-test', asyncHandler(async (req: any, res: Response) => {
 }));
 
 // Get user's team - PRIMARY ROUTE
-router.get('/my', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
-  const userId = req.user?.claims?.sub;
+router.get('/my', requireAuth, asyncHandler(async (req: any, res: Response) => {
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -106,7 +106,7 @@ router.get('/my', isAuthenticated, asyncHandler(async (req: any, res: Response) 
 }));
 
 // Get user's next opponent
-router.get('/my/next-opponent', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user?.claims?.sub;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
@@ -125,7 +125,7 @@ router.get('/my/next-opponent', isAuthenticated, asyncHandler(async (req: any, r
 }));
 
 // Team creation endpoint
-router.post('/create', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user?.claims?.sub;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");

@@ -1,12 +1,12 @@
 import { Router, type Request, type Response } from 'express';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { asyncHandler } from '../services/errorService.js';
 import { getPrismaClient } from "../database.js";
 
 const router = Router();
 
 // Team Trends API for Product-Led Growth Data Storytelling
-router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/trends', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
   // Find user profile
@@ -135,7 +135,7 @@ router.get('/trends', isAuthenticated, asyncHandler(async (req: any, res: Respon
 }));
 
 // Player Spotlight API for narrative-driven content
-router.get('/player-spotlight', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/player-spotlight', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
   const userProfile = await prisma.userProfile.findUnique({
@@ -205,7 +205,7 @@ router.get('/player-spotlight', isAuthenticated, asyncHandler(async (req: any, r
 }));
 
 // Team Storylines API for compelling narrative content
-router.get('/storylines', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/storylines', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
   const userProfile = await prisma.userProfile.findUnique({

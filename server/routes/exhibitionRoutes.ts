@@ -3,7 +3,7 @@ import { storage } from '../storage/index.js';
 // playerStorage imported via storage index
 import { matchStorage } from '../storage/matchStorage.js';
 import { exhibitionGameStorage } from '../storage/exhibitionGameStorage.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
 import { z } from "zod";
@@ -33,7 +33,7 @@ const challengeSchema = z.object({
 });
 
 // Exhibition routes
-router.get('/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/stats', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -106,7 +106,7 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
   }
 });
 
-router.get('/available-opponents', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/available-opponents', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -213,7 +213,7 @@ router.get('/available-opponents', isAuthenticated, async (req: any, res: Respon
 });
 
 // Auto-find and start match against similar USER team
-router.post('/instant', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/instant', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -360,7 +360,7 @@ router.post('/instant', isAuthenticated, async (req: any, res: Response, next: N
 });
 
 // Simplified challenge route for testing
-router.post('/challenge', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/challenge', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -456,7 +456,7 @@ router.post('/challenge', isAuthenticated, async (req: any, res: Response, next:
 });
 
 // Alias for instant match - frontend calls this endpoint
-router.post('/instant-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/instant-match', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -628,7 +628,7 @@ router.post('/instant-match', isAuthenticated, async (req: any, res: Response, n
   }
 });
 
-router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/challenge-opponent', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const { opponentId } = challengeSchema.parse(req.body);
@@ -704,7 +704,7 @@ router.post('/challenge-opponent', isAuthenticated, async (req: any, res: Respon
   }
 });
 
-router.get('/recent', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/recent', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);

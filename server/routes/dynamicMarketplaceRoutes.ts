@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { DynamicMarketplaceService } from '../services/dynamicMarketplaceService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 
 const router = Router();
 
 // Get active marketplace listings
-router.get('/listings', isAuthenticated, async (req: Request, res: Response) => {
+router.get('/listings', requireAuth, async (req: Request, res: Response) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
@@ -21,7 +21,7 @@ router.get('/listings', isAuthenticated, async (req: Request, res: Response) => 
 });
 
 // Get specific listing details with bid history
-router.get('/listings/:listingId', isAuthenticated, async (req: Request, res: Response) => {
+router.get('/listings/:listingId', requireAuth, async (req: Request, res: Response) => {
   try {
     const listingId = parseInt(req.params.listingId);
     const listing = await DynamicMarketplaceService.getListingDetails(listingId);
@@ -38,7 +38,7 @@ router.get('/listings/:listingId', isAuthenticated, async (req: Request, res: Re
 });
 
 // Get user's team listings
-router.get('/my-listings', isAuthenticated, async (req: Request, res: Response) => {
+router.get('/my-listings', requireAuth, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).send({ success: false, message: 'Unauthorized' });
@@ -73,7 +73,7 @@ router.get('/my-listings', isAuthenticated, async (req: Request, res: Response) 
 });
 
 // List a player for auction
-router.post('/list-player', isAuthenticated, async (req: Request, res: Response) => {
+router.post('/list-player', requireAuth, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).send({ success: false, message: 'Unauthorized' });
@@ -141,7 +141,7 @@ router.post('/list-player', isAuthenticated, async (req: Request, res: Response)
 });
 
 // Place a bid on a listing
-router.post('/listings/:listingId/bid', isAuthenticated, async (req: Request, res: Response) => {
+router.post('/listings/:listingId/bid', requireAuth, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).send({ success: false, message: 'Unauthorized' });
@@ -198,7 +198,7 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req: Request, re
 });
 
 // Buy now - instant purchase
-router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: Request, res: Response) => {
+router.post('/listings/:listingId/buy-now', requireAuth, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).send({ success: false, message: 'Unauthorized' });
@@ -244,7 +244,7 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: Request
 });
 
 // Calculate minimum buy-now price for a player (helper endpoint)
-router.get('/calculate-min-price/:playerId', isAuthenticated, async (req: Request, res: Response) => {
+router.get('/calculate-min-price/:playerId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { playerId } = req.params;
     
@@ -266,7 +266,7 @@ router.get('/calculate-min-price/:playerId', isAuthenticated, async (req: Reques
 });
 
 // Get team's marketplace stats
-router.get('/team-stats', isAuthenticated, async (req: Request, res: Response) => {
+router.get('/team-stats', requireAuth, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).send({ success: false, message: 'Unauthorized' });
@@ -307,7 +307,7 @@ router.get('/team-stats', isAuthenticated, async (req: Request, res: Response) =
 });
 
 // Get general marketplace statistics
-router.get('/stats', isAuthenticated, async (req: Request, res: Response) => {
+router.get('/stats', requireAuth, async (req: Request, res: Response) => {
   try {
     const stats = await DynamicMarketplaceService.getMarketplaceStats();
     res.json(stats);
@@ -318,7 +318,7 @@ router.get('/stats', isAuthenticated, async (req: Request, res: Response) => {
 });
 
 // Get user's bids
-router.get('/my-bids', isAuthenticated, async (req: Request, res: Response) => {
+router.get('/my-bids', requireAuth, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).send({ success: false, message: 'Unauthorized' });
@@ -352,7 +352,7 @@ router.get('/my-bids', isAuthenticated, async (req: Request, res: Response) => {
 });
 
 // Admin endpoint: Process expired auctions
-router.post('/admin/process-expired', isAuthenticated, async (req: Request, res: Response) => {
+router.post('/admin/process-expired', requireAuth, async (req: Request, res: Response) => {
   try {
     // Add admin permission check here if needed
     const results = await DynamicMarketplaceService.processExpiredAuctions();

@@ -6,7 +6,7 @@ import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 import { consumableStorage } from '../storage/consumableStorage.js';
 import { getPrismaClient } from "../database.js";
 // import { itemStorage } from '../storage/itemStorage.js'; // For fetching actual item details
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 import storeConfig from "../config/store_config.json" with { type: "json" };
 import { EnhancedGameEconomyService } from '../services/enhancedGameEconomyService.js';
@@ -35,7 +35,7 @@ const convertGemsSchema = z.object({
 });
 
 // Store routes - Master Economy v5 Combined 8-item Store System with 10-minute cache
-router.get('/items', cacheMiddleware({ ttl: 600 }), isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/items', cacheMiddleware({ ttl: 600 }), requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     // Master Economy v5: Return 8-item daily rotation instead of separate stores
@@ -99,7 +99,7 @@ router.get('/items', cacheMiddleware({ ttl: 600 }), isAuthenticated, async (req:
 });
 
 // Master Economy v5 New Endpoints
-router.get('/gem-packages', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/gem-packages', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const gemPackages = storeConfig.storeSections.gemPackages || [];
     res.json({ success: true, data: gemPackages });
@@ -109,7 +109,7 @@ router.get('/gem-packages', isAuthenticated, async (req: Request, res: Response,
   }
 });
 
-router.get('/realm-pass', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/realm-pass', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const realmPassData = {
       ...storeConfig.realmPassSubscription,
@@ -122,7 +122,7 @@ router.get('/realm-pass', isAuthenticated, async (req: Request, res: Response, n
   }
 });
 
-router.get('/gem-exchange-rates', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/gem-exchange-rates', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     res.json({ success: true, data: storeConfig.gemExchangeRates || [] });
   } catch (error) {
@@ -166,7 +166,7 @@ router.get('/categories', cacheMiddleware({ ttl: 3600 }), async (req: Request, r
   }
 });
 
-router.post('/exchange-gems', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/exchange-gems', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { gemAmount } = req.body;
     const userId = req.user?.claims?.sub;
@@ -196,7 +196,7 @@ router.post('/exchange-gems', isAuthenticated, async (req: any, res: Response, n
   }
 });
 
-router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const now = new Date();
     const rotationDate = new Date(now);
@@ -253,7 +253,7 @@ router.get('/', isAuthenticated, async (req: Request, res: Response, next: NextF
   }
 });
 
-router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/ads', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -285,7 +285,7 @@ router.get('/ads', isAuthenticated, async (req: any, res: Response, next: NextFu
   }
 });
 
-router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/watch-ad', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -371,7 +371,7 @@ router.post('/watch-ad', isAuthenticated, async (req: any, res: Response, next: 
   }
 });
 
-router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/purchase/:itemId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -614,7 +614,7 @@ router.post('/purchase/:itemId', isAuthenticated, async (req: any, res: Response
 });
 
 
-router.post('/convert-gems', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/convert-gems', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const { gemsAmount } = convertGemsSchema.parse(req.body);
@@ -646,7 +646,7 @@ router.post('/convert-gems', isAuthenticated, async (req: any, res: Response, ne
 });
 
 // Premium Box eligibility check
-router.get('/premium-box/eligibility', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/premium-box/eligibility', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -662,7 +662,7 @@ router.get('/premium-box/eligibility', isAuthenticated, async (req: any, res: Re
 });
 
 // Open Premium Box
-router.post('/premium-box/open', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/premium-box/open', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -697,7 +697,7 @@ router.post('/premium-box/open', isAuthenticated, async (req: any, res: Response
 });
 
 // Get Premium Box loot tables (for display purposes)
-router.get('/premium-box/loot-tables', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/premium-box/loot-tables', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const lootTables = EnhancedGameEconomyService.PREMIUM_BOX_LOOT;
     res.json({ success: true, data: lootTables });

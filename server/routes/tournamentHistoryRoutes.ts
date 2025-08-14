@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 
 const router = Router();
@@ -21,7 +21,7 @@ function convertBigIntToString(obj: any): any {
 }
 
 // Tournament history endpoint - completely separate from other tournament routes
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<void> => {
+router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?.claims?.sub;
     

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
 import { getPrismaClient } from "../database.js";
 
@@ -10,7 +10,7 @@ const router = Router();
  * GET /api/stadium-atmosphere/team/:teamId/analytics
  * Get comprehensive stadium analytics for a team
  */
-router.get('/team/:teamId/analytics', isAuthenticated, async (req, res) => {
+router.get('/team/:teamId/analytics', requireAuth, async (req, res) => {
   try {
     const { teamId } = req.params;
     
@@ -34,7 +34,7 @@ router.get('/team/:teamId/analytics', isAuthenticated, async (req, res) => {
  * GET /api/stadium-atmosphere/team/:teamId/matchday
  * Calculate matchday atmosphere for a home game
  */
-router.get('/team/:teamId/matchday', isAuthenticated, async (req, res) => {
+router.get('/team/:teamId/matchday', requireAuth, async (req, res) => {
   try {
     const { teamId } = req.params;
     
@@ -58,7 +58,7 @@ router.get('/team/:teamId/matchday', isAuthenticated, async (req, res) => {
  * GET /api/stadium-atmosphere/team/:teamId/revenue
  * Calculate projected home game revenue
  */
-router.get('/team/:teamId/revenue', isAuthenticated, async (req, res) => {
+router.get('/team/:teamId/revenue', requireAuth, async (req, res) => {
   try {
     const { teamId } = req.params;
     
@@ -82,7 +82,7 @@ router.get('/team/:teamId/revenue', isAuthenticated, async (req, res) => {
  * POST /api/stadium-atmosphere/team/:teamId/loyalty/calculate
  * Calculate end-of-season loyalty for a team
  */
-router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requirePermission(Permission.VIEW_ALL_TEAMS), async (req, res) => {
+router.post('/team/:teamId/loyalty/calculate', requireAuth, RBACService.requirePermission(Permission.VIEW_ALL_TEAMS), async (req, res) => {
   try {
     const { teamId } = req.params;
     const { season } = req.body;
@@ -114,7 +114,7 @@ router.post('/team/:teamId/loyalty/calculate', isAuthenticated, RBACService.requ
  * POST /api/stadium-atmosphere/league/loyalty/process
  * Process league-wide end-of-season loyalty updates
  */
-router.post('/league/loyalty/process', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/league/loyalty/process', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -146,7 +146,7 @@ router.post('/league/loyalty/process', isAuthenticated, RBACService.requirePermi
  * GET /api/stadium-atmosphere/upgrade-cost/:upgradeType
  * Calculate cost for a stadium upgrade
  */
-router.get('/upgrade-cost/:upgradeType', isAuthenticated, async (req, res) => {
+router.get('/upgrade-cost/:upgradeType', requireAuth, async (req, res) => {
   try {
     const { upgradeType } = req.params;
     const { currentLevel, currentCapacity } = req.query;
@@ -183,7 +183,7 @@ router.get('/upgrade-cost/:upgradeType', isAuthenticated, async (req, res) => {
  * GET /api/stadium-atmosphere/player/:playerId/car
  * Calculate Core Athleticism Rating for a player
  */
-router.get('/player/:playerId/car', isAuthenticated, async (req, res) => {
+router.get('/player/:playerId/car', requireAuth, async (req, res) => {
   try {
     // This would need to fetch player data first
     // For now, return the calculation method
@@ -208,7 +208,7 @@ router.get('/player/:playerId/car', isAuthenticated, async (req, res) => {
  * GET /api/stadium-atmosphere/power-tier/:teamPower
  * Get team power tier information
  */
-router.get('/power-tier/:teamPower', isAuthenticated, async (req, res) => {
+router.get('/power-tier/:teamPower', requireAuth, async (req, res) => {
   try {
     const teamPower = parseInt(req.params.teamPower);
     
@@ -239,7 +239,7 @@ router.get('/power-tier/:teamPower', isAuthenticated, async (req, res) => {
  * POST /api/stadium-atmosphere/apply-crowd-debuff
  * Apply crowd noise debuff to away team players
  */
-router.post('/apply-crowd-debuff', isAuthenticated, async (req, res) => {
+router.post('/apply-crowd-debuff', requireAuth, async (req, res) => {
   try {
     const { awayPlayers, crowdNoiseDebuff } = req.body;
     
@@ -274,7 +274,7 @@ router.post('/apply-crowd-debuff', isAuthenticated, async (req, res) => {
  * GET /api/stadium-atmosphere/stadium-data
  * Get stadium data for current user's team
  */
-router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
+router.get('/stadium-data', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -354,7 +354,7 @@ router.get('/stadium-data', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/atmosphere-data
  * Get atmosphere data for current user's team
  */
-router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
+router.get('/atmosphere-data', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -418,7 +418,7 @@ router.get('/atmosphere-data', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/revenue-breakdown
  * Get revenue breakdown for current user's team
  */
-router.get('/revenue-breakdown', isAuthenticated, async (req: any, res) => {
+router.get('/revenue-breakdown', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -472,7 +472,7 @@ router.get('/revenue-breakdown', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/upgrade-costs
  * Get upgrade costs for current user's team
  */
-router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
+router.get('/upgrade-costs', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -546,7 +546,7 @@ router.get('/upgrade-costs', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/loyalty-factors
  * Get loyalty factors for current user's team
  */
-router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
+router.get('/loyalty-factors', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -598,7 +598,7 @@ router.get('/loyalty-factors', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/team-power-tier
  * Get team power tier for current user's team
  */
-router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
+router.get('/team-power-tier', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -655,7 +655,7 @@ router.get('/team-power-tier', isAuthenticated, async (req: any, res) => {
  * GET /api/stadium-atmosphere/config
  * Get stadium atmosphere system configuration
  */
-router.get('/config', isAuthenticated, async (req, res) => {
+router.get('/config', requireAuth, async (req, res) => {
   try {
     res.json({
       success: true,

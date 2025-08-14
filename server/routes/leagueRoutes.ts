@@ -6,7 +6,7 @@ import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 import { leagueStorage } from '../storage/leagueStorage.js'; // For currentSeason
 import { matchStorage } from '../storage/matchStorage.js'; // For getMatchesByDivision
 import { seasonStorage } from '../storage/seasonStorage.js'; // For getCurrentSeason
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 import {
   generateLeagueGameSchedule,
@@ -128,7 +128,7 @@ function calculateTeamPower(players: any[]): number {
 
 
 // League routes
-router.get('/:division/standings', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:division/standings', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {
@@ -251,7 +251,7 @@ router.get('/:division/standings', isAuthenticated, async (req: Request, res: Re
 });
 
 
-router.get('/teams/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/teams/:division', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {
@@ -278,7 +278,7 @@ router.get('/teams/:division', isAuthenticated, async (req: Request, res: Respon
   }
 });
 
-router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/create-ai-teams', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { division = 8, count = 15 } = req.body;
 
@@ -343,7 +343,7 @@ router.post('/create-ai-teams', isAuthenticated, async (req: Request, res: Respo
 });
 
 // Scheduling routes
-router.get('/next-slot', isAuthenticated, (req: Request, res: Response) => {
+router.get('/next-slot', requireAuth, (req: Request, res: Response) => {
   try {
     const nextSlot = getNextLeagueGameSlot();
     res.json({
@@ -358,7 +358,7 @@ router.get('/next-slot', isAuthenticated, (req: Request, res: Response) => {
   }
 });
 
-router.post('/schedule', isAuthenticated, (req: Request, res: Response) => {
+router.post('/schedule', requireAuth, (req: Request, res: Response) => {
   try {
     const { numberOfGames, startDate } = req.body;
     if (numberOfGames && (typeof numberOfGames !== 'number' || numberOfGames <= 0 || numberOfGames > 100)) {
@@ -386,7 +386,7 @@ router.post('/schedule', isAuthenticated, (req: Request, res: Response) => {
   }
 });
 
-router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get current season from database to get the actual currentDay
     const currentSeason = await seasonStorage.getCurrentSeason(); // Use seasonStorage
@@ -534,7 +534,7 @@ router.get('/daily-schedule', isAuthenticated, async (req: Request, res: Respons
 });
 
 // Utility endpoint to fix teams with missing players
-router.post('/fix-team-players/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/fix-team-players/:teamId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     
@@ -586,7 +586,7 @@ router.post('/fix-team-players/:teamId', isAuthenticated, async (req: Request, r
 });
 
 // Utility endpoint to update team subdivision
-router.post('/update-subdivision/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/update-subdivision/:teamId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const { subdivision } = req.body;
@@ -608,7 +608,7 @@ router.post('/update-subdivision/:teamId', isAuthenticated, async (req: Request,
 });
 
 // Utility endpoint to fix existing players' names and positions  
-router.post('/fix-existing-players/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/fix-existing-players/:teamId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     
@@ -659,7 +659,7 @@ router.post('/fix-existing-players/:teamId', isAuthenticated, async (req: Reques
 });
 
 // Create additional AI teams for balancing divisions
-router.post('/create-additional-teams', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/create-additional-teams', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { count, subdivision } = req.body;
     const teamsToCreate = count || 5;
@@ -712,7 +712,7 @@ router.post('/create-additional-teams', isAuthenticated, async (req: Request, re
 });
 
 // League schedule endpoint - frontend calls /api/leagues/{division}/schedule
-router.get('/:division/schedule', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:division/schedule', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {

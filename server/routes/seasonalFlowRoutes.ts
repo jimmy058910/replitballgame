@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { SeasonalFlowService } from '../services/seasonalFlowService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
 import { asyncHandler } from '../services/errorService.js';
 import { storage } from '../storage/index.js';
@@ -11,7 +11,7 @@ const router = Router();
  * GET /api/seasonal-flow/phase/:gameDay
  * Get current seasonal phase information
  */
-router.get('/phase/:gameDay', isAuthenticated, async (req, res) => {
+router.get('/phase/:gameDay', requireAuth, async (req, res) => {
   try {
     const gameDay = parseInt(req.params.gameDay);
     
@@ -42,7 +42,7 @@ router.get('/phase/:gameDay', isAuthenticated, async (req, res) => {
  * POST /api/seasonal-flow/schedule/generate
  * Generate complete season schedule for all leagues
  */
-router.post('/schedule/generate', isAuthenticated, async (req, res) => {
+router.post('/schedule/generate', requireAuth, async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -74,7 +74,7 @@ router.post('/schedule/generate', isAuthenticated, async (req, res) => {
  * POST /api/seasonal-flow/schedule/fix-division
  * Fix league schedule for a specific division using corrected round-robin logic
  */
-router.post('/schedule/fix-division', isAuthenticated, async (req, res) => {
+router.post('/schedule/fix-division', requireAuth, async (req, res) => {
   try {
     const { division, season } = req.body;
     
@@ -113,7 +113,7 @@ router.post('/schedule/fix-division', isAuthenticated, async (req, res) => {
  * PUT /api/seasonal-flow/standings/update/:matchId
  * Update league standings after a match is completed
  */
-router.put('/standings/update/:matchId', isAuthenticated, async (req, res) => {
+router.put('/standings/update/:matchId', requireAuth, async (req, res) => {
   try {
     const { matchId } = req.params;
     
@@ -138,7 +138,7 @@ router.put('/standings/update/:matchId', isAuthenticated, async (req, res) => {
  * GET /api/seasonal-flow/standings/:leagueId
  * Get final league standings with tie-breakers applied
  */
-router.get('/standings/:leagueId', isAuthenticated, async (req, res) => {
+router.get('/standings/:leagueId', requireAuth, async (req, res) => {
   try {
     const { leagueId } = req.params;
     const { season } = req.query;
@@ -170,7 +170,7 @@ router.get('/standings/:leagueId', isAuthenticated, async (req, res) => {
  * POST /api/seasonal-flow/playoffs/generate
  * Generate playoff brackets for Day 15
  */
-router.post('/playoffs/generate', isAuthenticated, async (req, res) => {
+router.post('/playoffs/generate', requireAuth, async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -202,7 +202,7 @@ router.post('/playoffs/generate', isAuthenticated, async (req, res) => {
  * POST /api/seasonal-flow/promotion-relegation/process
  * Process promotion and relegation after playoffs complete
  */
-router.post('/promotion-relegation/process', isAuthenticated, async (req, res) => {
+router.post('/promotion-relegation/process', requireAuth, async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -234,7 +234,7 @@ router.post('/promotion-relegation/process', isAuthenticated, async (req, res) =
  * POST /api/seasonal-flow/leagues/rebalance
  * Rebalance leagues after promotion/relegation
  */
-router.post('/leagues/rebalance', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/leagues/rebalance', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -266,7 +266,7 @@ router.post('/leagues/rebalance', isAuthenticated, RBACService.requirePermission
  * POST /api/seasonal-flow/season/rollover
  * Execute complete season rollover
  */
-router.post('/season/rollover', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/season/rollover', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const { currentSeason } = req.body;
     
@@ -298,7 +298,7 @@ router.post('/season/rollover', isAuthenticated, RBACService.requirePermission(P
  * POST /api/seasonal-flow/cleanup-ai-teams
  * Test endpoint to clean up AI teams (temporary for debugging)
  */
-router.post('/cleanup-ai-teams', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/cleanup-ai-teams', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     console.log('Manual AI cleanup requested...');
     
@@ -323,7 +323,7 @@ router.post('/cleanup-ai-teams', isAuthenticated, RBACService.requirePermission(
  * GET /api/seasonal-flow/config
  * Get seasonal flow system configuration
  */
-router.get('/config', isAuthenticated, async (req, res) => {
+router.get('/config', requireAuth, async (req, res) => {
   try {
     res.json({
       success: true,
@@ -363,7 +363,7 @@ router.get('/config', isAuthenticated, async (req, res) => {
  * GET /api/seasonal-flow/schedule/preview/:season
  * Preview schedule generation without creating matches
  */
-router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.get('/schedule/preview/:season', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const season = parseInt(req.params.season);
     
@@ -416,7 +416,7 @@ router.get('/schedule/preview/:season', isAuthenticated, RBACService.requirePerm
  * POST /api/seasonal-flow/late-signup
  * Handle progressive late signup team creation
  */
-router.post('/late-signup', isAuthenticated, async (req: any, res) => {
+router.post('/late-signup', requireAuth, async (req: any, res) => {
   try {
     const { teamName } = req.body;
     const userId = req.user.claims.sub;
@@ -457,7 +457,7 @@ router.post('/late-signup', isAuthenticated, async (req: any, res) => {
  * GET /api/seasonal-flow/late-signup/stats
  * Get late signup statistics and subdivision status
  */
-router.get('/late-signup/stats', isAuthenticated, async (req, res) => {
+router.get('/late-signup/stats', requireAuth, async (req, res) => {
   try {
     // Import LateSignupService
     const { LateSignupService } = await import('../services/lateSignupService');

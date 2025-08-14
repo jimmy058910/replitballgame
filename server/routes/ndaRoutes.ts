@@ -1,13 +1,13 @@
 import { Router, type Response, type NextFunction, type Request } from "express";
 import { userStorage } from '../storage/userStorage.js';
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { asyncHandler } from '../services/errorService.js';
 import { getPrismaClient } from "../database.js";
 
 const router = Router();
 
 // Accept NDA
-router.post('/accept', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/accept', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { ndaVersion = "1.0" } = req.body;
   
@@ -29,7 +29,7 @@ router.post('/accept', isAuthenticated, asyncHandler(async (req: any, res: Respo
 }));
 
 // Check NDA status
-router.get('/status', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/status', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
   try {

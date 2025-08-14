@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from '../storage/index.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 
 const router = Router();
 
@@ -24,7 +24,7 @@ interface CareerHighlight {
  * GET /api/career-highlights/:teamId? * Returns career highlights for a team (simplified working version)
       
  */
-router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/:teamId?', requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userProfile = req.user as any;
     let teamId = req.params.teamId;

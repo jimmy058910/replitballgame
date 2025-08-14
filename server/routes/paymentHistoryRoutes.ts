@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { PaymentHistoryService } from '../services/paymentHistoryService.js';
 import { ErrorCreators, asyncHandler } from '../services/errorService.js';
 import { z } from "zod";
@@ -16,7 +16,7 @@ const paymentHistoryQuerySchema = z.object({
 });
 
 // Get user's payment history with filtering
-router.get("/", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get("/", requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
   const queryParams = paymentHistoryQuerySchema.parse(req.query);
@@ -27,7 +27,7 @@ router.get("/", isAuthenticated, asyncHandler(async (req: any, res: Response) =>
 }));
 
 // Get transaction summary for current user
-router.get("/summary", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get("/summary", requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   
   const summary = await PaymentHistoryService.getUserTransactionSummary(userId);
@@ -36,7 +36,7 @@ router.get("/summary", isAuthenticated, asyncHandler(async (req: any, res: Respo
 }));
 
 // Get team payment history (for team-specific purchases)
-router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get("/team/:teamId", requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId } = req.params;
   
@@ -62,7 +62,7 @@ const recordTransactionSchema = z.object({
   metadata: z.any().optional(),
 });
 
-router.post("/record", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post("/record", requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const transactionData = recordTransactionSchema.parse(req.body);
   
@@ -88,7 +88,7 @@ const itemPurchaseSchema = z.object({
   metadata: z.any().optional(),
 });
 
-router.post("/purchase", isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post("/purchase", requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const purchaseData = itemPurchaseSchema.parse(req.body);
   

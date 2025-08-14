@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { TeamNameValidator } from '../services/teamNameValidation.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { asyncHandler } from '../services/errorService.js';
 
 const router = Router();
@@ -22,7 +22,7 @@ const suggestNamesSchema = z.object({
  * POST /api/team-names/validate
  * Validates a team name against all rules
  */
-router.post('/validate', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.post('/validate', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const { name, excludeTeamId } = validateNameSchema.parse(req.body);
   
   const result = await TeamNameValidator.validateTeamName(name, excludeTeamId);
@@ -39,7 +39,7 @@ router.post('/validate', isAuthenticated, asyncHandler(async (req: Request, res:
  * POST /api/team-names/validate-with-suggestions
  * Validates a team name and provides suggestions if invalid
  */
-router.post('/validate-with-suggestions', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.post('/validate-with-suggestions', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const { baseName, excludeTeamId } = suggestNamesSchema.parse(req.body);
   
   const { result, suggestions } = await TeamNameValidator.validateWithSuggestions(baseName, excludeTeamId);
@@ -67,7 +67,7 @@ router.get('/rules', asyncHandler(async (req: Request, res: Response) => {
  * POST /api/team-names/check-availability
  * Quick availability check (just uniqueness)
  */
-router.post('/check-availability', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
+router.post('/check-availability', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const { name } = z.object({ name: z.string() }).parse(req.body);
   
   if (!name || name.trim().length === 0) {

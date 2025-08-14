@@ -1,14 +1,14 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js'; // Adjusted path
 import { getPrismaClient } from "../database.js";
-import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { randomUUID } from "crypto"; // For demo notifications
 // import { NotificationService } from '../services/notificationService.js'; // If using service methods here
 
 const router = Router();
 
 // Notification routes
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -26,7 +26,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
   }
 });
 
-router.patch('/:id/read', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.patch('/:id/read', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const notificationId = parseInt(req.params.id);
     
@@ -42,7 +42,7 @@ router.patch('/:id/read', isAuthenticated, async (req: any, res: Response, next:
   }
 });
 
-router.patch('/mark-all-read', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.patch('/mark-all-read', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -60,7 +60,7 @@ router.patch('/mark-all-read', isAuthenticated, async (req: any, res: Response, 
   }
 });
 
-router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.delete('/:id', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const notificationId = parseInt(req.params.id);
     
@@ -80,7 +80,7 @@ router.delete('/:id', isAuthenticated, async (req: any, res: Response, next: Nex
   }
 });
 
-router.delete('/delete-all', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.delete('/delete-all', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     await prisma.notification.deleteMany({ where: { teamId: userId } });
@@ -92,7 +92,7 @@ router.delete('/delete-all', isAuthenticated, async (req: any, res: Response, ne
 });
 
 // Demo notifications endpoint (consolidated from the two versions)
-router.post('/demo', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/demo', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);

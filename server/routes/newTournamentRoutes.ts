@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 import { tournamentService } from '../services/tournamentService.js';
 import { getPrismaClient } from "../database.js";
@@ -23,7 +23,7 @@ const midSeasonRegisterSchema = z.object({
 });
 
 // Get available tournaments for team's division
-router.get('/available', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/available', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -59,7 +59,7 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
 });
 
 // Register for tournament
-router.post('/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/register', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -89,7 +89,7 @@ router.post('/register', isAuthenticated, async (req: any, res: Response, next: 
 });
 
 // Register for Daily Divisional Tournament (on-demand creation)
-router.post('/daily-tournament/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/daily-tournament/register', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -120,7 +120,7 @@ router.post('/daily-tournament/register', isAuthenticated, async (req: any, res:
 });
 
 // Register for Mid-Season Cup (on-demand creation)
-router.post('/mid-season/register', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/mid-season/register', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -152,7 +152,7 @@ router.post('/mid-season/register', isAuthenticated, async (req: any, res: Respo
 });
 
 // Get team's registered tournaments
-router.get('/my-tournaments', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my-tournaments', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -187,7 +187,7 @@ router.get('/my-tournaments', isAuthenticated, async (req: any, res: Response, n
 });
 
 // Get tournament history
-router.get('/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/history', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -215,7 +215,7 @@ router.get('/history', isAuthenticated, async (req: any, res: Response, next: Ne
 });
 
 // Get tournament statistics
-router.get('/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/stats', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -230,7 +230,7 @@ router.get('/stats', isAuthenticated, async (req: any, res: Response, next: Next
 });
 
 // Get team's current tournament entries
-router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/team/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
@@ -290,7 +290,7 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
 });
 
 // Get team's tournament history
-router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/team/:teamId/history', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
@@ -354,7 +354,7 @@ router.get('/team/:teamId/history', isAuthenticated, async (req: any, res: Respo
 });
 
 // Get tournament details by ID
-router.get('/:tournamentId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:tournamentId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { tournamentId } = req.params;
     
@@ -403,7 +403,7 @@ router.get('/:tournamentId', isAuthenticated, async (req: any, res: Response, ne
 });
 
 // Get tournament overview (shows both types available for team's division)
-router.get('/overview/:division', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/overview/:division', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {
@@ -470,7 +470,7 @@ router.get('/overview/:division', isAuthenticated, async (req: any, res: Respons
 });
 
 // Admin endpoint to create tournaments (for testing and management)
-router.post('/admin/create-daily-cup/:division', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/admin/create-daily-cup/:division', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     // Check admin permissions (simplified for now)
     const userId = req.user.claims.sub;
@@ -496,7 +496,7 @@ router.post('/admin/create-daily-cup/:division', isAuthenticated, async (req: an
 });
 
 // Admin endpoint to create Mid-Season Cup
-router.post('/admin/create-mid-season/:division', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/admin/create-mid-season/:division', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     // Check admin permissions (simplified for now)
     const userId = req.user.claims.sub;

@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { PlayerContractInitializer } from '../services/playerContractInitializer.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 
 const router = Router();
 
@@ -8,7 +8,7 @@ const router = Router();
  * POST /api/contracts/initialize-team/:teamId
  * Assigns initial contracts to all players on a team who don't have active contracts
  */
-router.post('/initialize-team/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/initialize-team/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
@@ -37,7 +37,7 @@ router.post('/initialize-team/:teamId', isAuthenticated, async (req: any, res: R
  * POST /api/contracts/initialize-all
  * Assigns initial contracts to all teams (admin only)
  */
-router.post('/initialize-all', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/initialize-all', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     await PlayerContractInitializer.assignInitialContractsToAllTeams();
     

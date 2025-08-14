@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { storage } from '../storage/index.js';
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { cacheMiddleware } from "../middleware/cache.js";
 
 const router = Router();
 
 // Universal Team Power Rankings with 5-minute cache
-router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, async (req, res) => {
+router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), requireAuth, async (req, res) => {
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
     
@@ -79,7 +79,7 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), isAuthenticated, a
 });
 
 // Community Portal rankings endpoint - formatted for frontend compatibility
-router.get("/rankings", isAuthenticated, async (req, res) => {
+router.get("/rankings", requireAuth, async (req, res) => {
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
     const players = await storage.players.getAllPlayersWithStats();
@@ -157,7 +157,7 @@ router.get("/rankings", isAuthenticated, async (req, res) => {
 });
 
 // World Statistics Dashboard
-router.get("/statistics", isAuthenticated, async (req, res) => {
+router.get("/statistics", requireAuth, async (req, res) => {
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
     const players = await storage.players.getAllPlayersWithStats();

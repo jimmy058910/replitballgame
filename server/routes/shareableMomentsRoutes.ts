@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from '../storage/index.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 
 const router = Router();
@@ -22,7 +22,7 @@ interface ShareableMoment {
  * GET /api/shareable-moments/:teamId? * Returns shareable moments for a team (social proof mechanics)
       
  */
-router.get('/:teamId?', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:teamId?', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userProfile = req.user as any;
     let teamId = req.params.teamId;

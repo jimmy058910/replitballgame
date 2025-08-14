@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { matchStorage } from '../storage/matchStorage.js';
 import { storage } from '../storage/index.js';
 // playerStorage imported via storage index
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { simulateEnhancedMatch as fullMatchSimulation } from '../services/matchSimulation.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections  
 // import { matchStateManager } from '../services/matchStateManager.js';
@@ -120,7 +120,7 @@ function serializeBigIntValues(obj: any): any {
 }
 
 // Match routes - ALL LIVE MATCHES across the game
-router.get('/live', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/live', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get user's team ID from the authenticated user
     const userId = (req as any).user.claims?.sub || (req as any).user.userId;
@@ -184,7 +184,7 @@ router.get('/live', isAuthenticated, async (req: Request, res: Response, next: N
 
 
 
-router.get('/:matchId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:matchId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
     const matchIdNum = parseInt(matchId, 10);
@@ -528,7 +528,7 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
 });
 
 // Old enhanced-data endpoint (to be removed later)
-router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:matchId/enhanced-data-old', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
     const matchIdNum = parseInt(matchId, 10);
@@ -807,7 +807,7 @@ router.get('/:matchId/enhanced-data-old', isAuthenticated, async (req: Request, 
   }
 });
 
-router.post('/:matchId/complete-now', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:matchId/complete-now', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     // TODO: Add SuperUser/Admin check
     const { matchId } = req.params;
@@ -840,7 +840,7 @@ router.post('/:matchId/complete-now', isAuthenticated, async (req: any, res: Res
   }
 });
 
-router.get('/team/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/team/:teamId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const teamMatches = await matchStorage.getMatchesByTeamId(parseInt(teamId)); // Use matchStorage
@@ -851,7 +851,7 @@ router.get('/team/:teamId', isAuthenticated, async (req: Request, res: Response,
   }
 });
 
-router.post('/:id/simulate', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/simulate', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const match = await matchStorage.getMatchById(parseInt(id)); // Use matchStorage
@@ -890,7 +890,7 @@ router.get('/:matchId/simulation', (req, res) => {
   res.status(410).json({ message: "This match simulation endpoint is deprecated. Use text-based match viewing." });
 });
 
-router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:matchId/simulate-play', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
     const { speed = 1 } = req.body;
@@ -938,7 +938,7 @@ router.post('/:matchId/simulate-play', isAuthenticated, async (req: Request, res
   }
 });
 
-router.post('/:matchId/reset', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:matchId/reset', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
     await matchStorage.updateMatch(parseInt(matchId), { // Use matchStorage
@@ -955,7 +955,7 @@ router.post('/:matchId/reset', isAuthenticated, async (req: Request, res: Respon
   }
 });
 
-router.patch('/:id/complete', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.patch('/:id/complete', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { homeScore, awayScore } = req.body;
@@ -979,7 +979,7 @@ router.patch('/:id/complete', isAuthenticated, async (req: any, res: Response, n
 });
 
 // Get next league game for a team
-router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/next-league-game/:teamId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     
@@ -1022,7 +1022,7 @@ router.get('/next-league-game/:teamId', isAuthenticated, async (req: Request, re
 });
 
 // Create exhibition match endpoint
-router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/exhibition/instant', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { opponentTeamId } = req.body;
     const userTeamId = req.user.claims.sub;
@@ -1064,7 +1064,7 @@ router.post('/exhibition/instant', isAuthenticated, async (req: any, res: Respon
 });
 
 // Match sync endpoint for testing persistence
-router.get('/:matchId/sync', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:matchId/sync', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
     const matchIdNum = parseInt(matchId, 10);

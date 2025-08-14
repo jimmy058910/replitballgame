@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
 
 const router = Router();
 
 // Get referral data for the authenticated user
-router.get("/", isAuthenticated, async (req: any, res) => {
+router.get("/", requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     if (!userId) {
@@ -35,7 +35,7 @@ router.get("/", isAuthenticated, async (req: any, res) => {
 });
 
 // Generate or refresh referral code
-router.post("/generate-code", isAuthenticated, async (req: any, res) => {
+router.post("/generate-code", requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     if (!userId) {

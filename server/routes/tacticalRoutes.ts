@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
 import { 
   FIELD_SIZE_CONFIG, 
@@ -16,7 +16,7 @@ import { CamaraderieService } from '../services/camaraderieService.js';
 const router = Router();
 
 // Get team's current formation
-router.get("/formation", isAuthenticated, async (req: any, res) => {
+router.get("/formation", requireAuth, async (req: any, res) => {
   try {
     const team = await storage.teams.getTeamByUserId(req.user.claims.sub);
     if (!team) {
@@ -41,7 +41,7 @@ router.get("/formation", isAuthenticated, async (req: any, res) => {
 });
 
 // Get team's current tactical setup
-router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
+router.get("/team-tactics", requireAuth, async (req: any, res) => {
   try {
     const team = await storage.teams.getTeamByUserId(req.user.claims.sub);
     if (!team) {
@@ -98,7 +98,7 @@ router.get("/team-tactics", isAuthenticated, async (req: any, res) => {
 });
 
 // Update team's field size (only during off-season or day 1)
-router.post("/update-field-size", isAuthenticated, async (req: any, res) => {
+router.post("/update-field-size", requireAuth, async (req: any, res) => {
   try {
     const { fieldSize } = req.body;
     
@@ -138,7 +138,7 @@ router.post("/update-field-size", isAuthenticated, async (req: any, res) => {
 });
 
 // Update team's tactical focus (can be changed before any match)
-router.post("/update-tactical-focus", isAuthenticated, async (req: any, res) => {
+router.post("/update-tactical-focus", requireAuth, async (req: any, res) => {
   try {
     const { tacticalFocus } = req.body;
     
@@ -170,7 +170,7 @@ router.post("/update-tactical-focus", isAuthenticated, async (req: any, res) => 
 });
 
 // Get all available tactical options with descriptions
-router.get("/tactical-options", isAuthenticated, async (req: any, res) => {
+router.get("/tactical-options", requireAuth, async (req: any, res) => {
   try {
     res.json({
       fieldSizes: FIELD_SIZE_CONFIG,
@@ -183,7 +183,7 @@ router.get("/tactical-options", isAuthenticated, async (req: any, res) => {
 });
 
 // Analyze tactical effectiveness for current roster
-router.get("/tactical-analysis", isAuthenticated, async (req: any, res) => {
+router.get("/tactical-analysis", requireAuth, async (req: any, res) => {
   try {
     const team = await storage.teams.getTeamByUserId(req.user.claims.sub);
     if (!team) {

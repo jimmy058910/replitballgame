@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { getPrismaClient } from '../database.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
 
 const router = Router();
@@ -8,7 +8,7 @@ const router = Router();
 /**
  * Get unclaimed tournament rewards for a team
  */
-router.get('/unclaimed', isAuthenticated, async (req: any, res: Response) => {
+router.get('/unclaimed', requireAuth, async (req: any, res: Response) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -86,7 +86,7 @@ router.get('/unclaimed', isAuthenticated, async (req: any, res: Response) => {
 /**
  * Claim all pending tournament rewards
  */
-router.post('/claim-all', isAuthenticated, async (req: any, res: Response) => {
+router.post('/claim-all', requireAuth, async (req: any, res: Response) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);

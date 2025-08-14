@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { CamaraderieService } from '../services/camaraderieService.js';
 import { RBACService, Permission } from '../services/rbacService.js';
 import { ErrorCreators, asyncHandler, logInfo } from '../services/errorService.js';
@@ -8,7 +8,7 @@ import { storage } from '../storage/index.js';
 const router = Router();
 
 // Apply authentication to all routes
-router.use(isAuthenticated);
+router.use(requireAuth);
 
 /**
  * Get team camaraderie summary for logged-in user's team

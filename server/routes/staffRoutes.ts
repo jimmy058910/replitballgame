@@ -1,6 +1,6 @@
 import { Router, type Response, type NextFunction } from 'express';
 import { storage } from '../storage/index.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from 'zod';
 import { ContractService } from '../services/contractService.js';
 
@@ -14,7 +14,7 @@ const staffContractNegotiationSchema = z.object({
  * GET /api/staff
  * Get all staff for the authenticated user's team with contract information
  */
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -78,7 +78,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
  * GET /api/staff/:staffId/contract-value
  * Get contract value calculation for a staff member using Universal Value Formula
  */
-router.get('/:staffId/contract-value', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:staffId/contract-value', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { staffId } = req.params;
     const userId = req.user.claims.sub;
@@ -109,7 +109,7 @@ router.get('/:staffId/contract-value', isAuthenticated, async (req: any, res: Re
  * POST /api/staff/:staffId/negotiate
  * Negotiate a contract with a staff member using the Universal Value Formula system
  */
-router.post('/:staffId/negotiate', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:staffId/negotiate', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { staffId } = req.params;
     const { salary } = staffContractNegotiationSchema.parse(req.body);
@@ -160,7 +160,7 @@ router.post('/:staffId/negotiate', isAuthenticated, async (req: any, res: Respon
  * DELETE /api/staff/:staffId/release
  * Release a staff member from the team
  */
-router.delete('/:staffId/release', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.delete('/:staffId/release', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { staffId } = req.params;
     const userId = req.user.claims.sub;

@@ -1,13 +1,13 @@
 import { Router, Request, Response } from "express";
 import { consumableStorage } from '../storage/consumableStorage.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { asyncHandler } from '../services/errorService.js';
 import { getPrismaClient } from "../database.js";
 
 const router = Router();
 
 // Get team's consumable inventory
-router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.get("/team/:teamId", requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { teamId } = req.params;
   const userId = req.user?.claims?.sub;
 
@@ -21,7 +21,7 @@ router.get("/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: 
 }));
 
 // Get consumables activated for a specific match
-router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.get("/match/:matchId/team/:teamId", requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId, teamId } = req.params;
   const userId = req.user?.claims?.sub;
 
@@ -41,7 +41,7 @@ router.get("/match/:matchId/team/:teamId", isAuthenticated, asyncHandler(async (
 }));
 
 // Activate a consumable for a match
-router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.post("/activate", requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId, teamId, consumableId, consumableName, effectType, effectData } = req.body;
   const userId = req.user?.claims?.sub;
 
@@ -89,7 +89,7 @@ router.post("/activate", isAuthenticated, asyncHandler(async (req: any, res: Res
 }));
 
 // Deactivate a consumable (remove from match)
-router.delete("/:consumableId/team/:teamId", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.delete("/:consumableId/team/:teamId", requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { consumableId, teamId } = req.params;
   const userId = req.user?.claims?.sub;
 
@@ -108,7 +108,7 @@ router.delete("/:consumableId/team/:teamId", isAuthenticated, asyncHandler(async
 }));
 
 // Get all consumables for a match (for match simulation)
-router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.get("/match/:matchId/all", requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId } = req.params;
   const userId = req.user?.claims?.sub;
 
@@ -122,7 +122,7 @@ router.get("/match/:matchId/all", isAuthenticated, asyncHandler(async (req: any,
 }));
 
 // Mark consumables as used after match completion (internal endpoint)
-router.post("/match/:matchId/mark-used", isAuthenticated, asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.post("/match/:matchId/mark-used", requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId } = req.params;
   const userId = req.user?.claims?.sub;
 

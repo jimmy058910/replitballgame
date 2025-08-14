@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { PlayerSkillsService } from '../services/playerSkillsService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 
 const router = Router();
 
 // Get all skills available in the game
-router.get('/', isAuthenticated, async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
     const skills = await PlayerSkillsService.getAllSkills();
     res.json({ skills });
@@ -17,7 +17,7 @@ router.get('/', isAuthenticated, async (req, res) => {
 });
 
 // Get a specific skill by ID
-router.get('/skills/:skillId', isAuthenticated, async (req, res) => {
+router.get('/skills/:skillId', requireAuth, async (req, res) => {
   try {
     const skillId = parseInt(req.params.skillId);
     const skill = await PlayerSkillsService.getSkillById(skillId);
@@ -34,7 +34,7 @@ router.get('/skills/:skillId', isAuthenticated, async (req, res) => {
 });
 
 // Get all skills for a specific player
-router.get('/player/:playerId/skills', isAuthenticated, async (req, res) => {
+router.get('/player/:playerId/skills', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     const playerSkills = await PlayerSkillsService.getPlayerSkills(playerId);
@@ -54,7 +54,7 @@ router.get('/player/:playerId/skills', isAuthenticated, async (req, res) => {
 });
 
 // Get eligible skills for a player
-router.get('/player/:playerId/eligible-skills', isAuthenticated, async (req, res) => {
+router.get('/player/:playerId/eligible-skills', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     const eligibleSkills = await PlayerSkillsService.getEligibleSkills(playerId);
@@ -67,7 +67,7 @@ router.get('/player/:playerId/eligible-skills', isAuthenticated, async (req, res
 });
 
 // Get skill effects for a player (used in match simulation)
-router.get('/player/:playerId/effects', isAuthenticated, async (req, res) => {
+router.get('/player/:playerId/effects', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     const effects = await PlayerSkillsService.getPlayerSkillEffects(playerId);
@@ -80,7 +80,7 @@ router.get('/player/:playerId/effects', isAuthenticated, async (req, res) => {
 });
 
 // Manually trigger skill acquisition for a player (admin/testing)
-router.post('/player/:playerId/acquire/:skillId', isAuthenticated, async (req, res) => {
+router.post('/player/:playerId/acquire/:skillId', requireAuth, async (req, res) => {
   try {
     const { playerId, skillId } = req.params;
     const skillIdNum = parseInt(skillId);
@@ -107,7 +107,7 @@ router.post('/player/:playerId/acquire/:skillId', isAuthenticated, async (req, r
 });
 
 // Manually trigger skill upgrade for a player (admin/testing)
-router.post('/player/:playerId/upgrade/:skillId', isAuthenticated, async (req, res) => {
+router.post('/player/:playerId/upgrade/:skillId', requireAuth, async (req, res) => {
   try {
     const { playerId, skillId } = req.params;
     const skillIdNum = parseInt(skillId);
@@ -134,7 +134,7 @@ router.post('/player/:playerId/upgrade/:skillId', isAuthenticated, async (req, r
 });
 
 // Process end-of-season skill progression for user's team
-router.post('/team/season-progression', isAuthenticated, async (req, res) => {
+router.post('/team/season-progression', requireAuth, async (req, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
@@ -162,7 +162,7 @@ router.post('/team/season-progression', isAuthenticated, async (req, res) => {
 });
 
 // Get skill progression summary for user's team
-router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
+router.get('/team/progression-summary', requireAuth, async (req, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
@@ -206,7 +206,7 @@ router.get('/team/progression-summary', isAuthenticated, async (req, res) => {
 });
 
 // Simulate skill-up event for a specific player (testing)
-router.post('/player/:playerId/skill-up-event', isAuthenticated, async (req, res) => {
+router.post('/player/:playerId/skill-up-event', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     const result = await PlayerSkillsService.processSkillUpEvent(playerId);

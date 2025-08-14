@@ -28,24 +28,46 @@ router.get('/google/callback',
 // ✅ AUTHENTICATION STATUS ENDPOINT - For client-side auth check
 router.get('/status', async (req: Request, res: Response) => {
   try {
-    console.log('🔍 /api/auth/status called - checking authentication...');
+    console.log('🔍 /api/auth/status called - checking Firebase authentication...');
     
-    // Check if user is authenticated via Passport session
-    const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
-    console.log('🔍 Passport isAuthenticated:', isAuthenticated);
-    console.log('🔍 Session user:', (req as any).user);
+    // Check for Firebase authentication manually
+    const authHeader = req.headers.authorization;
     
-    if (!isAuthenticated || !(req as any).user) {
-      console.log('❌ User not authenticated');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No Firebase Bearer token provided');
+      return res.json({ 
+        isAuthenticated: false, 
+        user: null 
+      });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    if (!token) {
+      console.log('❌ Empty Firebase token');
+      return res.json({ 
+        isAuthenticated: false, 
+        user: null 
+      });
+    }
+
+    // Verify Firebase token
+    let firebaseUser;
+    try {
+      const admin = await import('firebase-admin');
+      firebaseUser = await admin.auth().verifyIdToken(token);
+      console.log('✅ Firebase token verified for user:', firebaseUser.email);
+    } catch (tokenError: any) {
+      console.log('❌ Firebase token verification failed:', tokenError.message);
       return res.json({ 
         isAuthenticated: false, 
         user: null 
       });
     }
     
-    // User is authenticated, get user profile from database
-    const userId = (req as any).user.claims?.sub || (req as any).user.id;
-    console.log('✅ User authenticated, userId:', userId);
+    // User is authenticated via Firebase, get user profile from database
+    const userId = firebaseUser.uid;
+    console.log('✅ Firebase user authenticated, userId:', userId);
     
     try {
       const { getPrismaClient } = await import('../database.js');
@@ -58,7 +80,7 @@ router.get('/status', async (req: Request, res: Response) => {
       if (userProfile) {
         console.log('✅ User profile found:', userProfile.email);
         return res.json({
-          isAuthenticated: true,
+          requireAuth: true,
           user: {
             id: userProfile.userId,
             email: userProfile.email,
@@ -70,12 +92,12 @@ router.get('/status', async (req: Request, res: Response) => {
           }
         });
       } else {
-        console.log('⚠️ User authenticated but no profile found');
+        console.log('⚠️ Firebase user authenticated but no profile found');
         return res.json({
-          isAuthenticated: true,
+          requireAuth: true,
           user: {
             id: userId,
-            email: (req as any).user.email || 'unknown@example.com',
+            email: firebaseUser.email || 'unknown@example.com',
             firstName: 'Unknown',
             lastName: 'User'
           }
@@ -84,10 +106,10 @@ router.get('/status', async (req: Request, res: Response) => {
     } catch (dbError: any) {
       console.error('Database error in /status:', dbError);
       return res.json({
-        isAuthenticated: true,
+        requireAuth: true,
         user: {
           id: userId,
-          email: (req as any).user.email || 'unknown@example.com',
+          email: firebaseUser.email || 'unknown@example.com',
           firstName: 'Unknown', 
           lastName: 'User'
         }
@@ -96,7 +118,7 @@ router.get('/status', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error in /api/auth/status:', error);
     return res.json({ 
-      isAuthenticated: false, 
+      requireAuth: false, 
       user: null 
     });
   }
@@ -181,7 +203,7 @@ router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
       const isProduction = process.env.NODE_ENV === 'production';
       
       // Check if user is authenticated (with development OR production bypass)
-      if (!isProduction && (!req.isAuthenticated || !req.isAuthenticated())) {
+      if (!isProduction && (!req.requireAuth || !req.requireAuth())) {
         console.log('❌ Production mode: user not authenticated');
         return res.json({ authenticated: false, user: null });
       }

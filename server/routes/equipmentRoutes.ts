@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 import { ErrorCreators, asyncHandler } from '../services/errorService.js';
 
@@ -10,7 +10,7 @@ const router = Router();
  * POST /api/equipment/equip
  * Equip an item to a player
  */
-router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/equip', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId, playerId, itemId, itemName } = req.body;
 
@@ -147,7 +147,7 @@ router.post('/equip', isAuthenticated, asyncHandler(async (req: any, res: Respon
  * GET /api/equipment/player/:playerId
  * Get player's current equipment
  */
-router.get('/player/:playerId', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/player/:playerId', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { playerId } = req.params;
 

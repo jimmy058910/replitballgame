@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PlayerAgingRetirementService } from '../services/playerAgingRetirementService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService } from '../services/rbacService.js';
 
 const router = Router();
@@ -9,7 +9,7 @@ const router = Router();
  * GET /api/player-aging/player/:playerId/stats
  * Get player development statistics and history
  */
-router.get('/player/:playerId/stats', isAuthenticated, async (req, res) => {
+router.get('/player/:playerId/stats', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     
@@ -32,7 +32,7 @@ router.get('/player/:playerId/stats', isAuthenticated, async (req, res) => {
  * POST /api/player-aging/player/:playerId/simulate
  * Simulate aging for a player over multiple seasons (testing only)
  */
-router.post('/player/:playerId/simulate', isAuthenticated, async (req, res) => {
+router.post('/player/:playerId/simulate', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     const { numberOfSeasons = 5, avgGamesPerSeason = 10 } = req.body;
@@ -67,7 +67,7 @@ router.post('/player/:playerId/simulate', isAuthenticated, async (req, res) => {
  * POST /api/player-aging/team/:teamId/process-development
  * Process end-of-season development for a team
  */
-router.post('/team/:teamId/process-development', isAuthenticated, async (req, res) => {
+router.post('/team/:teamId/process-development', requireAuth, async (req, res) => {
   try {
     const { teamId } = req.params;
     const { season } = req.body;
@@ -98,7 +98,7 @@ router.post('/team/:teamId/process-development', isAuthenticated, async (req, re
  * POST /api/player-aging/league/process-development
  * Process end-of-season development for entire league
  */
-router.post('/league/process-development', isAuthenticated, async (req, res) => {
+router.post('/league/process-development', requireAuth, async (req, res) => {
   try {
     const { season } = req.body;
     
@@ -128,7 +128,7 @@ router.post('/league/process-development', isAuthenticated, async (req, res) => 
  * POST /api/player-aging/player/:playerId/force-retirement
  * Force retire a player (admin only)
  */
-router.post('/player/:playerId/force-retirement', isAuthenticated, async (req, res) => {
+router.post('/player/:playerId/force-retirement', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     const { season, reason = 'administrative' } = req.body;
@@ -159,7 +159,7 @@ router.post('/player/:playerId/force-retirement', isAuthenticated, async (req, r
  * GET /api/player-aging/player/:playerId/progression-chance
  * Calculate progression chances for a player's stats
  */
-router.get('/player/:playerId/progression-chance', isAuthenticated, async (req, res) => {
+router.get('/player/:playerId/progression-chance', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     const { gamesPlayed = 0 } = req.query;
@@ -198,7 +198,7 @@ router.get('/player/:playerId/progression-chance', isAuthenticated, async (req, 
  * GET /api/player-aging/player/:playerId/retirement-chance
  * Calculate retirement chance for a player
  */
-router.get('/player/:playerId/retirement-chance', isAuthenticated, async (req, res) => {
+router.get('/player/:playerId/retirement-chance', requireAuth, async (req, res) => {
   try {
     const { playerId } = req.params;
     const { age, careerInjuries = 0, gamesPlayedLastSeason = 0 } = req.query;
@@ -239,7 +239,7 @@ router.get('/player/:playerId/retirement-chance', isAuthenticated, async (req, r
  * GET /api/player-aging/config
  * Get aging system configuration and formulas
  */
-router.get('/config', isAuthenticated, async (req, res) => {
+router.get('/config', requireAuth, async (req, res) => {
   try {
     res.json({
       success: true,
@@ -267,7 +267,7 @@ router.get('/config', isAuthenticated, async (req, res) => {
  * POST /api/player-aging/generate-age
  * Generate appropriate age for player context
  */
-router.post('/generate-age', isAuthenticated, async (req, res) => {
+router.post('/generate-age', requireAuth, async (req, res) => {
   try {
     const { context = 'general' } = req.body;
     

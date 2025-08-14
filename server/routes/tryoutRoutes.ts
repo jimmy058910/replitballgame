@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 import { Race, PlayerRole, SeasonPhase } from "@prisma/client";
 
@@ -74,7 +74,7 @@ function generateRandomPlayer() {
 }
 
 // Get tryout candidates
-router.get('/candidates', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/candidates', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Generate 8-12 random candidates
     const candidateCount = Math.floor(Math.random() * 5) + 8;
@@ -92,7 +92,7 @@ router.get('/candidates', isAuthenticated, async (req: Request, res: Response, n
 });
 
 // Conduct tryout (with seasonal restrictions)
-router.post('/:teamId/conduct', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:teamId/conduct', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const { type, selectedPlayers } = req.body;

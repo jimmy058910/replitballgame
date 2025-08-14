@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { formatSubdivisionName, getSubdivisionCapacityInfo, generateSubdivisionProgression, validateSubdivisionName } from "../../shared/subdivisionUtils.js";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 
 const router = Router();
 
@@ -8,7 +8,7 @@ const router = Router();
  * Test route to demonstrate subdivision system capabilities
  * GET /api/test/subdivision-system
  */
-router.get('/subdivision-system', isAuthenticated, async (req: any, res: Response) => {
+router.get('/subdivision-system', requireAuth, async (req: any, res: Response) => {
   const capacityInfo = getSubdivisionCapacityInfo();
   const progression = generateSubdivisionProgression(50);
   

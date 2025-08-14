@@ -4,7 +4,7 @@ import { storage } from '../storage/index.js';
 // playerStorage imported via storage index
 import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 import { notificationStorage } from '../storage/notificationStorage.js'; // For notifications
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 // import { NotificationService } from '../services/notificationService.js'; // Preferred over direct storage for notifications
 
@@ -21,7 +21,7 @@ const placeBidSchema = z.object({
 });
 
 // Auction routes
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<void> => {
+router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Consider adding pagination parameters from req.query if needed
     const auctions = await auctionStorage.getActiveAuctions();
@@ -32,7 +32,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
   }
 });
 
-router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<void> => {
+router.post('/', requireAuth, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -81,7 +81,7 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
   }
 });
 
-router.post('/:id/bid', isAuthenticated, async (req: any, res: Response, next: NextFunction): Promise<void> => {
+router.post('/:id/bid', requireAuth, async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user.claims.sub;
     const bidderTeam = await storage.teams.getTeamByUserId(userId);

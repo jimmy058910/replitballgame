@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js'; // Adjusted path
-import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod"; // For validation
 
 const router = Router();
@@ -33,7 +33,7 @@ const sponsorshipNegotiationSchema = z.object({
 
 
 // ===== SEASON CHAMPIONSHIPS & PLAYOFFS ROUTES =====
-router.get('/current', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/current', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const season = await storage.seasons.getCurrentSeason(); // Assumes this returns the active season
     if (!season) {
@@ -49,7 +49,7 @@ router.get('/current', isAuthenticated, async (req: Request, res: Response, next
 
 // Get current season cycle (day-by-day info)
 // Get current week info (simple week data for SuperUser page)
-router.get('/current-week', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/current-week', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const currentSeason = await storage.seasons.getCurrentSeason();
     let week = 1;
@@ -71,7 +71,7 @@ router.get('/current-week', isAuthenticated, async (req: Request, res: Response,
   }
 });
 
-router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/current-cycle', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get current season from database to get the actual currentDay
     const currentSeason = await storage.seasons.getCurrentSeason();
@@ -168,7 +168,7 @@ router.get('/current-cycle', isAuthenticated, async (req: Request, res: Response
   }
 });
 
-router.get('/champions', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/champions', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // For now, return empty array as championship history isn't implemented yet
     const history: any[] = [];
@@ -179,7 +179,7 @@ router.get('/champions', isAuthenticated, async (req: Request, res: Response, ne
   }
 });
 
-router.get('/playoffs/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/playoffs/:division', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {
@@ -198,7 +198,7 @@ router.get('/playoffs/:division', isAuthenticated, async (req: Request, res: Res
   }
 });
 
-router.post('/:seasonId/playoffs/start', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:seasonId/playoffs/start', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // TODO: Add SuperUser/Admin check for starting playoffs
     const { seasonId } = req.params;
@@ -216,7 +216,7 @@ router.post('/:seasonId/playoffs/start', isAuthenticated, async (req: Request, r
 });
 
 // ===== CONTRACT SYSTEM ROUTES =====
-router.get('/contracts/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/contracts/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     // Use Prisma directly for now
@@ -240,7 +240,7 @@ router.get('/contracts/:teamId', isAuthenticated, async (req: any, res: Response
   }
 });
 
-router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/salary-cap/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     // Simplified implementation - calculate from team's current contracts
@@ -288,7 +288,7 @@ router.get('/salary-cap/:teamId', isAuthenticated, async (req: any, res: Respons
   }
 });
 
-router.post('/contracts/negotiate', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/contracts/negotiate', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -325,7 +325,7 @@ router.post('/contracts/negotiate', isAuthenticated, async (req: any, res: Respo
 // ... other contract routes like renew, release, templates (similar structure)
 
 // ===== SPONSORSHIP SYSTEM ROUTES =====
-router.get('/sponsorships/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/sponsorships/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     // For now, return empty array as sponsorships aren't implemented yet
@@ -337,7 +337,7 @@ router.get('/sponsorships/:teamId', isAuthenticated, async (req: any, res: Respo
   }
 });
 
-router.post('/sponsorships/negotiate', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/sponsorships/negotiate', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -359,7 +359,7 @@ router.post('/sponsorships/negotiate', isAuthenticated, async (req: any, res: Re
 // ... other sponsorship routes like renew, available sponsors
 
 // MANUAL TESTING ROUTE - Game Catch-Up Mechanism
-router.post('/test-catch-up', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/test-catch-up', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Import the automation service for manual testing
     const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService');
@@ -413,7 +413,7 @@ router.post('/test-catch-up', isAuthenticated, async (req: Request, res: Respons
 });
 
 // Daily Progression API endpoint - Process daily player progression
-router.post('/daily-progression', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/daily-progression', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { force = false } = req.body;
     

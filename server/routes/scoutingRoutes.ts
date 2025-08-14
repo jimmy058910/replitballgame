@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js'; // Adjusted path
-import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 // import { z } from "zod"; // For validation if needed
 
@@ -78,7 +78,7 @@ function generateScoutingNotes(targetTeam: any, targetPlayers: any[], scoutingLe
 }
 
 // ===== TEAM SCOUTING SYSTEM =====
-router.get("/:teamId/scout", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get("/:teamId/scout", requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub; // User performing the scout
     const { teamId: targetTeamId } = req.params; // Team being scouted
@@ -142,7 +142,7 @@ router.get("/:teamId/scout", isAuthenticated, async (req: any, res: Response, ne
   }
 });
 
-router.get("/scoutable-teams", isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get("/scoutable-teams", requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);

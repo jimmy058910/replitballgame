@@ -1,5 +1,5 @@
 import { Router, Response, NextFunction } from 'express';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { injuryStaminaService } from '../services/injuryStaminaService.js';
 import { getPrismaClient } from "../database.js";
 
@@ -8,7 +8,7 @@ const router = Router();
 /**
  * Get injury and stamina status for team's players
  */
-router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/team/:teamId/status', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
@@ -83,7 +83,7 @@ router.get('/team/:teamId/status', isAuthenticated, async (req: any, res: Respon
 /**
  * Use a recovery item on a player
  */
-router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/player/:playerId/use-item', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
     const { itemType, effectValue, itemName } = req.body;
@@ -153,7 +153,7 @@ router.post('/player/:playerId/use-item', isAuthenticated, async (req: any, res:
 /**
  * Simulate tackle injury (for testing purposes)
  */
-router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/simulate-tackle-injury', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId, tacklePower, carrierAgility, carrierStamina, gameMode } = req.body;
     const userId = req.user.claims.sub;
@@ -204,7 +204,7 @@ router.post('/simulate-tackle-injury', isAuthenticated, async (req: any, res: Re
 /**
  * Prepare team for match (set starting stamina based on game mode)
  */
-router.post('/team/:teamId/prepare-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/team/:teamId/prepare-match', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const { gameMode } = req.body;
@@ -244,7 +244,7 @@ router.post('/team/:teamId/prepare-match', isAuthenticated, async (req: any, res
 /**
  * Complete match (apply stamina depletion)
  */
-router.post('/team/:teamId/complete-match', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/team/:teamId/complete-match', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const { gameMode } = req.body;
@@ -284,7 +284,7 @@ router.post('/team/:teamId/complete-match', isAuthenticated, async (req: any, re
 /**
  * Manual daily reset (admin only)
  */
-router.post('/admin/daily-reset', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/admin/daily-reset', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     
@@ -305,7 +305,7 @@ router.post('/admin/daily-reset', isAuthenticated, async (req: any, res: Respons
 /**
  * Get injury/stamina system settings and statistics
  */
-router.get('/system/stats', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/system/stats', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     // Get overall system statistics
     const totalPlayers = await prisma.player.findMany();

@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from '../storage/index.js';
 import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 import { tournamentStorage } from '../storage/tournamentStorage.js';
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 import { getDivisionName } from "../../shared/divisionUtils.js";
 import { getPrismaClient } from '../database.js';
@@ -14,7 +14,7 @@ const enterTournamentParamsSchema = z.object({
 });
 
 // History route must come BEFORE the :division route to avoid conflicts
-router.get('/history', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/history', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();
     const userId = req.user?.claims?.sub;
@@ -91,7 +91,7 @@ router.get('/history', isAuthenticated, async (req: Request, res: Response, next
 });
 
 // Add bracket endpoint
-router.get('/bracket/:id', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/bracket/:id', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();
     const tournamentIdParam = req.params.id;
@@ -150,7 +150,7 @@ router.get('/bracket/:id', isAuthenticated, async (req: any, res: Response, next
 });
 
 // Available tournaments endpoint - frontend calls /api/tournaments/available
-router.get('/available', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/available', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();
     const userId = req.user?.claims?.sub;
@@ -184,7 +184,7 @@ router.get('/available', isAuthenticated, async (req: any, res: Response, next: 
   }
 });
 
-router.get('/:division', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:division', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();
     const division = parseInt(req.params.division);
@@ -217,7 +217,7 @@ router.get('/:division', isAuthenticated, async (req: Request, res: Response, ne
   }
 });
 
-router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:id/enter', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();
     const { id: tournamentId } = enterTournamentParamsSchema.parse(req.params);
@@ -260,7 +260,7 @@ router.post('/:id/enter', isAuthenticated, async (req: any, res: Response, next:
   }
 });
 
-router.get('/my-entries', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/my-entries', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -285,7 +285,7 @@ router.get('/my-entries', isAuthenticated, async (req: any, res: Response, next:
 });
 
 
-router.get('/:division/bracket', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:division/bracket', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {

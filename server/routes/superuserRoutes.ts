@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 import { generateRandomPlayer as generatePlayerForTeam } from '../services/leagueService.js';
 import { RBACService, Permission, UserRole } from '../services/rbacService.js';
@@ -11,7 +11,7 @@ import { ErrorCreators, asyncHandler, logInfo, logError } from '../services/erro
 const router = Router();
 
 // Apply authentication to all routes
-router.use(isAuthenticated);
+router.use(requireAuth);
 
 // Grant credits - Admin permission required
 router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {

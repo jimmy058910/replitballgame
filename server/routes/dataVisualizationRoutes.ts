@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js';
 import { getPrismaClient } from "../database.js";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { logInfo } from '../services/errorService.js';
 
 const router = Router();
@@ -21,7 +21,7 @@ const router = Router();
  * GET /api/data-viz/team-performance
  * Returns team performance metrics for visualization
  */
-router.get('/team-performance', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/team-performance', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userProfile = req.user as any;
     
@@ -90,7 +90,7 @@ router.get('/team-performance', isAuthenticated, async (req: Request, res: Respo
  * GET /api/data-viz/player-distribution
  * Returns player race distribution for pie chart visualization
  */
-router.get('/player-distribution', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/player-distribution', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userProfile = req.user as any;
     
@@ -146,7 +146,7 @@ router.get('/player-distribution', isAuthenticated, async (req: Request, res: Re
  * GET /api/data-viz/season-progress
  * Returns season progress data for trend visualization
  */
-router.get('/season-progress', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/season-progress', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userProfile = req.user as any;
     
@@ -228,7 +228,7 @@ router.get('/season-progress', isAuthenticated, async (req: Request, res: Respon
  * GET /api/data-viz/division-standings
  * Returns current division standings for rankings visualization
  */
-router.get('/division-standings', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/division-standings', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userProfile = req.user as any;
     

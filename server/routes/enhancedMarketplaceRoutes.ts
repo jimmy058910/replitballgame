@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { EnhancedMarketplaceService } from '../services/enhancedMarketplaceService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 
 const router = Router();
@@ -53,7 +53,7 @@ router.get('/listings', async (req, res) => {
  * POST /api/enhanced-marketplace/listings
  * Create a new marketplace listing
  */
-router.post('/listings', isAuthenticated, async (req: any, res) => {
+router.post('/listings', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     if (!userId) {
@@ -103,7 +103,7 @@ router.post('/listings', isAuthenticated, async (req: any, res) => {
  * POST /api/enhanced-marketplace/listings/:listingId/bid
  * Place a bid on a listing
  */
-router.post('/listings/:listingId/bid', isAuthenticated, async (req: any, res) => {
+router.post('/listings/:listingId/bid', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     if (!userId) {
@@ -153,7 +153,7 @@ router.post('/listings/:listingId/bid', isAuthenticated, async (req: any, res) =
  * POST /api/enhanced-marketplace/listings/:listingId/buy-now
  * Buy now a listing instantly
  */
-router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: any, res) => {
+router.post('/listings/:listingId/buy-now', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     if (!userId) {
@@ -183,7 +183,7 @@ router.post('/listings/:listingId/buy-now', isAuthenticated, async (req: any, re
  * GET /api/enhanced-marketplace/dashboard
  * Get team's marketplace dashboard
  */
-router.get('/dashboard', isAuthenticated, async (req: any, res) => {
+router.get('/dashboard', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     if (!userId) {

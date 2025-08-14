@@ -1,6 +1,6 @@
 import express from 'express';
 import { z } from 'zod';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { TeamStorage } from '../storage/teamStorage.js';
 import { PlayerStorage } from '../storage/playerStorage.js';
 import { StaffStorage } from '../storage/staffStorage.js';
@@ -11,7 +11,7 @@ const playerStorage = new PlayerStorage();
 const staffStorage = new StaffStorage();
 
 // API endpoint for critical alerts as specified in redesign guide
-router.get('/critical', isAuthenticated, async (req, res) => {
+router.get('/critical', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     
@@ -58,7 +58,7 @@ router.get('/critical', isAuthenticated, async (req, res) => {
 });
 
 // Detailed alerts breakdown
-router.get('/detailed', isAuthenticated, async (req, res) => {
+router.get('/detailed', requireAuth, async (req, res) => {
   try {
     const user = (req as any).user;
     

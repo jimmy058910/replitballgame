@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js'; // Adjusted path
-import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod"; // For validation
 import { getPrismaClient } from "../database.js";
 // import { NotificationService } from '../services/notificationService.js'; // If needed for injury notifications
@@ -42,7 +42,7 @@ const conditioningUpdateSchema = z.object({
 
 // Injury Management Routes
 // GET /api/injuries/:teamId (consolidated from /api/injuries/team/:teamId)
-router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/team/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     // TODO: Validate teamId format if necessary (e.g., UUID)
@@ -76,7 +76,7 @@ router.get('/team/:teamId', isAuthenticated, async (req: any, res: Response, nex
   }
 });
 
-router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const injuryData = createInjurySchema.parse(req.body);
 
@@ -124,7 +124,7 @@ router.post('/', isAuthenticated, async (req: any, res: Response, next: NextFunc
 });
 
 // PATCH /api/injuries/:id/treatment (consolidated from POST /api/injuries/:id/treat)
-router.patch('/:injuryId/treatment', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.patch('/:injuryId/treatment', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { injuryId } = req.params;
     const treatmentData = treatmentSchema.parse(req.body);
@@ -165,7 +165,7 @@ router.patch('/:injuryId/treatment', isAuthenticated, async (req: any, res: Resp
 });
 
 // Medical Staff Routes
-router.get('/medical-staff/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/medical-staff/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     // Optional: Permission check
@@ -180,7 +180,7 @@ router.get('/medical-staff/:teamId', isAuthenticated, async (req: any, res: Resp
   }
 });
 
-router.post('/medical-staff', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/medical-staff', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     // teamId should come from the authenticated user's team, not body, to prevent misuse.
     const userId = req.user.claims.sub;
@@ -209,7 +209,7 @@ router.post('/medical-staff', isAuthenticated, async (req: any, res: Response, n
 });
 
 // Player Conditioning Routes
-router.get('/conditioning/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/conditioning/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     // Optional: Permission check
@@ -230,7 +230,7 @@ router.get('/conditioning/:teamId', isAuthenticated, async (req: any, res: Respo
   }
 });
 
-router.patch('/conditioning/:playerId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.patch('/conditioning/:playerId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
     const updates = conditioningUpdateSchema.parse(req.body);

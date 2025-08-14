@@ -1,12 +1,12 @@
 import { Router, Response } from 'express';
 import { StatsService } from '../services/statsService.js';
 import { asyncHandler } from '../services/errorService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 
 const router = Router();
 
 // Apply authentication to all routes
-router.use(isAuthenticated);
+router.use(requireAuth);
 
 /**
  * Get comprehensive player stats

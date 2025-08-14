@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 // playerStorage imported via storage index // Updated import
 import { storage } from '../storage/index.js'; // Updated import
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 import { ContractService } from '../services/contractService.js';
 import { getPrismaClient } from '../storage/index.js';
@@ -17,7 +17,7 @@ const contractNegotiationSchema = z.object({
  * GET /api/players
  * Get all players for the authenticated user's team
  */
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
@@ -38,7 +38,7 @@ router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunct
  * GET /api/players/:playerId
  * Get player details including active contract
  */
-router.get('/:playerId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:playerId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
     const player = await storage.players.getPlayerById(parseInt(playerId));
@@ -58,7 +58,7 @@ router.get('/:playerId', isAuthenticated, async (req: any, res: Response, next: 
  * GET /api/players/:playerId/contract-value
  * Get contract value calculation for a player using Universal Value Formula
  */
-router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:playerId/contract-value', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
     const userId = req.user.claims.sub;
@@ -102,7 +102,7 @@ router.get('/:playerId/contract-value', isAuthenticated, async (req: any, res: R
  * POST /api/players/:playerId/negotiate
  * Negotiate a contract with a player using the Universal Value Formula system
  */
-router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:playerId/negotiate', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
     const { seasons, salary } = contractNegotiationSchema.parse(req.body);
@@ -153,7 +153,7 @@ router.post('/:playerId/negotiate', isAuthenticated, async (req: any, res: Respo
  * GET /api/players/:playerId/contract-negotiation-data
  * Get comprehensive contract negotiation data for redesigned modal
  */
-router.get('/:playerId/contract-negotiation-data', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/:playerId/contract-negotiation-data', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
     const userId = req.user.claims.sub;
@@ -218,7 +218,7 @@ router.get('/:playerId/contract-negotiation-data', isAuthenticated, async (req: 
  * POST /api/players/:playerId/negotiation-feedback
  * Get live feedback for contract offer (acceptance probability and player response)
  */
-router.post('/:playerId/negotiation-feedback', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:playerId/negotiation-feedback', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
     const { salary, years } = req.body;
@@ -285,7 +285,7 @@ router.post('/:playerId/negotiation-feedback', isAuthenticated, async (req: any,
  * POST /api/players/:playerId/negotiate-contract
  * Submit final contract offer (replaces existing negotiate endpoint for new modal)
  */
-router.post('/:playerId/negotiate-contract', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:playerId/negotiate-contract', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
     const { salary, years } = req.body;
@@ -337,7 +337,7 @@ router.post('/:playerId/negotiate-contract', isAuthenticated, async (req: any, r
 });
 
 // Abilities system routes (temporarily disabled - needs schema update)
-// router.post('/:id/train-abilities', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+// router.post('/:id/train-abilities', requireAuth, async (req: any, res: Response, next: NextFunction) => {
 //   try {
 //     const userId = req.user.claims.sub;
 //     const team = await storage.teams.getTeamByUserId(userId);

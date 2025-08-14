@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getPrismaClient } from "../database.js";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import {
   calculateFanLoyalty,
   calculateHomeAdvantage,
@@ -15,7 +15,7 @@ import {
 const router = Router();
 
 // Get stadium data for authenticated user
-router.get('/', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction) => {
     const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
@@ -110,7 +110,7 @@ const upgradeSchema = z.object({
   upgradeLevel: z.number().int().min(1).max(5)
 });
 
-router.post('/upgrade', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/upgrade', requireAuth, async (req: any, res: Response, next: NextFunction) => {
     const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
@@ -229,7 +229,7 @@ const fieldSizeSchema = z.object({
   fieldSize: z.enum(["standard", "large", "small"]) 
 });
 
-router.post('/field-size', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/field-size', requireAuth, async (req: any, res: Response, next: NextFunction) => {
     const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
@@ -323,7 +323,7 @@ router.post('/field-size', isAuthenticated, async (req: any, res: Response, next
 });
 
 // Revenue calculation route
-router.get('/revenue/:teamId', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.get('/revenue/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
     const prisma = await getPrismaClient();
   try {
     const teamId = req.params.teamId;

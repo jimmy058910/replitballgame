@@ -3,7 +3,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from '../storage/index.js';
 import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 import { itemStorage } from '../storage/itemStorage.js';
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 // import type { ItemType } from "@prisma/client";
 
 // Schema items handled by itemStorage using Prisma
@@ -33,7 +33,7 @@ const equipmentPriceSchema = z.object({
 
 
 // Player Marketplace routes
-router.get('/listings', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/listings', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const marketplacePlayers = await storage.players.getMarketplacePlayers();
     res.json({ listings: marketplacePlayers });
@@ -43,7 +43,7 @@ router.get('/listings', isAuthenticated, async (req: Request, res: Response, nex
   }
 });
 
-router.get('/players', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/players', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const marketplacePlayers = await storage.players.getMarketplacePlayers();
     res.json(marketplacePlayers);
@@ -53,7 +53,7 @@ router.get('/players', isAuthenticated, async (req: Request, res: Response, next
   }
 });
 
-router.post('/players/bid', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/players/bid', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const { playerId, amount } = bidPlayerSchema.parse(req.body);
@@ -81,7 +81,7 @@ router.post('/players/bid', isAuthenticated, async (req: any, res: Response, nex
   }
 });
 
-router.post('/players/list', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/players/list', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -125,7 +125,7 @@ router.post('/players/list', isAuthenticated, async (req: any, res: Response, ne
   }
 });
 
-router.post('/players/buy', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/players/buy', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const buyerUserId = req.user.claims.sub;
     const buyerTeam = await storage.teams.getTeamByUserId(buyerUserId);
@@ -173,7 +173,7 @@ router.post('/players/buy', isAuthenticated, async (req: any, res: Response, nex
   }
 });
 
-router.post('/players/:playerId/remove-listing', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/players/:playerId/remove-listing', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -201,7 +201,7 @@ router.post('/players/:playerId/remove-listing', isAuthenticated, async (req: an
 
 
 // Equipment Marketplace Routes
-router.get('/equipment', isAuthenticated, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/equipment', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const marketItems = await itemStorage.getMarketplaceItems("EQUIPMENT");
     res.json(marketItems);
@@ -211,7 +211,7 @@ router.get('/equipment', isAuthenticated, async (req: Request, res: Response, ne
   }
 });
 
-router.post('/equipment/:itemId/buy', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/equipment/:itemId/buy', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { itemId } = req.params;
     const buyerUserId = req.user.claims.sub;
@@ -244,7 +244,7 @@ router.post('/equipment/:itemId/buy', isAuthenticated, async (req: any, res: Res
   }
 });
 
-router.post('/equipment/:itemId/sell', isAuthenticated, async (req: any, res: Response, next: NextFunction) => {
+router.post('/equipment/:itemId/sell', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { itemId } = req.params;
     const { price } = equipmentPriceSchema.parse(req.body);

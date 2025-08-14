@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getPrismaClient } from "../database.js";
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
 
 const router = Router();
@@ -8,7 +8,7 @@ const router = Router();
 
 
 // Get active tournament status for a team
-router.get('/active', isAuthenticated, async (req: any, res) => {
+router.get('/active', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -86,7 +86,7 @@ router.get('/active', isAuthenticated, async (req: any, res) => {
 });
 
 // Get my active tournament entries
-router.get('/my-active', isAuthenticated, async (req: any, res) => {
+router.get('/my-active', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -176,7 +176,7 @@ router.get('/my-active', isAuthenticated, async (req: any, res) => {
 });
 
 // Get specific tournament status details
-router.get('/:id/status', isAuthenticated, async (req: any, res) => {
+router.get('/:id/status', requireAuth, async (req: any, res) => {
   try {
     const tournamentId = req.params.id;
     const userId = req.user.claims.sub;
@@ -389,7 +389,7 @@ router.get('/:id/status', isAuthenticated, async (req: any, res) => {
 });
 
 // Force start tournament (Admin only)
-router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
+router.post('/:id/force-start', requireAuth, async (req: any, res) => {
   try {
     const tournamentId = req.params.id;
     const userId = req.user.claims.sub;
@@ -502,7 +502,7 @@ router.post('/:id/force-start', isAuthenticated, async (req: any, res) => {
 });
 
 // Get tournament matches
-router.get('/:id/matches', isAuthenticated, async (req: any, res) => {
+router.get('/:id/matches', requireAuth, async (req: any, res) => {
   try {
     const tournamentId = req.params.id;
     
@@ -550,7 +550,7 @@ router.get('/:id/matches', isAuthenticated, async (req: any, res) => {
 });
 
 // Start live tournament round
-router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res) => {
+router.post('/:id/matches/simulate-round', requireAuth, async (req: any, res) => {
   try {
     const tournamentId = req.params.id;
     const { round } = req.body;
@@ -624,7 +624,7 @@ router.post('/:id/matches/simulate-round', isAuthenticated, async (req: any, res
 });
 
 // Manual trigger for IN_PROGRESS matches (testing endpoint)
-router.post('/:id/matches/manual-start', isAuthenticated, async (req: any, res) => {
+router.post('/:id/matches/manual-start', requireAuth, async (req: any, res) => {
   try {
     const tournamentId = req.params.id;
     const { round } = req.body;
@@ -691,7 +691,7 @@ router.post('/:id/matches/manual-start', isAuthenticated, async (req: any, res) 
 });
 
 // Force tournament progression endpoint (testing)
-router.post('/:id/force-progression', isAuthenticated, async (req: any, res) => {
+router.post('/:id/force-progression', requireAuth, async (req: any, res) => {
   try {
     const tournamentId = req.params.id;
     const userId = req.user.claims.sub;
@@ -758,7 +758,7 @@ async function checkAndAdvanceTournament(tournamentId: number) {
 // REMOVED: Duplicate generateNextRoundMatches function - now using UnifiedTournamentAutomation only
 
 // Start a tournament match
-router.post('/:id/matches/:matchId/start', isAuthenticated, async (req: any, res) => {
+router.post('/:id/matches/:matchId/start', requireAuth, async (req: any, res) => {
   try {
     const { matchId } = req.params;
     const userId = req.user.claims.sub;
@@ -781,7 +781,7 @@ router.post('/:id/matches/:matchId/start', isAuthenticated, async (req: any, res
 });
 
 // Simulate a tournament match (for testing)
-router.post('/:id/matches/:matchId/simulate', isAuthenticated, async (req: any, res) => {
+router.post('/:id/matches/:matchId/simulate', requireAuth, async (req: any, res) => {
   try {
     const { matchId } = req.params;
     const userId = req.user.claims.sub;
@@ -871,7 +871,7 @@ router.get('/:tournamentId/matches', async (req, res) => {
 });
 
 // Start live tournament round (Admin only)
-router.post('/:tournamentId/simulate-round', isAuthenticated, async (req: any, res) => {
+router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) => {
   try {
     const { tournamentId } = req.params;
     const { round } = req.body;
@@ -1008,7 +1008,7 @@ async function advanceTournament(tournamentId: number, completedRound: string) {
 }
 
 // Test tournament advancement fix
-router.post('/:id/test-advancement', isAuthenticated, async (req: any, res) => {
+router.post('/:id/test-advancement', requireAuth, async (req: any, res) => {
   try {
     const tournamentId = parseInt(req.params.id);
     const userId = req.user.claims.sub;
@@ -1037,7 +1037,7 @@ router.post('/:id/test-advancement', isAuthenticated, async (req: any, res) => {
 });
 
 // Emergency endpoint to start live simulation for tournament matches
-router.post('/start-live-match', isAuthenticated, async (req: any, res) => {
+router.post('/start-live-match', requireAuth, async (req: any, res) => {
   try {
     const { matchId } = req.body;
     const userId = req.user.claims.sub;

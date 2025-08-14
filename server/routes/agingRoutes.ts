@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { isAuthenticated } from "../googleAuth.js";
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { AgingService } from '../services/agingService.js';
 import { ErrorCreators, asyncHandler, logInfo } from '../services/errorService.js';
 import { z } from "zod";
@@ -10,7 +10,7 @@ const router = Router();
 /**
  * Get aging statistics for the league
  */
-router.get('/statistics', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/statistics', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const stats = await AgingService.getAgingStatistics();
   
   res.json({
@@ -22,7 +22,7 @@ router.get('/statistics', isAuthenticated, asyncHandler(async (req: any, res: Re
 /**
  * Process end-of-season aging (Admin only)
  */
-router.post('/process-season-aging', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/process-season-aging', requireAuth, asyncHandler(async (req: any, res: Response) => {
   logInfo('Starting manual end-of-season aging process', {
     triggeredBy: req.user.claims.sub,
     requestId: req.requestId
@@ -66,7 +66,7 @@ const playerIdSchema = z.object({
   playerId: z.string().uuid()
 });
 
-router.get('/player/:playerId/retirement-chance', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.get('/player/:playerId/retirement-chance', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const { playerId } = playerIdSchema.parse(req.params);
   
   const prisma = await getPrismaClient();
@@ -100,7 +100,7 @@ router.get('/player/:playerId/retirement-chance', isAuthenticated, asyncHandler(
 /**
  * Simulate aging for a specific player - for testing
  */
-router.post('/player/:playerId/simulate-aging', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/player/:playerId/simulate-aging', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const { playerId } = playerIdSchema.parse(req.params);
   
   const prisma = await getPrismaClient();
@@ -132,7 +132,7 @@ router.post('/player/:playerId/simulate-aging', isAuthenticated, asyncHandler(as
 /**
  * Increment career injuries for a player (for injury system integration)
  */
-router.post('/player/:playerId/injury', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/player/:playerId/injury', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const { playerId } = playerIdSchema.parse(req.params);
   
   await AgingService.incrementCareerInjuries(playerId);
@@ -146,7 +146,7 @@ router.post('/player/:playerId/injury', isAuthenticated, asyncHandler(async (req
 /**
  * Increment games played for a player (for match system integration)
  */
-router.post('/player/:playerId/game-played', isAuthenticated, asyncHandler(async (req: any, res: Response) => {
+router.post('/player/:playerId/game-played', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const { playerId } = playerIdSchema.parse(req.params);
   
   await AgingService.incrementGamesPlayed(playerId);

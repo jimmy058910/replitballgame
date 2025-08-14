@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { DailyPlayerProgressionService } from '../services/dailyPlayerProgressionService.js';
-import { isAuthenticated } from '../googleAuth.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
 
 const router = Router();
@@ -9,7 +9,7 @@ const router = Router();
  * POST /api/daily-progression/execute
  * Execute daily progression for all players (admin only)
  */
-router.post('/execute', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/execute', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     console.log('[DAILY PROGRESSION API] Starting manual daily progression execution');
     
@@ -34,7 +34,7 @@ router.post('/execute', isAuthenticated, RBACService.requirePermission(Permissio
  * POST /api/daily-progression/player/:playerId
  * Execute daily progression for a specific player (for testing)
  */
-router.post('/player/:playerId', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/player/:playerId', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     const { playerId } = req.params;
     
@@ -61,7 +61,7 @@ router.post('/player/:playerId', isAuthenticated, RBACService.requirePermission(
  * GET /api/daily-progression/statistics
  * Get progression statistics for analysis
  */
-router.get('/statistics', isAuthenticated, async (req, res) => {
+router.get('/statistics', requireAuth, async (req, res) => {
   try {
     const { days = 30 } = req.query;
     const daysNumber = parseInt(days as string) || 30;
@@ -90,7 +90,7 @@ router.get('/statistics', isAuthenticated, async (req, res) => {
  * GET /api/daily-progression/config
  * Get daily progression system configuration
  */
-router.get('/config', isAuthenticated, async (req, res) => {
+router.get('/config', requireAuth, async (req, res) => {
   try {
     res.json({
       success: true,
@@ -148,7 +148,7 @@ router.get('/config', isAuthenticated, async (req, res) => {
  * GET /api/daily-progression/team/:teamId/summary
  * Get daily progression summary for a specific team
  */
-router.get('/team/:teamId/summary', isAuthenticated, async (req, res) => {
+router.get('/team/:teamId/summary', requireAuth, async (req, res) => {
   try {
     const { teamId } = req.params;
     const { days = 7 } = req.query;
@@ -180,7 +180,7 @@ router.get('/team/:teamId/summary', isAuthenticated, async (req, res) => {
  * POST /api/daily-progression/test-full-day-advancement
  * Test full day advancement system (admin only)
  */
-router.post('/test-full-day-advancement', isAuthenticated, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+router.post('/test-full-day-advancement', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
   try {
     console.log('[DAILY PROGRESSION TEST] Starting full day advancement test');
     
