@@ -63,12 +63,14 @@ export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, isLoading, login, logout } = useAuth();
 
-  const { data: team } = useQuery<Team>({
+  const { data: team, isLoading: teamLoading, error: teamError } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !isLoading, // Wait for auth to complete AND be authenticated
+    retry: 3,
+    staleTime: 30000, // Keep data fresh for 30 seconds
   });
 
-  // Use credits from team.finances data (already included in team response)
+  // Use credits from team.finances data (already included in team response)  
   const credits = parseInt(String(team?.finances?.credits || "0"));
   const premiumCurrency = parseInt(String(team?.finances?.gems || "0"));
 
@@ -143,7 +145,7 @@ export default function Navigation() {
                   className="flex items-center bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-xs font-semibold transition-colors cursor-pointer"
                 >
                   <Coins className="h-3 w-3 text-yellow-400 mr-1" />
-                  <span className="text-white">{credits.toLocaleString()}</span>
+                  <span className="text-white">{teamLoading ? "..." : credits.toLocaleString()}</span>
                   <span className="text-yellow-400 ml-1">₡</span>
                 </button>
 
@@ -207,7 +209,7 @@ export default function Navigation() {
                               <Coins className="h-4 w-4 text-yellow-400 mr-2" />
                               <span className="text-sm font-medium text-white">Credits</span>
                             </div>
-                            <span className="text-sm font-bold text-white">{credits.toLocaleString()}</span>
+                            <span className="text-sm font-bold text-white">{teamLoading ? "..." : credits.toLocaleString()}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
