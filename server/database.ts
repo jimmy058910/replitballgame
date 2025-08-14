@@ -40,19 +40,19 @@ function getDatabaseUrl(): string {
       if (match) {
         const [, username, password, database, project, region, instance] = match;
         
-        // Development strategy: Direct Cloud SQL IP connection (requires IP whitelisting)
-        const devCloudSqlIp = '35.225.150.44'; // realm-rivalry-dev instance IP
-        const directUrl = `postgresql://${username}:${password}@${devCloudSqlIp}:5432/${database}?sslmode=require`;
+        // Development strategy: Cloud SQL Auth Proxy (industry standard, no IP whitelisting)
+        const proxyUrl = `postgresql://${username}:${password}@localhost:5433/${database}?sslmode=disable`;
         
-        console.log('✅ Development: Using direct Cloud SQL IP connection', {
+        console.log('✅ Development: Using Cloud SQL Auth Proxy connection', {
           instance: `${project}:${region}:${instance}`,
-          cloudSqlIp: devCloudSqlIp,
+          proxyPort: 5433,
           database: database,
-          connectionType: 'Direct IP (requires Replit IP whitelisting)',
-          note: 'Add current Replit IP to Cloud SQL authorized networks'
+          connectionType: 'Cloud SQL Auth Proxy (IAM authenticated)',
+          note: 'Eliminates IP whitelisting - uses service account authentication',
+          sslMode: 'disabled (proxy handles encryption)'
         });
         
-        return directUrl;
+        return proxyUrl;
       } else {
         console.error('❌ Failed to parse Cloud SQL socket URL format');
         throw new Error('Invalid Cloud SQL URL format for development conversion');
@@ -123,6 +123,18 @@ async function initializeDatabase(): Promise<void> {
   initializationPromise = (async () => {
     try {
       console.log('🚀 [LAZY INIT] Starting database initialization...');
+      
+      // Development: Ensure Cloud SQL Auth Proxy is running
+      if (nodeEnv === 'development') {
+        console.log('🔧 Development: Ensuring Cloud SQL Auth Proxy is running...');
+        const { proxyManager } = await import('./middleware/proxyManager');
+        const proxyRunning = await proxyManager.ensureProxyRunning();
+        
+        if (!proxyRunning) {
+          throw new Error('Cloud SQL Auth Proxy failed to start - industry standard IAM authentication required');
+        }
+        console.log('✅ Cloud SQL Auth Proxy confirmed running');
+      }
       
       const originalUrl = process.env.DATABASE_URL;
       console.log('🔍 ORIGINAL DATABASE_URL (first 80 chars):', originalUrl?.substring(0, 80) + '...');

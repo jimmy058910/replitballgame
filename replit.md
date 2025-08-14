@@ -1,5 +1,5 @@
 # Overview
-Realm Rivalry is a mobile-first fantasy sports management game providing a deep, engaging, and high-fidelity simulation. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include detailed simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre.
+Realm Rivalry is a mobile-first fantasy sports management game offering deep, engaging simulation. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include detailed simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre with high-fidelity simulation.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
@@ -52,50 +52,6 @@ Preferred communication style: Simple, everyday language.
 
 **CRITICAL DEPLOYMENT PREFERENCE**: NEVER use Replit's Deploy button. User has custom hybrid deployment pipeline (Google Cloud Run + Firebase + Cloud SQL) that auto-deploys on Git push from Replit using GitHub Actions Blue-Green deployment workflow for zero-downtime releases.
 
-**FIREBASE + CLOUD SQL UNIFIED ARCHITECTURE (Aug 13, 2025)**:
-✅ **Firebase Authentication Unified**: Successfully configured Firebase Authentication for both development and production environments, eliminating dual authentication systems.
-✅ **DevAuth System Removed**: Removed development-only authentication system in favor of consistent Firebase Authentication across all environments.
-✅ **Cloud SQL Configuration**: Updated database configuration to use Cloud SQL for both development (realm-rivalry-dev) and production (realm-rivalry-prod) instances.
-✅ **Authentication Flow Fixed**: Resolved duplicate route conflicts, API routing issues, and authentication provider inconsistencies - now uses redirect authentication for better cross-domain compatibility.
-✅ **Development Domain Issue Identified**: Firebase authentication requires adding current Replit domain (84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev) to Firebase Console authorized domains list.
-✅ **Production Ready**: Architecture configured for production deployment where realmrivalry.com domain should be properly authorized in Firebase Console.
-
-**TEAM CREATION SYSTEM FULLY OPERATIONAL (Aug 13, 2025)**:
-✅ **Complete Database Resolution**: Successfully resolved all "prisma is not defined" errors across 25+ files with comprehensive Prisma client access patterns.
-✅ **Database Schema Synchronization**: Prisma schema successfully pushed to Cloud SQL development instance with all tables created and operational.
-✅ **Production-Ready Team Creation**: Full team creation flow working with database persistence, including team records, finances, stadium, and player roster generation.
-✅ **Authentication Status Endpoint**: Added missing `/api/auth/status` endpoint that client expects for authentication verification.
-✅ **Server-Client Auth Sync**: Fixed authentication mismatch between server and client - both systems now properly synchronized.
-✅ **Team Name Validation**: Comprehensive validation system working with profanity filtering, length validation, character validation, and PII filtering.
-✅ **Content Security Policy**: Fixed CSP headers to allow Font Awesome fonts from cdnjs.cloudflare.com.
-✅ **End-to-End Team Creation**: User can now authenticate, create teams, and have full team records with players and staff generated automatically.
-✅ **PROFANITY FILTER FIXED (Aug 13, 2025)**: Resolved overly aggressive profanity filtering that incorrectly flagged legitimate team names like "Test Eagles" and "Mac Attack" - now allows common sports terms while blocking actual offensive content.
-
-**CLOUD SQL AUTH PROXY SOLUTION IMPLEMENTED (Aug 14, 2025)**:
-✅ **Industry-Standard Architecture**: Implemented Google Cloud SQL Auth Proxy to eliminate IP whitelisting issues entirely.
-✅ **IAM Authentication**: Uses service account authentication instead of network IP restrictions.
-✅ **Database Connection Logic**: Updated database.ts to use proxy (localhost:5433) instead of direct Cloud SQL IP.
-✅ **Proxy Verification**: Proxy starts successfully with proper IAM authentication and connects to realm-rivalry-dev instance.
-✅ **Production Deployment Complete**: Successfully deployed to Cloud Run production environment where proxy architecture works seamlessly.
-✅ **Hybrid Architecture Operational**: Frontend deployed to realmrivalry.com (Firebase Hosting), backend service operational at realm-rivalry-unified-o6fd46yesq-uc.a.run.app (Cloud Run).
-✅ **Cloud SQL Auth Proxy Verified**: Database connections working perfectly in production with IAM authentication, eliminating IP whitelisting issues permanently.
-✅ **Environment-Specific API Routing**: Frontend configured to use local server for development and Cloud Run backend for production with automatic environment detection.
-⚠️ **Development Setup Required**: Add current Replit IP (34.148.247.147/32) to Cloud SQL authorized networks for dev database access.
-
-**DUAL ENVIRONMENT CONFIGURATION VERIFIED**:
-✅ **Development Environment (Replit)**:
-   - Domain: `84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev`
-   - Database: Cloud SQL `realm-rivalry-dev` instance (IP: 35.225.150.44)
-   - **REPLIT IP AUTHORIZATION REQUIRED**: Add current Replit IP to Cloud SQL authorized networks (IP changes frequently)
-   - OAuth Callback: `https://84e7df37-b386-43d5-a4d2-28ef9c3a4ebe-00-3hsmig2a5zsfq.janeway.replit.dev/api/auth/google/callback`
-   - Firebase: ✅ Domain authorized in Google Console
-
-✅ **Production Environment (realmrivalry.com)**:
-   - Domain: `realmrivalry.com` / `www.realmrivalry.com`
-   - Database: Cloud SQL `realm-rivalry-prod` instance (IP: 34.171.83.78)  
-   - OAuth Callback: `https://www.realmrivalry.com/api/auth/google/callback`
-   - Firebase: Firebase Console authorized domains include realmrivalry.com
-
 # System Architecture
 
 ## Hybrid Cloud Deployment Model
@@ -103,8 +59,6 @@ The application uses a hybrid architecture with the frontend on Firebase Hosting
 
 ## Database and ORM Architecture
 Google Cloud SQL PostgreSQL is used for both development and production environments with complete separation. **PRISMA ORM ONLY** - the project uses Prisma Client exclusively for all database operations, type-safe database access, and schema management with comprehensive indexing. Production connects via unix sockets in cloud environments, development uses direct TCP connections.
-
-**CRITICAL**: NO Drizzle ORM - project uses Prisma only for simplicity and consistency.
 
 ## Frontend Technology Stack
 The frontend is built with React 18 and TypeScript. UI components use Radix UI primitives and shadcn/ui, styled with Tailwind CSS for mobile-first responsiveness. TanStack React Query handles server state, and Wouter is used for client-side routing with lazy loading. The design features a five-hub navigation system optimized for mobile devices with PWA capabilities including service workers for offline functionality, push notifications, and app manifest.
@@ -118,22 +72,12 @@ Key game systems include a real-time WebSocket-powered match simulation engine w
 ## Development and Deployment Infrastructure
 Vite is used for the build system. Vitest with React Testing Library provides component testing. Deployment automation is managed via GitHub Actions for automated hybrid deployment with build context verification. Docker is used for Cloud Run containerization with multi-stage builds. Firebase CLI is used for frontend deployment. A Blue-Green deployment strategy is employed for zero-downtime releases.
 
-### **📊 GCP COMPREHENSIVE TECH STACK RESEARCH (Aug 13, 2025)**
-**✅ STRATEGIC EXPANSION PLANNING**: Researched Google Cloud Platform's 150+ product catalog and created comprehensive technical architecture blueprint incorporating 80+ GCP services for hypothetical implementation pending credits approval.
-
-**Key Documentation Created:**
-- `docs/GCP_COMPREHENSIVE_TECH_STACK.md` - Strategic architectural blueprint
-- **AI/ML Integration**: Vertex AI, predictive analytics, player recommendations
-- **Global Scale Architecture**: Multi-region, CDN, enterprise security
-- **Phased Implementation**: 8-month roadmap with cost analysis ($2K-$100K tiers)
-- **Fantasy Sports Optimization**: Real-time simulation, mobile experience, social features
-
 # External Dependencies
 
 ## Cloud Infrastructure
 - **Google Cloud Platform**: Cloud Run, Artifact Registry, IAM.
 - **Firebase**: Frontend hosting, authentication services, session management.
-- **Google Cloud SQL**: PostgreSQL database with VPC-native Cloud Run integration.
+- **Google Cloud SQL**: PostgreSQL database.
 
 ## Authentication and Security
 - **Google OAuth 2.0**: Primary authentication provider.
