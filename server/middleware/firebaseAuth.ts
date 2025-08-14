@@ -57,8 +57,13 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction): 
     }
 
     try {
+      console.log('🔍 Token verification attempt - Token length:', token.length);
+      console.log('🔍 Token first 50 chars:', token.substring(0, 50));
+      
       // Verify Firebase token
       const decodedToken = await admin.auth().verifyIdToken(token);
+      console.log('✅ Firebase token verification successful for user:', decodedToken.uid);
+      
       req.user = {
         uid: decodedToken.uid,
         email: decodedToken.email || `${decodedToken.uid}@realmrivalry.com`,
