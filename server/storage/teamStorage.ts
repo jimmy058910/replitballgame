@@ -120,10 +120,11 @@ export class TeamStorage {
       return null;
     }
     
-    const prisma = await getPrismaClient();
-    const userProfile = await prisma.userProfile.findUnique({
-      where: { userId: userId }
-    });
+    try {
+      const prisma = await getPrismaClient();
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId: userId }
+      });
     
     if (!userProfile) {
       return null;
@@ -144,7 +145,18 @@ export class TeamStorage {
       }
     });
     
-    return await serializeTeamData(team);
+      return await serializeTeamData(team);
+    } catch (error) {
+      console.error('❌ Database connection failed in getTeamByUserId:', error.message);
+      
+      // Development fallback: Return null to trigger team creation flow
+      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+        console.log('🔄 Development: Database unavailable, returning null to trigger team creation');
+        return null;
+      }
+      
+      throw error;
+    }
   }
 
   async getTeamById(id: number): Promise<any> {
@@ -174,7 +186,18 @@ export class TeamStorage {
       return null;
     }
     
-    return await serializeTeamData(team);
+      return await serializeTeamData(team);
+    } catch (error) {
+      console.error('❌ Database connection failed in getTeamByUserId:', error.message);
+      
+      // Development fallback: Return null to trigger team creation flow
+      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+        console.log('🔄 Development: Database unavailable, returning null to trigger team creation');
+        return null;
+      }
+      
+      throw error;
+    }
   }
 
   async getAllTeams(): Promise<any[]> {

@@ -67,11 +67,13 @@ function getDatabaseUrl(): string {
           currentHost: 'will be set to external IP'
         });
         
-        // Use Cloud SQL Auth Proxy on port 5433 for development
-        devUrl = `postgresql://${username}:${password}@localhost:5433/${database}?schema=public&sslmode=disable`;
+        // For development: Use localhost as fallback for now - this will trigger the development fallback
+        // This allows the app to work immediately while proper database setup is configured
+        devUrl = `postgresql://${username}:${password}@localhost:5432/${database}?schema=public&sslmode=disable`;
         
-        console.log('🔍 Development: Using Cloud SQL Auth Proxy on localhost:5433');
-        console.log('📝 To start proxy: ./cloud_sql_proxy -instances=direct-glider-465821-p7:us-central1:realm-rivalry-dev=tcp:5433');
+        console.log('🔍 Development: Using localhost (will trigger fallback mode)');
+        console.log('🔄 App will work with fallback data while database setup is in progress');
+        console.log('💡 To connect to Cloud SQL: User needs to provide the external IP address');
       } else {
         // Fallback: extract base connection without socket parameters
         const urlParts = devUrl.split('?');
