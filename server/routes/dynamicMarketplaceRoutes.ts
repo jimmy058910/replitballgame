@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { DynamicMarketplaceService } from '../services/dynamicMarketplaceService.js';
 import { isAuthenticated } from '../googleAuth.js';
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 
 const router = Router();
 

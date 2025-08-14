@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js'; // Adjusted path
 import { isAuthenticated } from '../googleAuth.js'; // Adjusted path
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 // import { z } from "zod"; // For validation if needed
 
 const router = Router();

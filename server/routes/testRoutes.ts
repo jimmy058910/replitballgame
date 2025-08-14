@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 import { storage } from '../storage/index.js'; 
 import { generateRandomPlayer } from '../services/leagueService.js';
 import { Race, PlayerRole, InjuryStatus } from "@prisma/client";

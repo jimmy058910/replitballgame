@@ -8,7 +8,7 @@ import { isAuthenticated } from '../googleAuth.js';
 // import { matchStateManager } from '../services/matchStateManager.js';
 import { z } from "zod";
 // Using string literals for match types
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 
 // TODO: Move to TeamService or similar
 function calculateTeamPower(players: any[]): number {

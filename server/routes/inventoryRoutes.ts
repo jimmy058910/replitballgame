@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 import { isAuthenticated } from '../googleAuth.js';
 
 const router = Router();

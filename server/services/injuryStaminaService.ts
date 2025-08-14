@@ -1,4 +1,4 @@
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 import { getGameDurationMinutes, type MatchType } from '../utils/gameTimeUtils.js';
 
 export interface InjuryStaminaSettings {

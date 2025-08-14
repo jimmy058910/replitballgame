@@ -3,7 +3,7 @@ import { storage } from '../storage/index.js';
 import { isAuthenticated } from '../googleAuth.js';
 import { z } from "zod";
 import { tournamentService } from '../services/tournamentService.js';
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 import moment from "moment-timezone";
 
 const router = Router();

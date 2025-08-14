@@ -9,7 +9,7 @@ import { TeamNameValidator } from '../services/teamNameValidation.js';
 import { AgingService } from '../services/agingService.js';
 import { generateRandomName } from "../../shared/names.js";
 import { Race, PlayerRole, InjuryStatus } from "@prisma/client";
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 import { getPlayerRole } from "../../shared/playerUtils.js";
 import { formatSubdivisionName, getSubdivisionCapacityInfo } from "../../shared/subdivisionUtils.js";
 import { CamaraderieService } from '../services/camaraderieService.js';

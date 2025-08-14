@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
 import { isAuthenticated } from '../googleAuth.js';
 import { injuryStaminaService } from '../services/injuryStaminaService.js';
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 
 const router = Router();
 

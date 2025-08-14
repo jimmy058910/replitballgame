@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { storage } from '../storage/index.js';
 import { isAuthenticated } from '../googleAuth.js';
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 import { generateRandomPlayer as generatePlayerForTeam } from '../services/leagueService.js';
 import { RBACService, Permission, UserRole } from '../services/rbacService.js';
 import { ErrorCreators, asyncHandler, logInfo, logError } from '../services/errorService.js';

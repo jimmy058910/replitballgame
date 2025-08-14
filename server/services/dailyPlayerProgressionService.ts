@@ -1,4 +1,4 @@
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 import type { Prisma } from '@prisma/client';
 import { getEasternTime } from '../../shared/timezone.js';
 

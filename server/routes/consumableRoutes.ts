@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { consumableStorage } from '../storage/consumableStorage.js';
 import { isAuthenticated } from '../googleAuth.js';
 import { asyncHandler } from '../services/errorService.js';
-import { getPrismaClient } from "../database.js"';
+import { getPrismaClient } from "../database.js";
 
 const router = Router();
 
