@@ -126,25 +126,29 @@ export class TeamStorage {
         where: { userId: userId }
       });
     
-    if (!userProfile) {
-      return null;
-    }
-    
-    const team = await prisma.team.findFirst({
-      where: { userProfileId: userProfile.id },
-      include: {
-        finances: true,
-        stadium: true,
-        players: {
-          include: {
-            contract: true,
-            skills: { include: { skill: true } }
-          }
-        },
-        staff: true
+      if (!userProfile) {
+        return null;
       }
-    });
-    
+      
+      const team = await prisma.team.findFirst({
+        where: { userProfileId: userProfile.id },
+        include: {
+          finances: true,
+          stadium: true,
+          players: {
+            include: {
+              contract: true,
+              skills: { include: { skill: true } }
+            }
+          },
+          staff: true
+        }
+      });
+      
+      if (!team) {
+        return null;
+      }
+      
       return await serializeTeamData(team);
     } catch (error) {
       console.error('❌ Database connection failed in getTeamByUserId:', error.message);
@@ -186,18 +190,7 @@ export class TeamStorage {
       return null;
     }
     
-      return await serializeTeamData(team);
-    } catch (error) {
-      console.error('❌ Database connection failed in getTeamByUserId:', error.message);
-      
-      // Development fallback: Return null to trigger team creation flow
-      if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-        console.log('🔄 Development: Database unavailable, returning null to trigger team creation');
-        return null;
-      }
-      
-      throw error;
-    }
+    return await serializeTeamData(team);
   }
 
   async getAllTeams(): Promise<any[]> {
