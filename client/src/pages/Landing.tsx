@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import { 
   AlertCircle, 
   Trophy, 
@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 export default function Landing() {
-  const { login, isAuthenticated, isLoading, user, error } = useUnifiedAuth();
+  const { login, isAuthenticated, isLoading, user, error } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1b3e] via-[#1a1b3e] to-slate-900">

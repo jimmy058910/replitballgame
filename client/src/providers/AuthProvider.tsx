@@ -1,17 +1,21 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, signInWithRedirect, signInWithPopup, signOut, User, getRedirectResult } from 'firebase/auth';
-import { auth, googleProvider } from '../lib/firebase';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, signInWithRedirect, signOut, GoogleAuthProvider, getRedirectResult, User } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (usePopup?: boolean) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => Promise<void>;
   error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -19,131 +23,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔥 Setting up unified authentication system...');
+    console.log('🔥 Setting up Firebase authentication system...');
     
-    // Check server authentication status first
-    const checkServerAuthStatus = async () => {
-      try {
-        console.log('🔍 Checking server authentication status...');
-        const response = await fetch('/api/auth/status', {
-          credentials: 'include' // Include session cookies
-        });
-        
-        if (response.ok) {
-          const serverAuth = await response.json();
-          console.log('🔍 Server auth status:', serverAuth);
-          
-          if (serverAuth.isAuthenticated && serverAuth.user) {
-            console.log('✅ User authenticated on server:', serverAuth.user.email);
-            // Create a user object compatible with Firebase User interface
-            const serverUser = {
-              uid: serverAuth.user.id,
-              email: serverAuth.user.email,
-              displayName: serverAuth.user.displayName || `${serverAuth.user.firstName} ${serverAuth.user.lastName}`,
-              photoURL: serverAuth.user.profileImageUrl,
-              emailVerified: true,
-              // Add minimal Firebase User interface properties
-              isAnonymous: false,
-              metadata: {
-                creationTime: serverAuth.user.createdAt,
-                lastSignInTime: new Date().toISOString()
-              },
-              providerData: [],
-              refreshToken: '',
-              tenantId: null
-            } as User;
-            
-            setUser(serverUser);
-            setError(null);
-            setIsLoading(false);
-            return; // Skip Firebase check if server auth works
-          }
-        }
-        
-        console.log('🔍 No server authentication - checking Firebase...');
-      } catch (error) {
-        console.log('🔍 Server auth check failed, falling back to Firebase:', error);
-      }
-      
-      // Fallback to Firebase authentication
-      await handleFirebaseAuth();
-    };
-    
-    // Handle Firebase redirect result
-    const handleFirebaseAuth = async () => {
+    const checkRedirectResult = async () => {
       try {
         console.log('🔍 Checking Firebase redirect result...');
         const result = await getRedirectResult(auth);
         
-        if (result) {
-          console.log('🎉 Firebase OAuth successful:', result.user.email);
+        if (result && result.user) {
+          console.log('✅ Firebase redirect successful:', result.user.email);
+          const idToken = await result.user.getIdToken();
+          localStorage.setItem('firebase_token', idToken);
           setUser(result.user);
           setError(null);
-        } else if (auth.currentUser) {
-          console.log('🔍 Using existing Firebase user:', auth.currentUser.email);
-          setUser(auth.currentUser);
         }
       } catch (error: any) {
-        console.error('🚨 Firebase auth error:', error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
+        console.error('🚨 Firebase redirect error:', error);
+        setError(`Authentication error: ${error.message}`);
       }
+      setIsLoading(false);
     };
 
-    // Start with server auth check
-    checkServerAuthStatus();
+    checkRedirectResult();
 
-    // Set up Firebase auth state listener as backup
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    // Set up Firebase auth state listener
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('🔥 Firebase Auth state changed:', user ? `authenticated: ${user.email}` : 'not authenticated');
-      if (user && !isAuthenticated) { // Only update if not already authenticated via server
-        console.log('🔍 Firebase user details:', { uid: user.uid, email: user.email, displayName: user.displayName });
-        setUser(user);
-        setIsLoading(false);
-        setError(null);
+      
+      if (user) {
+        try {
+          const idToken = await user.getIdToken();
+          localStorage.setItem('firebase_token', idToken);
+          setUser(user);
+          setError(null);
+        } catch (error: any) {
+          console.error('🚨 Error getting Firebase token:', error);
+          setError(error.message);
+        }
+      } else {
+        localStorage.removeItem('firebase_token');
+        setUser(null);
       }
+      
+      setIsLoading(false);
     });
 
     return () => {
       console.log('🧹 Cleaning up Firebase Auth listener');
       unsubscribe();
     };
-  }, []); // Empty dependency array - only run once
+  }, []);
 
   const isAuthenticated = !!user;
 
-  const login = async (usePopup?: boolean) => {
-    console.log('🔥 Starting unified authentication...');
+  const login = async () => {
+    console.log('🔥 Starting Firebase authentication...');
     setIsLoading(true);
     setError(null);
     
     try {
-      // In development, use server-side Google OAuth directly for better reliability
-      if (!import.meta.env.PROD) {
-        console.log('🔄 Development mode: Using server-side Google OAuth...');
-        window.location.href = '/api/auth/login';
-        return; // Don't set loading to false since we're redirecting
-      }
-      
-      // In production, try Firebase first
-      console.log('🔄 Production mode: Using Firebase authentication...');
+      console.log('🔄 Using Firebase authentication with redirect...');
       await signInWithRedirect(auth, googleProvider);
       console.log('🔄 Firebase redirect initiated...');
-      
     } catch (error: any) {
-      console.error('🚨 Authentication error:', error);
-      console.error('🚨 Error code:', error.code);
-      
-      // Fallback to server auth for any Firebase issues
-      console.log('🔄 Falling back to server-side authentication...');
-      window.location.href = '/api/auth/login';
+      console.error('🚨 Firebase authentication error:', error);
+      setError(`Authentication failed: ${error.message}`);
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     try {
       console.log('🔥 Signing out from Firebase...');
+      localStorage.removeItem('firebase_token');
       setError(null);
       await signOut(auth);
       console.log('🔥 Successfully signed out');
