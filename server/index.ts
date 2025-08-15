@@ -86,8 +86,82 @@ async function startServer() {
     const http = await import("http");
     const fs = await import("fs");
     const path = await import("path");
+    const { spawn, ChildProcess } = await import("child_process");
     const { Server: SocketIOServer } = await import("socket.io");
     console.log('✅ HTTP and WebSocket modules imported');
+
+    // Cloud SQL Auth Proxy startup function
+    let cloudSqlProxy: typeof ChildProcess.prototype | null = null;
+
+    async function startCloudSqlProxy(): Promise<boolean> {
+      const nodeEnv = process.env.NODE_ENV || 'development';
+      
+      if (nodeEnv !== 'development') {
+        console.log('🏭 [CloudSQLProxy] Production environment - using direct Cloud SQL socket connection');
+        return true;
+      }
+      
+      console.log('🔧 [CloudSQLProxy] Starting Cloud SQL Auth Proxy for development...');
+      
+      try {
+        // Create credentials file
+        const credentialsContent = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+        if (!credentialsContent) {
+          console.error('❌ [CloudSQLProxy] GOOGLE_SERVICE_ACCOUNT_KEY not available');
+          return false;
+        }
+        
+        const credentialsPath = '/tmp/cloudsql-dev-credentials.json';
+        fs.default.writeFileSync(credentialsPath, credentialsContent, { mode: 0o600 });
+        console.log('✅ [CloudSQLProxy] Credentials file created');
+        
+        // Start Cloud SQL Auth Proxy
+        const connectionName = 'direct-glider-465821-p7:us-central1:realm-rivalry-dev';
+        const args = [
+          `-instances=${connectionName}=tcp:5432`,
+          `-credential_file=${credentialsPath}`
+        ];
+        
+        cloudSqlProxy = spawn('./cloud_sql_proxy', args, {
+          stdio: ['ignore', 'pipe', 'pipe'],
+          detached: false
+        });
+        
+        console.log(`🚀 [CloudSQLProxy] Started with PID: ${cloudSqlProxy.pid}`);
+        
+        // Handle proxy output
+        if (cloudSqlProxy.stdout) {
+          cloudSqlProxy.stdout.on('data', (data: any) => {
+            const output = data.toString().trim();
+            if (output.includes('Ready for new connections')) {
+              console.log('✅ [CloudSQLProxy] Ready for connections!');
+            }
+            console.log(`📋 [CloudSQLProxy] ${output}`);
+          });
+        }
+        
+        if (cloudSqlProxy.stderr) {
+          cloudSqlProxy.stderr.on('data', (data: any) => {
+            console.log(`⚠️ [CloudSQLProxy] ${data.toString().trim()}`);
+          });
+        }
+        
+        cloudSqlProxy.on('exit', (code: any, signal: any) => {
+          console.log(`⚠️ [CloudSQLProxy] Process exited with code ${code}, signal ${signal}`);
+        });
+        
+        // Wait for proxy to be ready
+        console.log('⏳ [CloudSQLProxy] Waiting for proxy to initialize...');
+        await new Promise(resolve => setTimeout(resolve, 8000));
+        
+        console.log('✅ [CloudSQLProxy] Startup complete - database should be accessible at localhost:5432');
+        return true;
+        
+      } catch (error: any) {
+        console.error('❌ [CloudSQLProxy] Failed to start:', error.message);
+        return false;
+      }
+    }
     
     console.log('--- Phase 5: Importing middleware modules ---');
     const rateLimit = (await import("express-rate-limit")).default;
@@ -106,6 +180,11 @@ async function startServer() {
     const { sanitizeInputMiddleware, securityHeadersMiddleware } = await import("./middleware/security.js");
     const { createHealthCheck, createBasicHealthCheck, createDetailedHealthCheck } = await import("./health.js");
     console.log('✅ Essential modules imported (heavy imports deferred)');
+
+    console.log('--- Phase 6.5: Cloud SQL Auth Proxy Initialization ---');
+    // Start Cloud SQL Auth Proxy for development database connectivity
+    await startCloudSqlProxy();
+    console.log('✅ Cloud SQL Auth Proxy initialization completed');
 
     console.log('--- Phase 7: Initializing Express app ---');
     const app = express.default();

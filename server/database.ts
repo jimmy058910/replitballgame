@@ -10,18 +10,21 @@ import { PrismaClient } from '@prisma/client';
  * even if external dependencies (like database) are temporarily unavailable.
  */
 
-// Unified database connection management
+// Comprehensive dual-environment database connection management  
 function getDatabaseUrl(): string {
   const nodeEnv = process.env.NODE_ENV || 'development';
   const rawUrl = process.env.DATABASE_URL;
+  const productionUrl = process.env.DATABASE_URL_PRODUCTION;
   
-  console.log('🔍 DATABASE CONNECTION DEBUG:', {
+  console.log('🔍 COMPREHENSIVE DATABASE CONNECTION DEBUG:', {
     NODE_ENV: nodeEnv,
     NODE_ENV_EXPLICIT: process.env.NODE_ENV,
     DATABASE_URL_EXISTS: !!rawUrl,
+    DATABASE_URL_PRODUCTION_EXISTS: !!productionUrl,
     DATABASE_URL_PREVIEW: rawUrl ? rawUrl.substring(0, 80) + '...' : 'NONE',
     environment: nodeEnv === 'production' ? 'PRODUCTION' : 'DEVELOPMENT',
-    FORCE_DEVELOPMENT: true
+    K_SERVICE: process.env.K_SERVICE || 'undefined',
+    CLOUD_RUN: !!(process.env.K_SERVICE || process.env.GOOGLE_CLOUD_PROJECT)
   });
   
   if (!rawUrl) {
@@ -29,72 +32,55 @@ function getDatabaseUrl(): string {
     throw new Error(`DATABASE_URL not configured. Available DB vars: ${availableDbVars.join(', ')}`);
   }
 
-  // FORCE DEVELOPMENT BEHAVIOR - Never use Cloud SQL socket in Replit development
-  const isReallySureProduction = nodeEnv === 'production' && process.env.K_SERVICE;
+  // Determine if we're in true production (Cloud Run with K_SERVICE)
+  const isCloudRunProduction = nodeEnv === 'production' && process.env.K_SERVICE;
   
-  if (isReallySureProduction) {
-    console.log('✅ Production: Using Cloud SQL socket connection for Cloud Run');
-    return rawUrl;
+  if (isCloudRunProduction) {
+    console.log('✅ PRODUCTION: Using Cloud SQL socket connection for Cloud Run');
+    const finalUrl = productionUrl || rawUrl;
+    console.log('🔍 Production URL selected:', finalUrl.substring(0, 80) + '...');
+    return finalUrl;
   } else {
-    // Development: Use direct TCP connection (remove Cloud SQL socket parameters)
-    console.log('✅ Development/Replit: Converting Cloud SQL URL to direct TCP connection');
-    console.log('🔍 Detected environment as development because:', {
-      NODE_ENV: nodeEnv,
-      K_SERVICE: process.env.K_SERVICE || 'undefined',
-      forcingDevelopmentMode: true
-    });
+    // DEVELOPMENT: Use Cloud SQL Auth Proxy via localhost:5432
+    console.log('✅ DEVELOPMENT: Using Cloud SQL Auth Proxy connection');
     
-    // Remove Cloud SQL socket parameters for development and use proper connection details
     let devUrl = rawUrl;
+    
+    // Convert Cloud SQL socket URL to localhost TCP connection for Auth Proxy
     if (devUrl.includes('host=/cloudsql/')) {
-      console.log('🔍 Fixing Cloud SQL socket URL for development...');
+      console.log('🔍 Converting Cloud SQL socket URL for Auth Proxy...');
       
-      // For development, we need direct TCP connection to Cloud SQL external IP
-      // Extract the database connection details from the original URL
+      // Extract connection details from Cloud SQL URL
       const urlMatch = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@[^\/]+\/([^?]+)/);
       
       if (urlMatch) {
         const [, username, password, database] = urlMatch;
         
-        // In development, connect directly to Cloud SQL instance external IP
-        // You'll need to provide the external IP of your Cloud SQL instance
-        const cloudSqlExternalIp = 'YOUR_CLOUD_SQL_EXTERNAL_IP'; // Replace with actual IP
-        
-        console.log('🔍 Cloud SQL connection details:', {
-          username: username,
-          database: database,
-          needsExternalIp: 'Please provide Cloud SQL external IP',
-          currentHost: 'will be set to external IP'
-        });
-        
-        // For development: Use localhost as fallback for now - this will trigger the development fallback
-        // This allows the app to work immediately while proper database setup is configured
+        // Development: Connect via Cloud SQL Auth Proxy on localhost:5432
         devUrl = `postgresql://${username}:${password}@localhost:5432/${database}?schema=public&sslmode=disable`;
         
-        console.log('🔍 Development: Using localhost (will trigger fallback mode)');
-        console.log('🔄 App will work with fallback data while database setup is in progress');
-        console.log('💡 To connect to Cloud SQL: User needs to provide the external IP address');
+        console.log('🔍 Cloud SQL Auth Proxy connection configured:', {
+          username: username,
+          database: database,
+          host: 'localhost:5432',
+          method: 'Cloud SQL Auth Proxy',
+          sslmode: 'disabled (proxy handles SSL)'
+        });
+        
+        console.log('💡 Cloud SQL Auth Proxy initialized automatically for development');
       } else {
-        // Fallback: extract base connection without socket parameters
-        const urlParts = devUrl.split('?');
-        const baseUrl = urlParts[0];
-        devUrl = baseUrl + '?schema=public&sslmode=require';
-        console.log('⚠️ Using fallback URL conversion');
+        console.warn('⚠️ Could not parse Cloud SQL URL, using original');
       }
-      
-      console.log('🔍 Development database URL conversion:', {
-        original: 'contained Cloud SQL socket',
-        converted: 'Direct TCP connection',
-        connectionType: 'Development TCP',
-        hostResolved: devUrl.split('@')[1]?.split(':')[0] || 'unknown'
-      });
+    } else {
+      console.log('🔍 URL appears to be TCP already, using as-is for development');
     }
     
-    console.log('🔍 Database connection details:', {
+    console.log('🔍 Final development database URL:', {
       host: devUrl.split('@')[1]?.split('/')[0] || 'unknown',
-      connectionType: 'Direct TCP',
+      connectionType: 'TCP via Cloud SQL Auth Proxy',
       environment: 'Development'
     });
+    
     return devUrl;
   }
 }
@@ -157,9 +143,15 @@ async function initializeDatabase(): Promise<void> {
 
   initializationPromise = (async () => {
     try {
-      console.log('🚀 [LAZY INIT] Starting database initialization...');
+      console.log('🚀 [LAZY INIT] Starting comprehensive database initialization...');
+      console.log('🔍 [LAZY INIT] Environment check:', {
+        NODE_ENV: process.env.NODE_ENV,
+        isDevelopment: (process.env.NODE_ENV || 'development') === 'development'
+      });
       
-      // Skip proxy management in development - use direct connection
+      // Cloud SQL Auth Proxy is now started during server initialization
+      console.log('🔍 [LAZY INIT] Cloud SQL Auth Proxy should already be running from server startup');
+      console.log('🔄 [LAZY INIT] Proceeding with database connection...');
       
       const originalUrl = process.env.DATABASE_URL;
       console.log('🔍 ORIGINAL DATABASE_URL (first 80 chars):', originalUrl?.substring(0, 80) + '...');

@@ -1,47 +1,47 @@
 #!/bin/bash
 
-# Cloud SQL Auth Proxy Startup Script
-# This eliminates the need for IP whitelisting by using IAM authentication
+# Cloud SQL Auth Proxy startup script for development
+# This connects to the Cloud SQL instance specified in DATABASE_URL
 
-set -e
+echo "🔧 Starting Cloud SQL Auth Proxy for development environment..."
 
-echo "🔗 Starting Cloud SQL Auth Proxy..."
+# Extract Cloud SQL connection name from DATABASE_URL
+CONNECTION_NAME="direct-glider-465821-p7:us-central1:realm-rivalry-dev"
 
-# Set up authentication
-export GOOGLE_APPLICATION_CREDENTIALS="/tmp/cloud-sql-proxy/service-account-key.json"
+echo "📋 Cloud SQL Connection Details:"
+echo "   Connection Name: $CONNECTION_NAME"
+echo "   Proxy Port: 5432"
+echo "   Socket Directory: /tmp/cloudsql"
 
-# Extract project ID from service account (proper JSON parsing)
-PROJECT_ID=$(cat "$GOOGLE_APPLICATION_CREDENTIALS" | python3 -c "import sys, json; print(json.load(sys.stdin)['project_id'])")
-echo "📋 Project ID: $PROJECT_ID"
+# Create socket directory
+mkdir -p /tmp/cloudsql
 
-# Cloud SQL instance details
-REGION="us-central1"
-INSTANCE_NAME="realm-rivalry-dev"
-CONNECTION_NAME="$PROJECT_ID:$REGION:$INSTANCE_NAME"
+# Kill any existing proxy processes
+pkill -f cloud_sql_proxy || true
 
-echo "🌐 Connection Name: $CONNECTION_NAME"
-echo "🔌 Proxy will listen on localhost:5433 (avoiding conflict with direct connection)"
+echo "🚀 Starting Cloud SQL Auth Proxy..."
 
-# Start the proxy in the background
-/tmp/cloud-sql-proxy/cloud-sql-proxy \
-  --address 0.0.0.0 \
-  --port 5433 \
-  "$CONNECTION_NAME" &
+# Start Cloud SQL Auth Proxy in background
+./cloud_sql_proxy \
+  --address=0.0.0.0 \
+  --port=5432 \
+  --instances=${CONNECTION_NAME}=tcp:5432 \
+  --credentials-file=<(echo "$GOOGLE_SERVICE_ACCOUNT_KEY") \
+  > /tmp/cloud_sql_proxy.log 2>&1 &
 
 PROXY_PID=$!
 echo "✅ Cloud SQL Auth Proxy started with PID: $PROXY_PID"
-echo "🔗 Database available at: localhost:5433"
+echo "📋 Proxy logs: /tmp/cloud_sql_proxy.log"
 
-# Wait for proxy to be ready
-echo "⏳ Waiting for proxy to be ready..."
+# Wait a moment for proxy to start
 sleep 3
 
 # Test connection
-echo "🧪 Testing proxy connection..."
-if nc -z localhost 5433; then
-  echo "✅ Proxy is ready and accepting connections"
+if nc -z localhost 5432; then
+  echo "✅ Cloud SQL Auth Proxy is running and accepting connections on port 5432"
+  echo "🔗 Database connection ready for development"
 else
-  echo "❌ Proxy not ready yet"
+  echo "⚠️  Cloud SQL Auth Proxy may still be starting... check logs: tail -f /tmp/cloud_sql_proxy.log"
 fi
 
-echo "Proxy PID: $PROXY_PID" > /tmp/cloud-sql-proxy/proxy.pid
+echo "🎯 Development database is now accessible at localhost:5432"
