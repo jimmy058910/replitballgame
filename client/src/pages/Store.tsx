@@ -177,7 +177,7 @@ interface StoreData {
 
 interface UserFinanceData {
   credits: number;
-  premiumCurrency: number;
+  gems: number;
 }
 
 interface PurchasePayload {
@@ -383,14 +383,14 @@ export default function Store() {
             </div>
             <div className="flex items-center gap-2">
               <Gem className="w-5 h-5 text-purple-500" />
-              <span className="font-semibold">{finances?.premiumCurrency ?? 0}</span>
+              <span className="font-semibold">{finances?.gems ?? 0}</span>
               <span className="text-sm text-muted-foreground">Premium Gems</span>
               <HelpIcon content="Premium Gems are the special currency. Purchase them with real money or earn them through achievements. Use them for elite equipment, instant upgrades, and exclusive content. You can also convert them to credits." />
               <Button 
                 size="sm" 
                 variant="outline" 
                 onClick={() => setShowGemConverter(true)}
-                disabled={!finances?.premiumCurrency || (finances.premiumCurrency ?? 0) === 0}
+                disabled={!finances?.gems || (finances.gems ?? 0) === 0}
               >
                 <ArrowRightLeft className="w-4 h-4 mr-1" />
                 Convert
@@ -474,7 +474,7 @@ export default function Store() {
                         <Button 
                           className={`${getRarityButtonColor(item.rarity)} font-semibold border-0 shadow-md`}
                           onClick={() => purchaseItemMutation.mutate({ itemId: item.id, currency: 'gems' })}
-                          disabled={!finances?.premiumCurrency || finances.premiumCurrency < item.priceGems}
+                          disabled={!finances?.gems || Number(finances.gems) < item.priceGems}
                         >
                           Buy Now
                         </Button>

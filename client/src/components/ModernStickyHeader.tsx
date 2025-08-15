@@ -23,6 +23,10 @@ interface Team {
   division: number;
   subdivision?: string;
   teamPower?: number;
+  finances?: {
+    credits: string;
+    gems: string;
+  };
 }
 
 interface Finances {
@@ -76,10 +80,11 @@ const ModernStickyHeader: React.FC = () => {
     enabled: isAuthenticated,
   });
 
-  const { data: finances } = useQuery<Finances>({
-    queryKey: [`/api/teams/${team?.id}/finances`],
-    enabled: !!team?.id && isAuthenticated,
-  });
+  // Use finances data from team response instead of separate API call
+  const finances = team ? {
+    credits: team.finances?.credits || "0",
+    gems: team.finances?.gems || "0"
+  } : null;
 
   const { data: seasonData } = useQuery<SeasonData>({
     queryKey: ['/api/season/current-cycle'],
