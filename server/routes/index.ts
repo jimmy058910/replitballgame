@@ -75,6 +75,13 @@ import quickCacheTest from "./quickCacheTest.js";
 export function registerAllRoutes(app: Express): void {
   console.log('🔍 [registerAllRoutes] Starting route registration...');
   
+  // CRITICAL FIX: Add API route middleware precedence to prevent Vite interference
+  app.use('/api/*', (req: any, res: any, next: any) => {
+    // Force API responses to be JSON, never HTML
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  });
+  
   // Mount domain routes (new architecture) - TEMPORARILY DISABLED FOR STEP 4 DEPLOYMENT FIX
   // app.use("/api/v2", domainRoutes);
   // Add basic /api/v2 test endpoint to ensure API routing works
