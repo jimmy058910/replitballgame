@@ -86,6 +86,11 @@ type Team = {
   credits: number;
   gems: number;
   camaraderie: number;
+  players?: Player[];
+  finances?: {
+    credits: string;
+    gems: string;
+  };
 };
 
 type Stadium = {
@@ -113,10 +118,9 @@ export default function MobileRosterHQ() {
     enabled: isAuthenticated,
   });
 
-  const { data: players, isLoading: playersLoading } = useQuery<Player[]>({
-    queryKey: [`/api/teams/${team?.id}/players`],
-    enabled: !!team?.id,
-  });
+  // Use players data from team query instead of separate API call
+  const players = team?.players || [];
+  const playersLoading = teamLoading;
 
   const { data: staffData, isLoading: staffLoading } = useQuery<{
     staff: (Staff & { contract?: { salary: number; duration: number; remainingYears: number } | null })[];

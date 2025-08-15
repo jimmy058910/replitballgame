@@ -39,6 +39,11 @@ interface Team {
   teamPower: number;
   teamCamaraderie: number;
   credits: number;
+  players?: Player[];
+  finances?: {
+    credits: string;
+    gems: string;
+  };
 }
 
 interface Player {
@@ -91,21 +96,14 @@ export default function TeamPage() {
     cacheTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  const { data: players, isLoading: playersLoading, error: playersError } = useQuery<Player[]>({
-    // @ts-expect-error TS2339
-    queryKey: [`/api/teams/${team?.id}/players`],
-    // @ts-expect-error TS2339
-    enabled: !!team?.id,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    // @ts-expect-error TS2769
-    cacheTime: 3 * 60 * 1000, // 3 minutes
-  });
+  // Use players data from team query instead of separate API call
+  const players: Player[] = team?.players || [];
+  const playersLoading = isLoadingTeam;
+  const playersError = null;
   
-  // @ts-expect-error TS2339
-  const { invalidateTeam, invalidatePlayers } = useInvalidateQueries();
+  const { invalidateTeamData, invalidatePlayerData } = useInvalidateQueries();
 
   const { data: formation } = useQuery<Formation>({
-    // @ts-expect-error TS2339
     queryKey: [`/api/teams/${team?.id}/formation`],
     // @ts-expect-error TS2339
     enabled: !!team?.id,

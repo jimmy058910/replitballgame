@@ -53,12 +53,8 @@ interface DashboardMatch {
 
 export default function EnhancedDashboard() {
   const { data: team } = useQuery({ queryKey: ["/api/teams/my"] });
-  const { data: finances } = useQuery({ 
-    // @ts-expect-error TS2339
-    queryKey: [`/api/teams/${team?.id}/finances`],
-    // @ts-expect-error TS2339
-    enabled: !!team?.id,
-  });
+  // Use finances data from team query instead of separate API call
+  const finances = team?.finances;
   const { data: liveMatches } = useQuery({ queryKey: ["/api/matches/live"] });
   const { data: notifications } = useQuery({ queryKey: ["/api/notifications"] });
   const { data: leagues } = useQuery({ queryKey: ["/api/leagues"] });

@@ -39,10 +39,11 @@ export default function NewNavigation() {
     enabled: isAuthenticated,
   });
 
-  const { data: finances } = useQuery<Finances>({
-    queryKey: [`/api/teams/${team?.id}/finances`],
-    enabled: !!team?.id && isAuthenticated,
-  });
+  // Use finances data from team query instead of separate API call
+  const finances = team ? {
+    credits: parseInt(String(team.credits || 0)),
+    gems: 0 // Will be updated when team interface includes finances
+  } : null;
 
   // New 5-hub navigation system
   const navHubs = [

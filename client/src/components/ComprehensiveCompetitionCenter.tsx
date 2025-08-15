@@ -60,6 +60,7 @@ type Team = {
   goalsAgainst?: number;
   goalDifference?: number;
   gamesPlayed?: number;
+  players?: any[];
 };
 
 type GlobalRanking = {
@@ -148,10 +149,8 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: isAuthenticated,
   });
 
-  const { data: players } = useQuery({
-    queryKey: [`/api/teams/${team?.id}/players`],
-    enabled: !!team?.id,
-  });
+  // Use players data from team query instead of separate API call
+  const players = team?.players || [];
 
   const { data: seasonData } = useQuery<any>({
     queryKey: ['/api/season/current-cycle'],

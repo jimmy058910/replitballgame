@@ -258,16 +258,21 @@ export default function Store() {
   const [gemsToConvert, setGemsToConvert] = useState(1);
   const { toast } = useToast();
 
-  const { data: team } = useQuery<Team>({
+  const { data: team } = useQuery<{
+    id: string;
+    name: string;
+    finances?: {
+      credits: string;
+      gems: string;
+    };
+  }>({
     queryKey: ["/api/teams/my"],
   });
   // @ts-expect-error TS2451
   const finances = financesQuery.data as UserFinanceData | undefined;
 
-  const { data: rawFinances } = useQuery<Finances>({
-    queryKey: [`/api/teams/${team?.id}/finances`],
-    enabled: !!team?.id,
-  });
+  // Use finances data from team query instead of separate API call
+  const rawFinances = team?.finances;
   // @ts-expect-error TS2451
   const storeData = storeDataQuery.data as StoreData | undefined;
   // @ts-expect-error TS2304
@@ -610,7 +615,7 @@ export default function Store() {
                             size="sm" 
                             className="bg-purple-600 hover:bg-purple-700 text-white font-semibold border-0 shadow-md"
                             onClick={() => purchaseItemMutation.mutate({ itemId: entry.id, currency: 'gems' })}
-                            disabled={!finances?.premiumCurrency || finances.premiumCurrency < entry.priceGems}
+                            disabled={!finances?.gems || Number(finances.gems) < entry.priceGems}
                           >
                             Buy with Gems
                           </Button>
@@ -760,7 +765,7 @@ export default function Store() {
                 id="gems-amount"
                 type="number"
                 min="1"
-                max={finances?.premiumCurrency || 0}
+                max={Number(finances?.gems) || 0}
                 value={gemsToConvert}
                 onChange={(e) => setGemsToConvert(parseInt(e.target.value) || 1)}
               />
