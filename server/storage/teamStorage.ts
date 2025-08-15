@@ -150,8 +150,8 @@ export class TeamStorage {
       }
       
       return await serializeTeamData(team);
-    } catch (error) {
-      console.error('❌ Database connection failed in getTeamByUserId:', error.message);
+    } catch (error: any) {
+      console.error('❌ Database connection failed in getTeamByUserId:', error?.message || error);
       
       // Development fallback: Return null to trigger team creation flow
       if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
@@ -192,8 +192,8 @@ export class TeamStorage {
       }
       
       return await serializeTeamData(team);
-    } catch (error) {
-      console.error('❌ Database connection failed in getTeamById:', error.message);
+    } catch (error: any) {
+      console.error('❌ Database connection failed in getTeamById:', error?.message || error);
       
       // Development fallback: Return null for missing team
       if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
@@ -223,8 +223,8 @@ export class TeamStorage {
       });
       
       return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
-    } catch (error) {
-      console.error('❌ Database connection failed in getAllTeams:', error.message);
+    } catch (error: any) {
+      console.error('❌ Database connection failed in getAllTeams:', error?.message || error);
       
       // Development fallback: Return empty array
       if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
@@ -254,8 +254,8 @@ export class TeamStorage {
       });
       
       return await Promise.all(teams.map((team: any) => serializeTeamData(team)));
-    } catch (error) {
-      console.error('❌ Database connection failed in getAllTeamsWithBasicInfo:', error.message);
+    } catch (error: any) {
+      console.error('❌ Database connection failed in getAllTeamsWithBasicInfo:', error?.message || error);
       
       // Development fallback: Return empty array
       if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
