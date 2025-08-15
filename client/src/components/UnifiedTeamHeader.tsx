@@ -116,7 +116,7 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players, sho
           </div>
           <div className="text-center">
             <div className="text-xl font-bold text-purple-400">
-              {team?.finances?.credits ? Number(team.finances.credits).toLocaleString() : '16,000'}
+              {team?.finances?.credits ? Number(team.finances.credits).toLocaleString() : '0'}
             </div>
             <div className="text-xs text-blue-200">Credits</div>
           </div>
