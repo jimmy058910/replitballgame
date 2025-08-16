@@ -10,6 +10,7 @@ export class PlayerContractInitializer {
     console.log(`[PlayerContractInitializer] Assigning initial contracts for team ${teamId}`);
     
     // Get all players on the team
+    const prisma = await getPrismaClient();
     const players = await prisma.player.findMany({
       where: { teamId: teamId }
     });
@@ -78,6 +79,7 @@ export class PlayerContractInitializer {
     console.log(`[PlayerContractInitializer] Starting global initial contract assignment`);
     
     // Get all teams
+    const prisma = await getPrismaClient();
     const teams = await prisma.team.findMany({
       select: { id: true, name: true }
     });

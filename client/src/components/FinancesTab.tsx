@@ -13,17 +13,18 @@ import PaymentHistory from './PaymentHistory';
 interface Team {
   id: number;
   name: string;
-}
-
-interface TeamFinances {
-  credits: string;
-  gems: string;
-  escrowCredits: string;
-  escrowGems: string;
-  projectedIncome: string;
-  projectedExpenses: string;
-  lastSeasonRevenue: string;
-  lastSeasonExpenses: string;
+  finances: {
+    credits: string;
+    gems: string;
+    escrowCredits: string;
+    escrowGems: string;
+    projectedIncome: string;
+    projectedExpenses: string;
+    lastSeasonRevenue: string;
+    lastSeasonExpenses: string;
+  };
+  players: Player[];
+  staff: Staff[];
 }
 
 interface Player {
@@ -31,12 +32,20 @@ interface Player {
   firstName: string;
   lastName: string;
   role: string;
+  salary?: number;
+  contractLength?: number;
+  contractStartDate?: string;
 }
 
 interface Staff {
   id: number;
-  name: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
   type: string;
+  salary?: number;
+  contractLength?: number;
+  contractStartDate?: string;
 }
 
 interface Contract {
@@ -56,27 +65,35 @@ export default function FinancesTab() {
   const [activeSubTab, setActiveSubTab] = useState('overview');
   const [timeframe, setTimeframe] = useState<TimeframeType>('current');
 
-  // Fetch team data
+  // Fetch unified team data (includes finances, players, staff)
   const { data: team } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
   });
 
-  // Fetch team finances
-  const { data: teamFinances } = useQuery<TeamFinances>({
-    queryKey: ["/api/teams/" + team?.id + "/finances"],
-    enabled: !!team?.id
-  });
+  // Convert players and staff to contract format for unified display
+  const contracts: Contract[] = [
+    ...(team?.players || []).map(player => ({
+      id: player.id,
+      playerId: player.id,
+      salary: (player.salary || 0).toString(),
+      length: player.contractLength || 0,
+      startDate: player.contractStartDate || new Date().toISOString(),
+      player: player
+    })),
+    ...(team?.staff || []).map(staff => ({
+      id: staff.id + 10000, // Offset to avoid ID conflicts
+      staffId: staff.id,
+      salary: (staff.salary || 0).toString(),
+      length: staff.contractLength || 0,
+      startDate: staff.contractStartDate || new Date().toISOString(),
+      staff: staff
+    }))
+  ];
 
-  // Fetch contracts
-  const { data: contracts } = useQuery<Contract[]>({
-    queryKey: ["/api/teams/" + team?.id + "/contracts"],
-    enabled: !!team?.id
-  });
-
-  const credits = parseInt(teamFinances?.credits || '0');
-  const gems = parseInt(teamFinances?.gems || '0');
-  const projectedIncome = parseInt(teamFinances?.projectedIncome || '0');
-  const projectedExpenses = parseInt(teamFinances?.projectedExpenses || '0');
+  const credits = parseInt(team?.finances?.credits || '0');
+  const gems = parseInt(team?.finances?.gems || '0');
+  const projectedIncome = parseInt(team?.finances?.projectedIncome || '0');
+  const projectedExpenses = parseInt(team?.finances?.projectedExpenses || '0');
   const netIncome = projectedIncome - projectedExpenses;
 
   return (
@@ -112,7 +129,7 @@ export default function FinancesTab() {
           gems={gems} 
           netIncome={netIncome}
           timeframe={timeframe}
-          teamFinances={teamFinances}
+          teamFinances={team?.finances}
         />}
         {activeSubTab === 'contracts' && <ContractsTab contracts={contracts || []} />}
         {activeSubTab === 'transaction-log' && <TransactionLogTab />}
@@ -133,7 +150,16 @@ function OverviewTab({
   gems: number; 
   netIncome: number; 
   timeframe: TimeframeType;
-  teamFinances?: TeamFinances;
+  teamFinances?: {
+    credits: string;
+    gems: string;
+    escrowCredits: string;
+    escrowGems: string;
+    projectedIncome: string;
+    projectedExpenses: string;
+    lastSeasonRevenue: string;
+    lastSeasonExpenses: string;
+  };
 }) {
   const getTimeframeLabel = () => {
     switch (timeframe) {
@@ -367,7 +393,11 @@ function ContractsTab({ contracts }: { contracts: Contract[] }) {
                 />
               ))}
               {playerContracts.length === 0 && (
-                <p className="text-gray-400 text-center py-4">No player contracts found</p>
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg mb-2">No Players Contracted</p>
+                  <p className="text-gray-500 text-sm">Visit the Marketplace to sign new players</p>
+                </div>
               )}
             </div>
           </CardContent>
@@ -392,7 +422,11 @@ function ContractsTab({ contracts }: { contracts: Contract[] }) {
                 />
               ))}
               {staffContracts.length === 0 && (
-                <p className="text-gray-400 text-center py-4">No staff contracts found</p>
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg mb-2">No Staff Contracted</p>
+                  <p className="text-gray-500 text-sm">Hire coaching staff to improve team performance</p>
+                </div>
               )}
             </div>
           </CardContent>

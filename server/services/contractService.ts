@@ -130,6 +130,7 @@ export class ContractService {
     offerSalary: number, 
     offerSeasons: number
   ): Promise<NegotiationResult> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findUnique({
       where: { id: playerId }
     });
@@ -199,6 +200,7 @@ export class ContractService {
     staffId: number,
     offerSalary: number
   ): Promise<NegotiationResult> {
+    const prisma = await getPrismaClient();
     const staffMember = await prisma.staff.findUnique({
       where: { id: staffId }
     });
@@ -237,6 +239,7 @@ export class ContractService {
     seasons: number
   ): Promise<Player | null> {
     // Get player info first using Prisma
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findUnique({
       where: { id: playerId }
     });
@@ -287,6 +290,7 @@ export class ContractService {
    */
   static async updateTeamSalaryCap(teamId: number): Promise<void> {
     // Calculate total salary from all active player contracts
+    const prisma = await getPrismaClient();
     const activeContracts = await prisma.contract.findMany({
       where: {
         playerId: { not: null },
@@ -324,6 +328,7 @@ export class ContractService {
     salary: number
   ): Promise<Staff | null> {
     // Get staff info first
+    const prisma = await getPrismaClient();
     const staffMember = await prisma.staff.findUnique({
       where: { id: staffId }
     });
