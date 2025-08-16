@@ -5,12 +5,17 @@ export class PaymentHistoryService {
   /**
    * Record a new payment transaction
    */
-  static async recordTransaction(transaction: Prisma.PaymentTransactionCreateInput): Promise<PaymentTransaction> {
+  static async recordTransaction(transaction: Prisma.PaymentTransactionCreateInput): Promise<any> {
+    const prisma = await getPrismaClient();
     const newTransaction = await prisma.paymentTransaction.create({
       data: transaction
     });
     
-    return newTransaction;
+    // Serialize BigInt fields for JSON response
+    return {
+      ...newTransaction,
+      creditsAmount: newTransaction.creditsAmount?.toString() || '0',
+    };
   }
 
   /**
@@ -53,6 +58,7 @@ export class PaymentHistoryService {
     }
 
     // Get transactions with pagination
+    const prisma = await getPrismaClient();
     const transactions = await prisma.paymentTransaction.findMany({
       where: whereConditions,
       orderBy: { createdAt: 'desc' },
@@ -96,6 +102,7 @@ export class PaymentHistoryService {
   ): Promise<PaymentTransaction[]> {
     const { limit = 50, offset = 0 } = options;
 
+    const prisma = await getPrismaClient();
     return await prisma.paymentTransaction.findMany({
       where: { teamId: parseInt(teamId, 10) },
       orderBy: { createdAt: 'desc' },
@@ -111,6 +118,7 @@ export class PaymentHistoryService {
     transactionId: number,
     status: string
   ): Promise<PaymentTransaction | null> {
+    const prisma = await getPrismaClient();
     const updatedTransaction = await prisma.paymentTransaction.update({
       where: { id: transactionId },
       data: {
@@ -134,6 +142,7 @@ export class PaymentHistoryService {
   }> {
     console.log('PaymentHistoryService: Getting transaction summary for userId:', userId);
     
+    const prisma = await getPrismaClient();
     const transactions = await prisma.paymentTransaction.findMany({
       where: {
         userId,

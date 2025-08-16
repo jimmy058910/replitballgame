@@ -68,14 +68,23 @@ router.post("/record", requireAuth, asyncHandler(async (req: any, res: Response)
   
   const transaction = await PaymentHistoryService.recordTransaction({
     userId,
-    ...transactionData,
+    transactionType: transactionData.transactionType,
     itemName: transactionData.itemName || '',
     itemType: transactionData.itemType || 'general',
     teamId: transactionData.teamId ? (typeof transactionData.teamId === 'string' ? parseInt(transactionData.teamId) : transactionData.teamId) : 0,
-    transactionType: transactionData.transactionType, // Ensure required field is explicitly passed
+    creditsAmount: BigInt(transactionData.creditsChange || 0),
+    gemsAmount: transactionData.gemsChange || 0,
+    status: transactionData.status,
+    metadata: transactionData.metadata || {},
   });
   
-  res.json({ transaction });
+  res.json({ 
+    success: true,
+    transaction: {
+      ...transaction,
+      creditsAmount: transaction.creditsAmount?.toString() || '0'
+    }
+  });
 }));
 
 // Helper endpoint to record item purchases

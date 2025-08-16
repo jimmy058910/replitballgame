@@ -1,5 +1,6 @@
 import { getPrismaClient } from '../database.js';
 import { PrismaClient, Team, Race } from "@prisma/client";
+import { PaymentHistoryService } from '../services/paymentHistoryService.js';
 
 // Helper function to serialize BigInt fields to strings for JSON compatibility
 function serializeTeamFinances(finances: any): any {
@@ -110,6 +111,27 @@ export class TeamStorage {
     // Generate starter players and staff
     await this.generateStarterRoster(newTeam.id);
     await this.generateStarterStaff(newTeam.id);
+
+    // Record the initial team creation transaction for 50,000 credits
+    try {
+      await PaymentHistoryService.recordTransaction({
+        userId: teamData.userId,
+        teamId: newTeam.id,
+        transactionType: "admin_grant",
+        itemType: "credits",
+        itemName: "New team creation",
+        creditsAmount: BigInt(50000),
+        gemsAmount: 0,
+        status: "completed",
+        metadata: {
+          reason: "Initial team bonus",
+          teamName: newTeam.name
+        }
+      });
+      console.log('✅ Team creation transaction recorded: +50,000 credits');
+    } catch (error: any) {
+      console.error('❌ Failed to record team creation transaction:', error?.message || error);
+    }
 
     return newTeam;
   }
