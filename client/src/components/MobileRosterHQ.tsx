@@ -666,7 +666,7 @@ export default function MobileRosterHQ() {
                               <div className="flex items-center gap-1">
                                 <Coins className="h-3 w-3 text-green-400" />
                                 <span>
-                                  ₡{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 0} seasons
+                                  ₵{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 0} seasons
                                 </span>
                               </div>
                             </div>

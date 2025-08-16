@@ -81,9 +81,26 @@ router.get('/my', requireAuth, asyncHandler(async (req: any, res: Response) => {
   // Calculate real-time camaraderie
   const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
 
+  // Fetch contract information for all players and join with player data
+  const playersWithContracts = await Promise.all(
+    teamPlayers.map(async (player) => {
+      const contracts = await storage.contracts.getActiveContractsByPlayer(player.id);
+      const contract = contracts.length > 0 ? contracts[0] : null;
+      
+      return {
+        ...player,
+        contractSalary: contract ? Number(contract.salary) : null,
+        contractLength: contract ? contract.length : null,
+        contractStartDate: contract ? contract.startDate : null,
+        contractSigningBonus: contract ? Number(contract.signingBonus) : null
+      };
+    })
+  );
+
   // Serialize BigInt fields
   const serializedTeam = { 
     ...team, 
+    players: playersWithContracts,
     teamPower, 
     teamCamaraderie 
   };
