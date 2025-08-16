@@ -1,7 +1,5 @@
-import { getPrismaClient } from '../db';
+import { getPrismaClient } from '../database.js';
 import { PrismaClient, Notification, NotificationType } from "@prisma/client";
-
-
 
 // Prisma handles ID generation and the service layer defines data structure.
 
@@ -14,6 +12,7 @@ export class NotificationStorage {
     // isRead is handled by default in Prisma schema
     // createdAt is handled by default in Prisma schema
   }): Promise<Notification> {
+    const prisma = await getPrismaClient();
     return prisma.notification.create({
       data: {
         teamId: data.teamId,
@@ -26,6 +25,7 @@ export class NotificationStorage {
   }
 
   async markNotificationRead(notificationId: number): Promise<Notification | null> {
+    const prisma = await getPrismaClient();
     try {
       return await prisma.notification.update({
         where: { id: notificationId },
@@ -42,6 +42,7 @@ export class NotificationStorage {
   }
 
   async markAllNotificationsRead(teamId: number): Promise<{ count: number }> {
+    const prisma = await getPrismaClient();
     // Prisma's updateMany returns a count of affected records
     return prisma.notification.updateMany({
       where: { 
@@ -53,6 +54,7 @@ export class NotificationStorage {
   }
 
   async getUserNotifications(teamId: number, limit: number = 20, includeRead: boolean = false): Promise<Notification[]> {
+    const prisma = await getPrismaClient();
     // Changed from userId to teamId to align with Prisma schema and service layer
     return prisma.notification.findMany({
       where: {

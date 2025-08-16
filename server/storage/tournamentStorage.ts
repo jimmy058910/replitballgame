@@ -1,8 +1,9 @@
-import { getPrismaClient } from '../db';
+import { getPrismaClient } from '../database.js';
 import { PrismaClient, Tournament, TournamentEntry } from "@prisma/client";
 
 export class TournamentStorage {
   async getAllTournamentHistory(): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const history = await prisma.tournamentEntry.findMany({
       include: {
         tournament: true,
@@ -35,6 +36,7 @@ export class TournamentStorage {
     startTime?: Date;
     maxParticipants?: number;
   }): Promise<Tournament> {
+    const prisma = await getPrismaClient();
     const newTournament = await prisma.tournament.create({
       data: {
         name: tournamentData.name,
@@ -59,6 +61,7 @@ export class TournamentStorage {
   }
 
   async getTournamentById(id: number): Promise<Tournament | null> {
+    const prisma = await getPrismaClient();
     const tournament = await prisma.tournament.findUnique({
       where: { id },
       include: {
@@ -73,6 +76,7 @@ export class TournamentStorage {
   }
 
   async getTournamentsByDivision(division: number, status?: string): Promise<Tournament[]> {
+    const prisma = await getPrismaClient();
     const whereClause: any = { division };
     
     if (status) {
@@ -112,6 +116,7 @@ export class TournamentStorage {
   }
 
   async getAllTournaments(status?: string): Promise<Tournament[]> {
+    const prisma = await getPrismaClient();
     const whereClause: any = {};
     
     if (status) {
@@ -151,6 +156,7 @@ export class TournamentStorage {
   }
 
   async updateTournament(id: number, updates: any): Promise<Tournament | null> {
+    const prisma = await getPrismaClient();
     try {
       // Remove 'id' from updates to avoid Prisma constraint conflicts
       const { id: _, ...updateData } = updates;
@@ -177,6 +183,7 @@ export class TournamentStorage {
     tournamentId: number;
     teamId: number;
   }): Promise<TournamentEntry> {
+    const prisma = await getPrismaClient();
     const newEntry = await prisma.tournamentEntry.create({
       data: {
         tournamentId: entryData.tournamentId,
@@ -191,6 +198,7 @@ export class TournamentStorage {
   }
 
   async getTournamentEntries(tournamentId: number): Promise<TournamentEntry[]> {
+    const prisma = await getPrismaClient();
     return await prisma.tournamentEntry.findMany({
       where: { tournamentId },
       include: {
@@ -202,6 +210,7 @@ export class TournamentStorage {
   }
 
   async getTeamTournamentEntries(teamId: number): Promise<TournamentEntry[]> {
+    const prisma = await getPrismaClient();
     return await prisma.tournamentEntry.findMany({
       where: { teamId },
       include: {
@@ -213,6 +222,7 @@ export class TournamentStorage {
   }
 
   async updateTournamentEntry(id: number, updates: any): Promise<TournamentEntry | null> {
+    const prisma = await getPrismaClient();
     try {
       // Remove 'id' from updates to avoid Prisma constraint conflicts
       const { id: _, ...updateData } = updates;
@@ -232,6 +242,7 @@ export class TournamentStorage {
   }
 
   async deleteTournamentEntry(id: number): Promise<boolean> {
+    const prisma = await getPrismaClient();
     try {
       await prisma.tournamentEntry.delete({
         where: { id }
@@ -244,6 +255,7 @@ export class TournamentStorage {
   }
 
   async getAvailableTournaments(teamId: number): Promise<Tournament[]> {
+    const prisma = await getPrismaClient();
     // Get tournaments that are open and the team hasn't entered yet
     const existingEntries = await prisma.tournamentEntry.findMany({
       where: { teamId },
@@ -267,6 +279,7 @@ export class TournamentStorage {
   }
 
   async getTournamentParticipantCount(tournamentId: number): Promise<number> {
+    const prisma = await getPrismaClient();
     const count = await prisma.tournamentEntry.count({
       where: { tournamentId }
     });
