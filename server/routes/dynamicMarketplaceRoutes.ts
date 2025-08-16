@@ -49,6 +49,7 @@ router.get('/my-listings', requireAuth, async (req: Request, res: Response) => {
     }
 
     // Get user's team via userProfile lookup
+    const prisma = await getPrismaClient();
     const userProfileData = await prisma.userProfile.findFirst({
       where: { id: (req.user as any).claims.sub }
     });
@@ -100,6 +101,7 @@ router.post('/list-player', requireAuth, async (req: Request, res: Response) => 
     }
 
     // Get user's team via userProfile lookup
+    const prisma = await getPrismaClient();
     const userProfileData = await prisma.userProfile.findFirst({
       where: { id: (req.user as any).claims.sub }
     });
@@ -159,6 +161,7 @@ router.post('/listings/:listingId/bid', requireAuth, async (req: Request, res: R
     }
 
     // Get user's team via userProfile lookup
+    const prisma = await getPrismaClient();
     const userProfileData = await prisma.userProfile.findFirst({
       where: { id: (req.user as any).claims.sub }
     });
@@ -211,6 +214,7 @@ router.post('/listings/:listingId/buy-now', requireAuth, async (req: Request, re
     const listingId = parseInt(req.params.listingId, 10);
 
     // Get user's team
+    const prisma = await getPrismaClient();
     const userProfileData = await prisma.userProfile.findFirst({
       where: { id: (req.user as any).claims.sub }
     });
@@ -248,6 +252,7 @@ router.get('/calculate-min-price/:playerId', requireAuth, async (req: Request, r
   try {
     const { playerId } = req.params;
     
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findFirst({
       where: { id: parseInt(playerId, 10) }
     });
@@ -277,6 +282,7 @@ router.get('/team-stats', requireAuth, async (req: Request, res: Response) => {
     }
 
     // Get user's team
+    const prisma = await getPrismaClient();
     const userProfileData = await prisma.userProfile.findFirst({
         where: { id: (req.user as any).claims.sub }
     });
@@ -329,6 +335,7 @@ router.get('/my-bids', requireAuth, async (req: Request, res: Response) => {
     }
 
     // Get user's team via userProfile lookup
+    const prisma = await getPrismaClient();
     const userProfileData = await prisma.userProfile.findFirst({
       where: { id: (req.user as any).claims.sub }
     });

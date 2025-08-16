@@ -1,5 +1,8 @@
 import { getPrismaClient } from "../database.js";
 
+// Get shared prisma instance
+const prismaPromise = getPrismaClient();
+
 export class DynamicMarketplaceService {
   
   /**
@@ -39,6 +42,7 @@ export class DynamicMarketplaceService {
    * Get team's active listing count
    */
   static async getTeamActiveListings(teamId: string): Promise<number> {
+    const prisma = await prismaPromise;
     const result = await prisma.marketplaceListing.count({
       where: {
         sellerTeamId: parseInt(teamId),
@@ -53,6 +57,7 @@ export class DynamicMarketplaceService {
    * Get team's player count
    */
   static async getTeamPlayerCount(teamId: string): Promise<number> {
+    const prisma = await prismaPromise;
     const result = await prisma.player.count({
       where: {
         teamId: parseInt(teamId)
@@ -78,6 +83,7 @@ export class DynamicMarketplaceService {
   }> {
     try {
       // Validation 1: Check if player belongs to team
+      const prisma = await prismaPromise;
       const player = await prisma.player.findFirst({
         where: {
           id: playerId,
@@ -192,6 +198,7 @@ export class DynamicMarketplaceService {
   }> {
     try {
       // Get listing details
+      const prisma = await prismaPromise;
       const listing = await prisma.marketplaceListing.findFirst({
         where: {
           id: listingId,
@@ -302,6 +309,7 @@ export class DynamicMarketplaceService {
   }> {
     try {
       // Get listing details
+      const prisma = await prismaPromise;
       const listing = await prisma.marketplaceListing.findFirst({
         where: {
           id: listingId,
@@ -360,6 +368,7 @@ export class DynamicMarketplaceService {
     sellerAmount: number,
     isBuyNow: boolean = false
   ): Promise<void> {
+    const prisma = await prismaPromise;
     const listing = await prisma.marketplaceListing.findFirst({
       where: { id: listingId }
     });
@@ -426,6 +435,7 @@ export class DynamicMarketplaceService {
    */
   static async releaseEscrow(teamId: number, listingId: number): Promise<void> {
     // Get listing to find bid amount
+    const prisma = await prismaPromise;
     const listing = await prisma.marketplaceListing.findFirst({
       where: { id: listingId }
     });
@@ -456,6 +466,7 @@ export class DynamicMarketplaceService {
     const now = new Date();
     
     // Get all expired active listings
+    const prisma = await prismaPromise;
     const expiredListings = await prisma.marketplaceListing.findMany({
       where: {
         isActive: true,
@@ -507,6 +518,7 @@ export class DynamicMarketplaceService {
    * Get active marketplace listings with player details
    */
   static async getActiveListings(limit: number = 50, offset: number = 0): Promise<any[]> {
+    const prisma = await prismaPromise;
     const listings = await prisma.marketplaceListing.findMany({
       where: { isActive: true },
       include: {
@@ -559,6 +571,7 @@ export class DynamicMarketplaceService {
    * Get team's listings (both active and completed)
    */
   static async getTeamListings(teamId: string): Promise<any[]> {
+    const prisma = await prismaPromise;
     const listings = await prisma.marketplaceListing.findMany({
       where: { sellerTeamId: parseInt(teamId) },
       include: {
@@ -592,6 +605,7 @@ export class DynamicMarketplaceService {
    * Get listing details with bid history
    */
   static async getListingDetails(listingId: number): Promise<any> {
+    const prisma = await prismaPromise;
     const listing = await prisma.marketplaceListing.findFirst({
       where: { id: listingId },
       include: {
@@ -664,6 +678,7 @@ export class DynamicMarketplaceService {
   static async getMarketplaceStats(): Promise<any> {
     try {
       // Get total active listings
+      const prisma = await prismaPromise;
       const totalActiveListings = await prisma.marketplaceListing.count({
         where: { isActive: true }
       });
@@ -708,6 +723,7 @@ export class DynamicMarketplaceService {
    */
   static async getUserBids(teamId: string): Promise<any[]> {
     try {
+      const prisma = await prismaPromise;
       const bids = await prisma.bid.findMany({
         where: { bidderTeamId: parseInt(teamId) },
         include: {
