@@ -107,10 +107,12 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
     enabled: !!teamId,
   });
 
-  const { data: playersData } = useQuery<Player[]>({
-    queryKey: [`/api/teams/${teamId}/players`],
+  const { data: teamData } = useQuery<any>({
+    queryKey: ['/api/teams/my'],
     enabled: !!teamId,
   });
+  
+  const playersData = teamData?.players || [];
 
   if (!effects || !summary) {
     return (
@@ -125,8 +127,8 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
   const { status, emoji } = getCamaraderieInfo(teamCamaraderie);
 
   // Calculate morale breakdown
-  const highMoraleCount = players.filter(p => p.camaraderieScore >= 70).length;
-  const lowMoraleCount = players.filter(p => p.camaraderieScore < 40).length;
+  const highMoraleCount = players.filter((p: any) => p.camaraderieScore >= 70).length;
+  const lowMoraleCount = players.filter((p: any) => p.camaraderieScore < 40).length;
 
   return (
     <div className="space-y-6 px-4 py-6">
@@ -258,7 +260,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
           <div className="space-y-3">
             {/* Mobile: Full-width cards */}
             <div className="block md:hidden space-y-3">
-              {players.map((player) => {
+              {players.map((player: any) => {
                 const { color, status, emoji } = getCamaraderieInfo(player.camaraderieScore);
                 return (
                   <div key={player.id} className="p-4 bg-gray-700/50 rounded-lg border border-gray-600">
@@ -304,7 +306,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {players.map((player) => {
+                    {players.map((player: any) => {
                       const { color, status, emoji } = getCamaraderieInfo(player.camaraderieScore);
                       return (
                         <tr key={player.id} className="border-b border-gray-700 hover:bg-gray-700/30">

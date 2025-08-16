@@ -292,6 +292,7 @@ export class CamaraderieService {
    */
   static async updateTeamCamaraderieEndOfSeason(teamId: string): Promise<SeasonEndCamaraderieUpdate[]> {
     try {
+      const prisma = await getPrismaClient();
       // Get team performance data
       const team = await prisma.team.findFirst({
         where: {
@@ -326,7 +327,7 @@ export class CamaraderieService {
       // Determine if team won championship (placeholder - would need tournament/playoff data)
       const wonChampionship = false; // TODO: Integrate with playoff/tournament system
       
-      // Get all players on the team
+      // Get all players on the team  
       const players = await prisma.player.findMany({
         where: {
           teamId: parseInt(teamId)
@@ -429,6 +430,7 @@ export class CamaraderieService {
     concernedPlayers: any[];
   }> {
     try {
+      const prisma = await getPrismaClient();
       const effects = await this.getCamaraderieEffects(teamId);
       
       // Get main roster players only (first 12 by creation date)
@@ -536,6 +538,7 @@ export class CamaraderieService {
     matchType: 'LEAGUE' | 'EXHIBITION' | 'TOURNAMENT'
   ): Promise<void> {
     try {
+      const prisma = await getPrismaClient();
       logInfo("Starting post-game camaraderie update", {
         homeTeamId,
         awayTeamId,
@@ -642,6 +645,7 @@ export class CamaraderieService {
    */
   static async incrementYearsOnTeam(teamId: string): Promise<void> {
     try {
+      const prisma = await getPrismaClient();
       // Get all players for the team
       const players = await prisma.player.findMany({
         where: {
