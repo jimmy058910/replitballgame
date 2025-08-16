@@ -413,6 +413,7 @@ export class ComprehensivePlayerProgressionService {
       const currentValue = (player as any)[selectedStat] as number;
       const newValue = Math.max(1, currentValue - 1);
 
+      const prisma = await getPrismaClient();
       await prisma.player.update({
         where: { id: player.id },
         data: { [selectedStat]: newValue }

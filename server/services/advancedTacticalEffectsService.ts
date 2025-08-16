@@ -363,6 +363,7 @@ export class AdvancedTacticalEffectsService {
     coachTacticsRating: number;
     teamCamaraderie: number;
   }> {
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findFirst({
       where: { id: parseInt(teamId) }
     });
