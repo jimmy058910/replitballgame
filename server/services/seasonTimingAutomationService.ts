@@ -9,8 +9,7 @@ import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 
-// Initialize Prisma client
-const prisma = getPrismaClient();
+// Prisma client will be accessed via await getPrismaClient() in each method
 
 /**
  * Season Timing Automation Service
@@ -376,6 +375,8 @@ export class SeasonTimingAutomationService {
    */
   private async checkAndGenerateScheduleIfNeeded(seasonNumber: number): Promise<void> {
     try {
+      const prisma = await getPrismaClient();
+      
       // First, get the actual season ID from the database
       const season = await prisma.season.findFirst({
         where: { seasonNumber: seasonNumber },
@@ -1189,6 +1190,7 @@ export class SeasonTimingAutomationService {
       }
       
       // Update the database with the current day - using correct table/column names
+      const prisma = await getPrismaClient();
       await prisma.season.update({
         where: { id: currentSeason.id },
         data: { currentDay: currentDayInCycle }
