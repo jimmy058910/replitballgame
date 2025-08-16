@@ -879,10 +879,17 @@ export default function Market() {
                         <CardContent className="text-center space-y-3">
                           <div className="text-2xl font-bold">${gemPackage.price.toFixed(2)}</div>
                           <div className={`text-lg font-semibold text-${color}-600`}>
-                            {gemPackage.gems + gemPackage.bonus} 💎
+                            💎 {gemPackage.gems}
                           </div>
-                          {gemPackage.bonus > 0 && (
-                            <div className="text-sm text-green-600">+{gemPackage.bonus} Bonus!</div>
+                          {gemPackage.bonus > 0 ? (
+                            <div className="text-sm space-y-1">
+                              <div className="text-green-600">+{gemPackage.bonus} bonus gems</div>
+                              <div className="text-gray-600 dark:text-gray-400">Total: {gemPackage.gems + gemPackage.bonus} gems</div>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              Total: {gemPackage.gems} gems
+                            </div>
                           )}
                           <Button 
                             className={`w-full bg-${color}-600 hover:bg-${color}-700`}
