@@ -29,7 +29,7 @@ router.get('/available', requireAuth, async (req: any, res: Response, next: Next
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found" });
 
-    const availableTournaments = await tournamentService.getAvailableTournaments(team.id.toString());
+    const availableTournaments = await tournamentService.getAvailableTournaments(team.id);
     
     // Format tournaments with additional info
     const formattedTournaments = availableTournaments.map((tournament: any) => ({
@@ -232,6 +232,7 @@ router.get('/stats', requireAuth, async (req: any, res: Response, next: NextFunc
 // Get team's current tournament entries
 router.get('/team/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
     
@@ -292,6 +293,7 @@ router.get('/team/:teamId', requireAuth, async (req: any, res: Response, next: N
 // Get team's tournament history
 router.get('/team/:teamId/history', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const { teamId } = req.params;
     const userId = req.user.claims.sub;
     
@@ -356,6 +358,7 @@ router.get('/team/:teamId/history', requireAuth, async (req: any, res: Response,
 // Get tournament details by ID
 router.get('/:tournamentId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const { tournamentId } = req.params;
     
     const tournament = await prisma.tournament.findUnique({

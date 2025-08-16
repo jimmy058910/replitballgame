@@ -131,6 +131,7 @@ export class TournamentService {
 
   // Generate tournament ID in format: Season-Division-GameDay-Sequential (e.g., 0841)
   private async generateTournamentId(season: number, division: number, gameDay: number): Promise<string> {
+    const prisma = await getPrismaClient();
     // Get count of tournaments created today for this division to determine sequential number
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
@@ -159,6 +160,7 @@ export class TournamentService {
 
   // Generate Mid-Season Cup ID in format: Season-Division-UniqueIdentifier (e.g., 0881)
   private async generateMidSeasonCupId(season: number, division: number): Promise<string> {
+    const prisma = await getPrismaClient();
     // Get count of Mid-Season Cup tournaments created this season for this division
     const midSeasonCupCount = await prisma.tournament.count({
       where: {
@@ -181,6 +183,7 @@ export class TournamentService {
 
   // Create Daily Division Tournament
   async createDailyDivisionTournament(division: number): Promise<string> {
+    const prisma = await getPrismaClient();
     if (division === 1) {
       throw new Error("Division 1 (Diamond) does not have Daily Division Tournaments");
     }
@@ -217,6 +220,7 @@ export class TournamentService {
 
   // Create Mid-Season Cup tournament
   async createMidSeasonCup(division: number): Promise<string> {
+    const prisma = await getPrismaClient();
     const season = this.getCurrentSeason();
     const gameDay = 7; // Always Day 7
     const rewards = this.getMidSeasonCupRewards(division);
@@ -458,6 +462,7 @@ export class TournamentService {
 
   // Ensure tournaments exist for current day and division
   async ensureTournamentsExist(division: number): Promise<void> {
+    const prisma = await getPrismaClient();
     const season = this.getCurrentSeason();
     const gameDay = this.getCurrentGameDay();
 
@@ -503,9 +508,11 @@ export class TournamentService {
   }
 
   // Get available tournaments for a team
-  async getAvailableTournaments(teamId: number) {
+  async getAvailableTournaments(teamId: number | string) {
+    const prisma = await getPrismaClient();
+    const numericTeamId = typeof teamId === 'string' ? parseInt(teamId) : teamId;
     const team = await prisma.team.findFirst({
-      where: { id: teamId }
+      where: { id: numericTeamId }
     });
     if (!team) throw new Error("Team not found");
 
@@ -526,7 +533,7 @@ export class TournamentService {
 
     // Check if team is already registered for any tournaments
     const existingEntries = await prisma.tournamentEntry.findMany({
-      where: { teamId: teamId },
+      where: { teamId: numericTeamId },
       select: { tournamentId: true }
     });
 
@@ -537,6 +544,7 @@ export class TournamentService {
 
   // Register team for tournament
   async registerForTournament(teamId: number, tournamentId: number, paymentType?: "credits" | "gems" | "both"): Promise<void> {
+    const prisma = await getPrismaClient();
     const tournament = await prisma.tournament.findFirst({
       where: { id: tournamentId }
     });
@@ -801,6 +809,7 @@ export class TournamentService {
   }
 
   async createOrJoinMidSeasonCup(teamId: number, division: number, paymentType: "credits" | "gems" | "both"): Promise<string> {
+    const prisma = await getPrismaClient();
     const season = this.getCurrentSeason();
 
     // ✅ FIX: Only check for active Mid-Season Cups, not Daily tournaments
