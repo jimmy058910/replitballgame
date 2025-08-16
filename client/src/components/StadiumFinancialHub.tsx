@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -29,6 +29,8 @@ import {
   Monitor,
   Crown
 } from 'lucide-react';
+import { useToast } from '../hooks/use-toast';
+import { apiRequest, queryClient } from '../lib/queryClient';
 
 interface StadiumFinancialHubProps {
   team: any;
@@ -61,6 +63,7 @@ interface UpgradeOption {
   maxLevel: number;
   cost: number;
   effect: string;
+  description: string;
   revenueIncrease?: number;
   paybackGames?: number;
 }
@@ -82,9 +85,10 @@ const TierLadder: React.FC<{
   upgradeType: string;
   cost: number;
   effect: string;
-  paybackGames?: number;
+  description: string;
   onUpgrade: () => void;
-}> = ({ currentLevel, maxLevel, upgradeType, cost, effect, paybackGames, onUpgrade }) => {
+  isUpgrading?: boolean;
+}> = ({ currentLevel, maxLevel, upgradeType, cost, effect, description, onUpgrade, isUpgrading }) => {
   const renderDots = () => {
     return Array.from({ length: maxLevel }, (_, i) => (
       <span
@@ -129,9 +133,7 @@ const TierLadder: React.FC<{
       <div className="flex items-center gap-3">
         <div className="text-right">
           <div className="text-sm font-medium text-white">₡{cost.toLocaleString()}</div>
-          {paybackGames && (
-            <div className="text-xs text-gray-400">≈ {paybackGames} games</div>
-          )}
+          <div className="text-xs text-gray-400">{description}</div>
         </div>
         
         <TooltipProvider>
@@ -140,10 +142,10 @@ const TierLadder: React.FC<{
               <Button
                 size="sm"
                 onClick={onUpgrade}
-                disabled={currentLevel >= maxLevel}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 h-8"
+                disabled={currentLevel >= maxLevel || isUpgrading}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 h-8 disabled:opacity-50"
               >
-                Upgrade ▶
+                {isUpgrading ? 'Upgrading...' : 'Upgrade ▶'}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -211,11 +213,45 @@ const RadialGauge: React.FC<{
 
 const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium }) => {
   const [selectedUpgrade, setSelectedUpgrade] = useState<UpgradeOption | null>(null);
+  const { toast } = useToast();
 
   // Fetch stadium analytics from backend
   const { data: stadiumAnalytics, isLoading } = useQuery({
     queryKey: [`/api/stadium-atmosphere/team/${team?.id}/analytics`],
     enabled: !!team?.id
+  });
+
+  // Stadium upgrade mutation
+  const upgradeMutation = useMutation({
+    mutationFn: async ({ facilityType, upgradeLevel }: { facilityType: string, upgradeLevel: number }) => {
+      return await apiRequest('/api/stadium/upgrade', {
+        method: 'POST',
+        body: JSON.stringify({
+          facilityType: facilityType === 'vipSuites' ? 'vipSuites' : facilityType === 'lightingScreensLevel' ? 'lighting' : facilityType,
+          upgradeLevel
+        })
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Stadium Upgraded!",
+        description: `Successfully upgraded facility. Cost: ₡${data.cost?.toLocaleString()}`,
+        duration: 3000,
+      });
+      
+      // Invalidate and refetch relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/stadium-atmosphere/team/${team?.id}/analytics`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/stadium-atmosphere/stadium-data'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Upgrade Failed",
+        description: error.message || "Failed to upgrade facility. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    },
   });
 
   // Use actual stadium data from props
@@ -273,7 +309,19 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
   
   const totalGameRevenue = Object.values(revenueBreakdown).reduce((sum, val) => sum + val, 0);
   
-  // Upgrade options with BALANCED COSTS for 4-6 game ROI
+  // Handle upgrade function
+  const handleUpgrade = async (option: UpgradeOption) => {
+    try {
+      await upgradeMutation.mutateAsync({
+        facilityType: option.type,
+        upgradeLevel: option.currentLevel + 1
+      });
+    } catch (error) {
+      // Error already handled in mutation
+    }
+  };
+
+  // Upgrade options with better user-friendly descriptions
   const upgradeOptions: UpgradeOption[] = [
     {
       name: 'Capacity',
@@ -282,6 +330,7 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
       maxLevel: 5,
       cost: 15000, // Fixed ₡15k per +5k seats
       effect: '+5,000 seats, increased revenue potential',
+      description: 'Add 5,000 seats',
       paybackGames: Math.ceil(15000 / (5000 * 25))
     },
     {
@@ -291,6 +340,7 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
       maxLevel: 5,
       cost: 52500 * Math.pow(1.5, currentStadium.concessionsLevel - 1), // 75% increase from 30k
       effect: '+8₡ per fan per level',
+      description: 'Upgrade food stands',
       paybackGames: Math.ceil((52500 * Math.pow(1.5, currentStadium.concessionsLevel - 1)) / (actualAttendance * 8))
     },
     {
@@ -300,6 +350,7 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
       maxLevel: 5,
       cost: 43750 * Math.pow(1.5, currentStadium.parkingLevel - 1), // 75% increase from 25k
       effect: '+3₡ per 30% of fans',
+      description: 'Add parking spaces',
       paybackGames: Math.ceil((43750 * Math.pow(1.5, currentStadium.parkingLevel - 1)) / (Math.floor(actualAttendance * 0.3) * 3))
     },
     {
@@ -309,6 +360,7 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
       maxLevel: 5,
       cost: 100000 * Math.pow(1.5, currentStadium.vipSuitesLevel), // Keep as prestige capstone
       effect: '+₡5,000 / game',
+      description: 'Add luxury boxes',
       paybackGames: Math.ceil((100000 * Math.pow(1.5, currentStadium.vipSuitesLevel)) / 5000)
     },
     {
@@ -318,6 +370,7 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
       maxLevel: 5,
       cost: 70000 * Math.pow(1.5, currentStadium.merchandisingLevel - 1), // 75% increase from 40k
       effect: '+3₡ per fan per level',
+      description: 'Upgrade team stores',
       paybackGames: Math.ceil((70000 * Math.pow(1.5, currentStadium.merchandisingLevel - 1)) / (actualAttendance * 3))
     },
     {
@@ -326,7 +379,8 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
       currentLevel: currentStadium.lightingScreensLevel,
       maxLevel: 5,
       cost: 60000 * Math.pow(1.5, currentStadium.lightingScreensLevel - 1), // Keep at 60k base for loyalty
-      effect: '+0.75 Loyalty per level (was +0.5)',
+      effect: '+0.75 Fan Loyalty per level',
+      description: 'Upgrade lighting & screens',
       paybackGames: 0 // Long-term benefit through fan loyalty
     }
   ];
@@ -460,8 +514,9 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
                   upgradeType={option.type}
                   cost={option.cost}
                   effect={option.effect}
-                  paybackGames={option.paybackGames}
-                  onUpgrade={() => setSelectedUpgrade(option)}
+                  description={option.description}
+                  isUpgrading={upgradeMutation.isPending}
+                  onUpgrade={() => handleUpgrade(option)}
                 />
               ))}
             </CardContent>
