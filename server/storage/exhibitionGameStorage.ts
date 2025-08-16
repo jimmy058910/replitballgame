@@ -1,4 +1,4 @@
-import { getPrismaClient } from '../db';
+import { getPrismaClient } from '../database.js';
 import { PrismaClient, Game } from "@prisma/client";
 
 
@@ -9,6 +9,7 @@ export class ExhibitionGameStorage {
     awayTeamId: number;
     gameDate?: Date;
   }): Promise<Game> {
+    const prisma = await getPrismaClient();
     const newGame = await prisma.game.create({
       data: {
         homeTeamId: gameData.homeTeamId,
@@ -26,6 +27,7 @@ export class ExhibitionGameStorage {
   }
 
   async getExhibitionGameById(id: number): Promise<Game | null> {
+    const prisma = await getPrismaClient();
     const game = await prisma.game.findUnique({
       where: { 
         id,
@@ -40,6 +42,7 @@ export class ExhibitionGameStorage {
   }
 
   async getExhibitionGamesByTeam(teamId: number, limit: number = 10): Promise<Game[]> {
+    const prisma = await getPrismaClient();
     return await prisma.game.findMany({
       where: {
         matchType: 'EXHIBITION',
@@ -58,6 +61,7 @@ export class ExhibitionGameStorage {
   }
 
   async getExhibitionGamesPlayedTodayByTeam(teamId: number): Promise<Game[]> {
+    const prisma = await getPrismaClient();
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -86,6 +90,7 @@ export class ExhibitionGameStorage {
 
   async deleteExhibitionGame(id: number): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.game.delete({
         where: { 
           id,

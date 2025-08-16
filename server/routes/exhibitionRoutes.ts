@@ -215,6 +215,7 @@ router.get('/available-opponents', requireAuth, async (req: any, res: Response, 
 // Auto-find and start match against similar USER team
 router.post('/instant', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
@@ -362,6 +363,7 @@ router.post('/instant', requireAuth, async (req: any, res: Response, next: NextF
 // Simplified challenge route for testing
 router.post('/challenge', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
@@ -458,6 +460,7 @@ router.post('/challenge', requireAuth, async (req: any, res: Response, next: Nex
 // Alias for instant match - frontend calls this endpoint
 router.post('/instant-match', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
@@ -630,6 +633,7 @@ router.post('/instant-match', requireAuth, async (req: any, res: Response, next:
 
 router.post('/challenge-opponent', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     const { opponentId } = challengeSchema.parse(req.body);
 
