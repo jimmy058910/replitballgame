@@ -16,7 +16,7 @@ export class SeasonStorage {
     const prisma = await getPrisma();
     const result = await prisma.$executeRaw`
       INSERT INTO "Season" (id, "seasonNumber", phase, "startDate", "endDate", "currentDay", "createdAt")
-      VALUES (${`season-${seasonData.year}-${Date.now()}`}, ${seasonData.year}, ${seasonData.phase || 'REGULAR_SEASON'}, ${seasonData.startDate || new Date()}, ${seasonData.endDate}, ${1}, NOW())
+      VALUES (${`season-${seasonData.year}-${Date.now()}`}, ${seasonData.year}, ${seasonData.phase || 'REGULAR_SEASON'}::"SeasonPhase", ${seasonData.startDate || new Date()}, ${seasonData.endDate}, ${1}, NOW())
     `;
     return result;
   }

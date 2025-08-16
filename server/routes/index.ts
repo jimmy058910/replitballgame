@@ -67,6 +67,7 @@ import liveMatchRoutes from "./liveMatchRoutes.js";
 import testRoutes from "./testRoutes.js";
 import cacheRoutes from "./cacheRoutes.js";
 import quickCacheTest from "./quickCacheTest.js";
+import testAutomationRoutes from "./testAutomationRoutes.js";
 
 
 // This function will be called by server/index.ts to set up all routes.
@@ -167,6 +168,7 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api", databaseTestRoutes); // Database connectivity test endpoint
   app.use("/api", debugEnvRoutes); // Debug environment variables endpoint
   app.use("/api", testRoutes); // Test endpoints for system validation
+  app.use("/api/test-automation", testAutomationRoutes); // Test automation trigger endpoints
   app.use("/api/cache", cacheRoutes); // Cache management and statistics
   app.use("/api/cache-test", quickCacheTest); // Cache testing and demonstration
 

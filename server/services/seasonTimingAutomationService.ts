@@ -1056,33 +1056,73 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * DISABLED: Check for missed daily progressions and execute them
-   * NOTE: This function was causing incorrect day advancement from Day 1 to Day 17
-   * The calculation-based approach was overriding correct database values
+   * FIXED: Check for missed daily progressions and create season if none exists
+   * Creates initial season when missing, then checks for missed progressions
    */
   private async checkAndExecuteMissedDailyProgressions(): Promise<void> {
     try {
-      logInfo('🔍 Missed progression check DISABLED - trusting database season state');
+      logInfo('🔍 Checking for current season and missed progressions...');
       
-      const currentSeason = await storage.seasons.getCurrentSeason();
+      let currentSeason = await storage.seasons.getCurrentSeason();
+      
+      // Create initial season if none exists
       if (!currentSeason) {
-        logInfo('No current season found - skipping missed progression check');
-        return;
+        logInfo('⚠️ No current season found - creating Season 1...');
+        
+        const today = new Date();
+        const seasonEndDate = new Date(today);
+        seasonEndDate.setDate(today.getDate() + 17); // 17-day season cycle
+        
+        const newSeasonData = {
+          name: 'Season 1',
+          year: 1,
+          phase: 'REGULAR_SEASON' as const,
+          startDate: today,
+          endDate: seasonEndDate
+        };
+        
+        await storage.seasons.createSeason(newSeasonData);
+        currentSeason = await storage.seasons.getCurrentSeason();
+        
+        if (currentSeason) {
+          logInfo(`✅ Season 1 created successfully - starting at Day 1`);
+        } else {
+          logInfo('❌ Failed to create initial season');
+          return;
+        }
       }
 
       const databaseDay = currentSeason.currentDay || 1;
-      logInfo(`✅ Using database Day ${databaseDay} as authoritative source (catch-up logic disabled)`);
+      logInfo(`✅ Found active season - currently Day ${databaseDay}`);
       
-      // DISABLED: Force calculation-based day logic that was causing incorrect advancement
-      // const calculatedCurrentDay = this.calculateCurrentDayFromDate(currentSeason);
-      // const missedDays = calculatedCurrentDay - databaseDay;
+      // Check if daily progression should have happened today
+      const now = new Date();
+      const lastProgressionTime = this.getLastProgressionTime();
+      const nextProgressionTime = this.getNextExecutionTime(3, 0); // 3:00 AM EDT
       
-      // Trust the database value instead of calculation-based overrides
-      // This prevents the system from incorrectly advancing Day 1 to Day 17
+      // If we're past today's 3am progression time and it hasn't been done, trigger it
+      const todayProgression = new Date(nextProgressionTime);
+      todayProgression.setDate(todayProgression.getDate() - 1); // Yesterday's 3am
+      
+      if (now > todayProgression && (!lastProgressionTime || lastProgressionTime < todayProgression)) {
+        logInfo('🔥 MISSED PROGRESSION: Triggering daily progression now...');
+        await this.executeDailyProgression();
+      } else {
+        logInfo('✅ Daily progression is up to date');
+      }
       
     } catch (error) {
       console.error('❌ Error during missed progression check:', error);
     }
+  }
+
+  /**
+   * Get the last time daily progression was executed
+   */
+  private getLastProgressionTime(): Date | null {
+    // For now, return null to trigger progression check
+    // In the future, this could track last progression in database
+    return null;
   }
 
   /**
