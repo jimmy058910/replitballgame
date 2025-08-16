@@ -220,6 +220,26 @@ router.post('/instant', requireAuth, async (req: any, res: Response, next: NextF
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
+    // ✅ CRITICAL FIX: Prevent multiple concurrent exhibition matches  
+    const existingMatch = await prisma.game.findFirst({
+      where: {
+        OR: [
+          { homeTeamId: userTeam.id },
+          { awayTeamId: userTeam.id }
+        ],
+        status: 'IN_PROGRESS',
+        matchType: 'EXHIBITION'
+      }
+    });
+
+    if (existingMatch) {
+      console.log(`🚫 Team ${userTeam.id} already has active exhibition match ${existingMatch.id}`);
+      return res.status(409).json({ 
+        message: "You already have an active exhibition match. Please wait for it to complete before starting another.",
+        existingMatchId: existingMatch.id 
+      });
+    }
+
     // Check exhibition game limits using proper Eastern Time calculation
     const { getCurrentGameDayRange } = await import('../../shared/timezone.js');
     const { start: todayStart, end: todayEnd } = getCurrentGameDayRange();
@@ -367,6 +387,26 @@ router.post('/challenge', requireAuth, async (req: any, res: Response, next: Nex
     const userId = req.user.claims.sub;
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
+
+    // ✅ CRITICAL FIX: Prevent multiple concurrent exhibition matches  
+    const existingMatch = await prisma.game.findFirst({
+      where: {
+        OR: [
+          { homeTeamId: userTeam.id },
+          { awayTeamId: userTeam.id }
+        ],
+        status: 'IN_PROGRESS',
+        matchType: 'EXHIBITION'
+      }
+    });
+
+    if (existingMatch) {
+      console.log(`🚫 Team ${userTeam.id} already has active exhibition match ${existingMatch.id}`);
+      return res.status(409).json({ 
+        message: "You already have an active exhibition match. Please wait for it to complete before starting another.",
+        existingMatchId: existingMatch.id 
+      });
+    }
 
     // Check exhibition game limits using proper Eastern Time calculation
     const { getCurrentGameDayRange } = await import('../../shared/timezone.js');

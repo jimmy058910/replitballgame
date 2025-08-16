@@ -1,6 +1,8 @@
 # Overview
 Realm Rivalry is a mobile-first fantasy sports management game offering deep, engaging simulation. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include detailed simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre with high-fidelity simulation.
 
+**EXHIBITION GAME CONSTRAINT SYSTEM (Aug 16, 2025)**: ✅ IMPLEMENTED comprehensive single concurrent exhibition match prevention across all exhibition endpoints (`/instant`, `/challenge`, `/instant-match`, `/challenge-opponent`). Teams can only have one active exhibition match at a time, preventing multiple simultaneous games. System checks for existing `IN_PROGRESS` exhibition matches before allowing new ones, returning HTTP 409 with clear error messaging.
+
 **COMPREHENSIVE DATA ACCESS OPTIMIZATION (Aug 15, 2025)**: ✅ COMPLETED systematic fix of all data consistency issues across 40+ components. Root cause: Components were querying non-existent separate endpoints (`/api/teams/${id}/finances`, `/api/teams/${id}/players`) instead of using data already provided by `/api/teams/my`. Solution: Updated all components to use unified team data access pattern, eliminating 50+ unnecessary API calls and fixing roster/finance display inconsistencies. All financial data now consistently uses `finances.gems` instead of mixed `premiumCurrency` naming.
 
 # User Preferences
