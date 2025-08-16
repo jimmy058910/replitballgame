@@ -567,7 +567,31 @@ async function startServer() {
         }
         */
 
-        console.log('✅ ASYNCHRONOUS INITIALIZATION COMPLETE - Server fully operational');
+        // CRITICAL AUTOMATION SYSTEM: Start SeasonTimingAutomationService 
+        console.log('🔧 Initializing critical automation systems...');
+        try {
+          const { SeasonTimingAutomationService } = await import("./services/seasonTimingAutomationService.js");
+          const automationService = SeasonTimingAutomationService.getInstance();
+          await automationService.start();
+          console.log('✅ Season timing automation system started (3AM daily progression, 4-10PM match simulation, tournament automation)');
+        } catch (automationError) {
+          console.error('❌ CRITICAL: Automation system failed to start:', automationError);
+          console.error('❌ Daily progression, match simulation, and tournament automation will NOT work');
+        }
+
+        // CRITICAL DATABASE SYSTEM: Start Database Backup Automation Service
+        console.log('🔧 Initializing database backup automation system...');
+        try {
+          const { DatabaseBackupService } = await import("./services/databaseBackupService.js");
+          const backupService = DatabaseBackupService.getInstance();
+          await backupService.start();
+          console.log('✅ Database backup automation started (4:00 AM EDT dev + production backups)');
+        } catch (backupError) {
+          console.error('❌ CRITICAL: Database backup system failed to start:', backupError);
+          console.error('❌ Daily database backups at 4:00 AM will NOT work');
+        }
+
+        console.log('✅ ASYNCHRONOUS INITIALIZATION COMPLETE - Server fully operational with automation systems');
         
       } catch (asyncError) {
         console.error('⚠️  Some async initialization failed, but server is operational:', asyncError);

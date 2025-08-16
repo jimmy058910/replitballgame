@@ -1,4 +1,4 @@
-import { getPrismaClient } from '../db';
+import { getPrismaClient } from '../database.js';
 import { SeasonalFlowService } from './seasonalFlowService.js';
 import { DailyPlayerProgressionService } from './dailyPlayerProgressionService.js';
 import { AgingService } from './agingService.js';
@@ -8,6 +8,9 @@ import { tournamentService } from './tournamentService.js';
 import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
+
+// Initialize Prisma client
+const prisma = getPrismaClient();
 
 /**
  * Season Timing Automation Service
