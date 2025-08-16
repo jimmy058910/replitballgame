@@ -465,7 +465,7 @@ router.post('/instant-match', requireAuth, async (req: any, res: Response, next:
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam || !userTeam.id) return res.status(404).json({ message: "Team not found." });
 
-    // ✅ CRITICAL FIX: Prevent multiple concurrent exhibition matches
+    // ✅ CRITICAL FIX: Prevent multiple concurrent exhibition matches  
     const existingMatch = await prisma.game.findFirst({
       where: {
         OR: [
@@ -612,7 +612,8 @@ router.post('/instant-match', requireAuth, async (req: any, res: Response, next:
     } catch (error) {
       console.error(`Failed to start exhibition match ${match.id}, cleaning up:`, error);
       // Clean up the failed match to prevent SCHEDULED exhibitions
-      await prisma.game.delete({ where: { id: match.id } });
+      const cleanupPrisma = await getPrismaClient();
+      await cleanupPrisma.game.delete({ where: { id: match.id } });
       throw new Error("Failed to start exhibition match. Please try again.");
     }
 
@@ -688,7 +689,8 @@ router.post('/challenge-opponent', requireAuth, async (req: any, res: Response, 
     } catch (error) {
       console.error(`Failed to start exhibition match ${match.id}, cleaning up:`, error);
       // Clean up the failed match to prevent SCHEDULED exhibitions
-      await prisma.game.delete({ where: { id: match.id } });
+      const cleanupPrisma = await getPrismaClient();
+      await cleanupPrisma.game.delete({ where: { id: match.id } });
       throw new Error("Failed to start exhibition match. Please try again.");
     }
 
