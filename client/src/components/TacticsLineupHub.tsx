@@ -99,11 +99,13 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch team players
-  const { data: rawPlayers = [] } = useQuery<Player[]>({
-    queryKey: [`/api/teams/${teamId}/players`],
+  // Fetch team data with players
+  const { data: teamData } = useQuery<any>({
+    queryKey: ['/api/teams/my'],
     enabled: !!teamId,
   });
+  
+  const rawPlayers = teamData?.players || [];
   
   // Filter to only include main roster players (first 12 players, excluding taxi squad)
   const allPlayers = (rawPlayers || []) as Player[];
