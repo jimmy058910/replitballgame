@@ -1,7 +1,5 @@
-import { getPrismaClient } from '../db';
+import { getPrismaClient } from '../database.js';
 import { PrismaClient, Staff, StaffType } from "@prisma/client";
-
-
 
 export class StaffStorage {
   async createStaff(staffData: {
@@ -18,6 +16,7 @@ export class StaffStorage {
     tactics?: number;
     age?: number;
   }): Promise<Staff> {
+    const prisma = await getPrismaClient();
     const newStaff = await prisma.staff.create({
       data: {
         teamId: staffData.teamId,
@@ -46,6 +45,7 @@ export class StaffStorage {
   }
 
   async getStaffById(id: number): Promise<Staff | null> {
+    const prisma = await getPrismaClient();
     const staff = await prisma.staff.findUnique({
       where: { id },
       include: {
@@ -56,6 +56,7 @@ export class StaffStorage {
   }
 
   async getStaffByTeamId(teamId: number): Promise<Staff[]> {
+    const prisma = await getPrismaClient();
     return await prisma.staff.findMany({
       where: { teamId },
       include: {
@@ -66,6 +67,7 @@ export class StaffStorage {
   }
 
   async updateStaff(id: number, updates: Partial<Staff>): Promise<Staff | null> {
+    const prisma = await getPrismaClient();
     try {
       const updatedStaff = await prisma.staff.update({
         where: { id },
@@ -82,6 +84,7 @@ export class StaffStorage {
   }
 
   async deleteStaff(id: number): Promise<boolean> {
+    const prisma = await getPrismaClient();
     try {
       await prisma.staff.delete({
         where: { id }
@@ -94,6 +97,7 @@ export class StaffStorage {
   }
 
   async getStaffByType(teamId: number, type: StaffType): Promise<Staff[]> {
+    const prisma = await getPrismaClient();
     return await prisma.staff.findMany({
       where: { 
         teamId,
@@ -106,6 +110,7 @@ export class StaffStorage {
   }
 
   async getHeadCoach(teamId: number): Promise<Staff | null> {
+    const prisma = await getPrismaClient();
     return await prisma.staff.findFirst({
       where: { 
         teamId,
@@ -118,6 +123,7 @@ export class StaffStorage {
   }
 
   async getTrainers(teamId: number): Promise<Staff[]> {
+    const prisma = await getPrismaClient();
     return await prisma.staff.findMany({
       where: { 
         teamId,
@@ -130,6 +136,7 @@ export class StaffStorage {
   }
 
   async getScouts(teamId: number): Promise<Staff[]> {
+    const prisma = await getPrismaClient();
     return await prisma.staff.findMany({
       where: { 
         teamId,
@@ -142,6 +149,7 @@ export class StaffStorage {
   }
 
   async getRecoverySpecialists(teamId: number): Promise<Staff[]> {
+    const prisma = await getPrismaClient();
     return await prisma.staff.findMany({
       where: { 
         teamId,
