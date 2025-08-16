@@ -184,6 +184,7 @@ export class AdvancedTacticalEffectsService {
     combinedModifiers: any;
     gameSituation: string;
   }> {
+    const prisma = await getPrismaClient();
     // Get team data
     const team = await prisma.team.findFirst({
       where: { id: parseInt(teamId) }
@@ -317,6 +318,7 @@ export class AdvancedTacticalEffectsService {
         };
       }
 
+      const prisma = await getPrismaClient();
       await prisma.team.update({
         where: { id: parseInt(teamId) },
         data: { homeField: fieldSize as any }
@@ -337,6 +339,7 @@ export class AdvancedTacticalEffectsService {
     tacticalFocus: 'Balanced' | 'All-Out Attack' | 'Defensive Wall'
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.team.update({
         where: { id: parseInt(teamId) },
         data: { tacticalFocus: tacticalFocus as any }

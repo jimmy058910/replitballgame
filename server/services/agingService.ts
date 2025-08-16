@@ -125,6 +125,7 @@ export class AgingService {
   static async processEndOfSeasonAging(): Promise<AgingResult[]> {
     console.log('Starting end-of-season aging process...');
     
+    const prisma = await getPrismaClient();
     // Get all players in the system
     const allPlayers = await prisma.player.findMany();
     console.log(`Processing aging for ${allPlayers.length} players`);
@@ -161,6 +162,7 @@ export class AgingService {
   static async processPlayerAging(player: Player): Promise<AgingResult> {
     const playerName = `${player.firstName} ${player.lastName}`;
 
+    const prisma = await getPrismaClient();
     // Get current season day to determine if retirements should be processed
     const currentSeason = await prisma.season.findFirst({
       orderBy: { seasonNumber: 'desc' }

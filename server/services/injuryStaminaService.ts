@@ -146,6 +146,7 @@ export class InjuryStaminaService {
       injuryStatus = 'SEVERE_INJURY';
     }
     
+    const prisma = await getPrismaClient();
     await prisma.player.update({
       where: { id: parseInt(playerId) },
       data: {
@@ -211,6 +212,7 @@ export class InjuryStaminaService {
       return; // No persistent stamina depletion for exhibitions
     }
 
+    const prisma = await getPrismaClient();
     // Get current player data including stamina attribute and team info for coach bonus
     const player = await prisma.player.findUnique({
       where: { id: parseInt(playerId) },
@@ -271,6 +273,7 @@ export class InjuryStaminaService {
    * Set in-game stamina at match start based on daily stamina level
    */
   async setMatchStartStamina(playerId: string, gameMode: 'league' | 'tournament' | 'exhibition'): Promise<void> {
+    const prisma = await getPrismaClient();
     if (gameMode === 'exhibition') {
       // Exhibitions always start at 100% stamina
       await prisma.player.update({
@@ -302,6 +305,7 @@ export class InjuryStaminaService {
     effectValue: number
   ): Promise<{ success: boolean; message: string }> {
     
+    const prisma = await getPrismaClient();
     // Get current player state
     const currentPlayer = await prisma.player.findUnique({
       where: { id: parseInt(playerId) }
@@ -503,6 +507,7 @@ export class InjuryStaminaService {
     let staminaRestored = 0;
 
     try {
+      const prisma = await getPrismaClient();
       // Get all players with injuries or low stamina
       const playersNeedingRecovery = await prisma.player.findMany({
         where: {

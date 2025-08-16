@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 // Note: Using any types for Prisma enums to avoid import issues
-import { getPrismaClient } from '../db';
+import { getPrismaClient } from '../database.js';
 import { logInfo } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 
@@ -94,6 +94,7 @@ export class SeasonalFlowService {
    */
   static async isTeamInDivisionPlayoffs(teamId: string): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       // Get team info
       const team = await prisma.team.findUnique({
         where: { id: parseInt(teamId, 10) },
@@ -138,6 +139,7 @@ export class SeasonalFlowService {
       matches: number;
     }>;
   }> {
+    const prisma = await getPrismaClient();
     const seasonId = `season-${season}-2025`;
     const allLeagues = await prisma.league.findMany({
       where: { seasonId: seasonId }
@@ -235,6 +237,7 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
+      const prisma = await getPrismaClient();
       await prisma.game.createMany({
         data: matches
       });
@@ -296,6 +299,7 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
+      const prisma = await getPrismaClient();
       await prisma.game.createMany({
         data: matches
       });
@@ -433,6 +437,7 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
+      const prisma = await getPrismaClient();
       await prisma.game.createMany({
         data: matches
       });
@@ -455,6 +460,7 @@ export class SeasonalFlowService {
   }> {
     console.log(`🔧 Fixing schedule for Division ${division}, Season ${season}`);
     
+    const prisma = await getPrismaClient();
     // Get the league for this division
     const seasonId = `season-${season}-2025`;
     const league = await prisma.league.findFirst({
@@ -555,6 +561,7 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
+      const prisma = await getPrismaClient();
       await prisma.game.createMany({
         data: matches as any
       });
@@ -620,6 +627,7 @@ export class SeasonalFlowService {
     awayTeamUpdate: any;
     standingsUpdated: boolean;
   }> {
+    const prisma = await getPrismaClient();
     // Get match details
     const matchData = await prisma.game.findUnique({
       where: { id: parseInt(matchId, 10) }
@@ -699,6 +707,7 @@ export class SeasonalFlowService {
     playoffTeams: any[];
     relegatedTeams: any[];
   }> {
+    const prisma = await getPrismaClient();
     // Get league info
     const league = await prisma.league.findUnique({
       where: { id: parseInt(leagueId, 10) }

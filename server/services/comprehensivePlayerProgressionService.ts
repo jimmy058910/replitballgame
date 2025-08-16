@@ -87,6 +87,7 @@ export class ComprehensivePlayerProgressionService {
     let totalProgressions = 0;
 
     try {
+      const prisma = await getPrismaClient();
       // Get all active (non-retired) players
       const players = await prisma.player.findMany({
         where: { isRetired: false },
@@ -303,6 +304,7 @@ export class ComprehensivePlayerProgressionService {
    * Apply stat progression to player
    */
   private static async applyStatProgression(playerId: number, attribute: string): Promise<void> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findUnique({ where: { id: playerId } });
     if (!player) return;
 
@@ -336,6 +338,7 @@ export class ComprehensivePlayerProgressionService {
     let playersRetired = 0;
 
     try {
+      const prisma = await getPrismaClient();
       const players = await prisma.player.findMany({
         where: { isRetired: false }
       });
@@ -470,6 +473,7 @@ export class ComprehensivePlayerProgressionService {
    * Retire a player
    */
   private static async retirePlayer(player: Player, reason: string): Promise<void> {
+    const prisma = await getPrismaClient();
     await prisma.player.update({
       where: { id: player.id },
       data: { 
@@ -485,6 +489,7 @@ export class ComprehensivePlayerProgressionService {
    * Process age increment and seasonal reset
    */
   private static async processAgeIncrement(player: Player): Promise<void> {
+    const prisma = await getPrismaClient();
     await prisma.player.update({
       where: { id: player.id },
       data: {
@@ -507,6 +512,7 @@ export class ComprehensivePlayerProgressionService {
     minutesPlayed: number, 
     matchType: 'LEAGUE' | 'TOURNAMENT' | 'EXHIBITION'
   ): Promise<void> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findUnique({ where: { id: playerId } });
     if (!player) return;
 
