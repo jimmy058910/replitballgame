@@ -44,6 +44,7 @@ export class EnhancedGameEconomyService {
         return { success: false, error: 'Minimum 10 gems required for exchange' };
       }
 
+      const prisma = await getPrismaClient();
       const team = await prisma.team.findFirst({
         where: { id: teamId }
       });
@@ -93,6 +94,7 @@ export class EnhancedGameEconomyService {
       atmosphereBonus: number;
     };
   }> {
+    const prisma = await getPrismaClient();
     const stadium = await prisma.stadium.findFirst({
       where: { teamId: parseInt(teamId, 10) }
     });
@@ -682,6 +684,7 @@ export class EnhancedGameEconomyService {
       const equipmentReward = this.getRandomEquipmentByRarity(equipmentRarity.rarity);
 
       // Apply currency reward
+      const prisma = await getPrismaClient();
       const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: parseInt(teamId, 10) }
       });

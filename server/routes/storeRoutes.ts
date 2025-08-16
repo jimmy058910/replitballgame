@@ -37,6 +37,7 @@ const convertGemsSchema = z.object({
 // Store routes - Master Economy v5 Combined 8-item Store System with 10-minute cache
 router.get('/items', cacheMiddleware({ ttl: 600 }), requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     // Master Economy v5: Return 8-item daily rotation instead of separate stores
     const dailyRotation = EnhancedGameEconomyService.generateDailyRotationStore();
@@ -94,6 +95,52 @@ router.get('/items', cacheMiddleware({ ttl: 600 }), requireAuth, async (req: any
     });
   } catch (error) {
     console.error("Error fetching store items:", error);
+    next(error);
+  }
+});
+
+// Daily items endpoint (alias for /items without auth requirement for testing)
+router.get('/daily-items', cacheMiddleware({ ttl: 600 }), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('🏪 Testing daily-items route access...');
+    
+    // Test with simple items first to verify route works
+    const testItems = [
+      { id: 'test_helmet', name: 'Test Helmet', credits: 1000, tier: 'common' },
+      { id: 'test_armor', name: 'Test Armor', credits: 1500, tier: 'common' }
+    ];
+    
+    try {
+      // Try to generate real daily rotation
+      const dailyRotation = EnhancedGameEconomyService.generateDailyRotationStore();
+      console.log('🏪 Daily rotation generated:', dailyRotation.length, 'items');
+      
+      const now = new Date();
+      const resetTime = new Date(now);
+      resetTime.setUTCDate(now.getUTCDate() + 1);
+      resetTime.setUTCHours(8, 0, 0, 0); // Next 8 AM UTC
+
+      res.json({
+        dailyItems: dailyRotation,
+        resetTime: resetTime.toISOString(),
+        storeType: 'combined',
+        totalItems: dailyRotation.length,
+        message: 'Real daily store rotation'
+      });
+    } catch (serviceError) {
+      console.error('EnhancedGameEconomyService error:', serviceError);
+      // Fallback to test items if service fails
+      res.json({
+        dailyItems: testItems,
+        resetTime: new Date().toISOString(),
+        storeType: 'test_fallback',
+        totalItems: testItems.length,
+        message: 'Test store items (service temporarily unavailable)',
+        error: serviceError instanceof Error ? serviceError.message : 'Unknown service error'
+      });
+    }
+  } catch (error) {
+    console.error("Error in daily-items route:", error);
     next(error);
   }
 });
@@ -168,6 +215,7 @@ router.get('/categories', cacheMiddleware({ ttl: 3600 }), async (req: Request, r
 
 router.post('/exchange-gems', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const { gemAmount } = req.body;
     const userId = req.user?.claims?.sub;
     
@@ -373,6 +421,7 @@ router.post('/watch-ad', requireAuth, async (req: any, res: Response, next: Next
 
 router.post('/purchase/:itemId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team) return res.status(404).json({ message: "Team not found." });
