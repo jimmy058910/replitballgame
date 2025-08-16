@@ -575,6 +575,7 @@ export class SeasonTimingAutomationService {
     try {
       logInfo('💰 Processing stadium maintenance costs (1% of total investment value)...');
       
+      const prisma = await getPrismaClient();
       // Get all teams with their finance and stadium records
       const teams = await prisma.team.findMany({
         include: {
@@ -767,6 +768,7 @@ export class SeasonTimingAutomationService {
         // Get scheduled matches for these specific subdivisions
         const now = new Date();
         const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60 * 1000);
+        const prisma = await getPrismaClient();
         
         for (const subdivision of subdivisionsToProcess) {
           const scheduledMatches = await prisma.game.findMany({
@@ -848,6 +850,7 @@ export class SeasonTimingAutomationService {
     try {
       logInfo(`Closing Mid-Season Cup registration and generating brackets for Season ${seasonNumber}...`);
       
+      const prisma = await getPrismaClient();
       // Find all Mid-Season Cup tournaments that are still in registration
       const tournaments = await prisma.tournament.findMany({
         where: {
@@ -900,6 +903,7 @@ export class SeasonTimingAutomationService {
     try {
       logInfo(`Starting Mid-Season Cup tournaments for Season ${seasonNumber}...`);
       
+      const prisma = await getPrismaClient();
       // Find all Mid-Season Cup tournaments with brackets generated
       const tournaments = await prisma.tournament.findMany({
         where: {
@@ -961,6 +965,7 @@ export class SeasonTimingAutomationService {
     try {
       const now = new Date();
       
+      const prisma = await getPrismaClient();
       // Find all scheduled matches that should have already started
       const missedMatches = await prisma.game.findMany({
         where: {
@@ -1237,6 +1242,7 @@ export class SeasonTimingAutomationService {
     }
 
     try {
+      const prisma = await getPrismaClient();
       // Find Mid-Season Cup tournaments that are still in registration for Day 7
       const midSeasonTournaments = await prisma.tournament.findMany({
         where: {
@@ -1292,6 +1298,7 @@ export class SeasonTimingAutomationService {
    */
   private async checkTournamentAdvancement(): Promise<void> {
     try {
+      const prisma = await getPrismaClient();
       // Get all tournaments in progress
       const inProgressTournaments = await prisma.tournament.findMany({
         where: {
@@ -1312,6 +1319,7 @@ export class SeasonTimingAutomationService {
    */
   private async advanceTournamentIfNeeded(tournamentId: number): Promise<void> {
     try {
+      const prisma = await getPrismaClient();
       // Check quarterfinals (round 1)
       const quarterfinalsMatches = await prisma.game.findMany({
         where: {
