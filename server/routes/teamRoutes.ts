@@ -37,7 +37,7 @@ const createTeamSchema = z.object({
 });
 
 // Firebase test endpoint
-router.get('/firebase-test', asyncHandler(async (req: any, res: Response) => {
+router.get('/firebase-test', asyncHandler(async (req: Request, res: Response) => {
   const admin = await import('firebase-admin');
   
   const config = {
@@ -58,7 +58,7 @@ router.get('/firebase-test', asyncHandler(async (req: any, res: Response) => {
 }));
 
 // Get user's team - PRIMARY ROUTE (temporary bypass auth for debugging)
-router.get('/my', asyncHandler(async (req: any, res: Response) => {
+router.get('/my', asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my route called!');
   // TEMPORARY: Use hardcoded user for debugging
   const userId = 'UUhcXGIbF3UkR6jxY2ipY3kSClp1';
@@ -125,7 +125,7 @@ router.get('/my', asyncHandler(async (req: any, res: Response) => {
 }));
 
 // Get user's next opponent
-router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: any, res: Response) => {
+router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.uid || req.user?.claims?.sub;
   if (!userId) {
     console.log('❌ User ID extraction failed. req.user:', req.user);
@@ -145,7 +145,7 @@ router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: any, res: 
 }));
 
 // Team creation endpoint
-router.post('/create', requireAuth, asyncHandler(async (req: any, res: Response) => {
+router.post('/create', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.uid || req.user?.claims?.sub;
   if (!userId) {
     console.log('❌ User ID extraction failed. req.user:', req.user);
