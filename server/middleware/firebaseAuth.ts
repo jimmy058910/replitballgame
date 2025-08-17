@@ -94,9 +94,6 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction): 
       console.log('✅ Development authentication successful for user:', req.user.uid);
       console.log('✅ Calling next() to continue to route handler...');
       return next();
-      
-      res.status(401).json({ error: 'Invalid or expired token' });
-      return;
     }
   } catch (error) {
     console.error('❌ Authentication middleware error:', error);

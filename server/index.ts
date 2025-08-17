@@ -353,29 +353,43 @@ async function startServer() {
     console.log('🔧 [DEBUG] About to register API routes BEFORE Vite middleware...');
     try {
       console.log('🔍 [DEBUG] Attempting to import routes/index with tsx compatibility...');
-      // CRITICAL FIX: BYPASS COMPLEX IMPORTS - REGISTER ROUTES DIRECTLY
-    console.log('🔥 === MANUAL ROUTE REGISTRATION ===');
+      // CRITICAL FIX: PROPER AUTHENTICATED ROUTES WITH FIREBASE AUTH
+    console.log('🔥 === AUTHENTICATED ROUTE REGISTRATION ===');
     const { Router } = await import("express");
+    const { requireAuth } = await import("./middleware/firebaseAuth.js");
     const teamRouter = Router();
     
-    // Import and use the actual team routes with proper functionality
+    // Import required services
     const { storage } = await import("./storage/index.js");
     const { CamaraderieService } = await import("./services/camaraderieService.js");
     
-    // Direct team route registration with full functionality
-    teamRouter.get('/my', async (req, res) => {
+    // AUTHENTICATED team route with proper user identification
+    teamRouter.get('/my', requireAuth, async (req: any, res) => {
       try {
-        console.log('🔍 [API CALL] /api/teams/my route called!');
-        // TEMPORARY: Use hardcoded user for debugging (will be replaced with auth)
-        const userId = 'UUhcXGIbF3UkR6jxY2ipY3kSClp1';
+        console.log('🔍 [AUTHENTICATED API] /api/teams/my called!');
+        console.log('🔍 Authenticated user:', req.user?.uid);
+        console.log('🔍 User email:', req.user?.email);
         
-        const team = await storage.teams.getTeamByUserId(userId);
+        // Use proper Firebase UID for user identification
+        const firebaseUID = req.user?.uid || req.user?.claims?.sub;
+        
+        if (!firebaseUID) {
+          console.error('❌ No authenticated user found');
+          return res.status(401).json({ error: 'Authentication required' });
+        }
+        
+        console.log('🔍 Looking for team with Firebase UID:', firebaseUID);
+        const team = await storage.teams.getTeamByUserId(firebaseUID);
         console.log('🔍 Found team:', team ? team.name : 'none');
         
         if (!team) {
           return res.status(404).json({ 
             message: "Team not found", 
-            needsTeamCreation: true 
+            needsTeamCreation: true,
+            user: {
+              uid: firebaseUID,
+              email: req.user?.email
+            }
           });
         }
         
@@ -404,6 +418,7 @@ async function startServer() {
           playersCount: teamPlayers.length
         };
         
+        console.log('✅ Returning team data for:', team.name);
         res.json(serializedTeam);
       } catch (error) {
         console.error('❌ Error in /api/teams/my:', error);
@@ -411,14 +426,22 @@ async function startServer() {
       }
     });
     
-    // Add team creation route
-    teamRouter.post('/create', async (req, res) => {
+    // AUTHENTICATED team creation with one-team-per-user enforcement
+    teamRouter.post('/create', requireAuth, async (req: any, res) => {
       try {
-        console.log('🔍 [API CALL] /api/teams/create route called!');
+        console.log('🔍 [AUTHENTICATED API] /api/teams/create called!');
+        console.log('🔍 Authenticated user:', req.user?.uid);
         console.log('🔍 Request body:', req.body);
         
-        // TEMPORARY: Use hardcoded user for debugging
-        const userId = 'UUhcXGIbF3UkR6jxY2ipY3kSClp1';
+        // Use proper Firebase UID for user identification
+        const firebaseUID = req.user?.uid || req.user?.claims?.sub;
+        const userEmail = req.user?.email;
+        
+        if (!firebaseUID) {
+          console.error('❌ No authenticated user found');
+          return res.status(401).json({ error: 'Authentication required' });
+        }
+        
         const { teamName, ndaAgreed } = req.body;
         
         if (!teamName || teamName.trim().length === 0) {
@@ -429,24 +452,36 @@ async function startServer() {
           return res.status(400).json({ error: 'NDA agreement is required' });
         }
         
-        // Check if team already exists
-        const existingTeam = await storage.teams.getTeamByUserId(userId);
+        // CRITICAL: Enforce one team per user rule
+        console.log('🔍 Checking for existing team for user:', firebaseUID);
+        const existingTeam = await storage.teams.getTeamByUserId(firebaseUID);
         if (existingTeam) {
-          return res.status(409).json({ error: 'Team already exists' });
+          console.log('❌ User already has a team:', existingTeam.name);
+          return res.status(409).json({ 
+            error: 'You already have a team! Each player can only have one team.',
+            existingTeam: {
+              id: existingTeam.id.toString(),
+              name: existingTeam.name,
+              division: existingTeam.division,
+              subdivision: existingTeam.subdivision
+            }
+          });
         }
         
-        // Create the team
+        // Create the team for the authenticated user
+        console.log('🔍 Creating new team for user:', firebaseUID);
         const newTeam = await storage.teams.createTeam({
-          userId,
+          userId: firebaseUID, // Use Firebase UID
           name: teamName.trim(),
           division: 8, // Start in Division 8
           subdivision: 'B'
         });
         
-        console.log('✅ Team created:', newTeam.name);
+        console.log('✅ Team created successfully:', newTeam.name, 'for user:', userEmail);
         
         res.status(201).json({
           success: true,
+          message: `Welcome to Realm Rivalry! Your team "${newTeam.name}" has been created.`,
           team: {
             ...newTeam,
             id: newTeam.id.toString()
@@ -458,11 +493,17 @@ async function startServer() {
       }
     });
     
-    // Add additional team routes
-    teamRouter.get('/my/next-opponent', async (req, res) => {
+    // AUTHENTICATED next opponent route
+    teamRouter.get('/my/next-opponent', requireAuth, async (req: any, res) => {
       try {
-        console.log('🔍 [API CALL] /api/teams/my/next-opponent route called!');
-        // Return empty/default data for now
+        console.log('🔍 [AUTHENTICATED API] /api/teams/my/next-opponent called!');
+        const firebaseUID = req.user?.uid || req.user?.claims?.sub;
+        
+        if (!firebaseUID) {
+          return res.status(401).json({ error: 'Authentication required' });
+        }
+        
+        // TODO: Implement actual next opponent logic based on user's team
         res.json({
           nextOpponent: "TBD",
           gameDate: null,
@@ -534,19 +575,45 @@ async function startServer() {
       try {
         console.log('🔍 [API CALL] /api/admin/teams/all route called!');
         
-        // Get all teams using storage
-        const allTeams = await storage.teams.getAllTeams();
+            // Use database directly to get comprehensive team data
+        const { db } = await import("./database.js");
         
-        // Simple count query
-        const teamCount = allTeams.length;
+        const teamsWithUsers = await db.$queryRaw`
+          SELECT 
+            t.id,
+            t.name,
+            t.division,
+            t.subdivision,
+            t."createdAt",
+            up.email,
+            up."userId" as firebase_uid
+          FROM "Team" t
+          LEFT JOIN "UserProfile" up ON up.id = t."userProfileId"
+          ORDER BY t."createdAt" DESC
+        `;
+        
+        const targetEmail = 'jimmy058910@gmail.com';
+        const userTeams = (teamsWithUsers as any[]).filter((team: any) => team.email === targetEmail);
         
         res.json({
-          totalTeams: teamCount,
-          teams: allTeams.map(team => ({
+          totalTeams: (teamsWithUsers as any[]).length,
+          targetEmail,
+          userTeamsCount: userTeams.length,
+          userTeams: userTeams.map((team: any) => ({
             id: team.id.toString(),
             name: team.name,
             division: team.division,
             subdivision: team.subdivision,
+            firebaseUID: team.firebase_uid,
+            createdAt: team.createdAt
+          })),
+          allTeams: (teamsWithUsers as any[]).slice(0, 10).map((team: any) => ({
+            id: team.id.toString(),
+            name: team.name,
+            division: team.division,
+            subdivision: team.subdivision,
+            email: team.email || 'no-email',
+            firebaseUID: team.firebase_uid || 'no-uid',
             createdAt: team.createdAt
           }))
         });
