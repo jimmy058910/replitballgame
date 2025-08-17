@@ -332,22 +332,30 @@ async function startServer() {
     // Setup session management with detailed logging
     console.log('🔧 Setting up session management...');
     // Firebase-only authentication - no sessions needed
+    console.log('🔍 [TRACE-1] Reached session management section');
 
-    // Firebase-only authentication - no Passport needed
+    // Firebase-only authentication - no Passport needed  
+    console.log('🔍 [TRACE-2] Reached passport section');
 
     // CRITICAL CLOUD RUN FIX: Create HTTP server EARLY and bind to port IMMEDIATELY
     // Defer all heavy initialization until AFTER server is listening
+    console.log('🔍 [TRACE-3] About to create HTTP server...');
     const httpServer = createServer(app);
     console.log('✅ HTTP server created (before heavy initialization)');
+    console.log('🔍 [TRACE-4] About to start route registration section...');
 
     // CRITICAL FIX: Register API routes BEFORE Vite middleware to prevent HTML responses
-    console.log('🔧 Registering API routes BEFORE Vite middleware...');
+    console.log('🔧 [DEBUG] About to register API routes BEFORE Vite middleware...');
     try {
-      const { registerAllRoutes } = await import("./routes/index.js");
-      await registerAllRoutes(app);
-      console.log('✅ API routes registered BEFORE Vite setup');
+      console.log('🔍 [DEBUG] Attempting to import routes/index.js...');
+      const routeModule = await import("./routes/index.js");
+      console.log('🔍 [DEBUG] Route module imported successfully:', Object.keys(routeModule));
+      console.log('🔍 [DEBUG] Calling registerAllRoutes function...');
+      await routeModule.registerAllRoutes(app);
+      console.log('✅ [DEBUG] API routes registered BEFORE Vite setup - SUCCESS!');
     } catch (routeError: any) {
-      console.error('⚠️  API route registration failed:', routeError?.message);
+      console.error('❌ [DEBUG] API route registration failed:', routeError);
+      console.error('❌ [DEBUG] Error stack:', routeError?.stack);
     }
 
     // CRITICAL CLOUD RUN FIX: Only setup Vite in development - defer static serving for production

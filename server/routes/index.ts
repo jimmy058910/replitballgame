@@ -73,7 +73,7 @@ import testAutomationRoutes from "./testAutomationRoutes.js";
 // This function will be called by server/index.ts to set up all routes.
 // It replaces the direct app.use calls that would have been in server/index.ts
 // or the single registerRoutes function from the old server/routes.ts.
-export function registerAllRoutes(app: Express): void {
+export async function registerAllRoutes(app: Express): Promise<void> {
   console.log('🔍 [registerAllRoutes] Starting route registration...');
   
   // CRITICAL FIX: Add API route middleware precedence to prevent Vite interference
@@ -100,8 +100,17 @@ export function registerAllRoutes(app: Express): void {
   app.use("/api/auth", authRoutes);
   console.log('🔍 [registerAllRoutes] Registered /api/auth routes');
   
-  app.use("/api/teams", teamRoutes); // Note: some routes like /api/teams/division/:division were moved to leagueRoutes
-  console.log('🔍 [registerAllRoutes] Registered /api/teams routes');
+  console.log('🔍 [registerAllRoutes] About to dynamically import teamRoutes...');
+  try {
+    const teamRoutesModule = await import("./teamRoutes.js");
+    const teamRoutesRouter = teamRoutesModule.default;
+    console.log('🔍 [registerAllRoutes] teamRoutes imported successfully, type:', typeof teamRoutesRouter);
+    app.use("/api/teams", teamRoutesRouter); // Note: some routes like /api/teams/division/:division were moved to leagueRoutes
+    console.log('✅ [registerAllRoutes] Registered /api/teams routes successfully');
+  } catch (teamImportError: any) {
+    console.error('❌ [registerAllRoutes] Failed to import teamRoutes:', teamImportError.message);
+    console.error('❌ [registerAllRoutes] Error stack:', teamImportError.stack);
+  }
   app.use("/api/teams", teamTrendsRoutes); // Enhanced team trends for product-led growth data storytelling
   app.use("/api/players", playerRoutes);
   app.use("/api/staff", staffRoutes);
