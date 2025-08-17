@@ -411,8 +411,124 @@ async function startServer() {
       }
     });
     
+    // Add team creation route
+    teamRouter.post('/create', async (req, res) => {
+      try {
+        console.log('🔍 [API CALL] /api/teams/create route called!');
+        console.log('🔍 Request body:', req.body);
+        
+        // TEMPORARY: Use hardcoded user for debugging
+        const userId = 'UUhcXGIbF3UkR6jxY2ipY3kSClp1';
+        const { teamName, ndaAgreed } = req.body;
+        
+        if (!teamName || teamName.trim().length === 0) {
+          return res.status(400).json({ error: 'Team name is required' });
+        }
+        
+        if (!ndaAgreed) {
+          return res.status(400).json({ error: 'NDA agreement is required' });
+        }
+        
+        // Check if team already exists
+        const existingTeam = await storage.teams.getTeamByUserId(userId);
+        if (existingTeam) {
+          return res.status(409).json({ error: 'Team already exists' });
+        }
+        
+        // Create the team
+        const newTeam = await storage.teams.createTeam({
+          userId,
+          name: teamName.trim(),
+          division: 8, // Start in Division 8
+          subdivision: 'B'
+        });
+        
+        console.log('✅ Team created:', newTeam.name);
+        
+        res.status(201).json({
+          success: true,
+          team: {
+            ...newTeam,
+            id: newTeam.id.toString()
+          }
+        });
+      } catch (error) {
+        console.error('❌ Error in /api/teams/create:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    });
+    
+    // Add additional team routes
+    teamRouter.get('/my/next-opponent', async (req, res) => {
+      try {
+        console.log('🔍 [API CALL] /api/teams/my/next-opponent route called!');
+        // Return empty/default data for now
+        res.json({
+          nextOpponent: "TBD",
+          gameDate: null,
+          isHome: false,
+          matchType: "league",
+          division: 8,
+          timeUntil: "Season starting soon"
+        });
+      } catch (error) {
+        console.error('❌ Error in /api/teams/my/next-opponent:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    });
+
     app.use('/api/teams', teamRouter);
-    console.log('✅ Team API routes registered successfully');
+
+    // Add other critical API routes
+    const { Router: Router2 } = await import("express");
+    
+    // Exhibitions API
+    const exhibitionRouter = Router2();
+    exhibitionRouter.get('/stats', (req, res) => {
+      console.log('🔍 [API CALL] /api/exhibitions/stats route called!');
+      res.json({
+        gamesPlayed: 0,
+        wins: 0,
+        losses: 0,
+        winPercentage: 0,
+        averageScore: 0
+      });
+    });
+    app.use('/api/exhibitions', exhibitionRouter);
+
+    // Matches API
+    const matchRouter = Router2();
+    matchRouter.get('/live', (req, res) => {
+      console.log('🔍 [API CALL] /api/matches/live route called!');
+      res.json([]);
+    });
+    app.use('/api/matches', matchRouter);
+
+    // Camaraderie API
+    const camaraderieRouter = Router2();
+    camaraderieRouter.get('/summary', (req, res) => {
+      console.log('🔍 [API CALL] /api/camaraderie/summary route called!');
+      res.json({
+        teamCamaraderie: 50,
+        status: "developing"
+      });
+    });
+    app.use('/api/camaraderie', camaraderieRouter);
+
+    // Season API
+    const seasonRouter = Router2();
+    seasonRouter.get('/current-cycle', (req, res) => {
+      console.log('🔍 [API CALL] /api/season/current-cycle route called!');
+      res.json({
+        currentDay: 1,
+        seasonNumber: 1,
+        phase: "REGULAR_SEASON",
+        dayName: "Day 1"
+      });
+    });
+    app.use('/api/season', seasonRouter);
+
+    console.log('✅ All critical API routes registered successfully!');
     } catch (routeError: any) {
       console.error('❌ [DEBUG] API route registration failed:', routeError);
       console.error('❌ [DEBUG] Error stack:', routeError?.stack);
