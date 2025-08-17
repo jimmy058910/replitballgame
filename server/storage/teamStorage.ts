@@ -45,18 +45,33 @@ async function serializeTeamData(team: any): Promise<any> {
     }));
   }
   
+  // Debug player count to identify issue
+  console.log('🔍 [serializeTeamData] playersWithContracts.length:', playersWithContracts.length);
+  console.log('🔍 [serializeTeamData] first player preview:', playersWithContracts[0] ? { id: playersWithContracts[0].id, name: playersWithContracts[0].name } : 'none');
+  
+  const serializedPlayers = playersWithContracts.map((player: any) => {
+    try {
+      return {
+        ...player,
+        // Flatten contract information into player object
+        contractSalary: player.contract ? Number(player.contract.salary.toString()) : 0,
+        contractLength: player.contract ? player.contract.length : 0,
+        contractStartDate: player.contract ? player.contract.startDate : null,
+        contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : 0,
+      };
+    } catch (error) {
+      console.error('❌ Error serializing player:', player?.id, error);
+      return null;
+    }
+  }).filter(Boolean); // Remove any null players from errors
+  
+  console.log('🔍 [serializeTeamData] serializedPlayers.length:', serializedPlayers.length);
+  
   return {
     ...team,
     finances: serializeTeamFinances(team.finances),
-    playersCount: playersWithContracts.length, // Add explicit playersCount calculation
-    players: playersWithContracts.map((player: any) => ({
-      ...player,
-      // Flatten contract information into player object
-      contractSalary: player.contract ? Number(player.contract.salary.toString()) : 0,
-      contractLength: player.contract ? player.contract.length : 0,
-      contractStartDate: player.contract ? player.contract.startDate : null,
-      contractSigningBonus: player.contract ? parseInt(player.contract.signingBonus?.toString() || '0') : 0,
-    }))
+    playersCount: serializedPlayers.length, // Use serialized count
+    players: serializedPlayers
   };
 }
 

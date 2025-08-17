@@ -655,6 +655,43 @@ async function startServer() {
       }
     });
 
+    // FIX: Link dev-user-123 to Oakland Cougars team (DIRECT DATABASE FIX)
+    app.get('/api/fix-dev-user', async (req, res) => {
+      try {
+        const { getPrismaClient } = await import('./database.js');
+        const prisma = await getPrismaClient();
+        
+        // Get the UserProfile that currently owns Oakland Cougars (team 4)
+        const currentTeam = await prisma.team.findUnique({
+          where: { id: 4 },
+          include: { userProfile: true }
+        });
+        
+        // Update that UserProfile to use the correct auth userId
+        if (currentTeam?.userProfile) {
+          await prisma.userProfile.update({
+            where: { id: currentTeam.userProfile.id },
+            data: { userId: 'dev-user-123' }
+          });
+        }
+        
+        // Test the fix immediately
+        const team = await storage.teams.getTeamByUserId('dev-user-123');
+        
+        res.json({
+          success: true,
+          message: 'Updated Oakland Cougars UserProfile to use dev-user-123',
+          testResult: {
+            teamFound: !!team,
+            teamName: team?.name,
+            playersCount: team?.playersCount
+          }
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     // FIX: Repair UserProfile-Team relationship for Oakland Cougars
     app.get('/api/fix-user-team-link', async (req, res) => {
       try {
@@ -703,8 +740,8 @@ async function startServer() {
     // DEBUG: Test /api/teams/my with proper debugging
     app.get('/api/debug-teams-my', async (req, res) => {
       try {
-        // Simulate the same flow as /api/teams/my
-        const userId = 'fake-user-id-for-dev'; // Hard-coded for debugging
+        // Use the same userId as the main endpoint
+        const userId = 'dev-user-123'; // Match main route
         
         const team = await storage.teams.getTeamByUserId(userId);
         
@@ -717,6 +754,48 @@ async function startServer() {
             credits: team.finances?.credits || '0'
           } : null,
           success: !!team
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // DEBUG: Test exact player loading for Oakland Cougars  
+    app.get('/api/debug-player-loading', async (req, res) => {
+      try {
+        const { getPrismaClient } = await import('./database.js');
+        const prisma = await getPrismaClient();
+        
+        // Test the exact query used by getTeamByUserId
+        const userProfile = await prisma.userProfile.findUnique({
+          where: { userId: 'dev-user-123' }
+        });
+        
+        if (!userProfile) {
+          return res.json({ error: 'UserProfile not found for dev-user-123' });
+        }
+        
+        const team = await prisma.team.findFirst({
+          where: { userProfileId: userProfile.id },
+          include: {
+            finances: true,
+            stadium: true,
+            players: {
+              include: {
+                contract: true,
+                skills: { include: { skill: true } }
+              }
+            },
+            staff: true
+          }
+        });
+        
+        res.json({
+          userProfileId: userProfile.id,
+          teamFound: !!team,
+          teamName: team?.name,
+          playersCount: team?.players?.length || 0,
+          playersPreview: team?.players?.slice(0, 3).map(p => ({ id: p.id, name: p.name })) || []
         });
       } catch (error) {
         res.status(500).json({ error: error.message });

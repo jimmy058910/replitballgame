@@ -57,15 +57,21 @@ router.get('/firebase-test', asyncHandler(async (req: Request, res: Response) =>
   });
 }));
 
-// Get user's team - PRIMARY ROUTE (COMPLETELY FIXED)
+// Get user's team - PRIMARY ROUTE (DEBUG MODE)
 router.get('/my', asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my route called!');
   
-  const userId = 'fake-user-id-for-dev';
-  console.log('🔍 [DEBUG] Using userId:', userId);
+  // DEBUG: Log what user ID the middleware is actually providing
+  console.log('🔍 [DEBUG] req.user:', req.user);
+  const authUserId = req.user?.uid || req.user?.claims?.sub;
+  console.log('🔍 [DEBUG] Extracted authUserId:', authUserId);
+  
+  // Use the authenticated user ID directly  
+  const userId = authUserId || 'dev-user-123';
+  console.log('🔍 [DEBUG] Final userId:', userId);
   
   const team = await storage.teams.getTeamByUserId(userId);
-  console.log('🔍 Found team:', team ? team.name : 'none', 'players:', team?.playersCount || 0);
+  console.log('✅ Using team:', team.name, 'players:', team?.playersCount || 0);
 
   if (!team) {
     console.log('❌ No team found for userId:', userId);
