@@ -528,7 +528,36 @@ async function startServer() {
     });
     app.use('/api/season', seasonRouter);
 
-    console.log('✅ All critical API routes registered successfully!');
+    // Add database admin route for checking teams
+    const adminRouter = Router2();
+    adminRouter.get('/teams/all', async (req, res) => {
+      try {
+        console.log('🔍 [API CALL] /api/admin/teams/all route called!');
+        
+        // Get all teams using storage
+        const allTeams = await storage.teams.getAllTeams();
+        
+        // Simple count query
+        const teamCount = allTeams.length;
+        
+        res.json({
+          totalTeams: teamCount,
+          teams: allTeams.map(team => ({
+            id: team.id.toString(),
+            name: team.name,
+            division: team.division,
+            subdivision: team.subdivision,
+            createdAt: team.createdAt
+          }))
+        });
+      } catch (error) {
+        console.error('❌ Error in /api/admin/teams/all:', error);
+        res.status(500).json({ error: `Internal server error: ${error}` });
+      }
+    });
+    app.use('/api/admin', adminRouter);
+
+    console.log('✅ All critical API routes registered successfully (including admin)!');
     } catch (routeError: any) {
       console.error('❌ [DEBUG] API route registration failed:', routeError);
       console.error('❌ [DEBUG] Error stack:', routeError?.stack);
