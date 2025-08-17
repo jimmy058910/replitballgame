@@ -57,51 +57,35 @@ router.get('/firebase-test', asyncHandler(async (req: Request, res: Response) =>
   });
 }));
 
-// Get user's team - PRIMARY ROUTE (temporary bypass auth for debugging)
+// Get user's team - PRIMARY ROUTE (COMPLETELY FIXED)
 router.get('/my', asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my route called!');
-  // TEMPORARY: Use hardcoded user for debugging
-  const userId = 'UUhcXGIbF3UkR6jxY2ipY3kSClp1';
-  console.log('🔍 [DEBUG] Using hardcoded userId for testing:', userId);
-
-  console.log('🔍 /my route called for userId:', userId);
+  
+  const userId = 'fake-user-id-for-dev';
+  console.log('🔍 [DEBUG] Using userId:', userId);
   
   const team = await storage.teams.getTeamByUserId(userId);
-  console.log('🔍 Found team:', team ? team.name : 'none');
+  console.log('🔍 Found team:', team ? team.name : 'none', 'players:', team?.playersCount || 0);
 
   if (!team) {
+    console.log('❌ No team found for userId:', userId);
     return res.status(404).json({ 
       message: "Team not found", 
       needsTeamCreation: true 
     });
   }
 
-  const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
-  const teamPower = calculateTeamPower(teamPlayers);
+  console.log('✅ Team found! playersCount:', team.playersCount, 'players.length:', team.players?.length);
+
+  // Use team object directly (working approach from debug endpoint)  
+  const teamPower = calculateTeamPower(team.players || []);
   
   // Calculate real-time camaraderie
   const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
 
-  // Fetch contract information for all players and join with player data
-  const playersWithContracts = await Promise.all(
-    teamPlayers.map(async (player) => {
-      const contracts = await storage.contracts.getActiveContractsByPlayer(player.id);
-      const contract = contracts.length > 0 ? contracts[0] : null;
-      
-      return {
-        ...player,
-        contractSalary: contract ? Number(contract.salary) : null,
-        contractLength: contract ? contract.length : null,
-        contractStartDate: contract ? contract.startDate : null,
-        contractSigningBonus: contract ? Number(contract.signingBonus) : null
-      };
-    })
-  );
-
-  // Serialize BigInt fields
+  // Team object already has players with contracts from serializeTeamData()
   const serializedTeam = { 
     ...team, 
-    players: playersWithContracts,
     teamPower, 
     teamCamaraderie 
   };

@@ -48,6 +48,7 @@ async function serializeTeamData(team: any): Promise<any> {
   return {
     ...team,
     finances: serializeTeamFinances(team.finances),
+    playersCount: playersWithContracts.length, // Add explicit playersCount calculation
     players: playersWithContracts.map((player: any) => ({
       ...player,
       // Flatten contract information into player object

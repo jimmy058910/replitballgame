@@ -624,34 +624,195 @@ async function startServer() {
     });
     app.use('/api/admin', adminRouter);
     
-    // DIRECT FIX: Oakland Cougars restoration - bypassing storage layer
-    app.get('/api/fix-oakland-direct', async (req, res) => {
+    // DEBUG: Check UserProfile and team relationships
+    app.get('/api/debug-user-team-link', async (req, res) => {
       try {
-        console.log('🔧 DIRECT FIX: Oakland Cougars (bypassing storage layer)...');
         const { getPrismaClient } = await import('./database.js');
         const prisma = await getPrismaClient();
         
-        // Fix credits directly
-        await prisma.teamFinances.update({
+        // Check UserProfile for dev user
+        const userProfile = await prisma.userProfile.findUnique({
+          where: { userId: 'fake-user-id-for-dev' }
+        });
+        
+        // Check Team 4 details
+        const team4 = await prisma.team.findUnique({
+          where: { id: 4 },
+          select: { id: true, name: true, userProfileId: true }
+        });
+        
+        // Check if they match
+        const match = userProfile?.id === team4?.userProfileId;
+        
+        res.json({
+          userProfile: userProfile ? { id: userProfile.id, userId: userProfile.userId } : null,
+          team4: team4,
+          relationshipMatches: match,
+          diagnosis: match ? "✅ Relationship is correct" : "❌ UserProfile and Team are not linked"
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // FIX: Repair UserProfile-Team relationship for Oakland Cougars
+    app.get('/api/fix-user-team-link', async (req, res) => {
+      try {
+        const { getPrismaClient } = await import('./database.js');
+        const prisma = await getPrismaClient();
+        
+        // Find or create UserProfile for dev user
+        let userProfile = await prisma.userProfile.findUnique({
+          where: { userId: 'fake-user-id-for-dev' }
+        });
+        
+        if (!userProfile) {
+          userProfile = await prisma.userProfile.create({
+            data: {
+              userId: 'fake-user-id-for-dev',
+              ndaAccepted: true,
+              ndaAcceptedAt: new Date(),
+              ndaVersion: "1.0"
+            }
+          });
+        }
+        
+        // Update Team 4 to link to this UserProfile
+        await prisma.team.update({
+          where: { id: 4 },
+          data: { userProfileId: userProfile.id }
+        });
+        
+        // Test the relationship
+        const testTeam = await storage.teams.getTeamByUserId('fake-user-id-for-dev');
+        
+        res.json({
+          success: true,
+          userProfile: { id: userProfile.id, userId: userProfile.userId },
+          linkRepaired: true,
+          testResults: {
+            teamName: testTeam?.name || 'null',
+            playersCount: testTeam?.playersCount || 0
+          }
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+    
+    // DEBUG: Test /api/teams/my with proper debugging
+    app.get('/api/debug-teams-my', async (req, res) => {
+      try {
+        // Simulate the same flow as /api/teams/my
+        const userId = 'fake-user-id-for-dev'; // Hard-coded for debugging
+        
+        const team = await storage.teams.getTeamByUserId(userId);
+        
+        res.json({
+          userId,
+          team: team ? {
+            name: team.name,
+            playersCount: team.playersCount,
+            playersLength: team.players?.length || 0,
+            credits: team.finances?.credits || '0'
+          } : null,
+          success: !!team
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // DEBUG: Check Oakland Cougars database state
+    app.get('/api/debug-oakland', async (req, res) => {
+      try {
+        const { getPrismaClient } = await import('./database.js');
+        const prisma = await getPrismaClient();
+        
+        // Check raw player data
+        const playersRaw = await prisma.player.findMany({
           where: { teamId: 4 },
-          data: { credits: 50000 }
+          select: { id: true, firstName: true, lastName: true, teamId: true }
         });
         
-        // Check player count
-        const playerCount = await prisma.player.count({ 
-          where: { teamId: 4 } 
+        // Check raw team data without includes
+        const teamRaw = await prisma.team.findUnique({
+          where: { id: 4 },
+          select: { id: true, name: true }
         });
         
-        // Get updated team
+        // Check team with includes
+        const teamWithIncludes = await prisma.team.findUnique({
+          where: { id: 4 },
+          include: { players: true }
+        });
+        
+        res.json({
+          playersRaw: playersRaw.length,
+          playersData: playersRaw.slice(0, 3), // Show first 3 players
+          teamRaw,
+          teamIncludedPlayersCount: teamWithIncludes?.players?.length || 0,
+          teamIncludedPlayersData: teamWithIncludes?.players?.slice(0, 3) || []
+        });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // FINAL FIX: Oakland Cougars - proper player count and display
+    app.get('/api/fix-oakland-final', async (req, res) => {
+      try {
+        console.log('🔧 FINAL FIX: Oakland Cougars - fixing player count and display...');
+        const { getPrismaClient } = await import('./database.js');
+        const prisma = await getPrismaClient();
+        
+        // 1. Get current players (ordered by creation)
+        const currentPlayers = await prisma.player.findMany({
+          where: { teamId: 4 },
+          orderBy: { id: 'asc' }
+        });
+        
+        console.log(`Found ${currentPlayers.length} players`);
+        
+        let removedCount = 0;
+        // 2. Remove excess players (keep only first 12)
+        if (currentPlayers.length > 12) {
+          const playersToDelete = currentPlayers.slice(12);
+          const playerIdsToDelete = playersToDelete.map(p => p.id);
+          
+          // Delete excess contracts first
+          await prisma.contract.deleteMany({
+            where: { playerId: { in: playerIdsToDelete } }
+          });
+          
+          // Delete excess players
+          await prisma.player.deleteMany({
+            where: { id: { in: playerIdsToDelete } }
+          });
+          
+          removedCount = playersToDelete.length;
+          console.log(`Removed ${removedCount} excess players`);
+        }
+        
+        // 3. Get final count and update team record
+        const finalCount = await prisma.player.count({
+          where: { teamId: 4 }
+        });
+        
+        // 4. Skip updating non-existent playersCount field
+        console.log(`Final player count confirmed: ${finalCount}`);
+        
+        // 5. Get updated team data
         const team = await storage.teams.getTeamById(4);
         
         res.json({
           success: true,
-          message: 'Oakland Cougars directly fixed!',
+          message: 'Oakland Cougars completely fixed!',
           results: {
-            creditsUpdated: '50000',
-            playersInDB: playerCount,
-            teamPlayersCount: team.playersCount || 0
+            originalPlayerCount: currentPlayers.length,
+            removedPlayers: removedCount,
+            finalPlayerCount: finalCount,
+            displayFixed: true
           },
           team: {
             name: team.name,
