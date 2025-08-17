@@ -363,68 +363,7 @@ async function startServer() {
     const { storage } = await import("./storage/index.js");
     const { CamaraderieService } = await import("./services/camaraderieService.js");
     
-    // AUTHENTICATED team route with proper user identification
-    teamRouter.get('/my', requireAuth, async (req: any, res) => {
-      try {
-        console.log('🔍 [AUTHENTICATED API] /api/teams/my called!');
-        console.log('🔍 Authenticated user:', req.user?.uid);
-        console.log('🔍 User email:', req.user?.email);
-        
-        // Use proper Firebase UID for user identification
-        const firebaseUID = req.user?.uid || req.user?.claims?.sub;
-        
-        if (!firebaseUID) {
-          console.error('❌ No authenticated user found');
-          return res.status(401).json({ error: 'Authentication required' });
-        }
-        
-        console.log('🔍 Looking for team with Firebase UID:', firebaseUID);
-        const team = await storage.teams.getTeamByUserId(firebaseUID);
-        console.log('🔍 Found team:', team ? team.name : 'none');
-        
-        if (!team) {
-          return res.status(404).json({ 
-            message: "Team not found", 
-            needsTeamCreation: true,
-            user: {
-              uid: firebaseUID,
-              email: req.user?.email
-            }
-          });
-        }
-        
-        const teamPlayers = await storage.players.getPlayersByTeamId(team.id);
-        const teamPower = Math.round(teamPlayers.reduce((sum, p) => sum + ((p.speed || 20) + (p.power || 20) + (p.agility || 20) + (p.throwing || 20) + (p.catching || 20) + (p.kicking || 20) + (p.staminaAttribute || 20) + (p.leadership || 20)) / 8, 0) / Math.max(1, teamPlayers.length));
-        
-        // Calculate real-time camaraderie
-        const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
-        
-        // Serialize BigInt fields for JSON response
-        const serializedTeam = { 
-          ...team,
-          id: team.id.toString(),
-          finances: {
-            ...team.finances,
-            gems: Number(team.finances?.gems || 0),
-            coins: Number(team.finances?.coins || 0)
-          },
-          players: teamPlayers.map(p => ({
-            ...p,
-            id: p.id.toString(),
-            teamId: p.teamId.toString()
-          })),
-          teamPower,
-          teamCamaraderie: Number(teamCamaraderie),
-          playersCount: teamPlayers.length
-        };
-        
-        console.log('✅ Returning team data for:', team.name);
-        res.json(serializedTeam);
-      } catch (error) {
-        console.error('❌ Error in /api/teams/my:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
+    // REMOVED: Duplicate /api/teams/my route - handled by teamRoutes.ts properly
     
     // AUTHENTICATED team creation with one-team-per-user enforcement
     teamRouter.post('/create', requireAuth, async (req: any, res) => {
@@ -518,7 +457,9 @@ async function startServer() {
       }
     });
 
-    app.use('/api/teams', teamRouter);
+    // Import and use the proper team routes from teamRoutes.ts
+    const teamRoutes = await import('./routes/teamRoutes.js');
+    app.use('/api/teams', teamRoutes.default);
 
     // Add other critical API routes
     const { Router: Router2 } = await import("express");
