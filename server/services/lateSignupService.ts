@@ -59,41 +59,66 @@ export class LateSignupService {
    * Find or create a late signup subdivision in Division 8
    */
   static async findOrCreateLateSignupSubdivision(): Promise<string> {
-    // Find existing late signup subdivisions with less than 8 teams
-    const lateSignupSubdivisions = ["late_alpha", "late_beta", "late_gamma", "late_delta"];
+    const greekAlphabet = [
+      "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
+      "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi",
+      "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
+    ];
     
-    for (const subdivisionName of lateSignupSubdivisions) {
-      const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionName);
-      
-      if (teamsInSubdivision.length < 8) {
-        return subdivisionName;
+    // Get existing late signup subdivisions in Division 8
+    const existingSubdivisions = await this.getExistingLateSignupSubdivisions();
+    
+    // Find a subdivision that's not full (< 8 teams)
+    for (const { subdivision, teamCount } of existingSubdivisions) {
+      if (teamCount < 8) {
+        return subdivision;
       }
     }
     
-    // If all late signup subdivisions are full, create a new one
-    const newSubdivisionName = `late_${Date.now().toString().slice(-6)}`;
-    return newSubdivisionName;
+    // All subdivisions are full, create a new one using Greek alphabet
+    const usedSubdivisions = new Set(existingSubdivisions.map(s => s.subdivision));
+    
+    // First try base names (alpha, beta, gamma, etc.)
+    for (const baseName of greekAlphabet) {
+      if (!usedSubdivisions.has(baseName)) {
+        return baseName;
+      }
+    }
+    
+    // If all base names are used, try numbered extensions (alpha_1, beta_2, etc.)
+    for (const baseName of greekAlphabet) {
+      for (let i = 1; i <= 100; i++) {
+        const numberedName = `${baseName}_${i}`;
+        if (!usedSubdivisions.has(numberedName)) {
+          return numberedName;
+        }
+      }
+    }
+    
+    // Fallback to overflow pattern if all Greek names are exhausted
+    const overflowId = Date.now().toString().slice(-6);
+    return `overflow_${overflowId}`;
   }
 
   /**
-   * Process daily late signups (Days 1-8) - Create subdivisions and generate schedules
-   * Called daily at 3PM EDT from Days 1-8
+   * Process daily late signups - Fill incomplete subdivisions with AI teams EVERY day
+   * Called daily at 3PM EDT during the entire late signup window (Days 1-9)
    */
   static async processDailyLateSignups(currentDay: number): Promise<void> {
-    logInfo(`Starting daily late signup processing for Day ${currentDay}...`);
+    logInfo(`🤖 DAILY AI FILLING: Starting daily late signup processing for Day ${currentDay} - Filling incomplete subdivisions with AI teams`);
     
     try {
       // Get all existing late signup subdivisions
       const existingSubdivisions = await this.getExistingLateSignupSubdivisions();
       
-      // Check each subdivision and fill with AI if it has teams but isn't full
+      // Check each subdivision and fill with AI if it has teams but isn't full - DAILY FILLING
       for (const subdivision of existingSubdivisions) {
         const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision.subdivision);
         
         if (teams.length > 0 && teams.length < 8) {
-          // Subdivision has teams but isn't full - fill with AI teams
+          // Subdivision has teams but isn't full - fill with AI teams EVERY day
           const aiTeamsNeeded = 8 - teams.length;
-          logInfo(`Filling ${subdivision.subdivision} with ${aiTeamsNeeded} AI teams`);
+          logInfo(`🤖 DAILY AI FILLING: Adding ${aiTeamsNeeded} AI teams to ${subdivision.subdivision} (${teams.length}/8 teams) on Day ${currentDay}`);
           
           await this.generateAITeamsForSubdivision(subdivision.subdivision, aiTeamsNeeded);
           
@@ -101,11 +126,13 @@ export class LateSignupService {
           const allTeams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision.subdivision);
           await this.generateShortenedSeasonSchedule(subdivision.subdivision, allTeams);
           
-          logInfo(`Subdivision ${subdivision.subdivision} filled and schedule generated for Days ${currentDay}-14`);
+          logInfo(`✅ Subdivision ${subdivision.subdivision} now COMPLETE (8/8) with AI filling - Schedule generated for Days ${currentDay}-14`);
+        } else if (teams.length === 8) {
+          logInfo(`✅ Subdivision ${subdivision.subdivision} already complete (8/8 teams)`);
         }
       }
       
-      logInfo(`Daily late signup processing completed for Day ${currentDay}`);
+      logInfo(`🎯 Daily late signup processing completed for Day ${currentDay} - All incomplete subdivisions filled with AI teams`);
     } catch (error) {
       console.error('Error in daily late signup processing:', error);
     }
@@ -115,13 +142,26 @@ export class LateSignupService {
    * Get all existing late signup subdivisions
    */
   private static async getExistingLateSignupSubdivisions(): Promise<Array<{ subdivision: string; teamCount: number }>> {
+    const greekAlphabet = [
+      "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
+      "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi",
+      "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
+    ];
+    
     const prisma = await getPrismaClient();
+    
+    // Find all Division 8 subdivisions that match Greek alphabet pattern or overflow pattern
     const subdivisions = await prisma.team.findMany({
       where: {
         division: 8,
-        subdivision: {
-          startsWith: 'late_'
-        }
+        OR: [
+          // Base Greek names (alpha, beta, etc.)
+          { subdivision: { in: greekAlphabet } },
+          // Numbered Greek names (alpha_1, beta_2, etc.)
+          ...greekAlphabet.map(name => ({ subdivision: { startsWith: `${name}_` } })),
+          // Overflow pattern (overflow_123456)
+          { subdivision: { startsWith: 'overflow_' } }
+        ]
       },
       select: {
         subdivision: true
@@ -556,14 +596,25 @@ export class LateSignupService {
   }> {
     const isLateSignupWindow = await this.isLateSignupWindow();
     
-    // Get all late signup subdivisions
+    // Get all late signup subdivisions using Greek alphabet system
+    const greekAlphabet = [
+      "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
+      "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi",
+      "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
+    ];
+    
     const prisma = await getPrismaClient();
     const lateSignupSubdivisions = await prisma.team.findMany({
       where: {
         division: 8,
-        subdivision: {
-          startsWith: 'late_'
-        }
+        OR: [
+          // Base Greek names (alpha, beta, etc.)
+          { subdivision: { in: greekAlphabet } },
+          // Numbered Greek names (alpha_1, beta_2, etc.)
+          ...greekAlphabet.map(name => ({ subdivision: { startsWith: `${name}_` } })),
+          // Overflow pattern (overflow_123456)
+          { subdivision: { startsWith: 'overflow_' } }
+        ]
       },
       select: {
         subdivision: true
