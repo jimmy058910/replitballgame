@@ -1,12 +1,6 @@
 # Overview
 Realm Rivalry is a mobile-first fantasy sports management game offering deep, engaging simulation. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include detailed simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre with high-fidelity simulation.
 
-**EXHIBITION GAME CONSTRAINT SYSTEM (Aug 16, 2025)**: ✅ IMPLEMENTED comprehensive single concurrent exhibition match prevention across all exhibition endpoints (`/instant`, `/challenge`, `/instant-match`, `/challenge-opponent`). Teams can only have one active exhibition match at a time, preventing multiple simultaneous games. System checks for existing `IN_PROGRESS` exhibition matches before allowing new ones, returning HTTP 409 with clear error messaging.
-
-**CONTRACT DATA UNIFICATION SUCCESS (Aug 19, 2025)**: ✅ COMPLETELY RESOLVED contract display inconsistencies across entire app. **ROOT CAUSE**: Players had no contract records in database despite contract system existing. **SOLUTION IMPLEMENTED**: Created contracts for all 12 Oakland Cougars players using Universal Value Formula with salaries from ₡6,240-₡11,700/season, 3-year terms, 10% signing bonuses. **UNIFIED DISPLAY ACHIEVED**: Contract data now consistently shows proper salary amounts instead of "₵0/season" across all UI components. **DATA CONSISTENCY**: All players now have active contracts with proper serialization in API responses.
-
-**COMPREHENSIVE DATA ACCESS OPTIMIZATION (Aug 15, 2025)**: ✅ COMPLETED systematic fix of all data consistency issues across 40+ components. Root cause: Components were querying non-existent separate endpoints (`/api/teams/${id}/finances`, `/api/teams/${id}/players`) instead of using data already provided by `/api/teams/my`. Solution: Updated all components to use unified team data access pattern, eliminating 50+ unnecessary API calls and fixing roster/finance display inconsistencies. All financial data now consistently uses `finances.gems` instead of mixed `premiumCurrency` naming.
-
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
@@ -16,15 +10,11 @@ Preferred communication style: Simple, everyday language.
 - Always distinguish between "What do you think?" vs "Please do this"
 - Confirm implementation plan before making changes to workflows, configurations, or architecture
 
-**LESSON LEARNED (Aug 14, 2025)**: Never abandon industry-standard solutions without explicit user approval. When debugging fails, debug deeper - don't switch approaches. The Cloud SQL Auth Proxy issue was a simple SSL configuration problem, not a fundamental architecture issue. Stick with the correct solution and fix the details.
-
-**FIREBASE-ONLY AUTHENTICATION (Aug 14, 2025)**: Completely replaced Passport.js with pure Firebase authentication. Backend now uses Firebase Admin SDK for token verification, frontend uses Firebase Auth with custom tokens to bypass domain restrictions. All authentication flows are 100% Firebase-based. **SOLUTION IMPLEMENTED**: Firebase custom tokens with development fallback verification eliminates domain authorization issues permanently. **RECURRING FIXES**: "prisma is not defined" errors and authentication token passing - comprehensive solution implemented with proper token storage and middleware verification.
-
 **COMPREHENSIVE PROBLEM-SOLVING APPROACH**: When encountering development issues, ALWAYS perform complete systematic analysis to identify all root causes simultaneously, rather than fixing the first issue found. Implement comprehensive solutions that address the entire problem domain in a single change, not symptom-by-symptom fixes.
 
 **DEVELOPMENT APPROACH**: Always prioritize industry-standard practices and proper implementations from the beginning. Avoid shortcuts, bypasses, or band-aid solutions. Research and implement the correct solution first - this saves significant time and effort compared to fixing temporary approaches later.
 
-**INDUSTRY STANDARD CODE QUALITY (Aug 14, 2025)**: ALWAYS follow rigorous development practices to prevent syntax errors:
+**INDUSTRY STANDARD CODE QUALITY**: ALWAYS follow rigorous development practices to prevent syntax errors:
 - View complete function context before making any edits (minimum 50+ lines of context)
 - Use proper TypeScript/JavaScript error handling patterns with complete try-catch-finally blocks
 - Never create orphaned code blocks or incomplete control structures
@@ -72,10 +62,6 @@ Preferred communication style: Simple, everyday language.
 
 **CRITICAL DEPLOYMENT PREFERENCE**: NEVER use Replit's Deploy button. User has custom hybrid deployment pipeline (Google Cloud Run + Firebase + Cloud SQL) that auto-deploys on Git push from Replit using GitHub Actions Blue-Green deployment workflow for zero-downtime releases.
 
-**COMPREHENSIVE DATABASE SOLUTION (Aug 15, 2025)**: ✅ SUCCESSFULLY IMPLEMENTED industry-standard Cloud SQL Auth Proxy integration directly into Node.js server startup process. Development uses Cloud SQL Auth Proxy automatically starting on localhost:5432, production uses direct Cloud SQL socket connection. Prisma ORM exclusively for all database operations. Fixed Cloud SQL Auth Proxy configuration: correct flags are `-instances` and `-credential_file` (single dash, singular). **WORKING PERFECTLY**: Database connectivity confirmed, all Prisma queries executing, API endpoints returning proper business logic responses.
-
-**AUTOMATION INFRASTRUCTURE COMPLETELY FIXED (Aug 19, 2025)**: ✅ AUTOMATION SYSTEM FULLY OPERATIONAL with comprehensive startup and progression fixes. **ROOT CAUSE RESOLVED**: The `checkAndExecuteMissedDailyProgressions` function was causing infinite loops during startup. **SOLUTION IMPLEMENTED**: (1) Fixed day calculation logic to use proper `(now - seasonStart) / (24 hours) + 1` formula, (2) Replaced complex progression loop with direct database updates to prevent startup hangs, (3) Advanced season from Day 1 to Day 3 using manual script, (4) Verified automation advancement mechanism works perfectly for future progressions. **VERIFIED WORKING**: Daily progression automation, season event scheduling, match simulation timing, and tournament automation all operational. **STARTUP STATUS**: No more infinite loops or hangs - automation service starts cleanly and executes properly.
-
 # System Architecture
 
 ## Hybrid Cloud Deployment Model
@@ -88,7 +74,7 @@ Google Cloud SQL PostgreSQL is used for both development and production environm
 The frontend is built with React 18 and TypeScript. UI components use Radix UI primitives and shadcn/ui, styled with Tailwind CSS for mobile-first responsiveness. TanStack React Query handles server state, and Wouter is used for client-side routing with lazy loading. The design features a five-hub navigation system optimized for mobile devices with PWA capabilities including service workers for offline functionality, push notifications, and app manifest.
 
 ## Backend Service Architecture
-The core backend is an Express.js application with a comprehensive middleware stack. Real-time features are powered by a Socket.IO WebSocket server. Authentication is handled via Google OAuth 2.0 integration with Passport.js and session-based authentication stored in PostgreSQL. Security is enhanced with Helmet.js, express-rate-limit, and input sanitization.
+The core backend is an Express.js application with a comprehensive middleware stack. Real-time features are powered by a Socket.IO WebSocket server. Authentication is handled via Firebase Admin SDK for token verification on the backend and Firebase Auth with custom tokens on the frontend. Security is enhanced with Helmet.js, express-rate-limit, and input sanitization.
 
 ## Game Systems Architecture
 Key game systems include a real-time WebSocket-powered match simulation engine with complex stat calculations and injury systems. Player development features a 16-skill progression system with dynamic aging and retirement mechanics. Economic systems involve a dual currency model, stadium revenue, and a player trading marketplace. Game rules, stadium configurations, and store item definitions are managed through an externalized JSON-based configuration system. A recruiting-based temporary roster system (Taxi Squad) allows for player evaluation before permanent contracts.
@@ -100,12 +86,8 @@ Vite is used for the build system. Vitest with React Testing Library provides co
 
 ## Cloud Infrastructure
 - **Google Cloud Platform**: Cloud Run, Artifact Registry, IAM.
-- **Firebase**: Frontend hosting, authentication services, session management.
+- **Firebase**: Frontend hosting, authentication services.
 - **Google Cloud SQL**: PostgreSQL database.
-
-## Authentication and Security
-- **Google OAuth 2.0**: Primary authentication provider.
-- **Passport.js**: Authentication middleware.
 
 ## Development and Build Tools
 - **Vite**: Development server and build tool.
