@@ -465,107 +465,13 @@ async function startServer() {
     await registerAllRoutes(app);
     console.log('✅ ALL comprehensive API routes registered successfully!');
 
-    // Camaraderie API
-    const camaraderieRouter = Router2();
-    camaraderieRouter.get('/summary', (req, res) => {
-      console.log('🔍 [API CALL] /api/camaraderie/summary route called!');
-      res.json({
-        teamCamaraderie: 50,
-        status: "developing"
-      });
-    });
-    app.use('/api/camaraderie', camaraderieRouter);
+    // CRITICAL: Remove all old stub routes - they override the comprehensive system
+    console.log('🧹 All old stub routes removed - using comprehensive system ONLY');
 
-    // Season API
-    const seasonRouter = Router2();
-    seasonRouter.get('/current-cycle', async (req, res) => {
-      console.log('🔍 [API CALL] /api/season/current-cycle route called!');
-      try {
-        // Get actual season data from database
-        const { seasonStorage } = await import('./storage/seasonStorage.js');
-        const currentSeason = await seasonStorage.getCurrentSeason();
-        
-        console.log('🔍 [HARDCODED SEASON ROUTE] Database season:', { 
-          currentDay: currentSeason?.currentDay, 
-          seasonNumber: currentSeason?.seasonNumber,
-          phase: currentSeason?.phase 
-        });
-        
-        res.json({
-          currentDay: currentSeason?.currentDay || 1,
-          seasonNumber: currentSeason?.seasonNumber || 1,
-          phase: currentSeason?.phase || "REGULAR_SEASON",
-          dayName: `Day ${currentSeason?.currentDay || 1}`
-        });
-      } catch (error) {
-        console.error('🚨 [HARDCODED SEASON ROUTE] Error getting season data:', error);
-        // Fallback to hardcoded values if database fails
-        res.json({
-          currentDay: 1,
-          seasonNumber: 1,
-          phase: "REGULAR_SEASON",
-          dayName: "Day 1"
-        });
-      }
-    });
-    app.use('/api/season', seasonRouter);
+    // CRITICAL FIX: Setup Vite AFTER comprehensive API routes to prevent conflicts
+    console.log('✅ ALL comprehensive API routes registered successfully!');
 
-    // Add database admin route for checking teams
-    const adminRouter = Router2();
-    adminRouter.get('/teams/all', async (req, res) => {
-      try {
-        console.log('🔍 [API CALL] /api/admin/teams/all route called!');
-        
-            // Use database directly to get comprehensive team data
-        const { db } = await import("./database.js");
-        
-        const teamsWithUsers = await db.$queryRaw`
-          SELECT 
-            t.id,
-            t.name,
-            t.division,
-            t.subdivision,
-            t."createdAt",
-            up.email,
-            up."userId" as firebase_uid
-          FROM "Team" t
-          LEFT JOIN "UserProfile" up ON up.id = t."userProfileId"
-          ORDER BY t."createdAt" DESC
-        `;
-        
-        const targetEmail = 'jimmy058910@gmail.com';
-        const userTeams = (teamsWithUsers as any[]).filter((team: any) => team.email === targetEmail);
-        
-        res.json({
-          totalTeams: (teamsWithUsers as any[]).length,
-          targetEmail,
-          userTeamsCount: userTeams.length,
-          userTeams: userTeams.map((team: any) => ({
-            id: team.id.toString(),
-            name: team.name,
-            division: team.division,
-            subdivision: team.subdivision,
-            firebaseUID: team.firebase_uid,
-            createdAt: team.createdAt
-          })),
-          allTeams: (teamsWithUsers as any[]).slice(0, 10).map((team: any) => ({
-            id: team.id.toString(),
-            name: team.name,
-            division: team.division,
-            subdivision: team.subdivision,
-            email: team.email || 'no-email',
-            firebaseUID: team.firebase_uid || 'no-uid',
-            createdAt: team.createdAt
-          }))
-        });
-      } catch (error) {
-        console.error('❌ Error in /api/admin/teams/all:', error);
-        res.status(500).json({ error: `Internal server error: ${error}` });
-      }
-    });
-    app.use('/api/admin', adminRouter);
-    
-    // DEBUG: Check UserProfile and team relationships
+    // CRITICAL FIX: Setup Vite AFTER API routes to prevent conflict
     app.get('/api/debug-user-team-link', async (req, res) => {
       try {
         const { getPrismaClient } = await import('./database.js');
@@ -946,24 +852,24 @@ async function startServer() {
       console.error('❌ [DEBUG] Error code:', routeError?.code);
     }
 
-    // CRITICAL FIX: Add API protection middleware before Vite
-    app.use('/api/*', (req, res, next) => {
-      // If we reach here, it means no API route handled the request
-      // Let it continue to 404 properly instead of returning HTML
-      next();
-    });
-    
-    console.log('🧪 API route protection added');
-    
-    // CRITICAL CLOUD RUN FIX: Only setup Vite in development - defer static serving for production
+    // CRITICAL FIX: Setup Vite BEFORE API routes to prevent conflict
     if (process.env.NODE_ENV !== 'production') {
-      console.log('🛠️ Development mode: Setting up Vite with hot reload');
+      console.log('🛠️ Development mode: Setting up Vite with hot reload BEFORE API routes');
       const { setupVite } = await import("./vite.js");
       await setupVite(app, httpServer);
       console.log('✅ Development frontend serving configured');
     } else {
       console.log('🏭 Production mode: Frontend serving will be configured after port binding');
     }
+
+    // CRITICAL FIX: API protection middleware - should NOT interfere with Vite
+    app.use('/api/*', (req, res, next) => {
+      // Set proper content type for API responses
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    });
+    
+    console.log('🧪 API route protection added after Vite setup');
 
     // CRITICAL: Error handler MUST be last in middleware chain
     app.use(errorHandler);
