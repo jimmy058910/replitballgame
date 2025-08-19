@@ -53,7 +53,15 @@ export class SeasonTimingAutomationService {
     logInfo('Starting season timing automation system...');
 
     // CRITICAL FIX: Check for missed daily progressions on startup
-    await this.checkAndExecuteMissedDailyProgressions();
+    console.log('🔧 [AUTOMATION DEBUG] About to call checkAndExecuteMissedDailyProgressions...');
+    
+    try {
+      await this.checkAndExecuteMissedDailyProgressions();
+      console.log('✅ [AUTOMATION DEBUG] checkAndExecuteMissedDailyProgressions completed successfully');
+    } catch (error) {
+      console.error('❌ [AUTOMATION DEBUG] checkAndExecuteMissedDailyProgressions failed:', error);
+      console.error('❌ [AUTOMATION DEBUG] Error stack:', error.stack);
+    }
 
     // Schedule daily progression at 3:00 AM EST
     this.scheduleDailyProgression();
@@ -1068,8 +1076,10 @@ export class SeasonTimingAutomationService {
   private async checkAndExecuteMissedDailyProgressions(): Promise<void> {
     try {
       logInfo('🔍 Checking for current season and missed progressions...');
+      console.log('🔧 [MISSED PROGRESSION DEBUG] Step 1: About to call storage.seasons.getCurrentSeason...');
       
       let currentSeason = await storage.seasons.getCurrentSeason();
+      console.log('🔧 [MISSED PROGRESSION DEBUG] Step 2: getCurrentSeason result:', !!currentSeason, currentSeason?.currentDay);
       
       // Create initial season if none exists
       if (!currentSeason) {
@@ -1101,20 +1111,38 @@ export class SeasonTimingAutomationService {
       const databaseDay = currentSeason.currentDay || 1;
       logInfo(`✅ Found active season - currently Day ${databaseDay}`);
       
+      console.log('🔧 [MISSED PROGRESSION DEBUG] Step 3: Starting progression calculation...');
+      
       // Check if daily progression should have happened today
       const now = new Date();
       const lastProgressionTime = this.getLastProgressionTime();
       const nextProgressionTime = this.getNextExecutionTime(3, 0); // 3:00 AM EDT
       
-      // If we're past today's 3am progression time and it hasn't been done, trigger it
-      const todayProgression = new Date(nextProgressionTime);
-      todayProgression.setDate(todayProgression.getDate() - 1); // Yesterday's 3am
+      console.log('🔧 [MISSED PROGRESSION DEBUG] Step 4: Time variables calculated');
       
-      if (now > todayProgression && (!lastProgressionTime || lastProgressionTime < todayProgression)) {
-        logInfo('🔥 MISSED PROGRESSION: Triggering daily progression now...');
-        await this.executeDailyProgression();
+      // FIXED LOGIC: Calculate what day we should actually be on based on season start date
+      const seasonStart = new Date(currentSeason.startDate || currentSeason.start_date || "2025-08-16");
+      const daysSinceStart = Math.floor((now.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24));
+      const calculatedDay = Math.min((daysSinceStart % 17) + 1, 17);
+      
+      console.log('PROGRESSION CHECK:', {
+        seasonStart: seasonStart.toISOString(),
+        daysSinceStart,
+        currentDayInDB: databaseDay,
+        calculatedDay,
+        needsProgression: calculatedDay > databaseDay
+      });
+      
+      if (calculatedDay > databaseDay) {
+        logInfo(`🔥 MISSED PROGRESSIONS: Advancing from Day ${databaseDay} to Day ${calculatedDay}...`);
+        
+        // Advance day by day to trigger all needed progressions
+        for (let day = databaseDay + 1; day <= calculatedDay; day++) {
+          logInfo(`🔄 Executing daily progression for Day ${day}...`);
+          await this.executeDailyProgression();
+        }
       } else {
-        logInfo('✅ Daily progression is up to date');
+        logInfo(`✅ Daily progression is up to date (Day ${databaseDay})`);
       }
       
     } catch (error) {
@@ -1162,6 +1190,7 @@ export class SeasonTimingAutomationService {
         return;
       }
       
+      const prisma = await getPrismaClient();
       await prisma.season.update({
         where: { id: currentSeason.id },
         data: { currentDay: newDay }
@@ -1399,6 +1428,7 @@ export class SeasonTimingAutomationService {
    */
   private async startScheduledMatches(tournamentId: number, round: number): Promise<void> {
     try {
+      const prisma = await getPrismaClient();
       // Get all scheduled matches for the round
       const scheduledMatches = await prisma.game.findMany({
         where: {
@@ -1441,6 +1471,7 @@ export class SeasonTimingAutomationService {
    */
   private async completeTournament(tournamentId: number): Promise<void> {
     try {
+      const prisma = await getPrismaClient();
       // Get the finals match to determine winner
       const finalsMatch = await prisma.game.findFirst({
         where: {
@@ -1522,6 +1553,7 @@ export class SeasonTimingAutomationService {
    */
   private async awardTournamentPrize(teamId: number, prize: { credits: number, gems: number }): Promise<void> {
     try {
+      const prisma = await getPrismaClient();
       const teamFinances = await prisma.teamFinances.findUnique({
         where: { teamId }
       });

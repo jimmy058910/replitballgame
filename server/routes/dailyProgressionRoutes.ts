@@ -206,4 +206,35 @@ router.post('/test-full-day-advancement', requireAuth, RBACService.requirePermis
   }
 });
 
+/**
+ * GET /api/daily-progression/automation-status
+ * Check if automation is running and trigger missed progression check (dev only)
+ */
+router.get('/automation-status', async (req, res) => {
+  try {
+    console.log('[AUTOMATION STATUS] Checking automation service status...');
+    
+    // Import and check automation service
+    const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService.js');
+    const automationService = SeasonTimingAutomationService.getInstance();
+    
+    // Trigger missed progression check manually
+    console.log('[AUTOMATION STATUS] Triggering missed progression check...');
+    await (automationService as any).checkAndExecuteMissedDailyProgressions();
+    
+    res.json({
+      success: true,
+      message: 'Automation service status checked and missed progression triggered',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error checking automation status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check automation status',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export { router as dailyProgressionRoutes };
