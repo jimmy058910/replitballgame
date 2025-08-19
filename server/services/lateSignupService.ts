@@ -201,7 +201,7 @@ export class LateSignupService {
     
     logInfo('Starting AI team filling for late signup subdivisions...');
     
-    const lateSignupSubdivisions = ["late_alpha", "late_beta", "late_gamma", "late_delta"];
+    const lateSignupSubdivisions = ["alpha", "beta", "gamma", "delta"];
     
     for (const subdivisionName of lateSignupSubdivisions) {
       const teamsInSubdivision = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionName);
