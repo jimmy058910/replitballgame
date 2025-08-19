@@ -22,6 +22,8 @@ interface Team {
   form: string;
   scoreDifference: number;
   played: number;
+  totalScores?: number; // TS - Total Scores For
+  scoresAgainst?: number; // SA - Scores Against
 }
 
 export default function LeagueStandings({ division }: LeagueStandingsProps) {
@@ -72,16 +74,15 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                 <thead>
                   <tr className="border-b border-gray-600 text-xs text-gray-400">
                     <th className="text-left py-2 w-8">#</th>
-                    <th className="text-left py-2">Team</th>
-                    <th className="text-center py-2 w-12">P</th>
+                    <th className="text-left py-2">Team Name</th>
+                    <th className="text-center py-2 w-12">GP</th>
                     <th className="text-center py-2 w-12">W</th>
                     <th className="text-center py-2 w-12">D</th>
                     <th className="text-center py-2 w-12">L</th>
-                    <th className="text-center py-2 w-16">SD</th>
+                    <th className="text-center py-2 w-12">TS</th>
+                    <th className="text-center py-2 w-12">SA</th>
+                    <th className="text-center py-2 w-12">SD</th>
                     <th className="text-center py-2 w-12">Pts</th>
-                    <th className="text-center py-2 w-16">Streak</th>
-                    <th className="text-center py-2 w-24">Form</th>
-                    <th className="text-center py-2 w-8"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -124,6 +125,8 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                         <td className="text-center py-2 text-green-400 font-medium">{team.wins}</td>
                         <td className="text-center py-2 text-yellow-400">{team.draws ?? 0}</td>
                         <td className="text-center py-2 text-red-400">{team.losses}</td>
+                        <td className="text-center py-2 text-blue-400">{team.totalScores ?? 0}</td>
+                        <td className="text-center py-2 text-orange-400">{team.scoresAgainst ?? 0}</td>
                         <td className={`text-center py-2 font-medium ${
                           team.scoreDifference > 0 ? "text-green-400" :
                           team.scoreDifference < 0 ? "text-red-400" : "text-gray-400"
@@ -131,46 +134,6 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                           {team.scoreDifference > 0 ? '+' : ''}{team.scoreDifference}
                         </td>
                         <td className="text-center py-2 font-bold text-white">{team.points}</td>
-                        <td className="text-center py-2">
-                          {team.streakType !== 'N' && (
-                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                              team.streakType === 'W' ? 'bg-green-600 text-white' :
-                              team.streakType === 'L' ? 'bg-red-600 text-white' :
-                              'bg-yellow-600 text-black'
-                            }`}>
-                              {team.streakType}{team.currentStreak}
-                            </span>
-                          )}
-                        </td>
-                        <td className="text-center py-2">
-                          {team.form !== 'N/A' && (
-                            <div className="flex justify-center space-x-0.5">
-                              {team.form.split('').map((result: string, idx: number) => (
-                                <div 
-                                  key={idx}
-                                  className={`w-2 h-2 rounded-full ${
-                                    result === 'W' ? 'bg-green-500' :
-                                    result === 'L' ? 'bg-red-500' :
-                                    'bg-yellow-500'
-                                  }`}
-                                  title={`Game ${idx + 1}: ${
-                                    result === 'W' ? 'Win' :
-                                    result === 'L' ? 'Loss' : 'Draw'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </td>
-                        <td className="text-center py-2">
-                          <span className={`text-sm ${
-                            position <= 2 ? "text-green-400" : 
-                            position >= standings.length - 1 ? "text-red-400" : 
-                            "text-gray-500"
-                          }`}>
-                            {position <= 2 ? "↑" : position >= standings.length - 1 ? "↓" : ""}
-                          </span>
-                        </td>
                       </tr>
                     );
                   })}

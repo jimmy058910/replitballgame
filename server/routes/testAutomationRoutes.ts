@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { seasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
+import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
 
 const router = Router();
 
@@ -9,7 +9,8 @@ router.post('/trigger-season-check', async (req: Request, res: Response) => {
     console.log('🔧 Manual trigger: Running season automation check...');
     
     // Manually trigger the missed progression check which should create a season
-    await (seasonTimingAutomationService as any).checkAndExecuteMissedDailyProgressions();
+    const automationService = SeasonTimingAutomationService.getInstance();
+    await automationService.checkAndExecuteMissedDailyProgressions();
     
     res.json({ 
       success: true, 
@@ -19,7 +20,7 @@ router.post('/trigger-season-check', async (req: Request, res: Response) => {
     console.error('❌ Error triggering season check:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error' 
     });
   }
 });
@@ -39,7 +40,7 @@ router.get('/season-status', async (req: Request, res: Response) => {
     console.error('❌ Error checking season status:', error);
     res.status(500).json({ 
       success: false, 
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error' 
     });
   }
 });

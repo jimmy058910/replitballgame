@@ -512,43 +512,7 @@ async function startServer() {
       }
     });
     
-    // CRITICAL: /api/leagues/8/standings route  
-    app.get('/api/leagues/8/standings', async (req: any, res: any) => {
-      try {
-        console.log('🔍 [CRITICAL API] /api/leagues/8/standings called directly!');
-        
-        // Get all teams in Division 8 from the database
-        const allTeams = await apiStorage.teams.getTeamsByDivision(8);
-        console.log(`✅ Found ${allTeams.length} teams in Division 8`);
-        
-        // Convert to standings format that matches LeagueStandings component expectations
-        const standings = allTeams.map(team => ({
-          id: String(team.id),  // Component expects string ID
-          name: team.name, 
-          wins: team.wins || 0,
-          losses: team.losses || 0,
-          draws: 0,  // Component expects draws (ties)
-          points: team.points || 0,
-          played: (team.wins || 0) + (team.losses || 0), // Total games played
-          scoreDifference: 0,  // Required for score difference display (not goals!)
-          streakType: 'N',  // W/L/N for streak display
-          currentStreak: 0,
-          form: 'N/A'  // Form string for last 5 games
-        }));
-        
-        // Sort by points descending, then by score difference
-        standings.sort((a, b) => {
-          if (b.points !== a.points) return b.points - a.points;
-          return b.scoreDifference - a.scoreDifference;
-        });
-        
-        console.log(`✅ Returning standings for ${standings.length} teams:`, standings.map(t => t.name));
-        res.json(standings);
-      } catch (error) {
-        console.error('❌ Error in critical /api/leagues/8/standings:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
+    // REMOVED: Duplicate /api/leagues/8/standings route - using comprehensive system instead
     
     console.log('✅ Critical API routes registered BEFORE Vite setup!');
     
@@ -567,15 +531,7 @@ async function startServer() {
     console.log('✅ ALL comprehensive API routes registered successfully!');
     console.log('🚫 NO additional routes will be registered - preventing Vite conflicts');
 
-    // CRITICAL FIX: Setup Vite AFTER comprehensive API routes to prevent conflict
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('🛠️ Development mode: Setting up Vite AFTER comprehensive API routes');
-      const { setupVite } = await import("./vite.js");
-      await setupVite(app, httpServer);
-      console.log('✅ Development frontend serving configured AFTER comprehensive routes');
-    } else {
-      console.log('🏭 Production mode: Frontend serving will be configured after port binding');
-    }
+    // REMOVED: Duplicate Vite setup - using single setup later in the process
 
     // CRITICAL FIX: Remove API protection middleware that interferes with Vite
     // (Removed to prevent Content-Type conflicts)

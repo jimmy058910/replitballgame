@@ -156,7 +156,7 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     console.log(`🔍 [STANDINGS API] Looking for team with userId: ${userId}`);
     
     let userTeam = await storage.teams.getTeamByUserId(userId);
-    let userSubdivision = userTeam?.subdivision || 'alpha'; // Default to alpha for now
+    let userSubdivision = userTeam?.subdivision || 'main'; // Default to main where teams exist
     
     console.log(`🔍 [STANDINGS API] User team found:`, {
       teamFound: !!userTeam,
@@ -167,24 +167,35 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       defaultSubdivision: userSubdivision
     });
     
-    // FLEXIBLE USER MATCHING: If no team found, try to find any team in alpha subdivision
+    // FLEXIBLE USER MATCHING: If no team found, try to find any team in main subdivision
     // This handles authentication mismatches during development
     if (!userTeam) {
-      console.log(`⚠️ [STANDINGS API] No team found for userId ${userId}, checking alpha subdivision`);
-      const teamsInAlpha = await storage.teams.getTeamsByDivisionAndSubdivision(division, 'alpha');
-      if (teamsInAlpha.length > 0) {
-        console.log(`✅ [STANDINGS API] Found ${teamsInAlpha.length} teams in alpha subdivision`);
-        userSubdivision = 'alpha';
+      console.log(`⚠️ [STANDINGS API] No team found for userId ${userId}, checking main subdivision`);
+      const teamsInMain = await storage.teams.getTeamsByDivisionAndSubdivision(division, 'main');
+      if (teamsInMain.length > 0) {
+        console.log(`✅ [STANDINGS API] Found ${teamsInMain.length} teams in main subdivision`);
+        userSubdivision = 'main';
       }
     }
     
     // Only get teams from the user's subdivision
+    console.log(`🔍 [STANDINGS DEBUG] About to query with subdivision: "${userSubdivision}"`);
     let teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
+    console.log(`🔍 [STANDINGS DEBUG] Query returned ${teamsInDivision.length} teams for subdivision: "${userSubdivision}"`);
 
     if (teamsInDivision.length === 0) {
       await createAITeamsForDivision(division);
       teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
     }
+
+    // CRITICAL: Hard cap at exactly 8 teams per subdivision
+    if (teamsInDivision.length > 8) {
+      console.log(`⚠️ [STANDINGS API] Found ${teamsInDivision.length} teams in subdivision, limiting to 8`);
+      teamsInDivision = teamsInDivision.slice(0, 8);
+    }
+    
+    console.log(`✅ Found ${teamsInDivision.length} teams in Division ${division}`);
+    console.log(`✅ Returning standings for ${teamsInDivision.length} teams: [${teamsInDivision.map(t => `'${t.name}'`).join(', ')}]`);
 
     // Get all completed league matches for this division to calculate real goals
     const prisma = await getPrismaClient();
@@ -201,21 +212,21 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
 
     // Enhanced standings with streak and additional stats
     const enhancedTeams = teamsInDivision.map((team) => {
-      // Calculate REAL goal difference from actual completed matches
-      let goalsFor = 0;
-      let goalsAgainst = 0;
+      // Calculate REAL score totals from actual completed matches (using "scores" not "goals")
+      let totalScores = 0;
+      let scoresAgainst = 0;
       
       completedMatches.forEach((match: any) => {
         if (match.homeTeamId === team.id) {
-          goalsFor += match.homeScore || 0;
-          goalsAgainst += match.awayScore || 0;
+          totalScores += match.homeScore || 0;
+          scoresAgainst += match.awayScore || 0;
         } else if (match.awayTeamId === team.id) {
-          goalsFor += match.awayScore || 0; 
-          goalsAgainst += match.homeScore || 0;
+          totalScores += match.awayScore || 0; 
+          scoresAgainst += match.homeScore || 0;
         }
       });
       
-      const goalDifference = goalsFor - goalsAgainst;
+      const scoreDifference = totalScores - scoresAgainst;
       
       // Calculate current streak based on recent form
       const wins = team.wins || 0;
@@ -255,9 +266,9 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
         currentStreak,
         streakType,
         form: form.slice(0, Math.min(5, totalGames)),
-        goalsFor,
-        goalsAgainst,
-        goalDifference,
+        totalScores, // TS column
+        scoresAgainst, // SA column  
+        scoreDifference, // SD column (TS - SA)
         played: totalGames
       };
     });
@@ -269,11 +280,11 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       const bWins = b.wins || 0;
       const aLosses = a.losses || 0;
       const bLosses = b.losses || 0;
-      const aGoalDiff = a.goalDifference || 0;
-      const bGoalDiff = b.goalDifference || 0;
+      const aScoreDiff = a.scoreDifference || 0;
+      const bScoreDiff = b.scoreDifference || 0;
 
       if (bPoints !== aPoints) return bPoints - aPoints;
-      if (bGoalDiff !== aGoalDiff) return bGoalDiff - aGoalDiff;
+      if (bScoreDiff !== aScoreDiff) return bScoreDiff - aScoreDiff;
       if (bWins !== aWins) return bWins - aWins;
       return aLosses - bLosses;
     });
@@ -824,6 +835,59 @@ router.get('/:division/schedule', requireAuth, async (req: Request, res: Respons
   } catch (error) {
     console.error("Error fetching league schedule:", error);
     res.status(500).json({ message: "Failed to fetch league schedule" });
+  }
+});
+
+// Admin endpoint to move Storm Breakers to beta subdivision
+router.post('/admin/move-storm-breakers', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('🔧 [ADMIN] Moving Storm Breakers 346 to beta subdivision...');
+    
+    const prisma = await getPrismaClient();
+    
+    // Find Storm Breakers 346
+    const stormBreakers = await prisma.team.findFirst({
+      where: {
+        name: 'Storm Breakers 346',
+        division: 8
+      }
+    });
+    
+    if (!stormBreakers) {
+      return res.status(404).json({ message: 'Storm Breakers 346 not found' });
+    }
+    
+    console.log(`📍 Found Storm Breakers 346 in subdivision: ${stormBreakers.subdivision}`);
+    
+    // Move to beta subdivision
+    const updatedTeam = await prisma.team.update({
+      where: { id: stormBreakers.id },
+      data: { subdivision: 'beta' }
+    });
+    
+    console.log(`✅ Moved Storm Breakers 346 from '${stormBreakers.subdivision}' to '${updatedTeam.subdivision}'`);
+    
+    // Get updated counts
+    const alphaCount = await prisma.team.count({
+      where: { division: 8, subdivision: 'alpha' }
+    });
+    
+    const betaCount = await prisma.team.count({
+      where: { division: 8, subdivision: 'beta' }
+    });
+    
+    res.json({
+      success: true,
+      message: `Storm Breakers 346 moved to ${updatedTeam.subdivision} subdivision`,
+      counts: {
+        alpha: alphaCount,
+        beta: betaCount
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error moving Storm Breakers:', error);
+    next(error);
   }
 });
 
