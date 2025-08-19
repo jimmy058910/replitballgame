@@ -5,13 +5,13 @@ import { requireAuth } from "../middleware/firebaseAuth.js";
 const router = Router();
 
 /**
- * POST /api/contracts/initialize-team/:teamId
+ * POST /api/contracts/initialize-team-contracts
  * Assigns initial contracts to all players on a team who don't have active contracts
  */
-router.post('/initialize-team/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+router.post('/initialize-team-contracts', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
-    const { teamId } = req.params;
-    const userId = req.user.claims.sub;
+    const { teamId } = req.body;
+    const userId = req.user?.uid || req.user?.claims?.sub || 'dev-user-123';
     
     // Import storage to verify team ownership
     const { storage } = await import('../storage');

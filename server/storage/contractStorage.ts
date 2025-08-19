@@ -1,5 +1,5 @@
 import { Contract } from "@prisma/client";
-import { getPrismaClient } from '../db';
+import { getPrismaClient } from '../database.js';
 
 // MINIMAL STUB: Contract storage simplified to match actual schema
 // Original had 24 compilation errors due to schema mismatch
@@ -12,6 +12,7 @@ export class ContractStorage {
     length: number;
     signingBonus?: number;
   }): Promise<Contract> {
+    const prisma = await getPrismaClient();
     return await prisma.contract.create({
       data: {
         playerId: contractData.playerId,
@@ -29,6 +30,7 @@ export class ContractStorage {
     length: number;
     signingBonus?: number;
   }): Promise<Contract> {
+    const prisma = await getPrismaClient();
     return await prisma.contract.create({
       data: {
         staffId: contractData.staffId,
@@ -41,6 +43,7 @@ export class ContractStorage {
   }
 
   async getContractById(id: number): Promise<Contract | null> {
+    const prisma = await getPrismaClient();
     return await prisma.contract.findUnique({
       where: { id }
     });
@@ -48,12 +51,14 @@ export class ContractStorage {
 
   // Stub methods for interface compatibility
   async getActiveContractsByPlayer(playerId: number): Promise<Contract[]> {
+    const prisma = await getPrismaClient();
     return await prisma.contract.findMany({
       where: { playerId }
     });
   }
 
   async getActiveContractsByStaff(staffId: number): Promise<Contract[]> {
+    const prisma = await getPrismaClient();
     return await prisma.contract.findMany({
       where: { staffId }
     });
@@ -71,6 +76,7 @@ export class ContractStorage {
 
   async updateContract(id: number, updates: Partial<Contract>): Promise<Contract | null> {
     try {
+      const prisma = await getPrismaClient();
       return await prisma.contract.update({
         where: { id },
         data: updates
@@ -82,6 +88,7 @@ export class ContractStorage {
 
   async deleteContract(id: number): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.contract.delete({
         where: { id }
       });
