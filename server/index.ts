@@ -517,15 +517,20 @@ async function startServer() {
       try {
         console.log('🔍 [CRITICAL API] /api/leagues/8/standings called directly!');
         
+        // Return proper Team structure that matches LeagueStandings component expectations
         res.json([
           {
-            teamId: 4,
-            teamName: "Oakland Cougars", 
+            id: "4",  // Component expects string ID
+            name: "Oakland Cougars", 
             wins: 0,
             losses: 0,
-            ties: 0,
+            draws: 0,  // Component expects draws, not ties
             points: 0,
-            gamesPlayed: 0
+            played: 0,  // Component expects played, not gamesPlayed
+            goalDifference: 0,  // Required for score difference display
+            streakType: 'N',  // W/L/N for streak display
+            currentStreak: 0,
+            form: 'N/A'  // Form string for last 5 games
           }
         ]);
       } catch (error) {
