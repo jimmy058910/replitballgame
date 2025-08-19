@@ -78,8 +78,21 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   
   // CRITICAL FIX: Add API route middleware precedence to prevent Vite interference
   app.use('/api/*', (req: any, res: any, next: any) => {
-    // Force API responses to be JSON, never HTML
-    res.setHeader('Content-Type', 'application/json');
+    // Override Vite's Content-Type at response time, not request time
+    const originalJson = res.json;
+    res.json = function(obj: any) {
+      res.setHeader('Content-Type', 'application/json');
+      return originalJson.call(this, obj);
+    };
+    
+    const originalSend = res.send;  
+    res.send = function(body: any) {
+      if (typeof body === 'object') {
+        res.setHeader('Content-Type', 'application/json');
+      }
+      return originalSend.call(this, body);
+    };
+    
     next();
   });
   
