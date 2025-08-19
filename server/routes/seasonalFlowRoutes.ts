@@ -482,7 +482,13 @@ router.get('/late-signup/stats', requireAuth, async (req, res) => {
 
 // Get current season cycle information
 router.get('/current-cycle', asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [SEASONAL-FLOW] /current-cycle called');
   const currentSeason = await storage.seasons.getCurrentSeason();
+  console.log('🔍 [SEASONAL-FLOW] Season data:', { 
+    currentDay: currentSeason?.currentDay, 
+    type: typeof currentSeason?.currentDay,
+    fullSeason: currentSeason 
+  });
   
   res.json({
     currentDay: currentSeason?.currentDay || 1,

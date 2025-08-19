@@ -47,6 +47,12 @@ router.get('/current', requireAuth, async (req: Request, res: Response, next: Ne
   }
 });
 
+// DEBUG: Test route to verify routing works
+router.get('/debug-test', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  console.log('🔍 [DEBUG] Debug test route called!');
+  res.json({ success: true, message: 'Debug test route working', timestamp: new Date().toISOString() });
+});
+
 // Get current season cycle (day-by-day info)
 // Get current week info (simple week data for SuperUser page)
 router.get('/current-week', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
@@ -72,15 +78,22 @@ router.get('/current-week', requireAuth, async (req: Request, res: Response, nex
 });
 
 router.get('/current-cycle', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  console.log('🔥 [SEASON ROUTES] /current-cycle called - this is seasonRoutes.ts');
   try {
+    console.log('🔍 [current-cycle] Starting route...');
     // Get current season from database to get the actual currentDay
     const currentSeason = await storage.seasons.getCurrentSeason();
     let currentDayInCycle = 5; // Default fallback
     let seasonNumber = 0; // Default season number
     
+    console.log('🔍 [current-cycle] Season data from database:', JSON.stringify(currentSeason, null, 2));
+    console.log('🔍 [current-cycle] Type of currentDay:', typeof currentSeason?.currentDay);
+    console.log('🔍 [current-cycle] Value of currentDay:', currentSeason?.currentDay);
+    
     if (currentSeason && typeof currentSeason.currentDay === 'number') {
       currentDayInCycle = currentSeason.currentDay;
       seasonNumber = currentSeason.seasonNumber || 0;
+      console.log('✅ [current-cycle] Using database value:', { currentDayInCycle, seasonNumber });
     } else {
       // Fallback to calculation if no database value
       const startDate = new Date("2025-07-13");
@@ -88,6 +101,7 @@ router.get('/current-cycle', requireAuth, async (req: Request, res: Response, ne
       const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       currentDayInCycle = (daysSinceStart % 17) + 1;
       seasonNumber = Math.floor(daysSinceStart / 17);
+      console.log('⚠️ [current-cycle] Using calculated value:', { currentDayInCycle, seasonNumber, daysSinceStart });
     }
     
     // Determine the phase and dynamic content based on current day in cycle

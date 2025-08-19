@@ -392,14 +392,22 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     const currentSeason = await seasonStorage.getCurrentSeason(); // Use seasonStorage
     let currentDayInCycle = 5; // Default fallback
     
+    console.log('🔍 [LEAGUE ROUTES] Season data:', { 
+      currentDay: currentSeason?.currentDay, 
+      type: typeof currentSeason?.currentDay,
+      fullSeason: currentSeason 
+    });
+    
     if (currentSeason && typeof currentSeason.currentDay === 'number') {
       currentDayInCycle = currentSeason.currentDay;
+      console.log('✅ [LEAGUE ROUTES] Using database value:', currentDayInCycle);
     } else {
       // Fallback to calculation if no database value
       const startDate = new Date("2025-07-13");
       const now = new Date();
       const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       currentDayInCycle = (daysSinceStart % 17) + 1;
+      console.log('⚠️ [LEAGUE ROUTES] Using calculated value:', { currentDayInCycle, daysSinceStart });
     }
 
     if (!currentSeason) {
