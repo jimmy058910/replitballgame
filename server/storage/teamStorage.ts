@@ -96,6 +96,7 @@ export class TeamStorage {
         subdivision: teamData.subdivision || "main",
         camaraderie: 50.0,
         fanLoyalty: 50.0,
+        isAI: false, // Human team by default
       },
       include: {
         finances: true,
@@ -133,6 +134,67 @@ export class TeamStorage {
     } catch (error: any) {
       console.error('❌ Failed to record team creation transaction:', error?.message || error);
     }
+
+    return newTeam;
+  }
+
+  /**
+   * FIXED: Create AI team with proper AI flag and unique userId
+   */
+  async createAITeam(teamData: {
+    name: string;
+    userId: string;
+    division?: number;
+    subdivision?: string;
+  }): Promise<Team> {
+    const prisma = await getPrismaClient();
+    
+    // Find or create UserProfile by userId for AI team
+    let userProfile = await prisma.userProfile.findUnique({
+      where: { userId: teamData.userId }
+    });
+    
+    if (!userProfile) {
+      console.log('🔧 Creating new AI UserProfile for userId:', teamData.userId);
+      // Create a new UserProfile for AI team
+      userProfile = await prisma.userProfile.create({
+        data: {
+          userId: teamData.userId,
+          ndaAccepted: true,
+          ndaAcceptedAt: new Date(),
+          ndaVersion: "1.0",
+          // AI profiles get minimal data
+          firstName: "AI",
+          lastName: "Team"
+        }
+      });
+      console.log('✅ AI UserProfile created with id:', userProfile.id);
+    }
+    
+    const newTeam = await prisma.team.create({
+      data: {
+        name: teamData.name,
+        userProfileId: userProfile.id,
+        division: teamData.division || 8,
+        subdivision: teamData.subdivision || "main",
+        camaraderie: 50.0,
+        fanLoyalty: 50.0,
+        isAI: true, // Mark as AI team
+      },
+      include: {
+        finances: true,
+        stadium: true,
+        players: true,
+        staff: true
+      }
+    });
+
+    // Create default finances and stadium for AI team
+    await this.createDefaultFinancesForTeam(newTeam.id);
+    await this.createDefaultStadiumForTeam(newTeam.id);
+
+    // AI teams don't get the 50,000 credit bonus
+    console.log(`✅ AI team created: ${newTeam.name}`);
 
     return newTeam;
   }

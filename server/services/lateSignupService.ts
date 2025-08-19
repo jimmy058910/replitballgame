@@ -239,10 +239,13 @@ export class LateSignupService {
       const uniqueTeamName = `${teamName} ${Math.floor(Math.random() * 900) + 100}`;
       
       try {
-        // Create AI team
-        const aiTeam = await storage.teams.createTeam({
+        // FIXED: Each AI team gets a unique userId to avoid constraint violations
+        const uniqueAIUserId = `ai_team_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+        
+        // Create AI team with unique userId and proper AI flag
+        const aiTeam = await storage.teams.createAITeam({
           name: uniqueTeamName,
-          userId: 'AI_USER_PROFILE', // Special AI user profile
+          userId: uniqueAIUserId,
           division: 8,
           subdivision: subdivisionName,
         });
@@ -250,9 +253,9 @@ export class LateSignupService {
         // Generate players for AI team
         await this.generateAIPlayersForTeam(aiTeam.id);
         
-        logInfo(`Created AI team: ${uniqueTeamName} in ${subdivisionName}`);
+        logInfo(`✅ Created AI team: ${uniqueTeamName} in ${subdivisionName}`);
       } catch (error) {
-        console.error(`Failed to create AI team ${uniqueTeamName}:`, error);
+        console.error(`❌ Failed to create AI team ${uniqueTeamName}:`, error);
       }
     }
   }

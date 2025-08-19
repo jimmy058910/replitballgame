@@ -10,8 +10,17 @@ async function main() {
   
   const prisma = await getPrismaClient();
   
-  // Find all teams
+  // Find all teams with user profile information for proper classification
   const teams = await prisma.team.findMany({
+    include: {
+      user: {
+        select: {
+          userId: true,
+          firstName: true,
+          lastName: true
+        }
+      }
+    },
     orderBy: [
       { division: 'asc' },
       { subdivision: 'asc' },
@@ -21,7 +30,10 @@ async function main() {
   
   console.log(`\n📊 Found ${teams.length} teams:`);
   teams.forEach(team => {
-    console.log(`  - ${team.name} (Division ${team.division}, Subdivision: ${team.subdivision}, User: ${team.userId})`);
+    const userId = team.user?.userId || 'UNKNOWN';
+    const isAI = team.isAI || userId.startsWith('ai_');
+    const teamType = isAI ? 'AI' : 'Human';
+    console.log(`  - ${team.name} (Division ${team.division}, Subdivision: ${team.subdivision}, Type: ${teamType})`);
   });
   
   // Find Oakland Cougars
@@ -44,7 +56,11 @@ async function main() {
   
   console.log(`\n📋 Current teams in Division ${oaklandCougars.division}, Subdivision ${oaklandCougars.subdivision}:`);
   subdivisionTeams.forEach((team, index) => {
-    console.log(`  ${index + 1}. ${team.name} (User: ${team.userId || 'AI'})`);
+    const userId = team.user?.userId || 'UNKNOWN';
+    const isAI = team.isAI || userId.startsWith('ai_');
+    const teamType = isAI ? 'AI' : 'Human';
+    const userDisplay = isAI ? 'AI' : (team.user?.firstName + ' ' + team.user?.lastName) || userId;
+    console.log(`  ${index + 1}. ${team.name} (${teamType}: ${userDisplay})`);
   });
   
   console.log(`\nTeams in subdivision: ${subdivisionTeams.length}/8`);
@@ -62,18 +78,29 @@ async function main() {
     await LateSignupService.generateAITeamsForSubdivision(oaklandCougars.subdivision, aiTeamsToAdd);
     console.log('✅ AI teams added successfully!');
     
-    // Check final state
+    // Check final state with proper team classification
     const finalTeams = await prisma.team.findMany({
       where: {
         division: oaklandCougars.division,
         subdivision: oaklandCougars.subdivision
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true
+          }
+        }
       }
     });
     
     console.log(`\n🎉 Final subdivision roster (${finalTeams.length}/8 teams):`);
     finalTeams.forEach((team, index) => {
-      const isAI = !team.userId || team.userId.includes('ai_') || team.userId.includes('system_');
-      console.log(`  ${index + 1}. ${team.name} ${isAI ? '(AI)' : '(Human)'}`);
+      const userId = team.user?.userId || 'UNKNOWN';
+      const isAI = team.isAI || userId.startsWith('ai_');
+      const teamType = isAI ? '(AI)' : '(Human)';
+      console.log(`  ${index + 1}. ${team.name} ${teamType}`);
     });
     
   } catch (error) {
