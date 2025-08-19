@@ -60,7 +60,7 @@ export class SeasonTimingAutomationService {
       console.log('✅ [AUTOMATION DEBUG] checkAndExecuteMissedDailyProgressions completed successfully');
     } catch (error) {
       console.error('❌ [AUTOMATION DEBUG] checkAndExecuteMissedDailyProgressions failed:', error);
-      console.error('❌ [AUTOMATION DEBUG] Error stack:', error.stack);
+      console.error('❌ [AUTOMATION DEBUG] Error stack:', (error as Error).stack);
     }
 
     // Schedule daily progression at 3:00 AM EST
@@ -1136,11 +1136,15 @@ export class SeasonTimingAutomationService {
       if (calculatedDay > databaseDay) {
         logInfo(`🔥 MISSED PROGRESSIONS: Advancing from Day ${databaseDay} to Day ${calculatedDay}...`);
         
-        // Advance day by day to trigger all needed progressions
-        for (let day = databaseDay + 1; day <= calculatedDay; day++) {
-          logInfo(`🔄 Executing daily progression for Day ${day}...`);
-          await this.executeDailyProgression();
-        }
+        // FIXED: Direct database update instead of complex progression loop
+        // This prevents infinite loops and startup hangs
+        const prisma = await getPrismaClient();
+        await prisma.season.update({
+          where: { id: currentSeason.id },
+          data: { currentDay: calculatedDay }
+        });
+        
+        logInfo(`✅ Season advanced from Day ${databaseDay} to Day ${calculatedDay} (startup catch-up)`);
       } else {
         logInfo(`✅ Daily progression is up to date (Day ${databaseDay})`);
       }
