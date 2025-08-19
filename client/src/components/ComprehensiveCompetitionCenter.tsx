@@ -144,10 +144,25 @@ export default function ComprehensiveCompetitionCenter() {
   const [isScoutingModalOpen, setIsScoutingModalOpen] = useState(false);
 
   // Queries
-  const { data: team } = useQuery<Team>({
+  const { data: team, isLoading: teamLoading, error: teamError } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
     enabled: isAuthenticated,
   });
+
+  // Debug team loading
+  React.useEffect(() => {
+    console.log('🔍 [TEAM DEBUG] Team query state:', {
+      isAuthenticated,
+      teamLoading,
+      teamError: teamError?.message,
+      team: team ? {
+        id: team.id,
+        name: team.name,
+        division: team.division,
+        subdivision: team.subdivision
+      } : null
+    });
+  }, [isAuthenticated, teamLoading, teamError, team]);
 
   // Use players data from team query instead of separate API call
   const players = team?.players || [];
@@ -202,10 +217,40 @@ export default function ComprehensiveCompetitionCenter() {
     refetchInterval: 5 * 60 * 1000,
   });
 
-  const { data: divisionStandings } = useQuery<Team[]>({
+  const { data: divisionStandings, isLoading: standingsLoading, error: standingsError } = useQuery<Team[]>({
     queryKey: [`/api/leagues/${team?.division || 8}/standings`],
-    enabled: !!team?.division,
+    enabled: !!team?.division || !!team,  // Try enabling if team exists at all
   });
+
+  // Debug logging for standings issues
+  React.useEffect(() => {
+    console.log('🔍 [STANDINGS DEBUG] Component state:', {
+      teamExists: !!team,
+      teamDivision: team?.division,
+      teamId: team?.id,
+      teamName: team?.name,
+      queryEnabled: !!team?.division || !!team,
+      standingsData: divisionStandings,
+      standingsDataLength: divisionStandings?.length,
+      standingsLoading,
+      standingsError: standingsError?.message,
+      queryKey: `/api/leagues/${team?.division || 8}/standings`
+    });
+
+    if (standingsError) {
+      console.error('❌ [STANDINGS ERROR]:', standingsError);
+    }
+    
+    if (divisionStandings) {
+      console.log('✅ [STANDINGS SUCCESS]:', divisionStandings.map(t => ({ 
+        id: t.id, 
+        name: t.name, 
+        points: t.points,
+        wins: t.wins,
+        losses: t.losses 
+      })));
+    }
+  }, [team, divisionStandings, standingsLoading, standingsError]);
 
   const { data: globalRankings, isLoading: rankingsLoading, error: rankingsError } = useQuery<GlobalRanking[]>({
     queryKey: ['/api/world/global-rankings'],

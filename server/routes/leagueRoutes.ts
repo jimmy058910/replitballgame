@@ -40,6 +40,11 @@ async function createAITeamsForDivision(division: number) {
       profileImageUrl: null
     });
 
+    if (!aiUser) {
+      console.log(`❌ Failed to create AI user for division ${division}, team ${i}`);
+      continue;
+    }
+
     const team = await storage.teams.createTeam({ // Use teamStorage
       name: teamName,
       userId: aiUser.userId,
@@ -129,15 +134,22 @@ function calculateTeamPower(players: any[]): number {
 
 // League routes
 router.get('/:division/standings', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  console.log(`\n🏆 [STANDINGS API] ========== REQUEST RECEIVED ==========`);
+  console.log(`🔍 [STANDINGS API] Division: ${req.params.division}`);
+  console.log(`🔍 [STANDINGS API] User: ${req.user?.claims?.sub}`);
+  console.log(`🔍 [STANDINGS API] Headers: ${JSON.stringify(req.headers.authorization?.substring(0, 50))}`);
+  
   try {
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {
+      console.log(`❌ [STANDINGS API] Invalid division: ${req.params.division}`);
       return res.status(400).json({ message: "Invalid division parameter" });
     }
     
     // Get the user's team to determine their subdivision
     const userId = req.user?.claims?.sub;
     if (!userId) {
+      console.log(`❌ [STANDINGS API] No userId in token`);
       return res.status(401).json({ message: "Authentication required" });
     }
     
@@ -145,6 +157,15 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     
     let userTeam = await storage.teams.getTeamByUserId(userId);
     let userSubdivision = userTeam?.subdivision || 'alpha'; // Default to alpha for now
+    
+    console.log(`🔍 [STANDINGS API] User team found:`, {
+      teamFound: !!userTeam,
+      teamName: userTeam?.name,
+      teamId: userTeam?.id,
+      teamDivision: userTeam?.division,
+      teamSubdivision: userTeam?.subdivision,
+      defaultSubdivision: userSubdivision
+    });
     
     // FLEXIBLE USER MATCHING: If no team found, try to find any team in alpha subdivision
     // This handles authentication mismatches during development
@@ -257,9 +278,23 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       return aLosses - bLosses;
     });
 
+    console.log(`✅ [STANDINGS API] Returning enhanced standings:`, {
+      count: sortedTeams.length,
+      subdivision: userSubdivision,
+      teams: sortedTeams.map(t => ({ 
+        id: t.id, 
+        name: t.name, 
+        points: t.points, 
+        wins: t.wins, 
+        losses: t.losses,
+        subdivision: t.subdivision 
+      }))
+    });
+    console.log(`🏆 [STANDINGS API] ========== REQUEST COMPLETE ==========\n`);
     res.json(sortedTeams);
   } catch (error) {
-    console.error("Error fetching standings:", error);
+    console.error('❌ [STANDINGS API] ERROR:', error);
+    console.log(`💥 [STANDINGS API] ========== REQUEST FAILED ==========\n`);
     next(error);
   }
 });
@@ -432,6 +467,7 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     if (!req.user) {
       return res.status(401).json({ message: "Authentication required" });
     }
+    const prisma = await getPrismaClient();
     const userTeam = await prisma.team.findFirst({
       where: { userProfileId: req.user.claims.sub },
       select: { id: true, division: true, subdivision: true }
