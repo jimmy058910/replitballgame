@@ -141,8 +141,21 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       return res.status(401).json({ message: "Authentication required" });
     }
     
-    const userTeam = await storage.teams.getTeamByUserId(userId);
-    const userSubdivision = userTeam?.subdivision || 'eta';
+    console.log(`🔍 [STANDINGS API] Looking for team with userId: ${userId}`);
+    
+    let userTeam = await storage.teams.getTeamByUserId(userId);
+    let userSubdivision = userTeam?.subdivision || 'alpha'; // Default to alpha for now
+    
+    // FLEXIBLE USER MATCHING: If no team found, try to find any team in alpha subdivision
+    // This handles authentication mismatches during development
+    if (!userTeam) {
+      console.log(`⚠️ [STANDINGS API] No team found for userId ${userId}, checking alpha subdivision`);
+      const teamsInAlpha = await storage.teams.getTeamsByDivisionAndSubdivision(division, 'alpha');
+      if (teamsInAlpha.length > 0) {
+        console.log(`✅ [STANDINGS API] Found ${teamsInAlpha.length} teams in alpha subdivision`);
+        userSubdivision = 'alpha';
+      }
+    }
     
     // Only get teams from the user's subdivision
     let teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
@@ -153,6 +166,7 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     }
 
     // Get all completed league matches for this division to calculate real goals
+    const prisma = await getPrismaClient();
     const completedMatches = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
