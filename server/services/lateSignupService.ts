@@ -1,4 +1,4 @@
-import { getPrismaClient } from '../db';
+import { getPrismaClient } from '../database.js';
 import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { Race, PlayerRole } from "@prisma/client";
@@ -115,6 +115,7 @@ export class LateSignupService {
    * Get all existing late signup subdivisions
    */
   private static async getExistingLateSignupSubdivisions(): Promise<Array<{ subdivision: string; teamCount: number }>> {
+    const prisma = await getPrismaClient();
     const subdivisions = await prisma.team.findMany({
       where: {
         division: 8,
@@ -406,6 +407,7 @@ export class LateSignupService {
     const leagueId = `late-${subdivision}-${seasonNumber}`;
     
     // Check if league already exists
+    const prisma = await getPrismaClient();
     const existingLeague = await prisma.league.findUnique({
       where: { id: parseInt(leagueId, 10) }
     });
@@ -451,6 +453,7 @@ export class LateSignupService {
     startDay: number,
     remainingDays: number
   ): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const matches: any[] = [];
     const numTeams = teams.length;
     
@@ -554,6 +557,7 @@ export class LateSignupService {
     const isLateSignupWindow = await this.isLateSignupWindow();
     
     // Get all late signup subdivisions
+    const prisma = await getPrismaClient();
     const lateSignupSubdivisions = await prisma.team.findMany({
       where: {
         division: 8,
