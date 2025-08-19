@@ -517,22 +517,33 @@ async function startServer() {
       try {
         console.log('🔍 [CRITICAL API] /api/leagues/8/standings called directly!');
         
-        // Return proper Team structure that matches LeagueStandings component expectations
-        res.json([
-          {
-            id: "4",  // Component expects string ID
-            name: "Oakland Cougars", 
-            wins: 0,
-            losses: 0,
-            draws: 0,  // Component expects draws, not ties
-            points: 0,
-            played: 0,  // Component expects played, not gamesPlayed
-            scoreDifference: 0,  // Required for score difference display (not goals!)
-            streakType: 'N',  // W/L/N for streak display
-            currentStreak: 0,
-            form: 'N/A'  // Form string for last 5 games
-          }
-        ]);
+        // Get all teams in Division 8 from the database
+        const allTeams = await apiStorage.teams.getTeamsByDivision(8);
+        console.log(`✅ Found ${allTeams.length} teams in Division 8`);
+        
+        // Convert to standings format that matches LeagueStandings component expectations
+        const standings = allTeams.map(team => ({
+          id: String(team.id),  // Component expects string ID
+          name: team.name, 
+          wins: team.wins || 0,
+          losses: team.losses || 0,
+          draws: 0,  // Component expects draws (ties)
+          points: team.points || 0,
+          played: (team.wins || 0) + (team.losses || 0), // Total games played
+          scoreDifference: 0,  // Required for score difference display (not goals!)
+          streakType: 'N',  // W/L/N for streak display
+          currentStreak: 0,
+          form: 'N/A'  // Form string for last 5 games
+        }));
+        
+        // Sort by points descending, then by score difference
+        standings.sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          return b.scoreDifference - a.scoreDifference;
+        });
+        
+        console.log(`✅ Returning standings for ${standings.length} teams:`, standings.map(t => t.name));
+        res.json(standings);
       } catch (error) {
         console.error('❌ Error in critical /api/leagues/8/standings:', error);
         res.status(500).json({ error: 'Internal server error' });
