@@ -160,6 +160,13 @@ router.get('/current-cycle', requireAuth, async (req: Request, res: Response, ne
       countdownText = daysUntilNewSeason > 0 ? `New Season Begins In: ${daysUntilNewSeason} Days` : "New Season Begins Tomorrow at 3 AM";
     }
 
+    console.log('🔍 [SEASON ROUTES] About to return response:', {
+      currentDay: currentDayInCycle,
+      seasonNumber,
+      phase,
+      source: 'seasonRoutes.ts'
+    });
+
     res.json({
       season: `Season ${seasonNumber}`,
       seasonNumber,
@@ -174,7 +181,10 @@ router.get('/current-cycle', requireAuth, async (req: Request, res: Response, ne
       seasonYear: seasonNumber,
       seasonStatus: "active",
       // Legacy fields for backward compatibility
-      details: dynamicDetail
+      details: dynamicDetail,
+      // DEBUG MARKER to confirm this endpoint is being called
+      debugSource: "seasonRoutes.ts-current-cycle",
+      debugTimestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error("Error fetching current season cycle:", error);

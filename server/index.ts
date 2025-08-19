@@ -499,14 +499,35 @@ async function startServer() {
 
     // Season API
     const seasonRouter = Router2();
-    seasonRouter.get('/current-cycle', (req, res) => {
+    seasonRouter.get('/current-cycle', async (req, res) => {
       console.log('🔍 [API CALL] /api/season/current-cycle route called!');
-      res.json({
-        currentDay: 1,
-        seasonNumber: 1,
-        phase: "REGULAR_SEASON",
-        dayName: "Day 1"
-      });
+      try {
+        // Get actual season data from database
+        const { seasonStorage } = await import('./storage/seasonStorage.js');
+        const currentSeason = await seasonStorage.getCurrentSeason();
+        
+        console.log('🔍 [HARDCODED SEASON ROUTE] Database season:', { 
+          currentDay: currentSeason?.currentDay, 
+          seasonNumber: currentSeason?.seasonNumber,
+          phase: currentSeason?.phase 
+        });
+        
+        res.json({
+          currentDay: currentSeason?.currentDay || 1,
+          seasonNumber: currentSeason?.seasonNumber || 1,
+          phase: currentSeason?.phase || "REGULAR_SEASON",
+          dayName: `Day ${currentSeason?.currentDay || 1}`
+        });
+      } catch (error) {
+        console.error('🚨 [HARDCODED SEASON ROUTE] Error getting season data:', error);
+        // Fallback to hardcoded values if database fails
+        res.json({
+          currentDay: 1,
+          seasonNumber: 1,
+          phase: "REGULAR_SEASON",
+          dayName: "Day 1"
+        });
+      }
     });
     app.use('/api/season', seasonRouter);
 
