@@ -20,9 +20,7 @@ interface Team {
   currentStreak: number;
   streakType: string;
   form: string;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
+  scoreDifference: number;
   played: number;
 }
 
@@ -127,10 +125,10 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                         <td className="text-center py-2 text-yellow-400">{team.draws ?? 0}</td>
                         <td className="text-center py-2 text-red-400">{team.losses}</td>
                         <td className={`text-center py-2 font-medium ${
-                          team.goalDifference > 0 ? "text-green-400" :
-                          team.goalDifference < 0 ? "text-red-400" : "text-gray-400"
+                          team.scoreDifference > 0 ? "text-green-400" :
+                          team.scoreDifference < 0 ? "text-red-400" : "text-gray-400"
                         }`}>
-                          {team.goalDifference > 0 ? '+' : ''}{team.goalDifference}
+                          {team.scoreDifference > 0 ? '+' : ''}{team.scoreDifference}
                         </td>
                         <td className="text-center py-2 font-bold text-white">{team.points}</td>
                         <td className="text-center py-2">

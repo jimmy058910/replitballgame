@@ -527,7 +527,7 @@ async function startServer() {
             draws: 0,  // Component expects draws, not ties
             points: 0,
             played: 0,  // Component expects played, not gamesPlayed
-            goalDifference: 0,  // Required for score difference display
+            scoreDifference: 0,  // Required for score difference display (not goals!)
             streakType: 'N',  // W/L/N for streak display
             currentStreak: 0,
             form: 'N/A'  // Form string for last 5 games
