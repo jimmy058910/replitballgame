@@ -457,34 +457,13 @@ async function startServer() {
       }
     });
 
-    // Import and use the proper team routes from teamRoutes.ts
-    const teamRoutes = await import('./routes/teamRoutes.js');
-    app.use('/api/teams', teamRoutes.default);
-
-    // Add other critical API routes
-    const { Router: Router2 } = await import("express");
+    // CRITICAL FIX: Replace old stub routes with comprehensive route system
+    console.log('🔧 Importing comprehensive route registration system...');
+    const { registerAllRoutes } = await import('./routes/index.js');
     
-    // Exhibitions API
-    const exhibitionRouter = Router2();
-    exhibitionRouter.get('/stats', (req, res) => {
-      console.log('🔍 [API CALL] /api/exhibitions/stats route called!');
-      res.json({
-        gamesPlayed: 0,
-        wins: 0,
-        losses: 0,
-        winPercentage: 0,
-        averageScore: 0
-      });
-    });
-    app.use('/api/exhibitions', exhibitionRouter);
-
-    // Matches API
-    const matchRouter = Router2();
-    matchRouter.get('/live', (req, res) => {
-      console.log('🔍 [API CALL] /api/matches/live route called!');
-      res.json([]);
-    });
-    app.use('/api/matches', matchRouter);
+    console.log('🔧 Registering ALL API routes comprehensively...');
+    await registerAllRoutes(app);
+    console.log('✅ ALL comprehensive API routes registered successfully!');
 
     // Camaraderie API
     const camaraderieRouter = Router2();

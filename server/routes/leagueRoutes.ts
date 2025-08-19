@@ -347,6 +347,11 @@ router.post('/create-ai-teams', requireAuth, async (req: Request, res: Response,
 
       // AI user created successfully
 
+      if (!aiUser) {
+        console.log(`❌ Failed to create AI user for team ${i}`);
+        continue;
+      }
+      
       const team = await storage.teams.createTeam({ // Use teamStorage
         name: teamName,
         userId: aiUser.userId,
@@ -736,6 +741,11 @@ router.post('/create-additional-teams', requireAuth, async (req: Request, res: R
         lastName: "Team",
       });
       
+      if (!aiUser) {
+        console.log(`❌ Failed to create AI user for ${teamName}`);
+        continue;
+      }
+      
       const newTeam = await storage.teams.createTeam({
         userId: aiUser.userId,
         name: teamName,
@@ -782,6 +792,7 @@ router.get('/:division/schedule', requireAuth, async (req: Request, res: Respons
     const teamIds = teamsInDivision.map((team: any) => team.id);
 
     // Get all league matches involving teams in this division
+    const prisma = await getPrismaClient();
     const matches = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
