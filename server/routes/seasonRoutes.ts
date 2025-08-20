@@ -3,6 +3,11 @@ import { storage } from '../storage/index.js'; // Adjusted path
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod"; // For validation
 
+// Import asyncHandler for error handling
+const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 const router = Router();
 
 // Import timezone utilities for current cycle calculation

@@ -494,53 +494,74 @@ async function startServer() {
       }
     });
     
-    // CRITICAL: /api/season/current-cycle route
+    // REMOVED: Hardcoded /api/season/current-cycle route - using comprehensive system instead
+    // This was hardcoded to always return Day 4, preventing proper season data updates
+    
+    // REMOVED: Duplicate /api/leagues/8/standings route - using comprehensive system instead
+    
+    // CRITICAL: Add season current-cycle route BEFORE Vite to prevent HTML interception
     app.get('/api/season/current-cycle', async (req: any, res: any) => {
       try {
-        console.log('🔍 [CRITICAL API] /api/season/current-cycle called directly!');
+        console.log('🔍 [CRITICAL SEASON API] /api/season/current-cycle called BEFORE Vite!');
+        
+        const season = await storage.seasons.getCurrentSeason();
+        if (!season) {
+          return res.status(404).json({ 
+            error: 'No active season found',
+            currentDay: 1,
+            seasonNumber: 1,
+            phase: 'PRE_SEASON'
+          });
+        }
         
         res.json({
-          currentDay: 4,
-          seasonNumber: 1,
-          phase: "REGULAR_SEASON",
-          daysRemaining: 13,
-          message: "Season 1, Day 4"
+          currentDay: season.currentDay,
+          seasonNumber: season.seasonNumber,
+          phase: season.phase,
+          daysRemaining: 17 - season.currentDay,
+          message: `Season ${season.seasonNumber}, Day ${season.currentDay}`,
+          description: season.phase === 'REGULAR_SEASON' ? 'Regular season is active. Focus on league matches and player development.' : 'Season phase: ' + season.phase,
+          details: `Day ${season.currentDay} of 17 in Season ${season.seasonNumber}`
         });
       } catch (error) {
-        console.error('❌ Error in critical /api/season/current-cycle:', error);
+        console.error('❌ Error in critical season API:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    });
+
+    app.get('/api/seasons/current-cycle', async (req: any, res: any) => {
+      try {
+        console.log('🔍 [CRITICAL SEASON API] /api/seasons/current-cycle called BEFORE Vite!');
+        
+        const season = await storage.seasons.getCurrentSeason();
+        if (!season) {
+          return res.status(404).json({ 
+            error: 'No active season found',
+            currentDay: 1,
+            seasonNumber: 1,
+            phase: 'PRE_SEASON'
+          });
+        }
+        
+        res.json({
+          currentDay: season.currentDay,
+          seasonNumber: season.seasonNumber,
+          phase: season.phase,
+          daysRemaining: 17 - season.currentDay,
+          message: `Season ${season.seasonNumber}, Day ${season.currentDay}`,
+          description: season.phase === 'REGULAR_SEASON' ? 'Regular season is active. Focus on league matches and player development.' : 'Season phase: ' + season.phase,
+          details: `Day ${season.currentDay} of 17 in Season ${season.seasonNumber}`
+        });
+      } catch (error) {
+        console.error('❌ Error in critical season API:', error);
         res.status(500).json({ error: 'Internal server error' });
       }
     });
     
-    // REMOVED: Duplicate /api/leagues/8/standings route - using comprehensive system instead
+    console.log('✅ Critical API routes (including season) registered BEFORE Vite setup!');
     
-    console.log('✅ Critical API routes registered BEFORE Vite setup!');
-    
-    // SECONDARY: Register comprehensive route system for other endpoints
-    console.log('🔧 Importing comprehensive route registration system...');
-    const { registerAllRoutes } = await import('./routes/index.js');
-    
-    console.log('🔧 Registering remaining API routes comprehensively...');
-    await registerAllRoutes(app);
-    console.log('✅ ALL comprehensive API routes registered successfully!');
-
-    // CRITICAL: Remove all old stub routes - they override the comprehensive system
-    console.log('🧹 All old stub routes removed - using comprehensive system ONLY');
-
-    // CRITICAL FIX: NO MORE ROUTES AFTER THIS POINT - Setup Vite next
-    console.log('✅ ALL comprehensive API routes registered successfully!');
-    console.log('🚫 NO additional routes will be registered - preventing Vite conflicts');
-
-    // REMOVED: Duplicate Vite setup - using single setup later in the process
-
-    // CRITICAL FIX: Remove API protection middleware that interferes with Vite
-    // (Removed to prevent Content-Type conflicts)
-    
-    console.log('✅ Comprehensive API routes → Vite setup sequence completed');
-
-    // CRITICAL: Error handler MUST be last in middleware chain
-    app.use(errorHandler);
-    console.log('✅ Error handler added as final middleware');
+    // MOVED: Comprehensive route registration will happen AFTER Vite setup
+    console.log('📝 Comprehensive API routes will be registered after Vite middleware');
 
     // CRITICAL CLOUD RUN FIX: MUST use PORT environment variable set by Cloud Run
     app.get('/api/fix-dev-user', async (req, res) => {
@@ -902,16 +923,15 @@ async function startServer() {
       console.log('🏭 Production mode: Frontend serving will be configured after port binding');
     }
 
-    // CRITICAL FIX: API protection middleware - should NOT interfere with Vite
-    app.use('/api/*', (req, res, next) => {
-      // Set proper content type for API responses
-      res.setHeader('Content-Type', 'application/json');
-      next();
-    });
+    // CRITICAL: Now register comprehensive API routes AFTER Vite setup
+    console.log('🔧 Importing comprehensive route registration system after Vite...');
+    const { registerAllRoutes } = await import('./routes/index.js');
     
-    console.log('🧪 API route protection added after Vite setup');
+    console.log('🔧 Registering API routes AFTER Vite middleware...');
+    await registerAllRoutes(app);
+    console.log('✅ ALL comprehensive API routes registered AFTER Vite!');
 
-    // CRITICAL: Error handler MUST be last in middleware chain
+    // CRITICAL: Error handler MUST be last in middleware chain (moved to end)
     app.use(errorHandler);
     console.log('✅ Error handler added as final middleware');
 
