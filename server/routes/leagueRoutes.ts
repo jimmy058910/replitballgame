@@ -550,20 +550,24 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
 
     const scheduleByDay: { [key: number]: any[] } = {};
 
+    // For late signup teams, we need to map the actual game dates to days 5-14
+    // Based on the database, games run from Aug 24 - Sep 2 (10 days)
+    // These should be mapped to Days 5-14 of the schedule
     for (let day = 1; day <= 14; day++) {
       const dayMatches = allMatches.filter((match: any) => {
         if (match.gameDate) {
-          // Use simple UTC date comparison for day calculation
           const gameDate = new Date(match.gameDate);
           const gameDateUTC = new Date(gameDate.getFullYear(), gameDate.getMonth(), gameDate.getDate());
-          const seasonStart = new Date("2025-07-13");
-          const seasonStartUTC = new Date(seasonStart.getFullYear(), seasonStart.getMonth(), seasonStart.getDate());
-          const daysDiff = Math.floor((gameDateUTC.getTime() - seasonStartUTC.getTime()) / (1000 * 60 * 60 * 24));
-          const gameDayInCycle = (daysDiff % 17) + 1;
           
-
+          // Late signup schedule: Aug 24 = Day 5, Aug 25 = Day 6, ... Sep 2 = Day 14
+          const scheduleStart = new Date("2025-08-24"); // First game day for late signup
+          const scheduleStartUTC = new Date(scheduleStart.getFullYear(), scheduleStart.getMonth(), scheduleStart.getDate());
+          const daysDiff = Math.floor((gameDateUTC.getTime() - scheduleStartUTC.getTime()) / (1000 * 60 * 60 * 24));
+          const gameDayInSchedule = daysDiff + 5; // Map to Days 5-14
           
-          return gameDayInCycle === day;
+          console.log(`🎯 [SCHEDULE] Game ${match.id} on ${gameDate.toDateString()} = Day ${gameDayInSchedule}`);
+          
+          return gameDayInSchedule === day;
         }
         return false;
       });
