@@ -26,7 +26,7 @@ export interface SeasonalData {
 
 export function useSeasonalUI() {
   const { data: seasonalData } = useQuery<SeasonalData>({
-    queryKey: ["/api/season/current-cycle"],
+    queryKey: ["/api/seasons/current-cycle"],
     refetchInterval: 60000, // Refresh every minute
   });
 

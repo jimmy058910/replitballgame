@@ -540,4 +540,103 @@ router.post('/daily-progression', requireAuth, async (req: Request, res: Respons
   }
 });
 
+/**
+ * EMERGENCY ENDPOINT: Fix Oakland Cougars Schedule
+ * Moves games from Days 9-18 to Days 5-14 for late signup requirements
+ */
+router.post('/fix-oakland-schedule', asyncHandler(async (req: Request, res: Response) => {
+  try {
+    console.log('🚨 EMERGENCY: Fixing Oakland Cougars schedule - moving from Days 9-18 to Days 5-14');
+    
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Find Oakland Cougars team
+    const oaklandCougars = await prisma.team.findFirst({
+      where: { name: 'Oakland Cougars' }
+    });
+    
+    if (!oaklandCougars) {
+      return res.status(404).json({
+        success: false,
+        error: 'Oakland Cougars team not found'
+      });
+    }
+    
+    // Find all Oakland Cougars games
+    const cougarsGames = await prisma.game.findMany({
+      where: {
+        OR: [
+          { homeTeamId: oaklandCougars.id },
+          { awayTeamId: oaklandCougars.id }
+        ],
+        matchType: 'LEAGUE'
+      },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    
+    if (cougarsGames.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No Oakland Cougars games found'
+      });
+    }
+    
+    console.log(`📊 Found ${cougarsGames.length} Oakland Cougars games to fix`);
+    
+    // Calculate season start for day calculations
+    const seasonStart = new Date('2025-08-16T15:40:19.081Z');
+    
+    // Move games 4 days earlier
+    const updates = [];
+    for (const game of cougarsGames) {
+      const currentDate = new Date(game.gameDate);
+      const newDate = new Date(currentDate);
+      newDate.setDate(currentDate.getDate() - 4); // Move 4 days earlier
+      
+      const daysDiff = Math.floor((newDate - seasonStart) / (1000 * 60 * 60 * 24));
+      const newGameDay = daysDiff + 1;
+      
+      await prisma.game.update({
+        where: { id: game.id },
+        data: { gameDate: newDate }
+      });
+      
+      updates.push({
+        match: `${game.homeTeam.name} vs ${game.awayTeam.name}`,
+        oldDate: currentDate.toISOString().split('T')[0],
+        newDate: newDate.toISOString().split('T')[0],
+        newGameDay: newGameDay
+      });
+      
+      console.log(`✅ Updated: ${game.homeTeam.name} vs ${game.awayTeam.name} -> Day ${newGameDay} (${newDate.toISOString().split('T')[0]})`);
+    }
+    
+    console.log(`🎉 SUCCESS: Fixed ${updates.length} Oakland Cougars games!`);
+    
+    res.json({
+      success: true,
+      message: `Fixed ${updates.length} Oakland Cougars games`,
+      data: {
+        teamId: oaklandCougars.id,
+        teamName: oaklandCougars.name,
+        gamesUpdated: updates.length,
+        newScheduleRange: 'Days 5-14 (Aug 20-29)',
+        updates: updates
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fixing Oakland Cougars schedule:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+}));
+
 export default router;
