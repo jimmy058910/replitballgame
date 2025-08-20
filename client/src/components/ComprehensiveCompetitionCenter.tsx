@@ -577,7 +577,7 @@ export default function ComprehensiveCompetitionCenter() {
                   Division {team?.division || 8} - {team?.subdivision ? team.subdivision.charAt(0).toUpperCase() + team.subdivision.slice(1) : 'Eta'}
                 </Badge>
                 <Badge className="bg-yellow-600 text-yellow-100 px-2 py-1">
-                  Season 0 • Day {seasonData?.currentDay || 10}/17
+                  Season {seasonData?.seasonNumber || 1} • Day {seasonData?.currentDay || 4}/17
                 </Badge>
               </div>
             </div>
