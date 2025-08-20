@@ -24,6 +24,123 @@ import gameConfig from "../config/game_config.json" with { type: "json" };
 
 const router = Router();
 
+/**
+ * Generate late signup schedule for Division 8 teams - Days 6-14 only
+ */
+async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: number, currentSeason: any): Promise<any> {
+  console.log('🎯 [LATE SIGNUP SCHEDULE] Generating for team:', userTeam.name, 'in subdivision:', userTeam.subdivision);
+  
+  // Get all matches for the user's Division 8 subdivision
+  const prisma = await getPrismaClient();
+  const subdivisionTeams = await prisma.team.findMany({
+    where: { 
+      division: 8,
+      subdivision: userTeam.subdivision 
+    },
+    select: { id: true, name: true }
+  });
+  
+  const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
+  
+  // Get matches only for Days 6-14 (late signup period)
+  const matches = await prisma.game.findMany({
+    where: {
+      matchType: 'LEAGUE',
+      OR: [
+        { homeTeamId: { in: subdivisionTeamIds } },
+        { awayTeamId: { in: subdivisionTeamIds } }
+      ],
+      // Filter by date range - Days 6-14 
+      gameDate: {
+        gte: getDateForDay(currentSeason, 6), // Start Day 6
+        lte: getDateForDay(currentSeason, 14) // End Day 14
+      }
+    },
+    include: {
+      homeTeam: { select: { id: true, name: true } },
+      awayTeam: { select: { id: true, name: true } }
+    },
+    orderBy: { gameDate: 'asc' }
+  });
+  
+  console.log('🎯 [LATE SIGNUP SCHEDULE] Found', matches.length, 'matches for Days 6-14');
+  
+  // Group matches by day
+  const schedule: any = {};
+  const startDate = currentSeason.startDate || new Date('2025-08-16');
+  
+  // Initialize all days 6-14
+  for (let day = 6; day <= 14; day++) {
+    schedule[day] = [];
+  }
+  
+  // Process matches and assign to correct days
+  matches.forEach(match => {
+    const daysSinceStart = Math.floor((match.gameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const dayNumber = daysSinceStart + 1;
+    
+    // Only include Days 6-14
+    if (dayNumber >= 6 && dayNumber <= 14) {
+      const formattedMatch = {
+        id: match.id,
+        homeTeamId: match.homeTeamId,
+        awayTeamId: match.awayTeamId,
+        homeTeamName: match.homeTeam.name,
+        awayTeamName: match.awayTeam.name,
+        gameDate: match.gameDate,
+        scheduledTime: match.gameDate.toISOString(),
+        scheduledTimeFormatted: formatGameTime(match.gameDate),
+        matchType: match.matchType,
+        status: match.status || 'SCHEDULED',
+        simulated: match.simulated || false,
+        homeScore: match.homeScore || 0,
+        awayScore: match.awayScore || 0
+      };
+      
+      if (!schedule[dayNumber]) {
+        schedule[dayNumber] = [];
+      }
+      schedule[dayNumber].push(formattedMatch);
+    }
+  });
+  
+  console.log('🎯 [LATE SIGNUP SCHEDULE] Schedule organized by days:', Object.keys(schedule).map(day => `Day ${day}: ${schedule[day].length} games`).join(', '));
+  
+  return {
+    schedule,
+    currentDay,
+    totalDays: 17,
+    lateSignup: true,
+    gameRange: 'Days 6-14 (Late Signup)',
+    message: `Late signup schedule - ${Object.values(schedule).flat().length} total games from Days 6-14`
+  };
+}
+
+/**
+ * Get date for a specific day in the season
+ */
+function getDateForDay(season: any, dayNumber: number): Date {
+  const startDate = season.startDate || new Date('2025-08-16');
+  const targetDate = new Date(startDate);
+  targetDate.setDate(targetDate.getDate() + (dayNumber - 1));
+  return targetDate;
+}
+
+/**
+ * Format game time to Eastern Time
+ */
+function formatGameTime(date: Date): string {
+  return date.toLocaleString('en-US', {
+    timeZone: 'America/New_York',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
 // TODO: Move to AiTeamService
 async function createAITeamsForDivision(division: number) {
   const aiTeamNames = gameConfig.aiTeamNames;
@@ -495,6 +612,25 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam) {
       return res.json({ schedule: {}, totalDays: 17, currentDay: null, message: "No team found." });
+    }
+
+    // CRITICAL FIX: Check if user is in Division 8 (late signup division)
+    if (userTeam.division === 8) {
+      console.log('🎯 [LATE SIGNUP] User team is in Division 8 - generating shortened schedule for Days 6-14');
+      
+      // Import late signup service
+      const { LateSignupService } = await import('../services/lateSignupService.js');
+      
+      // Generate/get late signup schedule for Days 6-14
+      const lateSignupSchedule = await generateLateSignupScheduleForTeam(userTeam, currentDayInCycle, currentSeason);
+      
+      console.log('✅ [LATE SIGNUP] Generated schedule:', { 
+        totalGames: Object.values(lateSignupSchedule.schedule).flat().length,
+        dayRange: Object.keys(lateSignupSchedule.schedule).join('-'),
+        currentDay: currentDayInCycle 
+      });
+      
+      return res.json(lateSignupSchedule);
     }
 
     // Get all matches for the user's division and subdivision
