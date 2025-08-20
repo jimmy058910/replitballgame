@@ -60,6 +60,10 @@ type Team = {
   goalsAgainst?: number;
   goalDifference?: number;
   gamesPlayed?: number;
+  played?: number;
+  totalScores?: number; // TS - Total Scores For
+  scoresAgainst?: number; // SA - Scores Against  
+  scoreDifference?: number; // SD - Score Difference
   players?: any[];
 };
 
@@ -247,8 +251,12 @@ export default function ComprehensiveCompetitionCenter() {
         name: t.name, 
         points: t.points,
         wins: t.wins,
-        losses: t.losses 
+        losses: t.losses,
+        totalScores: t.totalScores,
+        scoresAgainst: t.scoresAgainst, 
+        scoreDifference: t.scoreDifference
       })));
+      console.log('🔍 [FULL STANDINGS DATA]:', divisionStandings[0]);
     }
   }, [team, divisionStandings, standingsLoading, standingsError]);
 
@@ -776,9 +784,9 @@ export default function ComprehensiveCompetitionCenter() {
                             <tbody>
                               {divisionStandings.map((standingTeam, index) => {
                                 const gamesPlayed = (standingTeam.wins || 0) + (standingTeam.losses || 0) + (standingTeam.draws || 0);
-                                const totalScores = standingTeam.goalsFor || 0;
-                                const scoresAgainst = standingTeam.goalsAgainst || 0;
-                                const scoreDifference = totalScores - scoresAgainst;
+                                const totalScores = standingTeam.totalScores || 0;
+                                const scoresAgainst = standingTeam.scoresAgainst || 0;
+                                const scoreDifference = standingTeam.scoreDifference || (totalScores - scoresAgainst);
                                 const isUser = standingTeam.id === team?.id;
                                 const isPromotion = index < 2;
                                 const isRelegation = index >= divisionStandings.length - 2;
