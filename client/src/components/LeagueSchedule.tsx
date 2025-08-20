@@ -31,8 +31,8 @@ interface DailySchedule {
 export default function LeagueSchedule() {
   const { data: schedule, isLoading, error } = useQuery<DailySchedule>({
     queryKey: ["/api/leagues/daily-schedule"],
-    refetchInterval: 5 * 60 * 1000, // Update every 5 minutes instead of 30 seconds
-    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    refetchInterval: 10 * 1000, // Update every 10 seconds for immediate testing
+    staleTime: 0, // Force fresh data every time
     enabled: true,
   });
 
@@ -104,7 +104,7 @@ export default function LeagueSchedule() {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'America/Detroit',
+      timeZone: 'America/New_York', // Fixed: Use proper EDT timezone
       timeZoneName: 'short'
     });
   };
