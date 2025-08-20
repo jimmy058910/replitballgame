@@ -53,7 +53,7 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
       // Filter by date range - Days 6-14 
       gameDate: {
         gte: getDateForDay(currentSeason, 6), // Start Day 6
-        lte: getDateForDay(currentSeason, 14) // End Day 14
+        lt: getDateForDay(currentSeason, 15) // Include all of Day 14 (less than Day 15)
       }
     },
     include: {
@@ -131,24 +131,36 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
     
     console.log('✅ [FORCE REGENERATION] Schedule regenerated - fetching updated games...');
     
-    // Fetch the newly generated games
-    const regeneratedMatches = await prisma.game.findMany({
+    // Fetch ALL games for this subdivision and filter in JavaScript to ensure Day 14 games are included
+    const allSubdivisionMatches = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
         OR: [
           { homeTeamId: { in: subdivisionTeamIds } },
           { awayTeamId: { in: subdivisionTeamIds } }
-        ],
-        gameDate: {
-          gte: getDateForDay(currentSeason, 6),
-          lte: getDateForDay(currentSeason, 14)
-        }
+        ]
       },
       include: {
         homeTeam: { select: { id: true, name: true } },
         awayTeam: { select: { id: true, name: true } }
       },
       orderBy: { gameDate: 'asc' }
+    });
+    
+    console.log(`🔍 [ALL GAMES DEBUG] Found ${allSubdivisionMatches.length} total subdivision games`);
+    
+    // Filter for Days 6-14 in JavaScript to ensure Day 14 games are included
+    const regeneratedMatches = allSubdivisionMatches.filter(match => {
+      const baseDate = new Date('2025-08-16T00:00:00.000Z'); // Day 1
+      const daysSinceStart = Math.floor((match.gameDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
+      const dayNumber = daysSinceStart + 1;
+      const isInRange = dayNumber >= 6 && dayNumber <= 14;
+      
+      if (isInRange) {
+        console.log(`🔍 [FILTER DEBUG] Game ${match.id}: gameDate=${match.gameDate.toISOString()}, dayNumber=${dayNumber} - INCLUDED`);
+      }
+      
+      return isInRange;
     });
     
     // Rebuild schedule with regenerated games
@@ -160,6 +172,8 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
     regeneratedMatches.forEach(match => {
       const daysSinceStart = Math.floor((match.gameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       const dayNumber = daysSinceStart + 1;
+      
+      console.log(`🔍 [DEBUG] Game ${match.id}: gameDate=${match.gameDate.toISOString()}, startDate=${startDate.toISOString()}, daysSinceStart=${daysSinceStart}, dayNumber=${dayNumber}`);
       
       if (dayNumber >= 6 && dayNumber <= 14) {
         const formattedMatch = {
@@ -208,23 +222,22 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
 }
 
 /**
- * Get date for a specific day in the season
+ * Get date for a specific day in the season - FIXED to return midnight dates
  */
 function getDateForDay(season: any, dayNumber: number): Date {
-  const startDate = season.startDate || new Date('2025-08-16');
-  const targetDate = new Date(startDate);
+  // Ensure we start with a clean midnight date
+  const baseDate = new Date('2025-08-16T00:00:00.000Z'); // Day 1 at midnight UTC
+  const targetDate = new Date(baseDate);
   targetDate.setDate(targetDate.getDate() + (dayNumber - 1));
   return targetDate;
 }
 
 /**
- * Format game time to Eastern Time - FIXED for EDT/EST conversion
+ * Format game time to Eastern Time - CORRECTED for proper UTC to EDT conversion
  */
 function formatGameTime(date: Date): string {
-  // Create a new date in Eastern Time
-  const easternTime = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
-  
-  return easternTime.toLocaleString('en-US', {
+  // Direct conversion from UTC to Eastern Time
+  return date.toLocaleString('en-US', {
     timeZone: 'America/New_York',
     weekday: 'short',
     month: 'short',

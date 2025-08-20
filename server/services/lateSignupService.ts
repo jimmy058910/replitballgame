@@ -481,12 +481,16 @@ export class LateSignupService {
       
       logInfo(`🎲 MATCH CREATION DEBUG Day ${actualGameDay} (index ${dayIndex}): gameDate=${gameDate.toISOString()}`);
       
-      // Fixed time slots within 4PM-10PM EDT window: 4:00, 4:15, 4:30, 4:45 PM EDT
+      if (actualGameDay === 14) {
+        logInfo(`🔥 DAY 14 DEBUG: Creating games for ${gameDate.toISOString()}, expected Day 14 date should be 2025-08-29T00:00:00.000Z`);
+      }
+      
+      // Fixed time slots for 4:00-4:45 PM EDT (stored as 20:00-20:45 UTC)
       const timeSlots = [
-        { hour: 16, minute: 0 },   // 4:00 PM EDT
-        { hour: 16, minute: 15 },  // 4:15 PM EDT  
-        { hour: 16, minute: 30 },  // 4:30 PM EDT
-        { hour: 16, minute: 45 }   // 4:45 PM EDT
+        { hour: 20, minute: 0 },   // 4:00 PM EDT (20:00 UTC)
+        { hour: 20, minute: 15 },  // 4:15 PM EDT (20:15 UTC)  
+        { hour: 20, minute: 30 },  // 4:30 PM EDT (20:30 UTC)
+        { hour: 20, minute: 45 }   // 4:45 PM EDT (20:45 UTC)
       ];
       
       const dailyPairs = teamPairings[dayIndex];
