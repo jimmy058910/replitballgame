@@ -31,7 +31,7 @@ interface DailySchedule {
 export default function LeagueSchedule() {
   const { data: schedule, isLoading, error } = useQuery<DailySchedule>({
     queryKey: ["/api/leagues/daily-schedule"],
-    refetchInterval: 10 * 1000, // Update every 10 seconds for immediate testing
+    refetchInterval: 5 * 1000, // Update every 5 seconds for immediate testing
     staleTime: 0, // Force fresh data every time
     enabled: true,
   });
@@ -43,7 +43,16 @@ export default function LeagueSchedule() {
   });
 
   // Debug logging
-  console.log("LeagueSchedule render:", { schedule, isLoading, error });
+  console.log("LeagueSchedule render:", { 
+    schedule: schedule ? {
+      totalDays: Object.keys(schedule.schedule || {}).length,
+      currentDay: schedule.currentDay,
+      scheduleKeys: Object.keys(schedule.schedule || {}),
+      firstFewEntries: Object.entries(schedule.schedule || {}).slice(0, 3)
+    } : null, 
+    isLoading, 
+    error 
+  });
 
   if (isLoading) {
     return (
@@ -191,6 +200,13 @@ export default function LeagueSchedule() {
   const sortedDays = Object.keys(schedule.schedule)
     .map(Number)
     .sort((a, b) => a - b);
+  
+  // DEBUG: Log what we're actually working with
+  console.log('🔍 Frontend Debug:', {
+    allScheduleKeys: Object.keys(schedule.schedule),
+    sortedDays: sortedDays,
+    totalDaysToRender: sortedDays.length
+  });
 
   return (
     <Card>
@@ -203,9 +219,10 @@ export default function LeagueSchedule() {
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 max-h-none">
         {sortedDays.map(day => {
           const dayMatches = schedule.schedule[day.toString()];
+          console.log(`🔍 Rendering Day ${day}:`, { dayMatches: dayMatches?.length || 0, hasMatches: !!dayMatches });
           if (!dayMatches || dayMatches.length === 0) return null;
 
           const isCurrentDay = day === schedule.currentDay;
