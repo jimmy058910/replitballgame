@@ -23,7 +23,9 @@ type ScheduleMatch = {
   awayTeamId: string;
   homeTeamName: string;
   awayTeamName: string;
-  gameDate: string;
+  gameDate?: string; // Legacy field
+  scheduledTime?: string; // New field from API
+  scheduledTimeFormatted?: string; // Pre-formatted time from API  
   status: 'SCHEDULED' | 'LIVE' | 'COMPLETED';
   matchType: 'LEAGUE' | 'TOURNAMENT' | 'EXHIBITION';
   homeScore?: number;
@@ -312,8 +314,13 @@ export default function ScheduleView({
                   <div className="space-y-2">
                     {filteredMatches.map((match, index) => {
                       const isMyMatch = Number(match.homeTeamId) === Number(team?.id) || Number(match.awayTeamId) === Number(team?.id);
-                      const gameTime = match.gameDate ? formatMatchTime(match.gameDate) : '5:00 PM';
-                      const gameDate = match.gameDate ? formatMatchDate(match.gameDate) : 'TBD';
+                      
+                      // Use the proper field names from API response
+                      const gameTime = match.scheduledTimeFormatted || 
+                                     (match.scheduledTime ? formatMatchTime(match.scheduledTime) : 
+                                      match.gameDate ? formatMatchTime(match.gameDate) : '4:00 PM');
+                      const gameDate = match.scheduledTime ? formatMatchDate(match.scheduledTime) :
+                                     match.gameDate ? formatMatchDate(match.gameDate) : 'Today';
                       
                       // Determine opponent name
                       const opponentName = isMyMatch ? 
