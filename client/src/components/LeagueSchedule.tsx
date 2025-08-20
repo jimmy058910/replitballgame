@@ -32,6 +32,10 @@ interface DailySchedule {
 export default function LeagueSchedule() {
   console.log("🚀 LEAGUE SCHEDULE COMPONENT MOUNTING - YOU SHOULD SEE THIS MESSAGE!");
   
+  // Add extreme visibility test
+  console.error("🔥 EXTREME DEBUG - LeagueSchedule component is definitely loading!");
+  alert("LeagueSchedule component mounted! Check console for details.");
+  
   // Force immediate visibility of component mounting
   useEffect(() => {
     console.log("🔥 LEAGUE SCHEDULE USEEFFECT EXECUTED - COMPONENT FULLY MOUNTED!");

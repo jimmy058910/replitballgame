@@ -1182,6 +1182,11 @@ export default function Competition() {
               </CardContent>
             </Card>
 
+            {/* DEBUG: Testing if this TabsContent renders at all */}
+            <div className="bg-red-500 p-4 text-white font-bold">
+              🚨 DEBUG: LEAGUE TAB CONTENT IS RENDERING! 
+              Current time: {new Date().toISOString()}
+            </div>
             <LeagueSchedule />
           </TabsContent>
 
