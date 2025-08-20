@@ -3,12 +3,12 @@
 // CORRECT SCHEDULE SYSTEM FIX
 // Days 5-14 (10 days), 4 matches per day, each team plays once daily
 
-import { getPrismaClient } from './server/database.js';
+import { PrismaClient } from '@prisma/client';
 
 async function fixCorrectScheduleSystem() {
   console.log('🔧 === CORRECT SCHEDULE SYSTEM FIX ===');
   
-  const prisma = await getPrismaClient();
+  const prisma = new PrismaClient();
   
   try {
     // Get all teams in Division 8, Subdivision Alpha

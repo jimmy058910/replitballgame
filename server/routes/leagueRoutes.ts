@@ -896,4 +896,114 @@ router.post('/admin/move-storm-breakers', requireAuth, async (req: Request, res:
   }
 });
 
+// SCHEDULE GENERATION ENDPOINT
+router.post('/generate-schedule', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('🔧 === GENERATING COMPLETE SCHEDULE ===');
+    
+    const prisma = await getPrismaClient();
+    
+    // Get all teams in Division 8, Subdivision Alpha
+    const teams = await prisma.team.findMany({
+      where: {
+        division: 8,
+        subdivision: 'alpha'
+      },
+      select: {
+        id: true,
+        name: true
+      }
+    });
+    
+    console.log(`Found ${teams.length} teams:`, teams.map(t => t.name));
+    
+    if (teams.length !== 8) {
+      throw new Error(`Expected exactly 8 teams, found ${teams.length}`);
+    }
+    
+    // Clear existing games
+    console.log('🧹 Clearing existing games...');
+    const deletedGames = await prisma.game.deleteMany();
+    console.log(`✅ Deleted ${deletedGames.count} existing games`);
+    
+    // Generate correct schedule: Days 5-14 (10 days)
+    console.log('⚽ Generating schedule for Days 5-14...');
+    
+    const scheduledGames = [];
+    const baseDate = new Date("2025-08-20");
+    
+    // For each day (Days 5-14)
+    for (let day = 5; day <= 14; day++) {
+      console.log(`📅 Generating Day ${day}...`);
+      
+      const gameDate = new Date(baseDate);
+      gameDate.setDate(baseDate.getDate() + day - 1);
+      
+      // Create 4 matches where each team plays once
+      // With 8 teams, we need to pair them: [1v2, 3v4, 5v6, 7v8]
+      const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+      
+      const dayMatches = [];
+      for (let i = 0; i < 8; i += 2) {
+        dayMatches.push({
+          home: shuffledTeams[i],
+          away: shuffledTeams[i + 1]
+        });
+      }
+      
+      console.log(`  Day ${day} matches:`, dayMatches.map(m => `${m.home.name} vs ${m.away.name}`));
+      
+      // Schedule the 4 matches with correct times
+      for (let timeSlot = 0; timeSlot < dayMatches.length; timeSlot++) {
+        const match = dayMatches[timeSlot];
+        
+        // Times: 4:00, 4:15, 4:30, 4:45 PM EDT
+        const matchDate = new Date(gameDate);
+        const startHour = 16; // 4 PM
+        const startMinute = timeSlot * 15; // 0, 15, 30, 45 minutes
+        
+        matchDate.setHours(startHour, startMinute, 0, 0);
+        
+        const gameData = {
+          homeTeamId: match.home.id,
+          awayTeamId: match.away.id,
+          gameDate: matchDate,
+          matchType: 'LEAGUE' as const,
+          status: 'SCHEDULED' as const,
+          homeScore: 0,
+          awayScore: 0
+        };
+        
+        const createdGame = await prisma.game.create({ data: gameData });
+        scheduledGames.push(createdGame);
+        
+        console.log(`    ✅ ${match.home.name} vs ${match.away.name} at ${matchDate.toLocaleString()}`);
+      }
+    }
+    
+    console.log(`✅ SCHEDULE GENERATION COMPLETE`);
+    console.log(`📊 Total games created: ${scheduledGames.length}`);
+    console.log(`📅 Days covered: 5-14 (10 days)`);
+    console.log(`⏰ Times: 4:00, 4:15, 4:30, 4:45 PM EDT each day`);
+    
+    res.json({
+      success: true,
+      gamesCreated: scheduledGames.length,
+      message: `Successfully generated ${scheduledGames.length} games for Days 5-14`,
+      schedule: scheduledGames.map(g => ({
+        id: g.id,
+        homeTeamId: g.homeTeamId,
+        awayTeamId: g.awayTeamId,
+        gameDate: g.gameDate,
+        matchType: g.matchType,
+        status: g.status
+      }))
+    });
+    
+  } catch (error) {
+    console.error('❌ Schedule generation failed:', error);
+    next(error);
+  }
+});
+
 export default router;
