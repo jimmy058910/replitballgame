@@ -418,8 +418,8 @@ export class LateSignupService {
     
     const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
     
-    // DYNAMIC CALCULATION: Games start the day AFTER late signup
-    const gameStartDay = currentDayInCycle + 1;
+    // FIXED: Late signup teams start games on Day 6 (regardless of current day)
+    const gameStartDay = 6; // Late signup teams always start on Day 6
     const gameEndDay = 14; // Season ends Day 14
     const remainingGameDays = Math.max(0, gameEndDay - gameStartDay + 1);
     
