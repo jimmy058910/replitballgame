@@ -167,10 +167,13 @@ export class ScheduleGenerationService {
       const gameDate = new Date(baseDate);
       gameDate.setDate(baseDate.getDate() + currentDay - 1);
       
-      // Set unique time for each game (15-minute intervals starting at 3:00 PM)
+      // Set unique time for each game (15-minute intervals in 4PM-10PM EDT window)
       const timeSlot = gamesOnCurrentDay;
-      const startHour = 15; // 3:00 PM
-      const startMinute = timeSlot * 15; // 0, 15, 30, 45 minutes
+      
+      // 4PM-10PM window = 24 possible 15-minute slots (6 hours × 4 slots per hour)
+      // 4:00PM = slot 0, 4:15PM = slot 1, 4:30PM = slot 2, ..., 9:45PM = slot 23
+      const startHour = 16 + Math.floor((timeSlot % 24) / 4); // 16-21 (4PM-9PM base hour)
+      const startMinute = ((timeSlot % 24) % 4) * 15; // 0, 15, 30, 45 minutes
       
       gameDate.setHours(startHour, startMinute, 0, 0);
       
