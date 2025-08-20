@@ -486,12 +486,13 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     if (!req.user) {
       return res.status(401).json({ message: "Authentication required" });
     }
-    const prisma = await getPrismaClient();
-    const userTeam = await prisma.team.findFirst({
-      where: { userProfileId: req.user.claims.sub },
-      select: { id: true, division: true, subdivision: true }
-    });
-
+    
+    const userId = req.user.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "User ID not found in token" });
+    }
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
     if (!userTeam) {
       return res.json({ schedule: {}, totalDays: 17, currentDay: null, message: "No team found." });
     }
@@ -503,6 +504,7 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     const leagueMatches = divisionMatches.filter((match: any) => match.matchType === 'LEAGUE');
     
     // Get all teams in the user's subdivision
+    const prisma = await getPrismaClient();
     const subdivisionTeams = await prisma.team.findMany({
       where: { 
         division: userTeam.division,
