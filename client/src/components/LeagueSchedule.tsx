@@ -205,7 +205,10 @@ export default function LeagueSchedule() {
   console.log('🔍 Frontend Debug:', {
     allScheduleKeys: Object.keys(schedule.schedule),
     sortedDays: sortedDays,
-    totalDaysToRender: sortedDays.length
+    totalDaysToRender: sortedDays.length,
+    scheduleStructure: Object.fromEntries(
+      Object.entries(schedule.schedule).map(([day, games]) => [day, games?.length || 0])
+    )
   });
 
   return (
@@ -222,8 +225,22 @@ export default function LeagueSchedule() {
       <CardContent className="space-y-6 max-h-none">
         {sortedDays.map(day => {
           const dayMatches = schedule.schedule[day.toString()];
-          console.log(`🔍 Rendering Day ${day}:`, { dayMatches: dayMatches?.length || 0, hasMatches: !!dayMatches });
-          if (!dayMatches || dayMatches.length === 0) return null;
+          console.log(`🔍 Rendering Day ${day}:`, { dayMatches: dayMatches?.length || 0, hasMatches: !!dayMatches, shouldRender: !(!dayMatches || dayMatches.length === 0) });
+          
+          // FORCE RENDER ALL DAYS FOR DEBUGGING - TEMPORARILY REMOVE THE FILTER
+          if (!dayMatches || dayMatches.length === 0) {
+            console.log(`⚠️ SKIPPING Day ${day} - No matches found`);
+            // TEMPORARILY FORCE RENDER EMPTY DAYS TO SEE IF THEY APPEAR
+            return (
+              <div key={day} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-red-500">
+                    Day {day} - NO GAMES FOUND (Debug)
+                  </h3>
+                </div>
+              </div>
+            );
+          }
 
           const isCurrentDay = day === schedule.currentDay;
           
