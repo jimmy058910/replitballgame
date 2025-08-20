@@ -1119,7 +1119,9 @@ export default function Competition() {
 
 
 
+        {console.log("🔥 TABS COMPONENT ABOUT TO RENDER - defaultValue: league")}
         <Tabs defaultValue="league" className="space-y-6">
+          {console.log("🔥 INSIDE TABS COMPONENT - TABS LIST RENDERING")}
           <TabsList className="grid w-full grid-cols-3 bg-gray-800">
             <TabsTrigger value="league" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
@@ -1135,7 +1137,9 @@ export default function Competition() {
             </TabsTrigger>
           </TabsList>
 
+          {console.log("🔥 ABOUT TO RENDER LEAGUE TAB CONTENT")}
           <TabsContent value="league" className="space-y-6">
+            {console.log("🔥 INSIDE LEAGUE TAB CONTENT - THIS SHOULD RENDER!")}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
