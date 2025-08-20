@@ -106,6 +106,97 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
   
   console.log('🎯 [LATE SIGNUP SCHEDULE] Schedule organized by days:', Object.keys(schedule).map(day => `Day ${day}: ${schedule[day].length} games`).join(', '));
   
+  // CRITICAL FIX: Check if schedule is incomplete and force regeneration
+  const totalGames = Object.values(schedule).flat().length;
+  const expectedGames = 36; // 9 days × 4 games per day for 8 teams
+  
+  if (totalGames < expectedGames) {
+    console.log('⚠️ [INCOMPLETE SCHEDULE] Detected incomplete schedule:', totalGames, '/', expectedGames, 'games');
+    console.log('🔄 [FORCE REGENERATION] Clearing existing games and regenerating complete schedule...');
+    
+    // Clear existing games for this subdivision
+    await prisma.game.deleteMany({
+      where: {
+        matchType: 'LEAGUE',
+        OR: [
+          { homeTeamId: { in: subdivisionTeamIds } },
+          { awayTeamId: { in: subdivisionTeamIds } }
+        ]
+      }
+    });
+    
+    // Force regeneration with corrected patterns
+    const { LateSignupService } = await import('../services/lateSignupService.js');
+    await LateSignupService.generateShortenedSeasonSchedule(userTeam.subdivision, subdivisionTeams);
+    
+    console.log('✅ [FORCE REGENERATION] Schedule regenerated - fetching updated games...');
+    
+    // Fetch the newly generated games
+    const regeneratedMatches = await prisma.game.findMany({
+      where: {
+        matchType: 'LEAGUE',
+        OR: [
+          { homeTeamId: { in: subdivisionTeamIds } },
+          { awayTeamId: { in: subdivisionTeamIds } }
+        ],
+        gameDate: {
+          gte: getDateForDay(currentSeason, 6),
+          lte: getDateForDay(currentSeason, 14)
+        }
+      },
+      include: {
+        homeTeam: { select: { id: true, name: true } },
+        awayTeam: { select: { id: true, name: true } }
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    
+    // Rebuild schedule with regenerated games
+    const newSchedule: any = {};
+    for (let day = 6; day <= 14; day++) {
+      newSchedule[day] = [];
+    }
+    
+    regeneratedMatches.forEach(match => {
+      const daysSinceStart = Math.floor((match.gameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const dayNumber = daysSinceStart + 1;
+      
+      if (dayNumber >= 6 && dayNumber <= 14) {
+        const formattedMatch = {
+          id: match.id,
+          homeTeamId: match.homeTeamId,
+          awayTeamId: match.awayTeamId,
+          homeTeamName: match.homeTeam.name,
+          awayTeamName: match.awayTeam.name,
+          gameDate: match.gameDate,
+          scheduledTime: match.gameDate.toISOString(),
+          scheduledTimeFormatted: formatGameTime(match.gameDate),
+          matchType: match.matchType,
+          status: match.status || 'SCHEDULED',
+          simulated: match.simulated || false,
+          homeScore: match.homeScore || 0,
+          awayScore: match.awayScore || 0
+        };
+        
+        if (!newSchedule[dayNumber]) {
+          newSchedule[dayNumber] = [];
+        }
+        newSchedule[dayNumber].push(formattedMatch);
+      }
+    });
+    
+    console.log('🎯 [REGENERATED] Final schedule:', Object.keys(newSchedule).map(day => `Day ${day}: ${newSchedule[day].length} games`).join(', '));
+    
+    return {
+      schedule: newSchedule,
+      currentDay,
+      totalDays: 17,
+      lateSignup: true,
+      gameRange: 'Days 6-14 (Late Signup)',
+      message: `Complete late signup schedule - ${Object.values(newSchedule).flat().length} total games from Days 6-14 (REGENERATED)`
+    };
+  }
+  
   return {
     schedule,
     currentDay,
@@ -127,10 +218,13 @@ function getDateForDay(season: any, dayNumber: number): Date {
 }
 
 /**
- * Format game time to Eastern Time
+ * Format game time to Eastern Time - FIXED for EDT/EST conversion
  */
 function formatGameTime(date: Date): string {
-  return date.toLocaleString('en-US', {
+  // Create a new date in Eastern Time
+  const easternTime = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
+  
+  return easternTime.toLocaleString('en-US', {
     timeZone: 'America/New_York',
     weekday: 'short',
     month: 'short',

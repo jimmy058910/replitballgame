@@ -403,9 +403,9 @@ export class LateSignupService {
   }
 
   /**
-   * Generate shortened season schedule for a late signup subdivision
+   * Generate shortened season schedule for a late signup subdivision - EXPOSED FOR TESTING
    */
-  private static async generateShortenedSeasonSchedule(subdivisionName: string, teamsInSubdivision: any[]): Promise<void> {
+  static async generateShortenedSeasonSchedule(subdivisionName: string, teamsInSubdivision: any[]): Promise<void> {
     const teams = teamsInSubdivision;
     
     if (teams.length !== 8) {
@@ -441,20 +441,22 @@ export class LateSignupService {
     // Pre-calculated 9-day schedule for 8 teams (each team plays once per day)
     // Patterns ensure variety and exactly 36 total games
     const schedulePatternsData = [
-      [[0,4], [1,5], [2,6], [3,7]], // Day 1: 0v4, 1v5, 2v6, 3v7
-      [[0,5], [1,6], [2,7], [3,4]], // Day 2: 0v5, 1v6, 2v7, 3v4  
-      [[0,6], [1,7], [2,4], [3,5]], // Day 3: 0v6, 1v7, 2v4, 3v5
-      [[0,7], [1,4], [2,5], [3,6]], // Day 4: 0v7, 1v4, 2v5, 3v6
-      [[0,1], [2,3], [4,5], [6,7]], // Day 5: 0v1, 2v3, 4v5, 6v7
-      [[0,2], [1,3], [4,6], [5,7]], // Day 6: 0v2, 1v3, 4v6, 5v7
-      [[0,3], [1,2], [4,7], [5,6]], // Day 7: 0v3, 1v2, 4v7, 5v6
-      [[0,4], [1,7], [2,5], [3,6]], // Day 8: 0v4, 1v7, 2v5, 3v6 (repeat some but different combos)
-      [[0,5], [1,4], [2,7], [3,6]]  // Day 9: 0v5, 1v4, 2v7, 3v6
+      [[0,4], [1,5], [2,6], [3,7]], // Day 6: 0v4, 1v5, 2v6, 3v7
+      [[0,5], [1,6], [2,7], [3,4]], // Day 7: 0v5, 1v6, 2v7, 3v4  
+      [[0,6], [1,7], [2,4], [3,5]], // Day 8: 0v6, 1v7, 2v4, 3v5
+      [[0,7], [1,4], [2,5], [3,6]], // Day 9: 0v7, 1v4, 2v5, 3v6
+      [[0,1], [2,3], [4,5], [6,7]], // Day 10: 0v1, 2v3, 4v5, 6v7
+      [[0,2], [1,3], [4,6], [5,7]], // Day 11: 0v2, 1v3, 4v6, 5v7
+      [[0,3], [1,2], [4,7], [5,6]], // Day 12: 0v3, 1v2, 4v7, 5v6
+      [[0,6], [1,4], [2,7], [3,5]], // Day 13: 0v6, 1v4, 2v7, 3v5 (different combo)
+      [[0,7], [1,5], [2,4], [3,6]]  // Day 14: 0v7, 1v5, 2v4, 3v6 (final day)
     ];
     
     for (let dayIndex = 0; dayIndex < remainingGameDays; dayIndex++) {
-      const dailyPairs = schedulePatternsData[dayIndex];
+      const dailyPairs = schedulePatternsData[dayIndex % schedulePatternsData.length]; // Safety wrap
       teamPairings.push(dailyPairs);
+      
+      logInfo(`📋 Day ${gameStartDay + dayIndex} (index ${dayIndex}): Using pattern ${dayIndex % schedulePatternsData.length}`);
       
       // Verify no duplicates (guaranteed by pre-calculated patterns)
       const teamsUsedToday = new Set();
@@ -527,14 +529,27 @@ export class LateSignupService {
       });
     }
     
-    // Create matches in database
+    // Create matches in database - FIXED: Use direct Prisma insertion
     let createdMatches = 0;
+    const prisma = await getPrismaClient();
+    
     for (const match of matches) {
       try {
-        await storage.matches.createMatch(match);
+        const createdMatch = await prisma.game.create({
+          data: {
+            homeTeamId: match.homeTeamId,
+            awayTeamId: match.awayTeamId,
+            gameDate: match.gameDate,
+            matchType: match.matchType,
+            status: match.status || 'SCHEDULED',
+            leagueId: match.leagueId
+          }
+        });
         createdMatches++;
+        logInfo(`   ✅ Created match ID ${createdMatch.id}: ${match.gameDate.toISOString()}`);
       } catch (error) {
-        console.error(`Failed to create match for ${subdivisionName}:`, error);
+        console.error(`❌ Failed to create match for ${subdivisionName}:`, error);
+        logInfo(`   📊 Match data:`, match);
       }
     }
     
