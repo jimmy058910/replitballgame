@@ -110,31 +110,82 @@ export class LateSignupService {
     try {
       // Get all existing late signup subdivisions
       const existingSubdivisions = await this.getExistingLateSignupSubdivisions();
+      logInfo(`Found ${existingSubdivisions.length} existing late signup subdivisions: ${existingSubdivisions.map(s => `${s.subdivision}(${s.teamCount})`).join(', ')}`);
       
-      // Check each subdivision and fill with AI if it has teams but isn't full - DAILY FILLING
-      for (const subdivision of existingSubdivisions) {
-        const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision.subdivision);
-        
-        if (teams.length > 0 && teams.length < 8) {
-          // Subdivision has teams but isn't full - fill with AI teams EVERY day
-          const aiTeamsNeeded = 8 - teams.length;
-          logInfo(`🤖 DAILY AI FILLING: Adding ${aiTeamsNeeded} AI teams to ${subdivision.subdivision} (${teams.length}/8 teams) on Day ${currentDay}`);
+      // CRITICAL FIX: If no existing subdivisions found, also check Division 8 for any teams
+      if (existingSubdivisions.length === 0) {
+        logInfo(`No existing subdivisions found - checking for any Division 8 teams...`);
+        const allDivision8Teams = await storage.teams.getTeamsByDivisionAndSubdivision(8);
+        if (allDivision8Teams.length > 0) {
+          logInfo(`Found ${allDivision8Teams.length} teams in Division 8 - organizing by subdivision`);
           
-          await this.generateAITeamsForSubdivision(subdivision.subdivision, aiTeamsNeeded);
+          // Group teams by subdivision
+          const teamsBySubdivision = new Map<string, any[]>();
+          for (const team of allDivision8Teams) {
+            const subdivision = team.subdivision || 'alpha';
+            if (!teamsBySubdivision.has(subdivision)) {
+              teamsBySubdivision.set(subdivision, []);
+            }
+            teamsBySubdivision.get(subdivision)!.push(team);
+          }
           
-          // Generate shortened schedule immediately when subdivision becomes full
-          const allTeams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision.subdivision);
-          await this.generateShortenedSeasonSchedule(subdivision.subdivision, allTeams);
+          // Process each subdivision
+          for (const [subdivision, teams] of teamsBySubdivision.entries()) {
+            logInfo(`Processing subdivision ${subdivision} with ${teams.length} teams`);
+            
+            if (teams.length > 0 && teams.length < 8) {
+              const aiTeamsNeeded = 8 - teams.length;
+              logInfo(`🤖 DIRECT PROCESSING: Adding ${aiTeamsNeeded} AI teams to ${subdivision} (${teams.length}/8 teams) on Day ${currentDay}`);
+              
+              await this.generateAITeamsForSubdivision(subdivision, aiTeamsNeeded);
+              
+              // Generate shortened schedule immediately when subdivision becomes full
+              const allTeams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision);
+              await this.generateShortenedSeasonSchedule(subdivision, allTeams);
+              
+              logInfo(`✅ Subdivision ${subdivision} now COMPLETE (8/8) with AI filling - Schedule generated for Days ${currentDay}-14`);
+            }
+          }
+        } else {
+          logInfo(`No teams found in Division 8 - nothing to process`);
+        }
+      } else {
+        // Check each subdivision and fill with AI if it has teams but isn't full - DAILY FILLING
+        for (const subdivision of existingSubdivisions) {
+          const teams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision.subdivision);
+          logInfo(`Subdivision ${subdivision.subdivision}: Found ${teams.length} teams (expected ${subdivision.teamCount})`);
           
-          logInfo(`✅ Subdivision ${subdivision.subdivision} now COMPLETE (8/8) with AI filling - Schedule generated for Days ${currentDay}-14`);
-        } else if (teams.length === 8) {
-          logInfo(`✅ Subdivision ${subdivision.subdivision} already complete (8/8 teams)`);
+          if (teams.length > 0 && teams.length < 8) {
+            // Subdivision has teams but isn't full - fill with AI teams EVERY day
+            const aiTeamsNeeded = 8 - teams.length;
+            logInfo(`🤖 DAILY AI FILLING: Adding ${aiTeamsNeeded} AI teams to ${subdivision.subdivision} (${teams.length}/8 teams) on Day ${currentDay}`);
+            
+            await this.generateAITeamsForSubdivision(subdivision.subdivision, aiTeamsNeeded);
+            
+            // Generate shortened schedule immediately when subdivision becomes full
+            const allTeams = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivision.subdivision);
+            await this.generateShortenedSeasonSchedule(subdivision.subdivision, allTeams);
+            
+            logInfo(`✅ Subdivision ${subdivision.subdivision} now COMPLETE (8/8) with AI filling - Schedule generated for Days ${currentDay}-14`);
+          } else if (teams.length === 8) {
+            logInfo(`✅ Subdivision ${subdivision.subdivision} already complete (8/8 teams)`);
+            
+            // Check if schedule exists, generate if missing
+            const existingMatches = await this.checkExistingMatches(subdivision.subdivision);
+            if (existingMatches === 0) {
+              logInfo(`No schedule found for complete subdivision ${subdivision.subdivision} - generating schedule`);
+              await this.generateShortenedSeasonSchedule(subdivision.subdivision, teams);
+            }
+          } else if (teams.length === 0) {
+            logInfo(`⚠️ Subdivision ${subdivision.subdivision} reported in database but no teams found`);
+          }
         }
       }
       
       logInfo(`🎯 Daily late signup processing completed for Day ${currentDay} - All incomplete subdivisions filled with AI teams`);
     } catch (error) {
-      console.error('Error in daily late signup processing:', error);
+      console.error('❌ CRITICAL ERROR in daily late signup processing:', error);
+      throw error; // Re-throw to ensure errors are visible
     }
   }
   
@@ -180,7 +231,29 @@ export class LateSignupService {
       }
     }
     
+    logInfo(`Found ${result.length} late signup subdivisions: ${result.map(r => `${r.subdivision}(${r.teamCount})`).join(', ')}`);
     return result;
+  }
+
+  /**
+   * Check existing matches for a subdivision
+   */
+  private static async checkExistingMatches(subdivisionName: string): Promise<number> {
+    try {
+      const prisma = await getPrismaClient();
+      const existingMatches = await prisma.match.count({
+        where: {
+          division: 8,
+          subdivision: subdivisionName
+        }
+      });
+      
+      logInfo(`Subdivision ${subdivisionName} has ${existingMatches} existing matches`);
+      return existingMatches;
+    } catch (error) {
+      console.error(`Error checking existing matches for ${subdivisionName}:`, error);
+      return 0;
+    }
   }
 
   /**
@@ -234,6 +307,8 @@ export class LateSignupService {
       'Steel Warriors', 'Flame Guardians', 'Night Stalkers', 'Dawn Riders'
     ];
     
+    logInfo(`🤖 GENERATING ${teamCount} AI teams for subdivision ${subdivisionName}`);
+    
     for (let i = 0; i < teamCount; i++) {
       const teamName = aiTeamNames[i % aiTeamNames.length];
       const uniqueTeamName = `${teamName} ${Math.floor(Math.random() * 900) + 100}`;
@@ -241,6 +316,8 @@ export class LateSignupService {
       try {
         // FIXED: Each AI team gets a unique userId to avoid constraint violations
         const uniqueAIUserId = `ai_team_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+        
+        logInfo(`Creating AI team: ${uniqueTeamName} with userId: ${uniqueAIUserId}`);
         
         // Create AI team with unique userId and proper AI flag
         const aiTeam = await storage.teams.createAITeam({
@@ -250,14 +327,24 @@ export class LateSignupService {
           subdivision: subdivisionName,
         });
         
+        logInfo(`AI team created with ID: ${aiTeam.id} - generating players...`);
+        
         // Generate players for AI team
         await this.generateAIPlayersForTeam(aiTeam.id);
         
-        logInfo(`✅ Created AI team: ${uniqueTeamName} in ${subdivisionName}`);
+        logInfo(`✅ Created AI team: ${uniqueTeamName} in ${subdivisionName} with ${12} players`);
+        
+        // Add a small delay to ensure unique timestamps
+        await new Promise(resolve => setTimeout(resolve, 10));
+        
       } catch (error) {
         console.error(`❌ Failed to create AI team ${uniqueTeamName}:`, error);
+        console.error('Full error details:', error);
+        throw error; // Re-throw to ensure the error is visible
       }
     }
+    
+    logInfo(`🎯 Successfully generated ${teamCount} AI teams for subdivision ${subdivisionName}`);
   }
 
   /**
