@@ -231,7 +231,10 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       // Calculate current streak based on recent form
       const wins = team.wins || 0;
       const losses = team.losses || 0;
-      const draws = team.draws || 0;
+      // Calculate draws from points since draws field doesn't exist in database
+      // Formula: draws = (total_points - wins*3) / 1
+      const totalPoints = team.points || 0;
+      const draws = Math.max(0, totalPoints - (wins * 3));
       
       // Simple streak calculation based on win/loss ratio
       let streakType = 'N';
@@ -262,7 +265,7 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
 
       return {
         ...team,
-        draws: draws || 0, // Ensure draws is returned as a number
+        draws: draws, // Use calculated draws value
         currentStreak,
         streakType,
         form: form.slice(0, Math.min(5, totalGames)),
