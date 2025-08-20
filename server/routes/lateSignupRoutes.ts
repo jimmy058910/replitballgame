@@ -38,4 +38,26 @@ router.get('/window', requireAuth, asyncHandler(async (req: Request, res: Respon
   });
 }));
 
+/**
+ * POST /api/late-signup/test-daily-processing
+ * TESTING ENDPOINT: Manually trigger daily late signup processing
+ */
+router.post('/test-daily-processing', asyncHandler(async (req: Request, res: Response) => {
+  try {
+    console.log('🧪 Manual test trigger for daily late signup processing');
+    await LateSignupService.processDailyLateSignups();
+    
+    res.json({
+      success: true,
+      message: 'Daily late signup processing completed successfully'
+    });
+  } catch (error) {
+    console.error('Error in test daily processing:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+}));
+
 export default router;

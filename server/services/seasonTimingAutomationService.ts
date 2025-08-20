@@ -716,7 +716,7 @@ export class SeasonTimingAutomationService {
     try {
       logInfo(`Executing daily late signup processing for Day ${currentDay}...`);
       
-      const { LateSignupService } = await import('./lateSignupService');
+      const { LateSignupService } = await import('./lateSignupService.js');
       
       if (currentDay === 9) {
         // Final day - fill any incomplete subdivisions with AI teams and close signup

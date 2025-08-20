@@ -323,24 +323,69 @@ export class LateSignupService {
     if (!currentSeason) return;
     
     const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
-    const remainingDays = 17 - currentDayInCycle;
     
-    if (remainingDays <= 0) return;
+    // CORRECTED: Season ends on Day 14, so calculate remaining days correctly
+    const remainingDays = Math.max(0, 14 - currentDayInCycle + 1);
     
-    // Generate round-robin schedule for remaining days
+    if (remainingDays <= 0) {
+      logInfo(`Cannot generate schedule for ${subdivisionName} - season has already ended (current day ${currentDayInCycle})`);
+      return;
+    }
+    
+    logInfo(`🗓️ Generating shortened season for ${subdivisionName}: Days ${currentDayInCycle}-14 (${remainingDays} days, ${remainingDays} games per team)`);
+    
+    // CORRECTED: Generate exactly 1 match per team per day, 4 total matches per day
+    // Use round-robin pairing but only generate matches for remaining days
     const matches: any[] = [];
-    const matchesPerDay = Math.floor(remainingDays / 3); // Spread matches over remaining days
     
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        const dayOffset = matches.length % remainingDays;
-        const gameDate = new Date();
-        gameDate.setDate(gameDate.getDate() + dayOffset + 1);
+    // Create round-robin schedule pairs
+    const roundRobinSchedule = [];
+    for (let round = 0; round < 7; round++) { // 7 rounds for 8 teams
+      const roundPairs = [];
+      for (let i = 0; i < 4; i++) { // 4 pairs per round
+        const team1Index = i;
+        let team2Index = (7 - i + round) % 7;
+        if (team2Index >= team1Index) team2Index++;
+        
+        roundPairs.push([team1Index, team2Index]);
+      }
+      roundRobinSchedule.push(roundPairs);
+    }
+    
+    // Add final round (remaining matchups)
+    const finalRoundPairs = [];
+    for (let i = 0; i < 4; i++) {
+      const team1Index = i;
+      const team2Index = i + 4;
+      finalRoundPairs.push([team1Index, team2Index]);
+    }
+    roundRobinSchedule.push(finalRoundPairs);
+    
+    // Select matches for remaining days
+    for (let dayIndex = 0; dayIndex < remainingDays; dayIndex++) {
+      const roundIndex = dayIndex % roundRobinSchedule.length;
+      const roundPairs = roundRobinSchedule[roundIndex];
+      
+      const currentDay = currentDayInCycle + dayIndex;
+      const gameDate = new Date(currentSeason.startDate);
+      gameDate.setDate(gameDate.getDate() + currentDay - 1);
+      
+      // Import timezone utilities for proper EDT timing
+      const { generateDailyGameTimes } = await import('../../shared/timezone.js');
+      const dailyGameTimes = generateDailyGameTimes(currentDay);
+      
+      for (let matchIndex = 0; matchIndex < roundPairs.length && matchIndex < 4; matchIndex++) {
+        const [homeIndex, awayIndex] = roundPairs[matchIndex];
+        const gameTime = dailyGameTimes[matchIndex]; // 4:00, 4:15, 4:30, 4:45 PM EDT
+        
+        // Set proper game date and time
+        const scheduledDateTime = new Date(gameDate);
+        scheduledDateTime.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         matches.push({
-          homeTeamId: teams[i].id,
-          awayTeamId: teams[j].id,
-          gameDate: gameDate,
+          homeTeamId: teams[homeIndex].id,
+          awayTeamId: teams[awayIndex].id,
+          gameDate: scheduledDateTime,
           leagueId: currentSeason.id,
           division: 8,
           subdivision: subdivisionName,
@@ -351,15 +396,17 @@ export class LateSignupService {
     }
     
     // Create matches in database
+    let createdMatches = 0;
     for (const match of matches) {
       try {
         await storage.matches.createMatch(match);
+        createdMatches++;
       } catch (error) {
         console.error(`Failed to create match for ${subdivisionName}:`, error);
       }
     }
     
-    logInfo(`Generated ${matches.length} matches for ${subdivisionName} subdivision`);
+    logInfo(`✅ Generated ${createdMatches} matches for ${subdivisionName} subdivision (${remainingDays} games per team over ${remainingDays} days)`);
   }
   
   /**
