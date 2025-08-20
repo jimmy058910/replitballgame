@@ -164,7 +164,7 @@ router.post('/test-schedule-generation', async (req: Request, res: Response, nex
     });
     
     // Analyze schedule quality
-    const analysis = this.analyzeScheduleQuality(createdGames);
+    const analysis = analyzeScheduleQuality(createdGames);
     
     res.json({
       success: true,
@@ -199,7 +199,7 @@ router.post('/test-schedule-generation', async (req: Request, res: Response, nex
 /**
  * Analyze schedule quality to detect duplicates and conflicts
  */
-router.analyzeScheduleQuality = function(games: any[]) {
+function analyzeScheduleQuality(games: any[]) {
   const matchups = new Set<string>();
   const timeSlots = new Map<string, number>();
   let duplicates = 0;
@@ -232,6 +232,6 @@ router.analyzeScheduleQuality = function(games: any[]) {
     qualityScore: duplicates === 0 && maxGamesAtSameTime === 1 ? "EXCELLENT" : 
                   duplicates === 0 ? "GOOD" : "NEEDS_IMPROVEMENT"
   };
-};
+}
 
 export default router;

@@ -157,6 +157,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/superuser", superuserRoutes);
   app.use("/api/payments", paymentRoutes);
   app.use("/api/ads", adSystemRoutes);
+  app.use("/api/reset", resetRoutes); // Schedule reset and regeneration endpoints  
   app.use("/api/scouting", scoutingRoutes); // Covers /api/teams/:teamId/scout and /api/teams/scoutable
   app.use("/api/camaraderie", camaraderieRoutes); // Covers team and player camaraderie management
   app.use("/api/stats", statsRoutes); // Covers comprehensive player and team statistics
