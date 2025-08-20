@@ -30,11 +30,12 @@ interface DailySchedule {
 }
 
 export default function LeagueSchedule() {
-  console.log("🚀 LeagueSchedule component mounting...");
+  console.log("🚀 LEAGUE SCHEDULE COMPONENT MOUNTING - YOU SHOULD SEE THIS MESSAGE!");
   
   // Force immediate visibility of component mounting
   useEffect(() => {
-    console.log("🔥 LeagueSchedule useEffect - Component fully mounted");
+    console.log("🔥 LEAGUE SCHEDULE USEEFFECT EXECUTED - COMPONENT FULLY MOUNTED!");
+    console.log("🔥 Current timestamp:", new Date().toISOString());
   }, []);
   
   const { data: schedule, isLoading, error } = useQuery<DailySchedule>({
