@@ -907,6 +907,151 @@ async function startServer() {
       }
     });
 
+    // TESTING ENDPOINT: Clear all league games
+    app.post('/api/admin/clear-league-games', async (req, res) => {
+      try {
+        console.log('🧹 ADMIN: Clearing all league games...');
+        
+        const { getPrismaClient } = await import('./database.js');
+        const db = await getPrismaClient();
+        
+        // Get current count
+        const currentCount = await db.game.count({
+          where: { matchType: 'LEAGUE' }
+        });
+        
+        // Delete all league games
+        const deleteResult = await db.game.deleteMany({
+          where: { matchType: 'LEAGUE' }
+        });
+        
+        console.log(`✅ Cleared ${deleteResult.count} league games (was ${currentCount})`);
+        
+        res.json({
+          success: true,
+          message: `Successfully cleared ${deleteResult.count} league games`,
+          previousCount: currentCount
+        });
+        
+      } catch (error) {
+        console.error('❌ Failed to clear league games:', error);
+        res.status(500).json({ 
+          success: false, 
+          error: 'Failed to clear games',
+          details: error.message 
+        });
+      }
+    });
+
+    // TESTING ENDPOINT: Generate shortened schedule for Division 8 Alpha
+    app.post('/api/admin/generate-alpha-schedule', async (req, res) => {
+      try {
+        console.log('📅 ADMIN: Generating shortened schedule for Division 8 Alpha...');
+        
+        const { LateSignupService } = await import('./services/lateSignupService.js');
+        
+        // Get teams in alpha subdivision
+        const { getPrismaClient } = await import('./database.js');
+        const db = await getPrismaClient();
+        
+        const teamsInAlpha = await db.team.findMany({
+          where: {
+            division: 8,
+            subdivision: 'alpha'
+          },
+          orderBy: { id: 'asc' }
+        });
+        
+        console.log(`Found ${teamsInAlpha.length} teams in Division 8 Alpha`);
+        
+        if (teamsInAlpha.length === 8) {
+          console.log('✅ Alpha subdivision is complete with 8 teams - generating shortened schedule');
+          
+          // Generate shortened season schedule (Day 6-14 for late signups on Day 5)
+          const scheduleResult = await LateSignupService.generateShortenedSeasonSchedule('alpha', teamsInAlpha);
+          
+          // Count generated games for these teams
+          const teamIds = teamsInAlpha.map(t => t.id);
+          const gameCount = await db.game.count({
+            where: {
+              matchType: 'LEAGUE',
+              OR: [
+                { homeTeamId: { in: teamIds } },
+                { awayTeamId: { in: teamIds } }
+              ]
+            }
+          });
+          
+          res.json({
+            success: true,
+            message: 'Successfully generated shortened schedule for Division 8 Alpha',
+            teamsCount: teamsInAlpha.length,
+            gamesGenerated: gameCount,
+            teams: teamsInAlpha.map(t => ({ id: t.id, name: t.name, isAI: t.isAI }))
+          });
+        } else {
+          res.json({
+            success: false,
+            error: `Alpha subdivision has ${teamsInAlpha.length} teams, needs exactly 8`,
+            teamsCount: teamsInAlpha.length
+          });
+        }
+        
+      } catch (error) {
+        console.error('❌ Failed to generate alpha schedule:', error);
+        res.status(500).json({ 
+          success: false, 
+          error: 'Failed to generate schedule',
+          details: error.message 
+        });
+      }
+    });
+
+    // TESTING ENDPOINT: Check Oakland Cougars games
+    app.get('/api/admin/oakland-games-count', async (req, res) => {
+      try {
+        const { getPrismaClient } = await import('./database.js');
+        const db = await getPrismaClient();
+        
+        // Get Oakland Cougars games
+        const games = await db.game.findMany({
+          where: {
+            OR: [
+              { homeTeamId: 4 }, // Oakland Cougars ID
+              { awayTeamId: 4 }
+            ]
+          },
+          include: {
+            homeTeam: { select: { name: true } },
+            awayTeam: { select: { name: true } }
+          },
+          orderBy: { gameDate: 'asc' }
+        });
+        
+        const leagueGames = games.filter(g => g.matchType === 'LEAGUE');
+        
+        res.json({
+          success: true,
+          totalGames: games.length,
+          leagueGames: leagueGames.length,
+          games: games.map(g => ({
+            id: g.id,
+            type: g.matchType,
+            home: g.homeTeam.name,
+            away: g.awayTeam.name,
+            date: g.gameDate,
+            status: g.status
+          }))
+        });
+        
+      } catch (error) {
+        res.status(500).json({ 
+          success: false, 
+          error: error.message 
+        });
+      }
+    });
+
     console.log('✅ All critical API routes registered successfully (including admin)!');
     } catch (routeError: any) {
       console.error('❌ [DEBUG] API route registration failed:', routeError);

@@ -80,8 +80,9 @@ router.post('/debug-alpha', asyncHandler(async (req: Request, res: Response) => 
       include: {
         user: {
           select: {
-            uid: true,
-            displayName: true
+            id: true,
+            firstName: true,
+            lastName: true
           }
         }
       }

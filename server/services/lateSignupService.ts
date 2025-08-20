@@ -457,27 +457,29 @@ export class LateSignupService {
       const gameDate = new Date(currentSeason.startDate);
       gameDate.setDate(gameDate.getDate() + currentDay - 1);
       
-      // Import timezone utilities for proper EDT timing
-      const { generateDailyGameTimes } = await import('../../shared/timezone.js');
-      const dailyGameTimes = generateDailyGameTimes(currentDay);
+      // Fixed time slots for shortened season: 4:00, 4:15, 4:30, 4:45 PM EDT
+      const timeSlots = [
+        { hour: 16, minute: 0 },   // 4:00 PM EDT
+        { hour: 16, minute: 15 },  // 4:15 PM EDT
+        { hour: 16, minute: 30 },  // 4:30 PM EDT
+        { hour: 16, minute: 45 }   // 4:45 PM EDT
+      ];
       
       for (let matchIndex = 0; matchIndex < roundPairs.length && matchIndex < 4; matchIndex++) {
         const [homeIndex, awayIndex] = roundPairs[matchIndex];
-        const gameTime = dailyGameTimes[matchIndex]; // 4:00, 4:15, 4:30, 4:45 PM EDT
+        const gameTime = timeSlots[matchIndex];
         
         // Set proper game date and time
         const scheduledDateTime = new Date(gameDate);
-        scheduledDateTime.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
+        scheduledDateTime.setHours(gameTime.hour, gameTime.minute, 0, 0);
         
         matches.push({
           homeTeamId: teams[homeIndex].id,
           awayTeamId: teams[awayIndex].id,
           gameDate: scheduledDateTime,
-          leagueId: currentSeason.id,
-          division: 8,
-          subdivision: subdivisionName,
           matchType: 'LEAGUE',
-          status: 'SCHEDULED'
+          status: 'SCHEDULED',
+          leagueId: null // Late signup games don't need league association
         });
       }
     }
