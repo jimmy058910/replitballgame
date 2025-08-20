@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock, Eye, Users } from "lucide-react";
 import { Link } from "wouter";
+import { useEffect } from "react";
 
 interface ScheduledMatch {
   id: string;
@@ -29,11 +30,26 @@ interface DailySchedule {
 }
 
 export default function LeagueSchedule() {
+  console.log("🚀 LeagueSchedule component mounting...");
+  
+  // Force immediate visibility of component mounting
+  useEffect(() => {
+    console.log("🔥 LeagueSchedule useEffect - Component fully mounted");
+  }, []);
+  
   const { data: schedule, isLoading, error } = useQuery<DailySchedule>({
     queryKey: ["/api/leagues/daily-schedule"],
     refetchInterval: 5 * 1000, // Update every 5 seconds for immediate testing
     staleTime: 0, // Force fresh data every time
     enabled: true,
+  });
+  
+  console.log("🔍 LeagueSchedule Query State:", { 
+    isLoading, 
+    hasError: !!error, 
+    errorMessage: error?.message, 
+    hasData: !!schedule,
+    dataKeys: schedule ? Object.keys(schedule) : null
   });
 
   const { data: userTeam } = useQuery<any>({
@@ -55,6 +71,7 @@ export default function LeagueSchedule() {
   });
 
   if (isLoading) {
+    console.log("🔄 LeagueSchedule: Loading state - API call in progress");
     return (
       <Card>
         <CardHeader>
