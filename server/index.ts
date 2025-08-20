@@ -943,6 +943,67 @@ async function startServer() {
       }
     });
 
+    // TESTING ENDPOINT: Clear games for Division 8 Alpha only
+    app.post('/api/admin/clear-alpha-games', async (req, res) => {
+      try {
+        console.log('🧹 ADMIN: Clearing games for Division 8 Alpha teams only...');
+        
+        const { getPrismaClient } = await import('./database.js');
+        const db = await getPrismaClient();
+        
+        // Get Division 8 Alpha teams
+        const alphaTeams = await db.team.findMany({
+          where: {
+            division: 8,
+            subdivision: 'alpha'
+          },
+          select: { id: true, name: true }
+        });
+        
+        const teamIds = alphaTeams.map(t => t.id);
+        console.log(`Found ${alphaTeams.length} Alpha teams:`, alphaTeams.map(t => t.name));
+        
+        // Count current Alpha games
+        const currentCount = await db.game.count({
+          where: {
+            matchType: 'LEAGUE',
+            OR: [
+              { homeTeamId: { in: teamIds } },
+              { awayTeamId: { in: teamIds } }
+            ]
+          }
+        });
+        
+        // Delete Alpha games only
+        const deleteResult = await db.game.deleteMany({
+          where: {
+            matchType: 'LEAGUE',
+            OR: [
+              { homeTeamId: { in: teamIds } },
+              { awayTeamId: { in: teamIds } }
+            ]
+          }
+        });
+        
+        console.log(`✅ Cleared ${deleteResult.count} Alpha games (was ${currentCount})`);
+        
+        res.json({
+          success: true,
+          message: `Successfully cleared ${deleteResult.count} games for Division 8 Alpha`,
+          gamesDeleted: deleteResult.count,
+          teamsAffected: alphaTeams.map(t => t.name)
+        });
+        
+      } catch (error) {
+        console.error('❌ Failed to clear Alpha games:', error);
+        res.status(500).json({ 
+          success: false, 
+          error: 'Failed to clear Alpha games',
+          details: error.message 
+        });
+      }
+    });
+
     // TESTING ENDPOINT: Generate shortened schedule for Division 8 Alpha
     app.post('/api/admin/generate-alpha-schedule', async (req, res) => {
       try {

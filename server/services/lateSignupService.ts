@@ -241,10 +241,17 @@ export class LateSignupService {
   private static async checkExistingMatches(subdivisionName: string): Promise<number> {
     try {
       const prisma = await getPrismaClient();
-      const existingMatches = await prisma.match.count({
+      // Query Game table instead of non-existent match table
+      const teamIds = await storage.teams.getTeamsByDivisionAndSubdivision(8, subdivisionName);
+      const teamIdList = teamIds.map(t => t.id);
+      
+      const existingMatches = await prisma.game.count({
         where: {
-          division: 8,
-          subdivision: subdivisionName
+          matchType: 'LEAGUE',
+          OR: [
+            { homeTeamId: { in: teamIdList } },
+            { awayTeamId: { in: teamIdList } }
+          ]
         }
       });
       
@@ -411,77 +418,113 @@ export class LateSignupService {
     
     const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
     
-    // CORRECTED: Season ends on Day 14, so calculate remaining days correctly
-    const remainingDays = Math.max(0, 14 - currentDayInCycle + 1);
+    // DYNAMIC CALCULATION: Games start the day AFTER late signup
+    const gameStartDay = currentDayInCycle + 1;
+    const gameEndDay = 14; // Season ends Day 14
+    const remainingGameDays = Math.max(0, gameEndDay - gameStartDay + 1);
     
-    if (remainingDays <= 0) {
+    if (remainingGameDays <= 0) {
       logInfo(`Cannot generate schedule for ${subdivisionName} - season has already ended (current day ${currentDayInCycle})`);
       return;
     }
     
-    logInfo(`🗓️ Generating shortened season for ${subdivisionName}: Days ${currentDayInCycle}-14 (${remainingDays} days, ${remainingDays} games per team)`);
+    logInfo(`🗓️ Generating shortened season for ${subdivisionName}: Days ${gameStartDay}-${gameEndDay} (${remainingGameDays} days, ${remainingGameDays} games per team)`);
+    logInfo(`📊 SCHEDULE DEBUG: gameStartDay=${gameStartDay}, gameEndDay=${gameEndDay}, remainingGameDays=${remainingGameDays}`);
+    logInfo(`👥 TEAMS DEBUG: ${teams.length} teams found:`, teams.map(t => `${t.id}:${t.name}`).join(', '));
     
-    // CORRECTED: Generate exactly 1 match per team per day, 4 total matches per day
-    // Use round-robin pairing but only generate matches for remaining days
+    // CORRECTED: Generate exactly 4 matches per day (each team plays once)
     const matches: any[] = [];
     
-    // Create round-robin schedule pairs
-    const roundRobinSchedule = [];
-    for (let round = 0; round < 7; round++) { // 7 rounds for 8 teams
-      const roundPairs = [];
-      for (let i = 0; i < 4; i++) { // 4 pairs per round
-        const team1Index = i;
-        let team2Index = (7 - i + round) % 7;
-        if (team2Index >= team1Index) team2Index++;
+    // GUARANTEED APPROACH: Pre-defined pairing patterns ensuring exactly 1 game per team per day
+    const teamPairings = [];
+    
+    // Pre-calculated 9-day schedule for 8 teams (each team plays once per day)
+    // Patterns ensure variety and exactly 36 total games
+    const schedulePatternsData = [
+      [[0,4], [1,5], [2,6], [3,7]], // Day 1: 0v4, 1v5, 2v6, 3v7
+      [[0,5], [1,6], [2,7], [3,4]], // Day 2: 0v5, 1v6, 2v7, 3v4  
+      [[0,6], [1,7], [2,4], [3,5]], // Day 3: 0v6, 1v7, 2v4, 3v5
+      [[0,7], [1,4], [2,5], [3,6]], // Day 4: 0v7, 1v4, 2v5, 3v6
+      [[0,1], [2,3], [4,5], [6,7]], // Day 5: 0v1, 2v3, 4v5, 6v7
+      [[0,2], [1,3], [4,6], [5,7]], // Day 6: 0v2, 1v3, 4v6, 5v7
+      [[0,3], [1,2], [4,7], [5,6]], // Day 7: 0v3, 1v2, 4v7, 5v6
+      [[0,4], [1,7], [2,5], [3,6]], // Day 8: 0v4, 1v7, 2v5, 3v6 (repeat some but different combos)
+      [[0,5], [1,4], [2,7], [3,6]]  // Day 9: 0v5, 1v4, 2v7, 3v6
+    ];
+    
+    for (let dayIndex = 0; dayIndex < remainingGameDays; dayIndex++) {
+      const dailyPairs = schedulePatternsData[dayIndex];
+      teamPairings.push(dailyPairs);
+      
+      // Verify no duplicates (guaranteed by pre-calculated patterns)
+      const teamsUsedToday = new Set();
+      dailyPairs.forEach(([a, b]) => {
+        teamsUsedToday.add(a);
+        teamsUsedToday.add(b);
+      });
+      
+      logInfo(`📅 Day ${gameStartDay + dayIndex} pairs (${teamsUsedToday.size}/8 teams used):`, 
+        dailyPairs.map(([a,b]) => `${teams[a]?.name} vs ${teams[b]?.name}`).join(' | '));
         
-        roundPairs.push([team1Index, team2Index]);
+      if (teamsUsedToday.size !== 8) {
+        logInfo(`❌ ERROR: Day ${gameStartDay + dayIndex} has ${teamsUsedToday.size} teams instead of 8!`);
       }
-      roundRobinSchedule.push(roundPairs);
     }
     
-    // Add final round (remaining matchups)
-    const finalRoundPairs = [];
-    for (let i = 0; i < 4; i++) {
-      const team1Index = i;
-      const team2Index = i + 4;
-      finalRoundPairs.push([team1Index, team2Index]);
-    }
-    roundRobinSchedule.push(finalRoundPairs);
-    
-    // Select matches for remaining days
-    for (let dayIndex = 0; dayIndex < remainingDays; dayIndex++) {
-      const roundIndex = dayIndex % roundRobinSchedule.length;
-      const roundPairs = roundRobinSchedule[roundIndex];
-      
-      const currentDay = currentDayInCycle + dayIndex;
+    // Generate matches for each game day
+    for (let dayIndex = 0; dayIndex < remainingGameDays; dayIndex++) {
+      const actualGameDay = gameStartDay + dayIndex;
       const gameDate = new Date(currentSeason.startDate);
-      gameDate.setDate(gameDate.getDate() + currentDay - 1);
+      gameDate.setDate(gameDate.getDate() + actualGameDay - 1);
       
-      // Fixed time slots for shortened season: 4:00, 4:15, 4:30, 4:45 PM EDT
+      logInfo(`🎲 MATCH CREATION DEBUG Day ${actualGameDay} (index ${dayIndex}): gameDate=${gameDate.toISOString()}`);
+      
+      // Fixed time slots within 4PM-10PM EDT window: 4:00, 4:15, 4:30, 4:45 PM EDT
       const timeSlots = [
         { hour: 16, minute: 0 },   // 4:00 PM EDT
-        { hour: 16, minute: 15 },  // 4:15 PM EDT
+        { hour: 16, minute: 15 },  // 4:15 PM EDT  
         { hour: 16, minute: 30 },  // 4:30 PM EDT
         { hour: 16, minute: 45 }   // 4:45 PM EDT
       ];
       
-      for (let matchIndex = 0; matchIndex < roundPairs.length && matchIndex < 4; matchIndex++) {
-        const [homeIndex, awayIndex] = roundPairs[matchIndex];
+      const dailyPairs = teamPairings[dayIndex];
+      logInfo(`📝 Creating ${dailyPairs.length} matches for Day ${actualGameDay}`);
+      
+      for (let matchIndex = 0; matchIndex < dailyPairs.length && matchIndex < 4; matchIndex++) {
+        const [homeIndex, awayIndex] = dailyPairs[matchIndex];
         const gameTime = timeSlots[matchIndex];
         
         // Set proper game date and time
         const scheduledDateTime = new Date(gameDate);
         scheduledDateTime.setHours(gameTime.hour, gameTime.minute, 0, 0);
         
-        matches.push({
+        const matchData = {
           homeTeamId: teams[homeIndex].id,
           awayTeamId: teams[awayIndex].id,
           gameDate: scheduledDateTime,
           matchType: 'LEAGUE',
           status: 'SCHEDULED',
-          leagueId: null // Late signup games don't need league association
-        });
+          leagueId: null
+        };
+        
+        matches.push(matchData);
+        logInfo(`   ⚽ Match ${matchIndex + 1}: ${teams[homeIndex].name} (${teams[homeIndex].id}) vs ${teams[awayIndex].name} (${teams[awayIndex].id}) @ ${scheduledDateTime.toLocaleString()}`);
       }
+    }
+    
+    logInfo(`🎯 TOTAL MATCHES CREATED: ${matches.length} matches ready for database insertion`);
+    
+    // DIAGNOSTIC: Check for Oakland Cougars specifically
+    const oaklandCougarsId = teams.find(t => t.name.includes('Oakland'))?.id;
+    if (oaklandCougarsId) {
+      const oaklandMatches = matches.filter(m => m.homeTeamId === oaklandCougarsId || m.awayTeamId === oaklandCougarsId);
+      logInfo(`🎯 OAKLAND COUGARS DEBUG: Found ${oaklandMatches.length} matches before database insert`);
+      oaklandMatches.forEach((match, index) => {
+        const opponent = match.homeTeamId === oaklandCougarsId 
+          ? teams.find(t => t.id === match.awayTeamId)?.name 
+          : teams.find(t => t.id === match.homeTeamId)?.name;
+        logInfo(`   ${index + 1}. vs ${opponent} on ${match.gameDate.toDateString()} @ ${match.gameDate.toLocaleTimeString()}`);
+      });
     }
     
     // Create matches in database
@@ -495,7 +538,10 @@ export class LateSignupService {
       }
     }
     
-    logInfo(`✅ Generated ${createdMatches} matches for ${subdivisionName} subdivision (${remainingDays} games per team over ${remainingDays} days)`);
+    const expectedTotalMatches = remainingGameDays * 4; // 4 matches per day
+    const expectedGamesPerTeam = remainingGameDays; // 1 game per team per day
+    
+    logInfo(`✅ FINAL RESULT: Generated ${createdMatches}/${expectedTotalMatches} matches for ${subdivisionName} subdivision (${expectedGamesPerTeam} games per team over ${remainingGameDays} days)`);
   }
   
   /**
