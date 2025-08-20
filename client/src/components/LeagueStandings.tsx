@@ -36,6 +36,17 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     gcTime: 0, // Don't cache at all for now
   });
   const standings = (rawStandings || []) as Team[];
+  
+  // Debug logging to see what data we're actually receiving
+  console.log("STANDINGS DEBUG - Raw API data:", rawStandings);
+  if (standings.length > 0) {
+    console.log("STANDINGS DEBUG - First team data:", {
+      name: standings[0].name,
+      totalScores: standings[0].totalScores,
+      scoresAgainst: standings[0].scoresAgainst,
+      scoreDifference: standings[0].scoreDifference
+    });
+  }
 
   // Get current user's team to properly highlight it in standings
   const { data: currentUserTeam } = useQuery<any>({
