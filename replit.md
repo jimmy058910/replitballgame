@@ -6,6 +6,31 @@ Realm Rivalry is a mobile-first fantasy sports management game offering deep, en
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
+## CRITICAL DEVELOPMENT RULE: API Route Registration Order
+**ISSUE THAT OCCURRED 50+ TIMES DURING DEVELOPMENT:**
+- Vite middleware has a catch-all route `app.use("*", ...)` in `server/vite.ts` that serves HTML for any unhandled route
+- If API routes are registered AFTER Vite middleware, the catch-all intercepts API calls and returns HTML instead of JSON
+- This causes frontend to receive HTML responses when expecting JSON, breaking the app
+
+**PERMANENT SOLUTION - NEVER CHANGE THIS ORDER:**
+1. Register ALL API routes FIRST in `server/index.ts` 
+2. Then setup Vite middleware AFTER all API routes
+3. The catch-all `app.use("*", ...)` in Vite only catches non-API routes
+
+**CORRECT MIDDLEWARE ORDER:**
+```javascript
+// 1. Basic middleware (CORS, compression, etc.)
+// 2. Session management
+// 3. Authentication middleware
+// 4. ALL API ROUTES (critical to be before Vite)
+await registerAllRoutes(app); // <- MUST BE BEFORE Vite
+// 5. Vite middleware setup (includes catch-all)
+await setupVite(app, httpServer);
+// 6. Error handler (always last)
+```
+
+**IF THIS RULE IS VIOLATED:** API endpoints will return HTML instead of JSON, causing infinite loading states and broken functionality.
+
 **CRITICAL COMMUNICATION REQUIREMENT**: Always confirm before implementing changes
 - When user asks for suggestions/advice: Provide information and recommendations, then ASK for permission to implement
 - When user asks questions: Answer the question, don't automatically take action

@@ -558,10 +558,12 @@ async function startServer() {
       }
     });
     
-    console.log('✅ Critical API routes (including season) registered BEFORE Vite setup!');
-    
-    // MOVED: Comprehensive route registration will happen AFTER Vite setup
-    console.log('📝 Comprehensive API routes will be registered after Vite middleware');
+    // CRITICAL ARCHITECTURAL FIX: Register ALL API routes BEFORE Vite setup
+    // This prevents Vite's catch-all middleware from intercepting API calls with HTML responses
+    console.log('🔧 ARCHITECTURAL FIX: Registering ALL API routes BEFORE Vite setup...');
+    const { registerAllRoutes } = await import('./routes/index.js');
+    await registerAllRoutes(app);
+    console.log('✅ ALL API routes registered BEFORE Vite setup - prevents HTML interception!');
 
     // CRITICAL CLOUD RUN FIX: MUST use PORT environment variable set by Cloud Run
     app.get('/api/fix-dev-user', async (req, res) => {
@@ -923,13 +925,8 @@ async function startServer() {
       console.log('🏭 Production mode: Frontend serving will be configured after port binding');
     }
 
-    // CRITICAL: Now register comprehensive API routes AFTER Vite setup
-    console.log('🔧 Importing comprehensive route registration system after Vite...');
-    const { registerAllRoutes } = await import('./routes/index.js');
-    
-    console.log('🔧 Registering API routes AFTER Vite middleware...');
-    await registerAllRoutes(app);
-    console.log('✅ ALL comprehensive API routes registered AFTER Vite!');
+    // API routes already registered BEFORE Vite - no need to register again
+    console.log('✅ API routes already registered before Vite setup - skipping duplicate registration');
 
     // CRITICAL: Error handler MUST be last in middleware chain (moved to end)
     app.use(errorHandler);
