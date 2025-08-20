@@ -15,23 +15,23 @@
 ## Setup Instructions
 
 ### Step 1: Create Development Database
-1. Go to Neon Console: https://console.neon.tech
-2. Create new project: "realm-rivalry-dev"
+1. Go to Google Cloud Console: https://console.cloud.google.com/sql
+2. Create new Cloud SQL PostgreSQL instance: "realm-rivalry-dev"
 3. Copy connection string for development
 
 ### Step 2: Update Environment Variables
 
 #### Local Development (.env)
 ```
-# Development Database
-DATABASE_URL="postgresql://dev_user:password@dev-endpoint.neon.tech/realm_rivalry_dev"
+# Development Database (via Cloud SQL Proxy)
+DATABASE_URL="postgresql://dev_user:password@localhost:5432/realm_rivalry_dev"
 NODE_ENV="development"
 ```
 
-#### Production (GitHub Secrets)
+#### Production (Google Cloud Secrets)
 ```
-# Production Database (keep existing)
-DATABASE_URL="postgresql://neondb_owner:npg_FYwi4k2MuTUp@ep-polished-morning-a5k0aj2x-pooler.us-east-2.aws.neon.tech/neondb"
+# Production Database (managed via Google Cloud Secret Manager)
+DATABASE_URL="postgresql://username:password@/cloudsql/project:region:instance/database"
 NODE_ENV="production"
 ```
 

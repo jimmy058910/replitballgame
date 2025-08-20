@@ -87,7 +87,7 @@ Vite is used for the build system. Vitest with React Testing Library provides co
 ## Cloud Infrastructure
 - **Google Cloud Platform**: Cloud Run, Artifact Registry, IAM.
 - **Firebase**: Frontend hosting, authentication services.
-- **Google Cloud SQL**: PostgreSQL database.
+- **Google Cloud SQL**: PostgreSQL database (ONLY database provider - all Neon references removed).
 
 ## Development and Build Tools
 - **Vite**: Development server and build tool.

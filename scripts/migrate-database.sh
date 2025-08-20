@@ -1,22 +1,27 @@
 #!/bin/bash
 
-# Database Migration Script: Neon -> Google Cloud SQL
-# Exports schema and data from Neon, imports to Cloud SQL
+# Database Migration Script: Google Cloud SQL Management
+# Exports schema and data from Google Cloud SQL for backups/transfers
 
-echo "🔄 Starting database migration from Neon to Google Cloud SQL..."
+echo "🔄 Starting Google Cloud SQL database backup..."
 
-# Export from Neon (requires local pg_dump)
-echo "📤 Exporting from Neon database..."
-NEON_URL="postgresql://neondb_owner:npg_FYwi4k2MuTUp@ep-silent-dust-a5y8sn6m-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+# Use Google Cloud SQL Proxy for local access
+echo "📤 Exporting from Google Cloud SQL database..."
+# DATABASE_URL should be provided by environment (Google Cloud secrets)
+
+if [ -z "$DATABASE_URL" ]; then
+    echo "❌ DATABASE_URL not set. Please ensure Google Cloud secrets are available."
+    exit 1
+fi
 
 # Export schema and data
-pg_dump "$NEON_URL" \
+pg_dump "$DATABASE_URL" \
   --schema-only \
   --no-owner \
   --no-privileges \
   --file=realm-rivalry-schema.sql
 
-pg_dump "$NEON_URL" \
+pg_dump "$DATABASE_URL" \
   --data-only \
   --no-owner \
   --no-privileges \
