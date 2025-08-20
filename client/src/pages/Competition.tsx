@@ -123,6 +123,11 @@ function TournamentsTab() {
   });
   const recentGames = (rawRecentGames || []) as ExhibitionMatch[];
 
+  // Fetch global rankings for opponent display
+  const { data: globalRankings } = useQuery({
+    queryKey: ["/api/world/global-rankings"],
+  });
+
   // Calculate remaining games - Tournament system: 1 free + 1 with entry item
   const gamesPlayedToday = (tournamentStats as TournamentStats)?.gamesPlayedToday || 0;
   const freeGamesRemaining = Math.max(0, 1 - gamesPlayedToday);
@@ -488,7 +493,13 @@ function TournamentsTab() {
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-bold text-yellow-400">Power: {opponent.teamPower || 'N/A'}</div>
-                      <div className="text-sm text-blue-400 font-semibold">Global Rank: #{'?'}</div>
+                      <div className="text-sm text-blue-400 font-semibold">
+                        Global Rank: #{(() => {
+                          if (!globalRankings || globalRankings.length === 0) return '?';
+                          const teamRanking = globalRankings.find((r: any) => r.id === opponent.id || String(r.id) === String(opponent.id));
+                          return teamRanking?.globalRank || '?';
+                        })()}
+                      </div>
                       <div className="text-sm text-gray-400">
                         {opponent.wins}W - {opponent.losses}L - {opponent.draws}D
                       </div>

@@ -43,6 +43,7 @@ router.get('/:matchId/stadium-data', async (req: Request, res: Response, next: N
     }
     
     // For real matches, get actual stadium data from database
+    const prisma = await getPrismaClient();
     const match = await prisma.game.findUnique({
       where: { id: parseInt(matchId) },
       include: {
@@ -643,6 +644,7 @@ router.get('/:matchId/enhanced-data-old', requireAuth, async (req: Request, res:
     const awayTeam = await storage.teams.getTeamById(match.awayTeamId);
     
     // Load team players for MVP calculation (removing duplicate - already loaded above)
+    const prisma = await getPrismaClient();
     const liveHomePlayers = await prisma.player.findMany({
       where: { teamId: match.homeTeamId },
       select: { id: true, firstName: true, lastName: true, role: true, teamId: true }
@@ -1028,6 +1030,7 @@ router.post('/exhibition/instant', requireAuth, async (req: any, res: Response, 
     const userTeamId = req.user.claims.sub;
     
     // Get user's team
+    const prisma = await getPrismaClient();
     const userProfile = await prisma.userProfile.findUnique({
       where: { userId: userTeamId },
       include: { Team: true }
