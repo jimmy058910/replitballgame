@@ -68,6 +68,7 @@ import testRoutes from "./testRoutes.js";
 import cacheRoutes from "./cacheRoutes.js";
 import quickCacheTest from "./quickCacheTest.js";
 import testAutomationRoutes from "./testAutomationRoutes.js";
+import resetRoutes from "./resetRoutes.js";
 
 
 // This function will be called by server/index.ts to set up all routes.
@@ -191,6 +192,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api", debugEnvRoutes); // Debug environment variables endpoint
   app.use("/api", testRoutes); // Test endpoints for system validation
   app.use("/api/test-automation", testAutomationRoutes); // Test automation trigger endpoints
+  app.use("/api/admin", resetRoutes); // Admin reset and scheduling functionality
   app.use("/api/cache", cacheRoutes); // Cache management and statistics
   app.use("/api/cache-test", quickCacheTest); // Cache testing and demonstration
 
