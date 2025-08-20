@@ -115,4 +115,123 @@ function generateDayMatches(teams: any[], day: number): { homeTeam: any, awayTea
   return matches;
 }
 
+/**
+ * DIRECT TEST ENDPOINT for schedule generation (no auth required for testing)
+ */
+router.post('/test-schedule-generation', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('🧪 === TESTING NEW ROBUST SCHEDULE GENERATION ===');
+    
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Get one league for testing
+    const testLeague = await prisma.league.findFirst({
+      include: {
+        teams: true
+      }
+    });
+    
+    if (!testLeague || testLeague.teams.length === 0) {
+      return res.status(404).json({ 
+        error: "No leagues with teams found for testing",
+        suggestion: "Create some teams first"
+      });
+    }
+    
+    console.log(`Testing with league ${testLeague.id} containing ${testLeague.teams.length} teams`);
+    
+    // Clear existing games for this league only
+    await prisma.game.deleteMany({
+      where: { leagueId: testLeague.id }
+    });
+    
+    // Test the new schedule generation
+    const { ScheduleGenerationService } = await import('../services/scheduleGenerationService.js');
+    const result = await ScheduleGenerationService.generateLeagueSchedule(
+      testLeague.id.toString(), 
+      testLeague.teams
+    );
+    
+    // Get created games for verification
+    const createdGames = await prisma.game.findMany({
+      where: { leagueId: testLeague.id },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    
+    // Analyze schedule quality
+    const analysis = this.analyzeScheduleQuality(createdGames);
+    
+    res.json({
+      success: true,
+      message: "Schedule generation test completed",
+      league: {
+        id: testLeague.id,
+        name: testLeague.name,
+        teamCount: testLeague.teams.length
+      },
+      results: {
+        gamesCreated: result,
+        gamesInDatabase: createdGames.length,
+        analysis: analysis
+      },
+      sampleGames: createdGames.slice(0, 5).map(game => ({
+        homeTeam: game.homeTeam.name,
+        awayTeam: game.awayTeam.name,
+        gameDate: game.gameDate,
+        time: game.gameDate.toTimeString().substring(0, 8)
+      }))
+    });
+    
+  } catch (error) {
+    console.error('❌ Test schedule generation error:', error);
+    res.status(500).json({
+      error: "Schedule generation test failed",
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Analyze schedule quality to detect duplicates and conflicts
+ */
+router.analyzeScheduleQuality = function(games: any[]) {
+  const matchups = new Set<string>();
+  const timeSlots = new Map<string, number>();
+  let duplicates = 0;
+  
+  for (const game of games) {
+    // Check for duplicate matchups
+    const team1 = Math.min(game.homeTeamId, game.awayTeamId);
+    const team2 = Math.max(game.homeTeamId, game.awayTeamId);
+    const matchupKey = `${team1}-${team2}`;
+    
+    if (matchups.has(matchupKey)) {
+      duplicates++;
+    } else {
+      matchups.add(matchupKey);
+    }
+    
+    // Check time distribution
+    const timeKey = game.gameDate.toISOString().substring(0, 16); // YYYY-MM-DDTHH:MM
+    timeSlots.set(timeKey, (timeSlots.get(timeKey) || 0) + 1);
+  }
+  
+  const maxGamesAtSameTime = Math.max(...Array.from(timeSlots.values()));
+  
+  return {
+    totalGames: games.length,
+    uniqueMatchups: matchups.size,
+    duplicateMatchups: duplicates,
+    maxGamesAtSameTime: maxGamesAtSameTime,
+    timeSlots: timeSlots.size,
+    qualityScore: duplicates === 0 && maxGamesAtSameTime === 1 ? "EXCELLENT" : 
+                  duplicates === 0 ? "GOOD" : "NEEDS_IMPROVEMENT"
+  };
+};
+
 export default router;
