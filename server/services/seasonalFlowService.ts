@@ -4,6 +4,9 @@ import { getPrismaClient } from '../database.js';
 import { logInfo } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 
+// Initialize Prisma client for all operations in this service
+const getPrisma = async () => await getPrismaClient();
+
 /**
  * Seasonal Flow Algorithm Service
  * 
@@ -773,6 +776,7 @@ export class SeasonalFlowService {
   static async getTeamsWithStats(leagueId: string, season: number): Promise<any[]> {
     // This would need to aggregate match data for each team
     // For now, return basic team data - can be enhanced with actual match statistics
+    const prisma = await getPrisma();
     const league = await prisma.league.findUnique({
       where: { id: parseInt(leagueId, 10) }
     });
