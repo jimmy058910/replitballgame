@@ -107,7 +107,7 @@ type Exhibition = {
   extraTokens: number;
 };
 
-// Helper function to format match time
+// Helper function to format match time in EDT
 const formatMatchTime = (gameDate: string) => {
   const date = new Date(gameDate);
   return date.toLocaleDateString('en-US', { 
@@ -115,7 +115,8 @@ const formatMatchTime = (gameDate: string) => {
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone: 'America/New_York' // EDT timezone
   });
 };
 
@@ -539,7 +540,11 @@ export default function ComprehensiveCompetitionCenter() {
     
     if (diffHours <= 0) return 'Now';
     if (diffHours < 24) return `${diffHours}h`;
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'America/New_York' // EDT timezone
+    });
   };
 
   if (!team) {

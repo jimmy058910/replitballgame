@@ -76,13 +76,14 @@ export default function ScheduleView({
   const [activeFilter, setActiveFilter] = useState<'all' | 'league' | 'tournaments' | 'exhibitions'>('all');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-  // Helper function to format match time
+  // Helper function to format match time in EDT
   const formatMatchTime = (gameDate: string) => {
     const date = new Date(gameDate);
     return date.toLocaleTimeString('en-US', { 
       hour: 'numeric', 
       minute: '2-digit', 
-      hour12: true 
+      hour12: true,
+      timeZone: 'America/New_York' // EDT timezone
     });
   };
 
