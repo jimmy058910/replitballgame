@@ -178,7 +178,16 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/contracts", contractInitializerRoutes); // Covers contract initialization and management
   app.use("/api/equipment", equipmentRoutes); // Equipment management
   app.use("/api/tryouts", tryoutRoutes); // Covers tryout system and candidate generation
-  app.use("/api/late-signup", lateSignupRoutes);
+  console.log('🔍 [registerAllRoutes] About to register late signup routes...');
+  try {
+    console.log('🔍 [registerAllRoutes] lateSignupRoutes type:', typeof lateSignupRoutes);
+    console.log('🔍 [registerAllRoutes] lateSignupRoutes:', lateSignupRoutes?.constructor?.name);
+    app.use("/api/late-signup", lateSignupRoutes);
+    console.log('✅ [registerAllRoutes] Late signup routes registered successfully');
+  } catch (error: any) {
+    console.error('❌ [registerAllRoutes] Failed to register late signup routes:', error.message);
+    console.error('❌ [registerAllRoutes] Error stack:', error.stack);
+  }
   app.use("/api/tournament-status", tournamentStatusRoutes); // Covers late signup system for shortened Division 8 seasons
   app.use("/api/tournament-fix", tournamentFixRoutes); // Emergency tournament fix endpoints
   app.use("/api/tournament-history", tournamentHistoryRoutes); // Tournament history for completed tournaments

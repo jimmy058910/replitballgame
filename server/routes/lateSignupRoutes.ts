@@ -149,4 +149,140 @@ router.post('/debug-alpha', asyncHandler(async (req: Request, res: Response) => 
   }
 }));
 
+// SIMPLE TEST route to check if routing works (no auth, no database)
+router.get('/test-routing', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Late signup routing is working!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Simple database connectivity test (no auth required)
+router.get('/debug/db-test', async (req, res) => {
+  try {
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Simple connectivity test
+    const result = await prisma.$queryRaw`SELECT 1 as test`;
+    
+    // List available models
+    const allProperties = Object.getOwnPropertyNames(prisma);
+    const prismaModels = allProperties.filter(name => 
+      !name.startsWith('$') && 
+      !name.startsWith('_') &&
+      typeof prisma[name] === 'object' && 
+      prisma[name] !== null &&
+      'findMany' in prisma[name]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Database connection successful',
+      result: result,
+      availableModels: prismaModels,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+});
+
+// DEBUG route to check database state (no auth required) 
+router.get('/debug/database-state', async (req, res) => {
+  try {
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Check teams count first
+    const teamCount = await prisma.team.count();
+    
+    // Query teams in Division 8
+    const teams = await prisma.team.findMany({
+      where: { division: 8 },
+      select: {
+        id: true,
+        name: true,
+        subdivision: true,
+        isAI: true
+      },
+      take: 10
+    });
+    
+    // Check games involving Division 8 teams
+    const division8Games = await prisma.game.findMany({
+      where: {
+        OR: [
+          { homeTeam: { division: 8 } },
+          { awayTeam: { division: 8 } }
+        ]
+      },
+      select: {
+        id: true,
+        homeTeamId: true,
+        awayTeamId: true,
+        gameDate: true,
+        status: true,
+        homeTeam: {
+          select: {
+            name: true,
+            subdivision: true
+          }
+        },
+        awayTeam: {
+          select: {
+            name: true,
+            subdivision: true
+          }
+        }
+      },
+      orderBy: [{ gameDate: 'asc' }]
+    });
+    
+    // Group teams by subdivision
+    const teamsBySubdivision = teams.reduce((acc, team) => {
+      const subdivision = team.subdivision || 'main';
+      if (!acc[subdivision]) acc[subdivision] = [];
+      acc[subdivision].push(team);
+      return acc;
+    }, {} as Record<string, any[]>);
+    
+    // Group games by subdivision (using home team subdivision as primary)
+    const gamesBySubdivision = division8Games.reduce((acc, game) => {
+      const subdivision = game.homeTeam.subdivision || 'main';
+      if (!acc[subdivision]) acc[subdivision] = [];
+      acc[subdivision].push(game);
+      return acc;
+    }, {} as Record<string, any[]>);
+    
+    res.json({
+      success: true,
+      data: {
+        totalTeams: teams.length,
+        totalGames: division8Games.length,
+        teamsBySubdivision,
+        gamesBySubdivision,
+        subdivisionStats: Object.entries(teamsBySubdivision).map(([subdivision, teams]) => ({
+          subdivision,
+          teamCount: teams.length,
+          aiTeams: teams.filter(t => t.isAI).length,
+          humanTeams: teams.filter(t => !t.isAI).length,
+          gameCount: gamesBySubdivision[subdivision]?.length || 0
+        }))
+      }
+    });
+  } catch (error: any) {
+    console.error('❌ Debug database state failed:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 export default router;
