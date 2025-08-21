@@ -287,6 +287,32 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
 
 
 
+// EMERGENCY: Fix corrupted Shadow Runners matches using working storage layer
+router.get('/fix-shadow-corruption-final', asyncHandler(async (req: Request, res: Response) => {
+  try {
+    console.log('🚨 EMERGENCY FIX: Correcting matches 2619 and 2626 using storage layer...');
+    
+    // Use the working storage layer pattern from other routes
+    const result1 = await storage.matches.updateMatchOpponent(2619, undefined, 13);
+    console.log(`✅ Fixed 2619: ${result1.homeTeam?.name || 'Home'} vs ${result1.awayTeam?.name || 'Away'}`);
+    
+    const result2 = await storage.matches.updateMatchOpponent(2626, undefined, 13);
+    console.log(`✅ Fixed 2626: ${result2.homeTeam?.name || 'Home'} vs ${result2.awayTeam?.name || 'Away'}`);
+    
+    res.json({ 
+      success: true,
+      message: 'Shadow Runners corruption eliminated via storage layer',
+      fixes: [
+        { matchId: 2619, status: 'updated' },
+        { matchId: 2626, status: 'updated' }
+      ]
+    });
+  } catch (error: any) {
+    console.error('❌ Emergency fix failed:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+}));
+
 // Team creation endpoint
 router.post('/create', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.uid || req.user?.claims?.sub;
