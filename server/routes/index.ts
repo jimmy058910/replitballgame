@@ -188,6 +188,17 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     console.log('✅ [registerAllRoutes] Late signup and registration routes registered successfully');
   } catch (error: any) {
     console.error('❌ [registerAllRoutes] Failed to register late signup routes:', error.message);
+  }
+
+  // Admin routes for testing and manual triggers
+  console.log('🔍 [registerAllRoutes] About to register admin routes...');
+  try {
+    const adminRoutesModule = await import("./adminRoutes.js");
+    const adminRoutes = adminRoutesModule.default;
+    app.use("/api/admin", adminRoutes);
+    console.log('✅ [registerAllRoutes] Admin routes registered successfully');
+  } catch (adminImportError: any) {
+    console.error('❌ [registerAllRoutes] Failed to import admin routes:', adminImportError.message);
     console.error('❌ [registerAllRoutes] Error stack:', error.stack);
   }
   app.use("/api/tournament-status", tournamentStatusRoutes); // Covers late signup system for shortened Division 8 seasons

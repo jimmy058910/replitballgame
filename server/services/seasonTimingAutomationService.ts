@@ -346,7 +346,7 @@ export class SeasonTimingAutomationService {
    * Check if it's during match simulation window and simulate matches
    * CORRECTED: Spread across subdivisions every 15 minutes to reduce server load
    */
-  private async checkMatchSimulationWindow(): Promise<void> {
+  public async checkMatchSimulationWindow(): Promise<void> {
     try {
       const now = new Date();
       const estTime = getEasternTimeAsDate();
