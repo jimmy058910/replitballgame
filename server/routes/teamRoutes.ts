@@ -68,8 +68,7 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
   }
   
   const team = await storage.teams.getTeamByUserId(userId);
-  console.log('✅ Using team:', team.name, 'players:', team?.playersCount || 0);
-
+  
   if (!team) {
     console.log('❌ No team found for userId:', userId);
     return res.status(404).json({ 
