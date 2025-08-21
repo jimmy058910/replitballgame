@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -37,14 +37,51 @@ export default function ComprehensiveSchedule() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'league' | 'tournament' | 'exhibition'>('all');
 
   // Fetch ALL games for the user's team across all match types
-  const { data: allGames, isLoading, error } = useQuery<ComprehensiveGame[]>({
+  const { data: rawGames, isLoading, error } = useQuery<ComprehensiveGame[]>({
     queryKey: ["/api/teams/my-schedule/comprehensive"],
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache this data at all
-    refetchInterval: 30000, // Refetch every 30 seconds
-    refetchOnMount: true, // Always refetch on mount
+    staleTime: 0, // Force refresh after duplicate match fix
+    gcTime: 0, // Clear cache completely  
+    refetchOnMount: true, // Always refetch when component mounts
     refetchOnWindowFocus: false,
   });
+
+  // CRITICAL FIX: Filter out duplicate matches - keep only valid time matches
+  const allGames = useMemo(() => {
+    if (!rawGames) return [];
+    
+    // Group matches by date to find duplicates
+    const matchesByDate: { [date: string]: ComprehensiveGame[] } = {};
+    rawGames.forEach(game => {
+      const dateKey = new Date(game.gameDate).toDateString();
+      if (!matchesByDate[dateKey]) matchesByDate[dateKey] = [];
+      matchesByDate[dateKey].push(game);
+    });
+
+    // For each date, keep only the match in the valid time window (4-6 PM EDT = 20:00-22:00 UTC)
+    const filteredGames: ComprehensiveGame[] = [];
+    Object.entries(matchesByDate).forEach(([date, matches]) => {
+      if (matches.length === 1) {
+        filteredGames.push(matches[0]);
+      } else {
+        // Multiple matches on same day - keep the one at 8:30 PM EDT
+        const validMatch = matches.find(match => {
+          const matchTime = new Date(match.gameDate);
+          const hour = matchTime.getUTCHours();
+          return hour >= 20 && hour < 22; // 4-6 PM EDT window
+        });
+        
+        if (validMatch) {
+          console.log(`🎯 [SCHEDULE FIX] Filtering duplicate matches on ${date}, keeping valid match:`, validMatch.id);
+          filteredGames.push(validMatch);
+        } else {
+          // Fallback to first match if no valid time found
+          filteredGames.push(matches[0]);
+        }
+      }
+    });
+
+    return filteredGames;
+  }, [rawGames]);
 
   // Fetch user's team info
   const { data: userTeam } = useQuery<any>({

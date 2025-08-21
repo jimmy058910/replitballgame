@@ -88,7 +88,7 @@ export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: bool
   return useQuery<UpcomingMatch[]>({
     queryKey: ['/api/teams/my/matches/upcoming'],
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 0, // TEMPORARY: Force fresh data every time to fix cache issue
+    staleTime: 0, // Force fresh data until duplicate match issue is resolved
     gcTime: 1000 * 60 * 5, // 5 minutes cache
     refetchOnWindowFocus: false, // Disable to prevent interference
     refetchInterval: false, // Disable to prevent infinite loops
