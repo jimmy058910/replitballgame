@@ -23,9 +23,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('🔥 Setting up Firebase authentication system...');
     
-    // No redirect result needed for custom token auth
-    setIsLoading(false);
-
     // Set up Firebase auth state listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('🔥 Firebase Auth state changed:', user ? `authenticated: ${user.email}` : 'not authenticated');

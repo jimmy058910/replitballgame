@@ -268,16 +268,7 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
   };
 }
 
-/**
- * Get date for a specific day in the season - FIXED to return midnight dates
- */
-function getDateForDay(season: any, dayNumber: number): Date {
-  // Ensure we start with a clean midnight date
-  const baseDate = new Date('2025-08-16T00:00:00.000Z'); // Day 1 at midnight UTC
-  const targetDate = new Date(baseDate);
-  targetDate.setDate(targetDate.getDate() + (dayNumber - 1));
-  return targetDate;
-}
+// getDateForDay function already declared above - removed duplicate
 
 /**
  * Format game time to Eastern Time - CORRECTED for proper UTC to EDT conversion
