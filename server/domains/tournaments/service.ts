@@ -1,4 +1,4 @@
-import { getPrismaClient } from '../../db.js';
+import { getPrismaClient } from '../../database.js';
 import { Logger } from '../core/logger.js';
 import { NotFoundError, ConflictError, ValidationError } from '../core/errors.js';
 import { TournamentEntry, TournamentStatus, TournamentRegistrationRequest } from './schemas.js';
@@ -33,8 +33,8 @@ export class TournamentDomainService {
         );
       }
 
-      // Find appropriate tournament
-      const tournament = await prisma.tournament.findFirst({
+      // Find appropriate tournament or create one
+      let tournament = await prisma.tournament.findFirst({
         where: {
           division: request.division,
           status: 'REGISTRATION_OPEN'
@@ -42,7 +42,23 @@ export class TournamentDomainService {
       });
 
       if (!tournament) {
-        throw new NotFoundError('Available tournament for this division');
+        // Auto-create a Daily Division Tournament for this division
+        tournament = await prisma.tournament.create({
+          data: {
+            name: `Daily Division ${request.division} Tournament`,
+            division: request.division,
+            status: 'REGISTRATION_OPEN',
+            type: 'DAILY_DIVISIONAL',
+            startTime: new Date(),
+            endTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+            prizePoolJson: { credits: 1000, gems: 50 }
+          }
+        });
+        
+        Logger.logInfo('Auto-created daily tournament', {
+          tournamentId: String(tournament.id),
+          division: request.division
+        });
       }
 
       // Register team
