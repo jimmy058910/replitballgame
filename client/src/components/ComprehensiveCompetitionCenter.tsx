@@ -179,6 +179,14 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: isAuthenticated,
   });
 
+  // Fetch comprehensive schedule data for games remaining calculation
+  const { data: allGames } = useQuery<any[]>({
+    queryKey: ["/api/teams/my-schedule/comprehensive"],
+    enabled: isAuthenticated,
+    staleTime: 0, // Always fetch fresh data
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
   // Exhibition-specific queries
   const { data: exhibitionStats } = useQuery<any>({
     queryKey: ['/api/exhibitions/stats'],
@@ -624,10 +632,25 @@ export default function ComprehensiveCompetitionCenter() {
                       let gamesRemaining = 0;
                       
                       if (currentDay >= 1 && currentDay <= 14) {
-                        // Regular season: Calculate based on current day vs games played
-                        const regularSeasonGames = Math.min(currentDay, 14);
+                        // Regular season: Use actual scheduled games count
+                        // For late-registered teams, this correctly accounts for their reduced schedule
                         const gamesPlayed = (team?.wins || 0) + (team?.losses || 0);
-                        gamesRemaining = Math.max(0, regularSeasonGames - gamesPlayed);
+                        
+                        // Get total scheduled games for this team from comprehensive schedule
+                        // This is more accurate than day-based calculation
+                        if (allGames && Array.isArray(allGames)) {
+                          const totalScheduledGames = allGames.filter(game => 
+                            !game.simulated && 
+                            game.status === 'SCHEDULED' &&
+                            game.matchType === 'LEAGUE'
+                          ).length;
+                          gamesRemaining = Math.max(0, totalScheduledGames);
+                        } else {
+                          // Fallback: Late registered teams have 9 games (Days 6-14)
+                          const isLateRegistered = currentDay > 1; // Assume late if past Day 1
+                          const totalSeasonGames = isLateRegistered ? 9 : 14;
+                          gamesRemaining = Math.max(0, totalSeasonGames - gamesPlayed);
+                        }
                       } else if (currentDay === 15) {
                         // Division playoffs: No regular season games remain
                         gamesRemaining = 0;
