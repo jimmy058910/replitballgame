@@ -60,6 +60,23 @@ async function startServer() {
       }
     }));
 
+    // Initialize Cloud SQL proxy for development
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    if (nodeEnv === 'development') {
+      console.log('🔧 Initializing Cloud SQL Auth Proxy for development...');
+      try {
+        const { initializeCloudSqlProxy } = await import('./cloudSqlProxy.js');
+        const proxyStarted = await initializeCloudSqlProxy();
+        if (proxyStarted) {
+          console.log('✅ Cloud SQL Auth Proxy initialized successfully');
+        } else {
+          console.log('⚠️ Cloud SQL Auth Proxy failed to start - using fallback');
+        }
+      } catch (error) {
+        console.log('⚠️ Cloud SQL Auth Proxy initialization failed:', error.message);
+      }
+    }
+
     // Database initialization (lazy - will initialize when first needed)
     console.log('🔄 Database will initialize lazily when first accessed');
     const { getPrismaClient } = await import('./database.js');
