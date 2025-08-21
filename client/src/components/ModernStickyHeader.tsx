@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useTeamDashboardData } from '@/hooks/useTeamData';
 import { 
   Home, Users, Trophy, ShoppingCart, Globe, MessageCircle, 
   Bell, Menu, X, Coins, Star, Clock, Calendar,
@@ -65,7 +66,6 @@ const ModernStickyHeader: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [serverTime, setServerTime] = useState(new Date());
   const { isAuthenticated } = useUnifiedAuth();
-  const queryClient = useQueryClient();
 
   // Server time update
   useEffect(() => {
@@ -75,16 +75,17 @@ const ModernStickyHeader: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Data queries
-  const { data: team } = useQuery<Team>({
-    queryKey: ["/api/teams/my"],
-    enabled: isAuthenticated,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: true,
-  });
+  // Use the centralized team data hook with proper caching
+  const { 
+    team, 
+    upcomingMatches, 
+    liveMatches, 
+    isLoading, 
+    hasError, 
+    isReady 
+  } = useTeamDashboardData(isAuthenticated);
 
-  // Use finances data from team response instead of separate API call
+  // Use finances data from team response
   const finances = team ? {
     credits: team.finances?.credits || "0",
     gems: team.finances?.gems || "0"
@@ -93,82 +94,58 @@ const ModernStickyHeader: React.FC = () => {
   const { data: seasonData } = useQuery<SeasonData>({
     queryKey: ['/api/season/current-cycle'],
     enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 5, // 5 minutes - season data changes infrequently
   });
 
   const { data: notifications } = useQuery({
     queryKey: [`/api/teams/${team?.id}/notifications`],
     enabled: !!team?.id && isAuthenticated,
+    staleTime: 1000 * 30, // 30 seconds - notifications are moderately fresh
   });
 
-  // Live match and upcoming match queries
-  const { data: liveMatches } = useQuery<LiveMatch[]>({
-    queryKey: ['/api/matches/live'],
-    enabled: isAuthenticated && !!team?.id,
-    refetchInterval: 5000, // Check every 5 seconds for live matches
-  });
-
-  const { data: upcomingMatches, isLoading: upcomingLoading, error: upcomingError } = useQuery<UpcomingMatch[]>({
-    queryKey: ['/api/teams/my/matches/upcoming', team?.id, Date.now()], // Force unique keys
-    enabled: !!team?.id && isAuthenticated,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache this data at all
-    refetchInterval: 5000, // Very frequent checks - every 5 seconds
-    refetchOnMount: true, // Always refetch on mount
-    refetchOnWindowFocus: true, // Also refetch on window focus
-    retry: 1, // Reduce retries to get fresh data faster
-    refetchIntervalInBackground: true, // Keep refetching even when not focused
-  });
-
-  // NUCLEAR CACHE INVALIDATION on component mount
+  // Debug logging - only when data actually changes
   useEffect(() => {
-    if (isAuthenticated && team?.id) {
-      console.log('🔥 [NUCLEAR CACHE BUST] Starting complete cache clearing for team:', team.name);
-      
-      // Clear React Query caches
-      queryClient.invalidateQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/teams/my-schedule/comprehensive'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/matches/live'] });
-      queryClient.removeQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
-      
-      // Clear browser storage caches that might be interfering
-      try {
-        localStorage.removeItem('upcoming_matches_cache');
-        localStorage.removeItem('team_schedule_cache');
-        sessionStorage.removeItem('upcoming_matches_cache');
-        sessionStorage.removeItem('team_schedule_cache');
-        console.log('🔥 [NUCLEAR CACHE BUST] Cleared browser storage caches');
-      } catch (e) {
-        console.warn('Could not clear browser storage:', e);
-      }
-      
-      // Force immediate refetch with cache bypass
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
-        console.log('🔥 [NUCLEAR CACHE BUST] Forced immediate refetch');
-      }, 100);
-    }
-  }, [team?.id, isAuthenticated, queryClient]);
-
-  // Debug logging with useEffect
-  useEffect(() => {
-    console.log('🔍 [HEADER DEBUG] Authentication state:', isAuthenticated);
-    if (team) {
-      console.log('🔍 [HEADER DEBUG] Team data updated:', team.name, 'ID:', team.id);
-    } else if (isAuthenticated) {
-      console.log('🔍 [HEADER DEBUG] Authenticated but no team data yet');
-    }
-  }, [team, isAuthenticated]);
-
-  useEffect(() => {
-    if (upcomingMatches) {
-      console.log('🔍 [HEADER DEBUG] Upcoming matches updated:', upcomingMatches.length, 'matches');
+    if (isReady && team && upcomingMatches) {
+      console.log('✅ [HEADER] Team data ready:', team.name, 'ID:', team.id);
       if (upcomingMatches.length > 0) {
-        console.log('🔍 [HEADER DEBUG] Next match:', upcomingMatches[0].homeTeam.name, 'vs', upcomingMatches[0].awayTeam.name, 'on', upcomingMatches[0].gameDate);
+        const nextMatch = upcomingMatches[0];
+        console.log('✅ [HEADER] Next match:', nextMatch.homeTeam.name, 'vs', nextMatch.awayTeam.name, 'on', nextMatch.gameDate);
       }
-    } else if (isAuthenticated && team) {
-      console.log('🔍 [HEADER DEBUG] No upcoming matches data yet, but have team:', team.name);
     }
-  }, [upcomingMatches, isAuthenticated, team]);
+  }, [isReady, team?.id, upcomingMatches?.length]); // Only log when these specific values change
+
+  // Handle loading states - prevent showing stale data
+  if (!isAuthenticated) {
+    return null; // Don't render header when not authenticated
+  }
+
+  if (isLoading) {
+    // Show skeleton while loading to prevent stale data flash
+    return (
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-800 to-blue-800 border-b border-purple-600/50 backdrop-blur-md">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center space-x-4">
+            <div className="w-8 h-8 bg-purple-600/30 rounded-lg animate-pulse" />
+            <div className="w-32 h-4 bg-purple-600/30 rounded animate-pulse" />
+          </div>
+          <div className="w-24 h-8 bg-purple-600/30 rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  if (hasError || !team) {
+    // Show error state or redirect to team creation
+    return (
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-red-800 to-purple-800 border-b border-red-600/50 backdrop-blur-md">
+        <div className="flex items-center justify-center px-4 py-3">
+          <span className="text-red-200 text-sm">
+            {hasError ? 'Unable to load team data' : 'No team found'}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   // Navigation items
   const navItems = [

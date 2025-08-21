@@ -6,6 +6,14 @@ Realm Rivalry is a mobile-first fantasy sports management game offering deep, en
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Technical Improvements (August 2025)
+**CRITICAL CACHING ARCHITECTURE OVERHAUL**: Completely replaced problematic cache-fighting approaches with industry-standard React Query patterns. Key improvements:
+- **Hierarchical Query Keys**: Structured keys (`['teams', 'my', 'matches', 'upcoming']`) for efficient cache invalidation
+- **Centralized Data Management**: Created `useTeamData.ts` hook with proper staleTime configuration based on data volatility  
+- **Proper Loading States**: Added skeleton UI to prevent stale data flash before fresh data loads
+- **Eliminated Technical Debt**: Removed `Date.now()` query key hacks and aggressive cache clearing that were fighting React Query mechanisms
+- **Industry Standards**: Following TanStack Query v5 best practices for cache synchronization and invalidation patterns
+
 ## CRITICAL DEVELOPMENT RULE: API Route Registration Order
 **ISSUE THAT OCCURRED 50+ TIMES DURING DEVELOPMENT:**
 - Vite middleware has a catch-all route `app.use("*", ...)` in `server/vite.ts` that serves HTML for any unhandled route
