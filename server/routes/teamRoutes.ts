@@ -449,6 +449,47 @@ router.get('/fix-opponent-debug', asyncHandler(async (req: Request, res: Respons
   }
 }));
 
+// CRITICAL FIX: Add standings route directly to teamRoutes
+// This fixes the Vite interception issue by providing direct access
+router.get('/:division/standings', async (req: Request, res: Response) => {
+  console.log(`🏆 [DIRECT STANDINGS] Division ${req.params.division} standings requested`);
+  
+  try {
+    const division = parseInt(req.params.division);
+    if (isNaN(division) || division < 1 || division > 8) {
+      return res.status(400).json({ message: "Invalid division" });
+    }
+
+    const prisma = await getPrismaClient();
+    
+    // Get all teams in Division 8 Alpha (where Oakland Cougars is)
+    const teams = await prisma.team.findMany({
+      where: { 
+        division: division,
+        subdivision: 'alpha' // Oakland Cougars is in alpha
+      },
+      orderBy: [
+        { points: 'desc' },
+        { wins: 'desc' },
+        { name: 'asc' }
+      ]
+    });
+
+    console.log(`✅ [DIRECT STANDINGS] Found ${teams.length} teams in Division ${division} Alpha`);
+    if (teams.length > 0) {
+      const oakland = teams.find(t => t.name === 'Oakland Cougars');
+      if (oakland) {
+        console.log(`🎯 [DIRECT STANDINGS] Oakland Cougars: ${oakland.wins}W-${oakland.losses}L (${oakland.points} pts)`);
+      }
+    }
+
+    res.json(teams);
+  } catch (error) {
+    console.error('❌ [DIRECT STANDINGS] Error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 console.log('🔍 [teamRoutes.ts] Router configured with routes, exporting...');
 console.log('🔍 [teamRoutes.ts] Router stack length:', router.stack.length);
 

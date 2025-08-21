@@ -120,6 +120,12 @@ async function startServer() {
       console.log('⚠️ Database will retry connection when needed:', error.message);
     }
 
+    // CRITICAL FIX: Ensure API routes have absolute precedence over Vite
+    app.use('/api', (req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    });
+    
     // Register all API routes BEFORE Vite middleware
     console.log('🔧 Registering API routes...');
     const { registerAllRoutes } = await import('./routes/index.js');
