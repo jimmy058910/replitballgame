@@ -25,7 +25,43 @@ import gameConfig from "../config/game_config.json" with { type: "json" };
 const router = Router();
 
 /**
- * Generate late signup schedule for Division 8 teams - Days 6-14 only
+ * Helper function to get current season timing info
+ */
+function getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; seasonNumber: number } {
+  let currentDayInCycle = 5; // Default fallback
+  
+  if (currentSeason && typeof currentSeason.currentDay === 'number') {
+    currentDayInCycle = currentSeason.currentDay;
+  } else if (currentSeason && typeof currentSeason.dayInCycle === 'number') {
+    currentDayInCycle = currentSeason.dayInCycle;
+  } else if (currentSeason && typeof currentSeason.day_in_cycle === 'number') {
+    currentDayInCycle = currentSeason.day_in_cycle;
+  } else {
+    // Fallback to calculation if no database value
+    const seasonStartDate = currentSeason?.startDate ? new Date(currentSeason.startDate) : 
+                           currentSeason?.start_date ? new Date(currentSeason.start_date) : 
+                           new Date("2025-08-16"); // Season 1 start date
+    const now = new Date();
+    const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
+    currentDayInCycle = (daysSinceStart % 17) + 1;
+  }
+  
+  const seasonNumber = currentSeason?.seasonNumber || currentSeason?.season_number || 1;
+  return { currentDayInCycle, seasonNumber };
+}
+
+/**
+ * Helper function to get date for a specific season day
+ */
+function getDateForDay(currentSeason: any, dayNumber: number): Date {
+  const startDate = new Date(currentSeason.startDate || "2025-08-16");
+  const targetDate = new Date(startDate);
+  targetDate.setDate(startDate.getDate() + dayNumber - 1);
+  return targetDate;
+}
+
+/**
+ * Generate late signup schedule for Division 8 teams - DYNAMIC day range
  */
 async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: number, currentSeason: any): Promise<any> {
   console.log('🎯 [LATE SIGNUP SCHEDULE] Generating for team:', userTeam.name, 'in subdivision:', userTeam.subdivision);
@@ -42,7 +78,10 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
   
   const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
   
-  // Get matches only for Days 6-14 (late signup period)
+  // DYNAMIC: Get matches for remaining days until Day 14
+  const { currentDayInCycle } = getCurrentSeasonInfo(currentSeason);
+  const gameStartDay = currentDayInCycle; // Start from current day (when subdivision was filled)
+  
   const matches = await prisma.game.findMany({
     where: {
       matchType: 'LEAGUE',
@@ -50,9 +89,9 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
         { homeTeamId: { in: subdivisionTeamIds } },
         { awayTeamId: { in: subdivisionTeamIds } }
       ],
-      // Filter by date range - Days 6-14 
+      // DYNAMIC: Filter by date range from current day to Day 14 
       gameDate: {
-        gte: getDateForDay(currentSeason, 6), // Start Day 6
+        gte: getDateForDay(currentSeason, gameStartDay), // Start from current day
         lt: getDateForDay(currentSeason, 15) // Include all of Day 14 (less than Day 15)
       }
     },
@@ -63,14 +102,14 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
     orderBy: { gameDate: 'asc' }
   });
   
-  console.log('🎯 [LATE SIGNUP SCHEDULE] Found', matches.length, 'matches for Days 6-14');
+  console.log(`🎯 [LATE SIGNUP SCHEDULE] Found ${matches.length} matches for Days ${gameStartDay}-14`);
   
   // Group matches by day
   const schedule: any = {};
   const startDate = currentSeason.startDate || new Date('2025-08-16');
   
-  // Initialize all days 6-14
-  for (let day = 6; day <= 14; day++) {
+  // DYNAMIC: Initialize days from gameStartDay to 14
+  for (let day = gameStartDay; day <= 14; day++) {
     schedule[day] = [];
   }
   
@@ -79,8 +118,8 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
     const daysSinceStart = Math.floor((match.gameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const dayNumber = daysSinceStart + 1;
     
-    // Only include Days 6-14
-    if (dayNumber >= 6 && dayNumber <= 14) {
+    // DYNAMIC: Only include from gameStartDay to Day 14
+    if (dayNumber >= gameStartDay && dayNumber <= 14) {
       const formattedMatch = {
         id: match.id,
         homeTeamId: match.homeTeamId,
@@ -149,12 +188,12 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
     
     console.log(`🔍 [ALL GAMES DEBUG] Found ${allSubdivisionMatches.length} total subdivision games`);
     
-    // Filter for Days 6-14 in JavaScript to ensure Day 14 games are included
+    // DYNAMIC: Filter for gameStartDay to Day 14 in JavaScript
     const regeneratedMatches = allSubdivisionMatches.filter(match => {
       const baseDate = new Date('2025-08-16T00:00:00.000Z'); // Day 1
       const daysSinceStart = Math.floor((match.gameDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
       const dayNumber = daysSinceStart + 1;
-      const isInRange = dayNumber >= 6 && dayNumber <= 14;
+      const isInRange = dayNumber >= gameStartDay && dayNumber <= 14;
       
       if (isInRange) {
         console.log(`🔍 [FILTER DEBUG] Game ${match.id}: gameDate=${match.gameDate.toISOString()}, dayNumber=${dayNumber} - INCLUDED`);
@@ -163,9 +202,9 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
       return isInRange;
     });
     
-    // Rebuild schedule with regenerated games
+    // DYNAMIC: Rebuild schedule from gameStartDay to 14
     const newSchedule: any = {};
-    for (let day = 6; day <= 14; day++) {
+    for (let day = gameStartDay; day <= 14; day++) {
       newSchedule[day] = [];
     }
     
@@ -175,7 +214,7 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
       
       console.log(`🔍 [DEBUG] Game ${match.id}: gameDate=${match.gameDate.toISOString()}, startDate=${startDate.toISOString()}, daysSinceStart=${daysSinceStart}, dayNumber=${dayNumber}`);
       
-      if (dayNumber >= 6 && dayNumber <= 14) {
+      if (dayNumber >= gameStartDay && dayNumber <= 14) {
         const formattedMatch = {
           id: match.id,
           homeTeamId: match.homeTeamId,
@@ -201,23 +240,31 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
     
     console.log('🎯 [REGENERATED] Final schedule:', Object.keys(newSchedule).map(day => `Day ${day}: ${newSchedule[day].length} games`).join(', '));
     
+    const totalGameDays = 14 - gameStartDay + 1;
+    const gamesPerTeam = totalGameDays;
+    
     return {
       schedule: newSchedule,
-      currentDay,
+      currentDay: gameStartDay,
       totalDays: 17,
       lateSignup: true,
-      gameRange: 'Days 6-14 (Late Signup)',
-      message: `Complete late signup schedule - ${Object.values(newSchedule).flat().length} total games from Days 6-14 (REGENERATED)`
+      gameRange: `Days ${gameStartDay}-14 (Late Signup)`,
+      gamesPerTeam: gamesPerTeam,
+      message: `Complete late signup schedule - ${Object.values(newSchedule).flat().length} total games from Days ${gameStartDay}-14 (REGENERATED)`
     };
   }
   
+  const totalGameDays = 14 - gameStartDay + 1;
+  const gamesPerTeam = totalGameDays;
+  
   return {
     schedule,
-    currentDay,
+    currentDay: gameStartDay,
     totalDays: 17,
     lateSignup: true,
-    gameRange: 'Days 6-14 (Late Signup)',
-    message: `Late signup schedule - ${Object.values(schedule).flat().length} total games from Days 6-14`
+    gameRange: `Days ${gameStartDay}-14 (Late Signup)`,
+    gamesPerTeam: gamesPerTeam,
+    message: `Late signup schedule - ${Object.values(schedule).flat().length} total games from Days ${gameStartDay}-14`
   };
 }
 

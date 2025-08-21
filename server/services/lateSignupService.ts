@@ -403,6 +403,37 @@ export class LateSignupService {
   }
 
   /**
+   * Generate dynamic pairing patterns for any number of game days
+   * Ensures balanced HOME/AWAY distribution and team variety
+   */
+  private static generateDynamicPairingPatterns(gameDays: number): number[][][] {
+    // Base patterns that work for any number of days
+    const basePatterns = [
+      [[0,4], [1,5], [2,6], [3,7]], // Pattern 1: 0v4, 1v5, 2v6, 3v7
+      [[0,5], [1,6], [2,7], [3,4]], // Pattern 2: 0v5, 1v6, 2v7, 3v4  
+      [[0,6], [1,7], [2,4], [3,5]], // Pattern 3: 0v6, 1v7, 2v4, 3v5
+      [[0,7], [1,4], [2,5], [3,6]], // Pattern 4: 0v7, 1v4, 2v5, 3v6
+      [[0,1], [2,3], [4,5], [6,7]], // Pattern 5: 0v1, 2v3, 4v5, 6v7
+      [[0,2], [1,3], [4,6], [5,7]], // Pattern 6: 0v2, 1v3, 4v6, 5v7
+      [[0,3], [1,2], [4,7], [5,6]], // Pattern 7: 0v3, 1v2, 4v7, 5v6
+      [[0,6], [1,4], [2,7], [3,5]], // Pattern 8: 0v6, 1v4, 2v7, 3v5 (variation)
+      [[0,7], [1,5], [2,4], [3,6]]  // Pattern 9: 0v7, 1v5, 2v4, 3v6 (variation)
+    ];
+    
+    const patterns: number[][][] = [];
+    
+    // Generate patterns for the required number of game days
+    for (let day = 0; day < gameDays; day++) {
+      // Use base patterns cyclically to ensure variety
+      const patternIndex = day % basePatterns.length;
+      patterns.push(basePatterns[patternIndex]);
+    }
+    
+    logInfo(`🎲 Generated ${patterns.length} daily pairing patterns for ${gameDays} game days`);
+    return patterns;
+  }
+
+  /**
    * Generate shortened season schedule for a late signup subdivision - EXPOSED FOR TESTING
    */
   static async generateShortenedSeasonSchedule(subdivisionName: string, teamsInSubdivision: any[]): Promise<void> {
@@ -418,8 +449,9 @@ export class LateSignupService {
     
     const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
     
-    // FIXED: Late signup teams start games on Day 6 (regardless of current day)
-    const gameStartDay = 6; // Late signup teams always start on Day 6
+    // DYNAMIC: Late signup teams start games based on when subdivision is filled
+    // Games start the day the subdivision gets filled with AI teams
+    const gameStartDay = currentDayInCycle; // Start the day subdivision is filled
     const gameEndDay = 14; // Season ends Day 14
     const remainingGameDays = Math.max(0, gameEndDay - gameStartDay + 1);
     
@@ -438,19 +470,8 @@ export class LateSignupService {
     // GUARANTEED APPROACH: Pre-defined pairing patterns ensuring exactly 1 game per team per day
     const teamPairings = [];
     
-    // Pre-calculated 9-day schedule for 8 teams (each team plays once per day)
-    // Patterns ensure variety and exactly 36 total games
-    const schedulePatternsData = [
-      [[0,4], [1,5], [2,6], [3,7]], // Day 6: 0v4, 1v5, 2v6, 3v7
-      [[0,5], [1,6], [2,7], [3,4]], // Day 7: 0v5, 1v6, 2v7, 3v4  
-      [[0,6], [1,7], [2,4], [3,5]], // Day 8: 0v6, 1v7, 2v4, 3v5
-      [[0,7], [1,4], [2,5], [3,6]], // Day 9: 0v7, 1v4, 2v5, 3v6
-      [[0,1], [2,3], [4,5], [6,7]], // Day 10: 0v1, 2v3, 4v5, 6v7
-      [[0,2], [1,3], [4,6], [5,7]], // Day 11: 0v2, 1v3, 4v6, 5v7
-      [[0,3], [1,2], [4,7], [5,6]], // Day 12: 0v3, 1v2, 4v7, 5v6
-      [[0,6], [1,4], [2,7], [3,5]], // Day 13: 0v6, 1v4, 2v7, 3v5 (different combo)
-      [[0,7], [1,5], [2,4], [3,6]]  // Day 14: 0v7, 1v5, 2v4, 3v6 (final day)
-    ];
+    // DYNAMIC: Generate pairing patterns based on remaining game days
+    const schedulePatternsData = this.generateDynamicPairingPatterns(remainingGameDays);
     
     for (let dayIndex = 0; dayIndex < remainingGameDays; dayIndex++) {
       const dailyPairs = schedulePatternsData[dayIndex % schedulePatternsData.length]; // Safety wrap
@@ -460,13 +481,17 @@ export class LateSignupService {
       
       // Verify no duplicates (guaranteed by pre-calculated patterns)
       const teamsUsedToday = new Set();
-      dailyPairs.forEach(([a, b]) => {
+      dailyPairs.forEach((pair: number[]) => {
+        const [a, b] = pair;
         teamsUsedToday.add(a);
         teamsUsedToday.add(b);
       });
       
       logInfo(`📅 Day ${gameStartDay + dayIndex} pairs (${teamsUsedToday.size}/8 teams used):`, 
-        dailyPairs.map(([a,b]) => `${teams[a]?.name} vs ${teams[b]?.name}`).join(' | '));
+        dailyPairs.map((pair: number[]) => {
+          const [a, b] = pair;
+          return `${teams[a]?.name} vs ${teams[b]?.name}`;
+        }).join(' | '));
         
       if (teamsUsedToday.size !== 8) {
         logInfo(`❌ ERROR: Day ${gameStartDay + dayIndex} has ${teamsUsedToday.size} teams instead of 8!`);
@@ -485,12 +510,12 @@ export class LateSignupService {
         logInfo(`🔥 DAY 14 DEBUG: Creating games for ${gameDate.toISOString()}, expected Day 14 date should be 2025-08-29T00:00:00.000Z`);
       }
       
-      // Fixed time slots for 4:00-4:45 PM EDT (stored as 20:00-20:45 UTC)
+      // Extended time slots for 4:00-10:00 PM EDT (stored as 20:00-02:00 UTC next day)
       const timeSlots = [
         { hour: 20, minute: 0 },   // 4:00 PM EDT (20:00 UTC)
-        { hour: 20, minute: 15 },  // 4:15 PM EDT (20:15 UTC)  
-        { hour: 20, minute: 30 },  // 4:30 PM EDT (20:30 UTC)
-        { hour: 20, minute: 45 }   // 4:45 PM EDT (20:45 UTC)
+        { hour: 21, minute: 30 },  // 5:30 PM EDT (21:30 UTC)  
+        { hour: 23, minute: 0 },   // 7:00 PM EDT (23:00 UTC)
+        { hour: 1, minute: 30, nextDay: true }   // 9:30 PM EDT (01:30 UTC next day)
       ];
       
       const dailyPairs = teamPairings[dayIndex];
@@ -500,9 +525,14 @@ export class LateSignupService {
         const [homeIndex, awayIndex] = dailyPairs[matchIndex];
         const gameTime = timeSlots[matchIndex];
         
-        // Set proper game date and time
+        // Set proper game date and time (handle next day for late slots)
         const scheduledDateTime = new Date(gameDate);
-        scheduledDateTime.setHours(gameTime.hour, gameTime.minute, 0, 0);
+        if (gameTime.nextDay) {
+          scheduledDateTime.setDate(scheduledDateTime.getDate() + 1);
+          scheduledDateTime.setHours(gameTime.hour, gameTime.minute, 0, 0);
+        } else {
+          scheduledDateTime.setHours(gameTime.hour, gameTime.minute, 0, 0);
+        }
         
         const matchData = {
           homeTeamId: teams[homeIndex].id,
