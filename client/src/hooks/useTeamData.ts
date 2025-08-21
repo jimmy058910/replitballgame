@@ -72,10 +72,11 @@ export const useMyTeam = (isAuthenticated: boolean) => {
   return useQuery<Team>({
     queryKey: ['/api/teams/my'], // Use the actual API endpoint
     enabled: isAuthenticated,
-    staleTime: 1000 * 60 * 2, // 2 minutes - team data changes infrequently
-    gcTime: 1000 * 60 * 10, // 10 minutes - keep in cache longer
+    staleTime: 0, // No cache - always fetch fresh data for consistency fix
+    gcTime: 1000 * 30, // 30 seconds cache
     refetchOnMount: true,
-    refetchOnWindowFocus: false, // Avoid unnecessary refetches
+    refetchOnWindowFocus: true, // Enable to get fresh data
+    refetchInterval: 1000 * 60, // Refetch every minute
   });
 };
 
