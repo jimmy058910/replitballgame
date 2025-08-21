@@ -5,6 +5,7 @@ import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 import { ErrorCreators, asyncHandler } from '../services/errorService.js';
+import { getPrismaClient } from "../database.js";
 import { TeamNameValidator } from '../services/teamNameValidation.js';
 import { CamaraderieService } from '../services/camaraderieService.js';
 import { cacheResponse } from "../middleware/cacheMiddleware.js";
@@ -315,8 +316,12 @@ router.get('/fix-shadow-teams-final', asyncHandler(async (req: Request, res: Res
       const newName = `${newBaseName} ${Math.floor(Math.random() * 900) + 100}`;
       
       try {
-        // Use storage layer to update team name
-        const updatedTeam = await storage.teams.updateTeam(team.id, { name: newName });
+        // Use direct Prisma update since storage layer might not have updateTeam method
+        const prisma = await getPrismaClient();
+        const updatedTeam = await prisma.team.update({
+          where: { id: team.id },
+          data: { name: newName }
+        });
         console.log(`✅ Renamed: ${team.name} → ${newName}`);
         renamedTeams.push({
           oldName: team.name,
