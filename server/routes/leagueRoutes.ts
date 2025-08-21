@@ -91,7 +91,7 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
         scheduledTime: match.gameDate.toISOString(),
         scheduledTimeFormatted: formatGameTime(match.gameDate),
         matchType: match.matchType,
-        status: match.status || 'SCHEDULED',
+        status: 'SCHEDULED', // FIXED: Force all late signup matches to SCHEDULED status
         simulated: match.simulated || false,
         homeScore: match.homeScore || 0,
         awayScore: match.awayScore || 0
@@ -186,7 +186,7 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
           scheduledTime: match.gameDate.toISOString(),
           scheduledTimeFormatted: formatGameTime(match.gameDate),
           matchType: match.matchType,
-          status: match.status || 'SCHEDULED',
+          status: 'SCHEDULED', // FIXED: Force regenerated matches to SCHEDULED status
           simulated: match.simulated || false,
           homeScore: match.homeScore || 0,
           awayScore: match.awayScore || 0
@@ -838,7 +838,7 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
           scheduledTimeFormatted: match.gameDate ? formatEasternTime(new Date(match.gameDate), 'h:mm A') : "TBD",
           isLive: match.status === 'IN_PROGRESS',
           canWatch: match.status === 'IN_PROGRESS' || match.status === 'COMPLETED',
-          status: match.status || 'SCHEDULED',
+          status: match.status || 'SCHEDULED', // Keep original logic for regular schedule
           homeScore: match.homeScore,
           awayScore: match.awayScore
         }));
