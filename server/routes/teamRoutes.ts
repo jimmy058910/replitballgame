@@ -195,6 +195,7 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
   const upcomingMatches = allMatches
     .filter((match: any) => 
       !match.simulated && 
+      match.status === 'SCHEDULED' &&
       new Date(match.gameDate) > now
     )
     .sort((a: any, b: any) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime())
@@ -213,7 +214,11 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
       matchType: match.matchType
     }));
 
-  console.log(`✅ [UPCOMING MATCHES] Found ${upcomingMatches.length} upcoming matches for team ${team.name}`);
+  console.log(`✅ [UPCOMING MATCHES] Team ${team.name} - Total matches: ${allMatches.length}, Upcoming: ${upcomingMatches.length}`);
+  if (upcomingMatches.length > 0) {
+    const nextMatch = upcomingMatches[0];
+    console.log(`🎯 [NEXT MATCH] ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name} on ${nextMatch.gameDate}`);
+  }
   
   return res.json(upcomingMatches);
 }));

@@ -106,7 +106,8 @@ const ModernStickyHeader: React.FC = () => {
   const { data: upcomingMatches } = useQuery<UpcomingMatch[]>({
     queryKey: [`/api/teams/${team?.id}/matches/upcoming`],
     enabled: !!team?.id && isAuthenticated,
-    refetchInterval: 60000, // Check every minute for upcoming matches
+    staleTime: 0, // Always fetch fresh data
+    refetchInterval: 30000, // Check every 30 seconds for upcoming matches
   });
 
   // Navigation items

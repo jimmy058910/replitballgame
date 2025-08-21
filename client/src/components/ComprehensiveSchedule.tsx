@@ -39,7 +39,8 @@ export default function ComprehensiveSchedule() {
   // Fetch ALL games for the user's team across all match types
   const { data: allGames, isLoading, error } = useQuery<ComprehensiveGame[]>({
     queryKey: ["/api/teams/my-schedule/comprehensive"],
-    staleTime: 30000, // 30 seconds
+    staleTime: 0, // Always fetch fresh data
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Fetch user's team info
