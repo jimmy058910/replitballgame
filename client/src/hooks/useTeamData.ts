@@ -80,19 +80,20 @@ export const useMyTeam = (isAuthenticated: boolean) => {
 };
 
 /**
- * Hook for upcoming matches
- * - Short staleTime (30 seconds) since match data is more volatile
+ * Hook for upcoming matches  
+ * - Zero staleTime for immediate fresh data - this is critical real-time info
  * - Only enabled when team data is available
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
     queryKey: ['/api/teams/my/matches/upcoming'], // Use the actual API endpoint
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 1000 * 30, // 30 seconds - match data changes more frequently
-    gcTime: 1000 * 60 * 5, // 5 minutes cache
-    refetchInterval: 1000 * 60, // Refetch every minute for live updates
+    staleTime: 0, // CRITICAL: Always fetch fresh - this is real-time opponent data
+    gcTime: 1000 * 60, // 1 minute cache only - shorter retention
+    refetchInterval: 1000 * 30, // Refetch every 30 seconds for live updates  
     refetchOnMount: true,
     refetchOnWindowFocus: true, // Important for match data
+    refetchIntervalInBackground: true, // Keep updating even when not focused
   });
 };
 
@@ -135,6 +136,9 @@ export const useTeamCacheManager = () => {
     // Remove stale team data and force fresh fetch
     queryClient.removeQueries({ queryKey: ['/api/teams/my'] });
     queryClient.removeQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
+    
+    // Force immediate fresh fetch of critical data
+    await queryClient.refetchQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
   };
 
   return {

@@ -103,16 +103,19 @@ const ModernStickyHeader: React.FC = () => {
     staleTime: 1000 * 30, // 30 seconds - notifications are moderately fresh
   });
 
-  // Debug logging - only when data actually changes
+  // Debug logging - track opponent data changes to catch stale data issues
   useEffect(() => {
     if (isReady && team && upcomingMatches) {
       console.log('✅ [HEADER] Team data ready:', team.name, 'ID:', team.id);
       if (upcomingMatches.length > 0) {
         const nextMatch = upcomingMatches[0];
-        console.log('✅ [HEADER] Next match:', nextMatch.homeTeam.name, 'vs', nextMatch.awayTeam.name, 'on', nextMatch.gameDate);
+        const opponent = nextMatch.homeTeam.id === team.id?.toString() 
+          ? nextMatch.awayTeam.name 
+          : nextMatch.homeTeam.name;
+        console.log('🎯 [HEADER] Current opponent in header:', opponent, 'Full match:', nextMatch.homeTeam.name, 'vs', nextMatch.awayTeam.name);
       }
     }
-  }, [isReady, team?.id, upcomingMatches?.length]); // Only log when these specific values change
+  }, [isReady, team?.id, upcomingMatches?.length, upcomingMatches?.[0]?.homeTeam?.name, upcomingMatches?.[0]?.awayTeam?.name]); // Track opponent changes
 
   // Handle loading states - prevent showing stale data
   if (!isAuthenticated) {
