@@ -240,16 +240,22 @@ const ModernStickyHeader: React.FC = () => {
       return { text: `LIVE vs ${opponent}`, isOffSeason: false };
     }
     
-    // Check next upcoming match
-    const nextMatch = Array.isArray(upcomingMatches) ? upcomingMatches[0] : null;
+    // Check next upcoming match - FIXED: Ensure proper sorting and fresh data
+    const sortedMatches = Array.isArray(upcomingMatches) ? 
+      [...upcomingMatches].sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime()) : 
+      [];
+    const nextMatch = sortedMatches[0] || null;
+    
     console.log('🔍 [HEADER] getNextMatchInfo debug:', {
-      hasNextMatch: !!nextMatch,
-      matchType: nextMatch?.matchType,
-      teamId: team?.id,
-      homeTeamId: nextMatch?.homeTeam?.id,
-      awayTeamId: nextMatch?.awayTeam?.id,
-      opponent: nextMatch ? (nextMatch.homeTeam.id === team?.id?.toString() ? nextMatch.awayTeam.name : nextMatch.homeTeam.name) : null,
-      matchDetails: nextMatch
+      hasUpcomingMatches: upcomingMatches?.length || 0,
+      sortedMatchesCount: sortedMatches.length,
+      nextMatch: nextMatch ? {
+        id: nextMatch.id,
+        gameDate: nextMatch.gameDate,
+        homeTeam: nextMatch.homeTeam.name,
+        awayTeam: nextMatch.awayTeam.name
+      } : null,
+      teamId: team?.id
     });
     
     if (nextMatch && nextMatch.matchType === 'LEAGUE') {
