@@ -176,7 +176,7 @@ router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: R
 }));
 
 // Get upcoming matches for authenticated user's team (for header display)
-router.get('/my/matches/upcoming', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+router.get('/my/matches/upcoming', asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my/matches/upcoming route called!');
   
   // DEBUG: Log what user ID the middleware is actually providing
