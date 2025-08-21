@@ -11,7 +11,8 @@ Preferred communication style: Simple, everyday language.
 - **Root Cause**: AI team generation service was using "Shadow Runners" as first name in list, creating variants like "Shadow Runners 197", "Shadow Runners 500"
 - **System Design**: Division 8 teams trigger late signup service which fills subdivisions with AI opponents for 36-game shortened schedules
 - **Proper Solution**: Removed "Shadow Runners" from AI team name list, prioritized "Iron Wolves" and other professional names
-- **Database Fix**: Renamed existing Shadow Runners teams to proper AI team names (Iron Wolves, Fire Hawks, etc.)
+- **Database Fix**: Renamed existing Shadow Runners teams to proper AI team names (Iron Wolves 858, Fire Hawks 261, etc.)
+- **Verification**: Header now displays correct opponent names, 36-game schedule fully functional for late registration teams
 - **Zero Technical Debt**: Fixed root cause in late signup service, updated frontend cache invalidation
 
 **CRITICAL CACHING ARCHITECTURE OVERHAUL**: Completely replaced problematic cache-fighting approaches with industry-standard React Query patterns. Key improvements:

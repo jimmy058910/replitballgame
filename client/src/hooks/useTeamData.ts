@@ -86,7 +86,7 @@ export const useMyTeam = (isAuthenticated: boolean) => {
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
-    queryKey: ['/api/teams/my/matches/upcoming', 'teams-renamed-final'], // Force fresh data after team renames
+    queryKey: ['/api/teams/my/matches/upcoming'], // Standard query key
     enabled: !!team?.id && isAuthenticated,
     staleTime: 1000 * 60, // 1 minute - back to normal after rename fix
     gcTime: 1000 * 60 * 2, // 2 minutes cache

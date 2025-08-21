@@ -288,61 +288,7 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
 
 
 
-// FINAL FIX: Rename existing Shadow Runners teams using storage layer
-router.get('/fix-shadow-teams-final', asyncHandler(async (req: Request, res: Response) => {
-  try {
-    console.log('🔧 FINAL FIX: Renaming existing Shadow Runners teams...');
-    
-    // Get all Division 8 teams via storage layer
-    const division8Teams = await storage.teams.getTeamsByDivisionAndSubdivision(8);
-    console.log(`Found ${division8Teams.length} teams in Division 8`);
-    
-    const shadowTeams = division8Teams.filter(team => 
-      team.name.includes('Shadow Runners')
-    );
-    
-    console.log(`Found ${shadowTeams.length} Shadow Runners teams to rename`);
-    
-    const properNames = [
-      'Iron Wolves', 'Fire Hawks', 'Thunder Eagles', 'Crimson Tide',
-      'Golden Lions', 'Silver Falcons', 'Lightning Bolts', 'Frost Giants'
-    ];
-    
-    const renamedTeams = [];
-    
-    for (let i = 0; i < shadowTeams.length; i++) {
-      const team = shadowTeams[i];
-      const newBaseName = properNames[i % properNames.length];
-      const newName = `${newBaseName} ${Math.floor(Math.random() * 900) + 100}`;
-      
-      try {
-        // Use direct Prisma update since storage layer might not have updateTeam method
-        const prisma = await getPrismaClient();
-        const updatedTeam = await prisma.team.update({
-          where: { id: team.id },
-          data: { name: newName }
-        });
-        console.log(`✅ Renamed: ${team.name} → ${newName}`);
-        renamedTeams.push({
-          oldName: team.name,
-          newName: newName,
-          teamId: team.id
-        });
-      } catch (error) {
-        console.error(`❌ Failed to rename team ${team.id}:`, error);
-      }
-    }
-    
-    res.json({ 
-      success: true,
-      message: `Renamed ${renamedTeams.length} Shadow Runners teams`,
-      renamedTeams: renamedTeams
-    });
-  } catch (error: any) {
-    console.error('❌ Team renaming failed:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-}));
+// Shadow Runners fix completed - route can be removed in future cleanup
 
 // Team creation endpoint
 router.post('/create', requireAuth, asyncHandler(async (req: Request, res: Response) => {
