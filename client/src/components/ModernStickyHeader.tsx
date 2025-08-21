@@ -67,11 +67,11 @@ const ModernStickyHeader: React.FC = () => {
   const [serverTime, setServerTime] = useState(new Date());
   const { isAuthenticated } = useUnifiedAuth();
 
-  // Server time update
+  // Server time update - every minute is sufficient for countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setServerTime(new Date());
-    }, 1000);
+    }, 60000); // Update every minute instead of every second
     return () => clearInterval(timer);
   }, []);
 

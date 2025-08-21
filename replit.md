@@ -45,6 +45,11 @@ await setupVite(app, httpServer);
 - Always distinguish between "What do you think?" vs "Please do this"
 - Confirm implementation plan before making changes to workflows, configurations, or architecture
 
+**PERFORMANCE OPTIMIZATION**: User prefers efficient implementations that minimize unnecessary resource usage
+- Countdown timers should update every minute, not every second
+- Avoid excessive re-renders and unnecessary API calls
+- Balance real-time updates with performance considerations
+
 **COMPREHENSIVE PROBLEM-SOLVING APPROACH**: When encountering development issues, ALWAYS perform complete systematic analysis to identify all root causes simultaneously, rather than fixing the first issue found. Implement comprehensive solutions that address the entire problem domain in a single change, not symptom-by-symptom fixes.
 
 **DEVELOPMENT APPROACH**: Always prioritize industry-standard practices and proper implementations from the beginning. Avoid shortcuts, bypasses, or band-aid solutions. Research and implement the correct solution first - this saves significant time and effort compared to fixing temporary approaches later.
