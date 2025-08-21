@@ -285,31 +285,7 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
   return res.json(upcomingMatches);
 }));
 
-// Temporary endpoint to fix specific match issues - NO AUTH for emergency fix
-router.get('/emergency-fix-iron-wolves', asyncHandler(async (req: Request, res: Response) => {
-  try {
-    console.log('🔧 EMERGENCY FIX: Updating matches to use Iron Wolves 686...');
-    
-    // Fix match 2547 to use Iron Wolves 686 (ID 13)
-    const result1 = await storage.matches.updateMatchOpponent(2547, undefined, 13);
-    console.log('✅ Match 2547 fixed:', result1.homeTeam.name, 'vs', result1.awayTeam.name);
-    
-    // Fix match 2571 to use Iron Wolves 686 (ID 13) 
-    const result2 = await storage.matches.updateMatchOpponent(2571, undefined, 13);
-    console.log('✅ Match 2571 fixed:', result2.homeTeam.name, 'vs', result2.awayTeam.name);
-    
-    res.json({ 
-      success: true, 
-      fixed: [
-        { matchId: result1.id, teams: `${result1.homeTeam.name} vs ${result1.awayTeam.name}` },
-        { matchId: result2.id, teams: `${result2.homeTeam.name} vs ${result2.awayTeam.name}` }
-      ]
-    });
-  } catch (error) {
-    console.error('❌ Emergency fix error:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-}));
+
 
 // Team creation endpoint
 router.post('/create', requireAuth, asyncHandler(async (req: Request, res: Response) => {

@@ -7,6 +7,12 @@ Realm Rivalry is a mobile-first fantasy sports management game offering deep, en
 Preferred communication style: Simple, everyday language.
 
 ## Recent Technical Improvements (August 2025)
+**CRITICAL DATABASE CORRUPTION FIX** (August 21, 2025): Resolved match opponent corruption in Division 8 schedule where multiple matches incorrectly showed "Shadow Runners" variants instead of proper team opponents:
+- **Root Cause**: Database entries had incorrect `awayTeamId` references pointing to Shadow Runners teams (IDs 11, 500) instead of legitimate opponents
+- **Proper Solution**: Added `updateMatchOpponent` method to `MatchStorage` class following industry-standard storage interface patterns
+- **Affected Matches**: Fixed matches 2547 and 2571 to correctly show "Iron Wolves 686" as opponent
+- **Zero Technical Debt**: Used proper storage layer architecture instead of temporary database scripts or direct SQL fixes
+
 **CRITICAL CACHING ARCHITECTURE OVERHAUL**: Completely replaced problematic cache-fighting approaches with industry-standard React Query patterns. Key improvements:
 - **Hierarchical Query Keys**: Structured keys (`['teams', 'my', 'matches', 'upcoming']`) for efficient cache invalidation
 - **Centralized Data Management**: Created `useTeamData.ts` hook with proper staleTime configuration based on data volatility  
