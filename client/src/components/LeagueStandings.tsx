@@ -84,7 +84,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                 </div>
               ))}
             </div>
-          ) : standings && standings.length > 0 ? (
+          ) : rawStandings && rawStandings.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -102,7 +102,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {standings.map((team: Team, index: number) => {
+                  {(rawStandings || []).map((team: Team, index: number) => {
                     // Highlight the current user's team regardless of position
                     const isPlayerTeam = currentUserTeam && team.id === currentUserTeam.id;
                     const position = index + 1;
