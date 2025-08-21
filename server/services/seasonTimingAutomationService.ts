@@ -1648,8 +1648,8 @@ export class SeasonTimingAutomationService {
       const firstGameDate = new Date(cougarsGames[0].gameDate);
       const lastGameDate = new Date(cougarsGames[cougarsGames.length-1].gameDate);
       
-      const currentFirstDay = Math.ceil((firstGameDate - seasonStart) / (1000 * 60 * 60 * 24)) + 1;
-      const currentLastDay = Math.ceil((lastGameDate - seasonStart) / (1000 * 60 * 60 * 24)) + 1;
+      const currentFirstDay = Math.ceil((firstGameDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const currentLastDay = Math.ceil((lastGameDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       
       console.log(`📊 [ALPHA FIX] CURRENT SCHEDULE ANALYSIS:`);
       console.log(`   First game: ${firstGameDate.toISOString().split('T')[0]} (Day ${currentFirstDay})`);
@@ -1684,7 +1684,7 @@ export class SeasonTimingAutomationService {
           data: { gameDate: newDate }
         });
         
-        const newDay = Math.ceil((newDate - seasonStart) / (1000 * 60 * 60 * 24)) + 1;
+        const newDay = Math.ceil((newDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         updatedCount++;
         
         // Log first 5 updates for verification
@@ -1716,8 +1716,8 @@ export class SeasonTimingAutomationService {
       
       const finalFirstGame = new Date(verifyGames[0].gameDate);
       const finalLastGame = new Date(verifyGames[verifyGames.length-1].gameDate);
-      const finalFirstDay = Math.ceil((finalFirstGame - seasonStart) / (1000 * 60 * 60 * 24)) + 1;
-      const finalLastDay = Math.ceil((finalLastGame - seasonStart) / (1000 * 60 * 60 * 24)) + 1;
+      const finalFirstDay = Math.ceil((finalFirstGame.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const finalLastDay = Math.ceil((finalLastGame.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       
       console.log(`🏆 [ALPHA FIX] FINAL VERIFICATION RESULTS:`);
       console.log(`   Updated games: ${updatedCount}`);
