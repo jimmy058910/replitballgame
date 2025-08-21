@@ -86,12 +86,12 @@ export const useMyTeam = (isAuthenticated: boolean) => {
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
-    queryKey: ['/api/teams/my/matches/upcoming'],
+    queryKey: ['/api/teams/my/matches/upcoming', 'cache-bust-iron-wolves', Date.now()], // Force cache bust 
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 0, // Force fresh data until duplicate match issue is resolved
-    gcTime: 1000 * 60 * 5, // 5 minutes cache
-    refetchOnWindowFocus: false, // Disable to prevent interference
-    refetchInterval: false, // Disable to prevent infinite loops
+    staleTime: 0, // Force fresh data 
+    gcTime: 0, // Clear cache completely
+    refetchOnWindowFocus: true, // Force refresh
+    refetchInterval: 5000, // Refresh every 5 seconds to clear browser cache
   });
 };
 
