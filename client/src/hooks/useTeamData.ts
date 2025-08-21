@@ -90,8 +90,8 @@ export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: bool
     enabled: !!team?.id && isAuthenticated,
     staleTime: 1000 * 60, // 1 minute - reasonable for match data
     gcTime: 1000 * 60 * 5, // 5 minutes cache
-    refetchOnWindowFocus: true,
-    refetchInterval: 1000 * 60 * 2, // Refetch every 2 minutes - less aggressive
+    refetchOnWindowFocus: false, // Disable to prevent interference
+    refetchInterval: false, // Disable to prevent infinite loops
   });
 };
 

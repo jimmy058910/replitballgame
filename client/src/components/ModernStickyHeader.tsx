@@ -85,18 +85,7 @@ const ModernStickyHeader: React.FC = () => {
     isReady 
   } = useTeamDashboardData(isAuthenticated);
 
-  // Import cache manager for immediate fix
-  const { forceCacheRefresh } = useTeamCacheManager();
-
-  // TEMPORARY: Force cache refresh to fix stale opponent data
-  useEffect(() => {
-    if (isAuthenticated) {
-      console.log('🔄 [HEADER] Forcing cache refresh to fix stale opponent data...');
-      forceCacheRefresh().then(() => {
-        console.log('✅ [HEADER] Cache refresh completed');
-      });
-    }
-  }, [isAuthenticated, forceCacheRefresh]);
+  // Removed problematic force cache refresh that was causing infinite loading
 
   // Remove aggressive cache clearing that causes flickering
 
