@@ -348,7 +348,7 @@ class MatchStateManager {
         lastSavedAt: new Date().toISOString()
       };
 
-      await prisma.game.update({
+      await (await getPrismaClient()).game.update({
         where: { id: parseInt(matchId) },
         data: {
           simulationLog: persistableState as any,
@@ -366,7 +366,7 @@ class MatchStateManager {
   // Load live match state from database
   private async loadLiveStateFromDatabase(matchId: string): Promise<LiveMatchState | null> {
     try {
-      const match = await prisma.game.findUnique({
+      const match = await (await getPrismaClient()).game.findUnique({
         where: { id: parseInt(matchId) }
       });
 
@@ -420,7 +420,7 @@ class MatchStateManager {
   // Auto-recovery: Restore all active live matches from database on server start
   async recoverLiveMatches(): Promise<void> {
     try {
-      const activeMatches = await prisma.game.findMany({
+      const activeMatches = await (await getPrismaClient()).game.findMany({
         where: { 
           status: 'IN_PROGRESS',
           simulationLog: { not: null as any }
@@ -435,10 +435,10 @@ class MatchStateManager {
           this.liveMatches.set(match.id.toString(), liveState);
           
           // Get players for continued simulation
-          const homeTeamPlayers = await prisma.player.findMany({
+          const homeTeamPlayers = await (await getPrismaClient()).player.findMany({
             where: { teamId: match.homeTeamId, isOnMarket: false }
           });
-          const awayTeamPlayers = await prisma.player.findMany({
+          const awayTeamPlayers = await (await getPrismaClient()).player.findMany({
             where: { teamId: match.awayTeamId, isOnMarket: false }
           });
 
@@ -463,7 +463,7 @@ class MatchStateManager {
   // Helper function to get formation data for a team
   private async getTeamFormation(teamId: number): Promise<{ starters: any[], formation: string } | null> {
     try {
-      const strategy = await prisma.strategy.findUnique({
+      const strategy = await (await getPrismaClient()).strategy.findUnique({
         where: { teamId: teamId }
       });
       
@@ -558,7 +558,8 @@ class MatchStateManager {
 
   // Start a new live match with server-side state management
   async startLiveMatch(matchId: string, isExhibition: boolean = false): Promise<LiveMatchState> {
-    const match = await prisma.game.findUnique({
+    const prisma = await getPrismaClient();
+    const match = await (await getPrismaClient()).game.findUnique({
       where: { id: parseInt(matchId) }
     });
     
@@ -567,14 +568,14 @@ class MatchStateManager {
     }
 
     // Get team players for simulation
-    const homeTeamPlayers = await prisma.player.findMany({
+    const homeTeamPlayers = await (await getPrismaClient()).player.findMany({
       where: { 
         teamId: match.homeTeamId,
         isOnMarket: false
       }
     });
     
-    const awayTeamPlayers = await prisma.player.findMany({
+    const awayTeamPlayers = await (await getPrismaClient()).player.findMany({
       where: { 
         teamId: match.awayTeamId,
         isOnMarket: false
@@ -778,10 +779,10 @@ class MatchStateManager {
     if (!state) return;
 
     // Get players for continued simulation
-    const homeTeamPlayers = await prisma.player.findMany({
+    const homeTeamPlayers = await (await getPrismaClient()).player.findMany({
       where: { teamId: parseInt(state.homeTeamId), isOnMarket: false }
     });
-    const awayTeamPlayers = await prisma.player.findMany({
+    const awayTeamPlayers = await (await getPrismaClient()).player.findMany({
       where: { teamId: parseInt(state.awayTeamId), isOnMarket: false }
     });
 
@@ -805,7 +806,7 @@ class MatchStateManager {
     const state = this.liveMatches.get(matchIdStr);
     if (!state) {
       // Check if match exists in database but not in memory
-      const match = await prisma.game.findFirst({
+      const match = await (await getPrismaClient()).game.findFirst({
         where: { id: matchIdNum }
       });
       if (match && match.status === 'IN_PROGRESS') {
@@ -830,10 +831,10 @@ class MatchStateManager {
       this.liveMatches.set(matchId, liveState);
 
       // Get players for continued simulation
-      const homeTeamPlayers = await prisma.player.findMany({
+      const homeTeamPlayers = await (await getPrismaClient()).player.findMany({
         where: { teamId: parseInt(liveState.homeTeamId), isOnMarket: false }
       });
-      const awayTeamPlayers = await prisma.player.findMany({
+      const awayTeamPlayers = await (await getPrismaClient()).player.findMany({
         where: { teamId: parseInt(liveState.awayTeamId), isOnMarket: false }
       });
 
@@ -1155,7 +1156,7 @@ class MatchStateManager {
     }
 
     // Get match details to check if it's a tournament match
-    const match = await prisma.game.findUnique({
+    const match = await (await getPrismaClient()).game.findUnique({
       where: { id: parseInt(matchId) },
       include: { tournament: true }
     });
@@ -1296,7 +1297,7 @@ class MatchStateManager {
     if (!state) return;
 
     // Get match details to check if it's an exhibition match
-    const matchDetails = await prisma.game.findFirst({
+    const matchDetails = await (await getPrismaClient()).game.findFirst({
       where: { id: parseInt(matchId.toString()) }
     });
     const isExhibitionMatch = matchDetails?.matchType === 'EXHIBITION';
@@ -1355,7 +1356,7 @@ class MatchStateManager {
 
         // Update basic player stats (skip for exhibition matches to maintain risk-free gameplay)
         if (!isExhibitionMatch) {
-          const playerToUpdate = await prisma.player.findFirst({
+          const playerToUpdate = await (await getPrismaClient()).player.findFirst({
             where: { id: parseInt(playerId) }
           });
           if (playerToUpdate) {
@@ -1364,7 +1365,7 @@ class MatchStateManager {
               gamesPlayedLastSeason: (playerToUpdate.gamesPlayedLastSeason || 0) + 1,
               // Store match participation but don't update non-existent lifetime stats
             };
-            playerUpdates.push(prisma.player.update({
+            playerUpdates.push(await (await getPrismaClient()).player.update({
               where: { id: parseInt(playerId) },
               data: updatedStats
             }));
@@ -1382,12 +1383,12 @@ class MatchStateManager {
       }
 
       // Update the match itself - check if it exists first
-      const existingGame = await prisma.game.findUnique({
+      const existingGame = await (await getPrismaClient()).game.findUnique({
         where: { id: parseInt(matchId) }
       });
       
       if (existingGame) {
-        await prisma.game.update({
+        await (await getPrismaClient()).game.update({
           where: { id: parseInt(matchId) },
           data: {
             status: 'COMPLETED',
@@ -1447,13 +1448,13 @@ class MatchStateManager {
       
       // Check if the game exists before trying to update it
       try {
-        const existingGame = await prisma.game.findUnique({
+        const existingGame = await (await getPrismaClient()).game.findUnique({
           where: { id: parseInt(matchId) }
         });
         
         if (existingGame) {
           // Game exists, update it with error info
-          await prisma.game.update({
+          await (await getPrismaClient()).game.update({
             where: { id: parseInt(matchId) },
             data: {
               status: 'COMPLETED',
@@ -1518,7 +1519,7 @@ class MatchStateManager {
   private async processStadiumRevenue(homeTeamId: number, matchId: string, state: LiveMatchState): Promise<void> {
     try {
       // Get home team's stadium and finance data
-      const homeTeam = await prisma.team.findUnique({
+      const homeTeam = await (await getPrismaClient()).team.findUnique({
         where: { id: homeTeamId },
         include: {
           stadium: true,
@@ -1561,7 +1562,7 @@ class MatchStateManager {
       const currentCredits = parseInt(((homeTeam.finances as any)?.credits || 0).toString()) || 0;
       const newCredits = currentCredits + revenue.netRevenue;
 
-      await prisma.teamFinances.update({
+      await (await getPrismaClient()).teamFinances.update({
         where: { id: homeTeam.id },
         data: {
           credits: BigInt(newCredits)
@@ -1605,10 +1606,10 @@ class MatchStateManager {
       logger.info(`🏈 Completing match: ${matchId} between teams ${state.homeTeamId} and ${state.awayTeamId}`);
       try {
         // Need to pass all required parameters to completeMatch
-        const homePlayers = await prisma.player.findMany({
+        const homePlayers = await (await getPrismaClient()).player.findMany({
           where: { teamId: parseInt(state.homeTeamId) }
         });
-        const awayPlayers = await prisma.player.findMany({
+        const awayPlayers = await (await getPrismaClient()).player.findMany({
           where: { teamId: parseInt(state.awayTeamId) }
         });
         logger.info(`👥 Found ${homePlayers.length} home players and ${awayPlayers.length} away players`);
@@ -1654,24 +1655,20 @@ class MatchStateManager {
 
       // Award credits to both teams via their finance records
       logger.info(`🔍 Looking for TeamFinance records: homeTeamId=${homeTeamId}, awayTeamId=${awayTeamId}`);
-      logger.info(`🔍 DEBUG: prisma type at award time: ${typeof prisma}, exists: ${!!prisma}`);
+      // Fixed prisma import
       
-      // Import prisma directly to debug import issues
-      const { prisma: directPrisma } = await import("../db.js");
-      logger.info(`🔍 DEBUG: directPrisma type: ${typeof directPrisma}, exists: ${!!directPrisma}`);
-      
-      const homeTeamFinance = await directPrisma.teamFinances.findUnique({
+      const homeTeamFinance = await (await getPrismaClient()).teamFinances.findUnique({
         where: { teamId: parseInt(homeTeamId) }
       });
       
-      const awayTeamFinance = await directPrisma.teamFinances.findUnique({
+      const awayTeamFinance = await await (await getPrismaClient()).teamFinances.findUnique({
         where: { teamId: parseInt(awayTeamId) }
       });
       
       logger.info(`💰 Found TeamFinance records: home=${!!homeTeamFinance}, away=${!!awayTeamFinance}`);
 
       if (homeTeamFinance) {
-        await directPrisma.teamFinances.update({
+        await await (await getPrismaClient()).teamFinances.update({
           where: { teamId: parseInt(homeTeamId) },
           data: {
             credits: {
@@ -1681,7 +1678,7 @@ class MatchStateManager {
         });
 
         // Log exhibition reward transaction for home team
-        const homeTeam = await directPrisma.team.findUnique({
+        const homeTeam = await await (await getPrismaClient()).team.findUnique({
           where: { id: parseInt(homeTeamId) }
         });
         if (homeTeam?.userProfileId) {
@@ -1696,7 +1693,7 @@ class MatchStateManager {
       }
 
       if (awayTeamFinance) {
-        await directPrisma.teamFinances.update({
+        await await (await getPrismaClient()).teamFinances.update({
           where: { teamId: parseInt(awayTeamId) },
           data: {
             credits: {
@@ -1706,7 +1703,7 @@ class MatchStateManager {
         });
 
         // Log exhibition reward transaction for away team
-        const awayTeam = await directPrisma.team.findUnique({
+        const awayTeam = await await (await getPrismaClient()).team.findUnique({
           where: { id: parseInt(awayTeamId) }
         });
         if (awayTeam?.userProfileId) {
@@ -1723,12 +1720,12 @@ class MatchStateManager {
       // Award team camaraderie boost to winning team players (if not a tie)
       if (winningTeamId) {
         // Get all players for the winning team and update their camaraderie
-        const winningPlayers = await directPrisma.player.findMany({
+        const winningPlayers = await await (await getPrismaClient()).player.findMany({
           where: { teamId: parseInt(winningTeamId) }
         });
         
         for (const player of winningPlayers) {
-          await directPrisma.player.update({
+          await await (await getPrismaClient()).player.update({
             where: { id: player.id },
             data: {
               camaraderieScore: Math.min(100, (player.camaraderieScore || 0) + 2)
@@ -1750,7 +1747,7 @@ class MatchStateManager {
   private async recordExhibitionGameResult(matchId: number, homeTeamId: string, awayTeamId: string, homeScore: number, awayScore: number): Promise<void> {
     try {
       // The game is already created in the Game table, we just need to ensure it's updated with the final result
-      await prisma.game.update({
+      await (await getPrismaClient()).game.update({
         where: { id: matchId },
         data: {
           status: 'COMPLETED',
@@ -1776,10 +1773,10 @@ class MatchStateManager {
       if (!state) continue;
       if (state.lastUpdateTime < cutoff) {
         logger.info(`Cleaning up abandoned match: ${matchId}`);
-        const homePlayers = await prisma.player.findMany({
+        const homePlayers = await (await getPrismaClient()).player.findMany({
           where: { teamId: parseInt(state.homeTeamId) }
         });
-        const awayPlayers = await prisma.player.findMany({
+        const awayPlayers = await (await getPrismaClient()).player.findMany({
           where: { teamId: parseInt(state.awayTeamId) }
         });
         await this.completeMatch(matchId, state.homeTeamId, state.awayTeamId, homePlayers, awayPlayers);
@@ -1793,7 +1790,7 @@ class MatchStateManager {
   private async clearActiveBoosts(teamId: number, matchType: string): Promise<void> {
     try {
       // Find active boosts for the team that match the match type
-      const activeBoosts = await prisma.activeBoost.findMany({
+      const activeBoosts = await (await getPrismaClient()).activeBoost.findMany({
         where: {
           teamId: teamId,
           isActive: true,
@@ -1803,7 +1800,7 @@ class MatchStateManager {
 
       if (activeBoosts.length > 0) {
         // Deactivate all matching active boosts
-        await prisma.activeBoost.updateMany({
+        await (await getPrismaClient()).activeBoost.updateMany({
           where: {
             teamId: teamId,
             isActive: true,
@@ -1837,33 +1834,33 @@ class MatchStateManager {
       // Determine winner
       if (homeScore > awayScore) {
         // Home team wins
-        await prisma.team.update({
+        await (await getPrismaClient()).team.update({
           where: { id: homeId },
           data: { wins: { increment: 1 }, points: { increment: 3 } }
         });
-        await prisma.team.update({
+        await (await getPrismaClient()).team.update({
           where: { id: awayId },
           data: { losses: { increment: 1 } }
         });
         logger.info(`Home team ${homeId} wins, Away team ${awayId} loses`);
       } else if (awayScore > homeScore) {
         // Away team wins
-        await prisma.team.update({
+        await (await getPrismaClient()).team.update({
           where: { id: awayId },
           data: { wins: { increment: 1 }, points: { increment: 3 } }
         });
-        await prisma.team.update({
+        await (await getPrismaClient()).team.update({
           where: { id: homeId },
           data: { losses: { increment: 1 } }
         });
         logger.info(`Away team ${awayId} wins, Home team ${homeId} loses`);
       } else {
         // Draw - award 1 point to each team (no draws field in Team model)
-        await prisma.team.update({
+        await (await getPrismaClient()).team.update({
           where: { id: homeId },
           data: { points: { increment: 1 } }
         });
-        await prisma.team.update({
+        await (await getPrismaClient()).team.update({
           where: { id: awayId },
           data: { points: { increment: 1 } }
         });
