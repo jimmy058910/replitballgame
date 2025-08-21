@@ -119,6 +119,28 @@ export const useLiveMatches = (team: Team | undefined, isAuthenticated: boolean)
 export const useTeamCacheManager = () => {
   const queryClient = useQueryClient();
 
+  const invalidateUpcomingMatches = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
+  };
+
+  const invalidateAllTeamData = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/teams/my-schedule/comprehensive'] });
+  };
+
+  const forceCacheRefresh = async () => {
+    // Remove all cached data and force fresh fetch
+    queryClient.removeQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
+    queryClient.removeQueries({ queryKey: ['/api/teams/my'] });
+    
+    // Force immediate refetch
+    await queryClient.refetchQueries({ 
+      queryKey: ['/api/teams/my/matches/upcoming'],
+      type: 'active'
+    });
+  };
+
   const invalidateTeamData = async () => {
     // Invalidate all team-related queries using actual endpoints
     await queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
@@ -143,6 +165,9 @@ export const useTeamCacheManager = () => {
     invalidateTeamData,
     invalidateMatchData,
     clearStaleTeamCache,
+    invalidateUpcomingMatches,
+    invalidateAllTeamData,
+    forceCacheRefresh,
   };
 };
 
