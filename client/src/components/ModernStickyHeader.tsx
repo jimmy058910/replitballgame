@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Home, Users, Trophy, ShoppingCart, Globe, MessageCircle, 
   Bell, Menu, X, Coins, Star, Clock, Calendar,
@@ -65,6 +65,7 @@ const ModernStickyHeader: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [serverTime, setServerTime] = useState(new Date());
   const { isAuthenticated } = useUnifiedAuth();
+  const queryClient = useQueryClient();
 
   // Server time update
   useEffect(() => {
@@ -106,15 +107,30 @@ const ModernStickyHeader: React.FC = () => {
     refetchInterval: 5000, // Check every 5 seconds for live matches
   });
 
-  const { data: upcomingMatches } = useQuery<UpcomingMatch[]>({
+  const { data: upcomingMatches, isLoading: upcomingLoading, error: upcomingError } = useQuery<UpcomingMatch[]>({
     queryKey: ['/api/teams/my/matches/upcoming'], // Fixed key to avoid template variables
     enabled: !!team?.id && isAuthenticated,
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache this data at all
-    refetchInterval: 30000, // Check every 30 seconds for upcoming matches
+    refetchInterval: 10000, // More frequent checks - every 10 seconds
     refetchOnMount: true, // Always refetch on mount
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Also refetch on window focus
+    retry: 1, // Reduce retries to get fresh data faster
   });
+
+  // AGGRESSIVE CACHE INVALIDATION on component mount
+  useEffect(() => {
+    if (isAuthenticated && team?.id) {
+      console.log('🔥 [CACHE BUST] Invalidating all match-related caches for team:', team.name);
+      queryClient.invalidateQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teams/my-schedule/comprehensive'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/matches/live'] });
+      
+      // Remove from cache entirely and refetch
+      queryClient.removeQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
+      console.log('🔥 [CACHE BUST] Removed stale upcoming matches cache');
+    }
+  }, [team?.id, isAuthenticated, queryClient]);
 
   // Debug logging with useEffect
   useEffect(() => {

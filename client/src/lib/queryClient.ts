@@ -141,7 +141,8 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 0, // CRITICAL FIX: No global stale time override
+      gcTime: 0, // CRITICAL FIX: No global garbage collection time
       retry: (failureCount, error) => {
         // Don't retry 404, 401, or 429 errors
         if (error.message.includes('404') || error.message.includes('401') || error.message.includes('429')) {
@@ -150,7 +151,6 @@ export const queryClient = new QueryClient({
         // Retry other errors max 2 times
         return failureCount < 2;
       },
-      gcTime: 10 * 60 * 1000, // 10 minutes
     },
     mutations: {
       retry: false,
