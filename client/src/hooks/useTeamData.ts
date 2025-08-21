@@ -33,6 +33,15 @@ interface Team {
     credits: string;
     gems: string;
   };
+  // Include additional properties that may exist
+  camaraderie?: number;
+  fanLoyalty?: number;
+  homeField?: string;
+  tacticalFocus?: string;
+  leagueId?: number;
+  wins?: number;
+  losses?: number;
+  points?: number;
 }
 
 interface UpcomingMatch {
@@ -61,7 +70,7 @@ interface LiveMatch {
  */
 export const useMyTeam = (isAuthenticated: boolean) => {
   return useQuery<Team>({
-    queryKey: teamQueryKeys.myDetail(),
+    queryKey: ['/api/teams/my'], // Use the actual API endpoint
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 2, // 2 minutes - team data changes infrequently
     gcTime: 1000 * 60 * 10, // 10 minutes - keep in cache longer
@@ -77,7 +86,7 @@ export const useMyTeam = (isAuthenticated: boolean) => {
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
-    queryKey: teamQueryKeys.myUpcomingMatches(),
+    queryKey: ['/api/teams/my/matches/upcoming'], // Use the actual API endpoint
     enabled: !!team?.id && isAuthenticated,
     staleTime: 1000 * 30, // 30 seconds - match data changes more frequently
     gcTime: 1000 * 60 * 5, // 5 minutes cache
@@ -112,20 +121,20 @@ export const useTeamCacheManager = () => {
   const queryClient = useQueryClient();
 
   const invalidateTeamData = async () => {
-    // Invalidate all team-related queries using hierarchical structure
-    await queryClient.invalidateQueries({ queryKey: teamQueryKeys.all });
+    // Invalidate all team-related queries using actual endpoints
+    await queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
   };
 
   const invalidateMatchData = async () => {
     // Invalidate only match-related queries
-    await queryClient.invalidateQueries({ queryKey: teamQueryKeys.myMatches() });
-    await queryClient.invalidateQueries({ queryKey: ['matches', 'live'] });
+    await queryClient.invalidateQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
+    await queryClient.invalidateQueries({ queryKey: ['/api/matches/live'] });
   };
 
   const clearStaleTeamCache = async () => {
     // Remove stale team data and force fresh fetch
-    queryClient.removeQueries({ queryKey: teamQueryKeys.myDetail() });
-    queryClient.removeQueries({ queryKey: teamQueryKeys.myUpcomingMatches() });
+    queryClient.removeQueries({ queryKey: ['/api/teams/my'] });
+    queryClient.removeQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
   };
 
   return {
