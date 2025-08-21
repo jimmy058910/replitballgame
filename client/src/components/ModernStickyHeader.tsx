@@ -85,14 +85,7 @@ const ModernStickyHeader: React.FC = () => {
     isReady 
   } = useTeamDashboardData(isAuthenticated);
 
-  // Force cache invalidation on mount to prevent stale opponent display
-  const { clearStaleTeamCache } = useTeamCacheManager();
-  useEffect(() => {
-    if (isAuthenticated && isReady) {
-      // Clear stale cache immediately on component mount to ensure fresh opponent data
-      clearStaleTeamCache();
-    }
-  }, [isAuthenticated, isReady, clearStaleTeamCache]);
+  // Remove aggressive cache clearing that causes flickering
 
   // Use finances data from team response
   const finances = team ? {
@@ -126,37 +119,9 @@ const ModernStickyHeader: React.FC = () => {
     }
   }, [isReady, team?.id, upcomingMatches?.length, upcomingMatches?.[0]?.homeTeam?.name, upcomingMatches?.[0]?.awayTeam?.name]); // Track opponent changes
 
-  // Handle loading states - prevent showing stale data
+  // Industry standard: Never hide the header, show optimistic UI
   if (!isAuthenticated) {
-    return null; // Don't render header when not authenticated
-  }
-
-  if (isLoading) {
-    // Show skeleton while loading to prevent stale data flash
-    return (
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-800 to-blue-800 border-b border-purple-600/50 backdrop-blur-md">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center space-x-4">
-            <div className="w-8 h-8 bg-purple-600/30 rounded-lg animate-pulse" />
-            <div className="w-32 h-4 bg-purple-600/30 rounded animate-pulse" />
-          </div>
-          <div className="w-24 h-8 bg-purple-600/30 rounded animate-pulse" />
-        </div>
-      </div>
-    );
-  }
-
-  if (hasError || !team) {
-    // Show error state or redirect to team creation
-    return (
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-red-800 to-purple-800 border-b border-red-600/50 backdrop-blur-md">
-        <div className="flex items-center justify-center px-4 py-3">
-          <span className="text-red-200 text-sm">
-            {hasError ? 'Unable to load team data' : 'No team found'}
-          </span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Navigation items

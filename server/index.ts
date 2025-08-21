@@ -457,109 +457,15 @@ async function startServer() {
       }
     });
 
-    // CRITICAL FIX: Register critical API routes BEFORE Vite to prevent conflicts
-    console.log('🔧 Registering critical API routes BEFORE comprehensive system...');
+    // REMOVED: All duplicate hardcoded API routes that were conflicting with proper route system
+    // These were causing wrong data to be returned (e.g., dev-user-123 instead of actual authenticated user)
+    console.log('🔧 Removed conflicting hardcoded API routes - using proper route system only...');
     
-    // Import storage for critical routes  
-    const storageModule = await import('./storage/index.js');
-    const apiStorage = storageModule.storage;
-    
-    // CRITICAL: /api/teams/my route (main cause of infinite loading)
-    app.get('/api/teams/my', async (req: any, res: any) => {
-      try {
-        console.log('🔍 [CRITICAL API] /api/teams/my called directly!');
-        
-        // Use dev user ID directly for testing
-        const userId = 'dev-user-123';
-        const team = await apiStorage.teams.getTeamByUserId(userId);
-        
-        if (!team) {
-          return res.status(404).json({ 
-            message: "Team not found", 
-            needsTeamCreation: true 
-          });
-        }
-        
-        console.log('✅ Team found:', team.name, 'players:', team?.playersCount || 0);
-        
-        // Return team data directly
-        res.json({
-          ...team,
-          teamPower: 75, // Placeholder
-          teamCamaraderie: 50 // Placeholder
-        });
-      } catch (error) {
-        console.error('❌ Error in critical /api/teams/my:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
-    
-    // REMOVED: Hardcoded /api/season/current-cycle route - using comprehensive system instead
-    // This was hardcoded to always return Day 4, preventing proper season data updates
-    
-    // REMOVED: Duplicate /api/leagues/8/standings route - using comprehensive system instead
-    
-    // CRITICAL: Add season current-cycle route BEFORE Vite to prevent HTML interception
-    app.get('/api/season/current-cycle', async (req: any, res: any) => {
-      try {
-        console.log('🔍 [CRITICAL SEASON API] /api/season/current-cycle called BEFORE Vite!');
-        
-        const season = await storage.seasons.getCurrentSeason();
-        if (!season) {
-          return res.status(404).json({ 
-            error: 'No active season found',
-            currentDay: 1,
-            seasonNumber: 1,
-            phase: 'PRE_SEASON'
-          });
-        }
-        
-        res.json({
-          currentDay: season.currentDay,
-          seasonNumber: season.seasonNumber,
-          phase: season.phase,
-          daysRemaining: 17 - season.currentDay,
-          message: `Season ${season.seasonNumber}, Day ${season.currentDay}`,
-          description: season.phase === 'REGULAR_SEASON' ? 'Regular season is active. Focus on league matches and player development.' : 'Season phase: ' + season.phase,
-          details: `Day ${season.currentDay} of 17 in Season ${season.seasonNumber}`
-        });
-      } catch (error) {
-        console.error('❌ Error in critical season API:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
+    // STEP 7: Database storage already imported earlier - using existing instance
+    console.log('--- Phase 7: Using existing database storage instance ---');
+    console.log('✅ Database storage already available');
 
-    app.get('/api/seasons/current-cycle', async (req: any, res: any) => {
-      try {
-        console.log('🔍 [CRITICAL SEASON API] /api/seasons/current-cycle called BEFORE Vite!');
-        
-        const season = await storage.seasons.getCurrentSeason();
-        if (!season) {
-          return res.status(404).json({ 
-            error: 'No active season found',
-            currentDay: 1,
-            seasonNumber: 1,
-            phase: 'PRE_SEASON'
-          });
-        }
-        
-        res.json({
-          currentDay: season.currentDay,
-          seasonNumber: season.seasonNumber,
-          phase: season.phase,
-          daysRemaining: 17 - season.currentDay,
-          message: `Season ${season.seasonNumber}, Day ${season.currentDay}`,
-          description: season.phase === 'REGULAR_SEASON' ? 'Regular season is active. Focus on league matches and player development.' : 'Season phase: ' + season.phase,
-          details: `Day ${season.currentDay} of 17 in Season ${season.seasonNumber}`
-        });
-      } catch (error) {
-        console.error('❌ Error in critical season API:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
-    
-    // CRITICAL ARCHITECTURAL FIX: Register ALL API routes BEFORE Vite setup
-    // This prevents Vite's catch-all middleware from intercepting API calls with HTML responses
+    // ===== ROUTES REGISTRATION (MUST BE BEFORE VITE) =====
     console.log('🔧 ARCHITECTURAL FIX: Registering ALL API routes BEFORE Vite setup...');
     const { registerAllRoutes } = await import('./routes/index.js');
     await registerAllRoutes(app);
