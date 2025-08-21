@@ -1,13 +1,26 @@
 # Overview
 Realm Rivalry is a mobile-first fantasy sports management game offering deep, engaging simulation. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include detailed simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre with high-fidelity simulation.
 
-**SCHEDULE SYSTEM FULLY FUNCTIONAL** (Aug 2025): Complete schedule generation system implemented for Division 8 Alpha with 40 games across Days 5-14, 4 games per day at 4:00, 4:15, 4:30, 4:45 PM EDT where each team plays once per day.
+**DYNAMIC LATE SIGNUP SYSTEM FULLY FUNCTIONAL** (August 21, 2025): Complete dynamic late registration system implemented for Division 8 with flexible schedule generation:
+
+**Core Features:**
+- **AI Fill Timing**: 3:00 PM EDT daily fills incomplete subdivisions with AI teams
+- **Game Start**: Same day at 4:00 PM EDT (1 hour after AI fill)
+- **Dynamic Schedule**: Game count = (14 - fill_day + 1) games per team
+  - Day 2 signup → Day 5 fill → 10 games per team (Days 5-14)
+  - Day 7 signup → Day 8 fill → 7 games per team (Days 8-14)
+- **Time Distribution**: Concentrated within subdivisions (15-minute intervals), spread across server (different base hours)
+- **Round-Robin Algorithm**: Each team plays every other team once, balanced HOME/AWAY distribution with coin flip for 4 vs 3 home games
+- **Schedule Recovery**: Automatic regeneration system detects incomplete schedules and rebuilds with correct patterns
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
 ## Recent Technical Improvements (August 2025)
-**CRITICAL LATE SIGNUP SYSTEM FIX** (August 21, 2025): Resolved Shadow Runners placeholder issue in Division 8 late registration system:
+**DYNAMIC LATE SIGNUP SYSTEM IMPLEMENTATION** (August 21, 2025): Built complete flexible late registration system with dynamic scheduling:
+
+**Previous Issue Resolution:**
+- Resolved Shadow Runners placeholder issue in Division 8 late registration system
 - **Root Cause**: AI team generation service was using "Shadow Runners" as first name in list, creating variants like "Shadow Runners 197", "Shadow Runners 500"
 - **System Design**: Division 8 teams trigger late signup service which fills subdivisions with AI opponents for 36-game shortened schedules
 - **Proper Solution**: Removed "Shadow Runners" from AI team name list, prioritized "Iron Wolves" and other professional names
