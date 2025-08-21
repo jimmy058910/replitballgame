@@ -30,16 +30,8 @@ interface DailySchedule {
 }
 
 export default function LeagueSchedule() {
-  console.log("🚀 LEAGUE SCHEDULE COMPONENT MOUNTING - YOU SHOULD SEE THIS MESSAGE!");
-  
-  // Add extreme visibility test
-  console.error("🔥 EXTREME DEBUG - LeagueSchedule component is definitely loading!");
-  alert("LeagueSchedule component mounted! Check console for details.");
-  
-  // Force immediate visibility of component mounting
   useEffect(() => {
-    console.log("🔥 LEAGUE SCHEDULE USEEFFECT EXECUTED - COMPONENT FULLY MOUNTED!");
-    console.log("🔥 Current timestamp:", new Date().toISOString());
+    console.log("✅ LeagueSchedule component mounted successfully");
   }, []);
   
   const { data: schedule, isLoading, error } = useQuery<DailySchedule>({
@@ -49,13 +41,8 @@ export default function LeagueSchedule() {
     enabled: true,
   });
   
-  console.log("🔍 LeagueSchedule Query State:", { 
-    isLoading, 
-    hasError: !!error, 
-    errorMessage: error?.message, 
-    hasData: !!schedule,
-    dataKeys: schedule ? Object.keys(schedule) : null
-  });
+  // Debug query state
+  console.log("LeagueSchedule Query:", { isLoading, hasError: !!error, hasData: !!schedule });
 
   const { data: userTeam } = useQuery<any>({
     queryKey: ["/api/teams/my"],

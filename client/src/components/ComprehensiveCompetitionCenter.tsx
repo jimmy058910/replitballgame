@@ -44,6 +44,7 @@ import {
 import ModernStickyHeader from './ModernStickyHeader';
 import ScheduleView from './ScheduleView';
 import LiveMatchesHub from './LiveMatchesHub';
+import LeagueSchedule from './LeagueSchedule';
 
 // Type definitions
 type Team = {
@@ -879,6 +880,9 @@ export default function ComprehensiveCompetitionCenter() {
                   </CardContent>
                 </Card>
             </div>
+
+            {/* League Schedule Section */}
+            <LeagueSchedule />
 
           </TabsContent>
 
