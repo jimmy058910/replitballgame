@@ -117,6 +117,11 @@ const ModernStickyHeader: React.FC = () => {
           ? nextMatch.awayTeam.name 
           : nextMatch.homeTeam.name;
         console.log('🎯 [HEADER] Current opponent in header:', opponent, 'Full match:', nextMatch.homeTeam.name, 'vs', nextMatch.awayTeam.name);
+        console.log('🔍 [HEADER] Match details:', {
+          matchId: nextMatch.id,
+          gameDate: nextMatch.gameDate,
+          cacheTimestamp: Date.now()
+        });
       }
     }
   }, [isReady, team?.id, upcomingMatches?.length, upcomingMatches?.[0]?.homeTeam?.name, upcomingMatches?.[0]?.awayTeam?.name]); // Track opponent changes
