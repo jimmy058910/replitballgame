@@ -147,13 +147,15 @@ async function startServer() {
       console.log(`✅ Server running on 0.0.0.0:${port}`);
       console.log('🎯 All systems operational');
       
-      // Initialize background services
+      // Initialize automation services for game simulation
       try {
-        const { initializeBackgroundServices } = await import('./services/backgroundServices.js');
-        await initializeBackgroundServices();
-        console.log('✅ Background services initialized');
+        console.log('🚀 Starting season timing automation for game simulation...');
+        const { SeasonTimingAutomationService } = await import('./services/seasonTimingAutomationService.js');
+        const automationService = SeasonTimingAutomationService.getInstance();
+        await automationService.start();
+        console.log('✅ Season timing automation initialized - games will simulate 4-10 PM EDT');
       } catch (error) {
-        console.error('⚠️ Background services failed:', error);
+        console.error('⚠️ Season timing automation failed:', error);
       }
     });
 
