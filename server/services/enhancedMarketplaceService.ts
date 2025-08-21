@@ -8,6 +8,7 @@ export class EnhancedMarketplaceService {
    * Ensures teams maintain minimum 12 players after selling
    */
   static async validateRosterRequirements(teamId: number, excludePlayerId?: number): Promise<{ isValid: boolean; message?: string }> {
+    const prisma = await getPrismaClient();
     const playerCount = await prisma.player.count({
       where: {
         teamId,
@@ -32,6 +33,7 @@ export class EnhancedMarketplaceService {
    * Maximum 3 active listings per team
    */
   static async validateListingLimits(teamId: number): Promise<{ isValid: boolean; message?: string }> {
+    const prisma = await getPrismaClient();
     const activeListings = await prisma.marketplaceListing.count({
       where: {
         sellerTeamId: teamId,

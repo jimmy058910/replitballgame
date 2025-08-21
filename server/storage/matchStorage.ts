@@ -53,7 +53,13 @@ export class MatchStorage {
       },
       include: {
         league: true,
-        tournament: true
+        tournament: true,
+        homeTeam: {
+          select: { id: true, name: true }
+        },
+        awayTeam: {
+          select: { id: true, name: true }
+        }
       },
       orderBy: { gameDate: 'desc' }
     });

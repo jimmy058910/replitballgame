@@ -45,6 +45,7 @@ import ModernStickyHeader from './ModernStickyHeader';
 import ScheduleView from './ScheduleView';
 import LiveMatchesHub from './LiveMatchesHub';
 import LeagueSchedule from './LeagueSchedule';
+import ComprehensiveSchedule from './ComprehensiveSchedule';
 
 // Type definitions
 type Team = {
@@ -1375,15 +1376,9 @@ export default function ComprehensiveCompetitionCenter() {
 
           </TabsContent>
 
-          {/* SCHEDULE TAB - REDESIGNED WITH FILTERS AND DAY-GROUPED LAYOUT */}
+          {/* SCHEDULE TAB - COMPREHENSIVE ALL GAMES VIEW */}
           <TabsContent value="schedule" className="space-y-4">
-            <ScheduleView 
-              team={team}
-              seasonData={seasonData}
-              dailySchedule={dailySchedule}
-              upcomingMatches={upcomingMatches}
-              recentMatches={recentMatches}
-            />
+            <ComprehensiveSchedule />
           </TabsContent>
 
         </Tabs>

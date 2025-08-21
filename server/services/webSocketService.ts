@@ -35,6 +35,7 @@ class WebSocketService {
           }
 
           // Verify user exists in database with timeout
+          const prisma = await getPrismaClient();
           const userProfile = await Promise.race([
             prisma.userProfile.findFirst({
               where: { id: Number(data.userId) }

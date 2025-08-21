@@ -134,6 +134,47 @@ router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: Request, r
   });
 }));
 
+// Get user's comprehensive schedule (all games: League, Tournament, Exhibition)
+router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.uid || req.user?.claims?.sub;
+  if (!userId) {
+    console.log('❌ User ID extraction failed. req.user:', req.user);
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team) {
+    return res.status(404).json({ message: "Team not found" });
+  }
+
+  // Fetch ALL games for the user's team across all match types
+  const allGames = await storage.matches.getMatchesByTeamId(team.id);
+
+  // Transform games to match expected frontend format
+  const transformedGames = allGames.map((game: any) => ({
+    id: game.id,
+    homeTeam: {
+      id: game.homeTeam.id,
+      name: game.homeTeam.name
+    },
+    awayTeam: {
+      id: game.awayTeam.id,
+      name: game.awayTeam.name
+    },
+    homeScore: game.homeScore,
+    awayScore: game.awayScore,
+    gameDate: game.gameDate,
+    status: game.status,
+    matchType: game.matchType,
+    tournamentId: game.tournamentId,
+    round: game.round
+  }));
+
+  console.log(`✅ [COMPREHENSIVE SCHEDULE] Found ${transformedGames.length} total games for team ${team.name}`);
+  
+  return res.json(transformedGames);
+}));
+
 // Team creation endpoint
 router.post('/create', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.uid || req.user?.claims?.sub;

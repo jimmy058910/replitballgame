@@ -32,6 +32,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Direct imports for testing - bypassing lazy loading
 import Dashboard from "@/pages/Dashboard";
+import CompetitionCenter from "@/pages/CompetitionCenter";
 
 // New 5-Hub Architecture Components with error handling - Dashboard routes to DramaticTeamHQ
 const LazyDashboard = lazy(() => import("@/pages/Dashboard").catch(() => ({ default: () => <div>Loading Team HQ...</div> })));
@@ -86,11 +87,7 @@ function Router() {
             </Suspense>
           )} />
 
-          <Route path="/competition" component={() => (
-            <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
-              <LazyCompetitionCenter />
-            </Suspense>
-          )} />
+          <Route path="/competition" component={CompetitionCenter} />
           <Route path="/market" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
               <LazyMarketDistrict />
