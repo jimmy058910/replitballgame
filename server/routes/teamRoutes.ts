@@ -58,18 +58,14 @@ router.get('/firebase-test', asyncHandler(async (req: Request, res: Response) =>
   });
 }));
 
-// Get user's team - PRIMARY ROUTE (DEBUG MODE)
-router.get('/my', asyncHandler(async (req: Request, res: Response) => {
+// Get user's team - PRIMARY ROUTE (with auth)
+router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my route called!');
   
-  // DEBUG: Log what user ID the middleware is actually providing
-  console.log('🔍 [DEBUG] req.user:', req.user);
-  const authUserId = req.user?.uid || req.user?.claims?.sub;
-  console.log('🔍 [DEBUG] Extracted authUserId:', authUserId);
-  
-  // Use the authenticated user ID directly  
-  const userId = authUserId || 'dev-user-123';
-  console.log('🔍 [DEBUG] Final userId:', userId);
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
   
   const team = await storage.teams.getTeamByUserId(userId);
   console.log('✅ Using team:', team.name, 'players:', team?.playersCount || 0);
@@ -136,13 +132,13 @@ router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: Request, r
 }));
 
 // Get user's comprehensive schedule (all games: League, Tournament, Exhibition)
-router.get('/my-schedule/comprehensive', asyncHandler(async (req: Request, res: Response) => {
+router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my-schedule/comprehensive route called!');
   
-  // DEBUG: Log what user ID the middleware is actually providing
-  console.log('🔍 [DEBUG] req.user:', req.user);
-  const authUserId = req.user?.uid || req.user?.claims?.sub;
-  console.log('🔍 [DEBUG] Extracted authUserId:', authUserId);
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
   
   // Use the authenticated user ID directly (same pattern as /my route)
   const userId = authUserId || 'dev-user-123';
