@@ -232,6 +232,44 @@ router.get('/my/matches/upcoming', asyncHandler(async (req: Request, res: Respon
   if (upcomingMatches.length > 0) {
     const nextMatch = upcomingMatches[0];
     console.log(`🎯 [NEXT MATCH] ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name} on ${nextMatch.gameDate}`);
+    
+    // TEMPORARY FIX: Check for Shadow Runners 197 and fix to Iron Wolves 686
+    if (nextMatch.awayTeam.name === 'Shadow Runners 197' || nextMatch.homeTeam.name === 'Shadow Runners 197') {
+      console.log('🔧 FIXING: Detected Shadow Runners 197, updating to Iron Wolves 686...');
+      try {
+        // Find Iron Wolves 686 team
+        const ironWolves = await storage.db.team.findFirst({
+          where: { name: 'Iron Wolves 686' }
+        });
+        
+        const shadowRunners = await storage.db.team.findFirst({
+          where: { name: 'Shadow Runners 197' }
+        });
+        
+        if (ironWolves && shadowRunners) {
+          let updateData: any = {};
+          let needsUpdate = false;
+          
+          if (nextMatch.homeTeam.name === 'Oakland Cougars' && nextMatch.awayTeam.name === 'Shadow Runners 197') {
+            updateData.awayTeamId = ironWolves.id;
+            needsUpdate = true;
+          } else if (nextMatch.awayTeam.name === 'Oakland Cougars' && nextMatch.homeTeam.name === 'Shadow Runners 197') {
+            updateData.homeTeamId = ironWolves.id;
+            needsUpdate = true;
+          }
+          
+          if (needsUpdate) {
+            await storage.db.game.update({
+              where: { id: parseInt(nextMatch.id) },
+              data: updateData
+            });
+            console.log('✅ Match opponent fixed: Shadow Runners 197 → Iron Wolves 686');
+          }
+        }
+      } catch (fixError) {
+        console.error('❌ Error fixing opponent:', fixError);
+      }
+    }
   }
   
   return res.json(upcomingMatches);
@@ -323,6 +361,133 @@ router.post('/create', requireAuth, asyncHandler(async (req: Request, res: Respo
     message: "Team created successfully",
     team: newTeam
   });
+}));
+
+// ADMIN: Fix match opponent data (temporary endpoint)
+router.get('/fix-opponent-debug', asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔧 ADMIN FIX ENDPOINT REACHED!');
+  try {
+    console.log('🔧 ADMIN: Starting match opponent fix...');
+    
+    // Find teams by manually querying
+    const allTeams = await storage.db.team.findMany({
+      where: {
+        name: {
+          in: ['Oakland Cougars', 'Shadow Runners 197', 'Iron Wolves 686']
+        }
+      }
+    });
+    
+    const oaklandCougars = allTeams.find(t => t.name === 'Oakland Cougars');
+    const shadowRunners = allTeams.find(t => t.name === 'Shadow Runners 197');
+    const ironWolves = allTeams.find(t => t.name === 'Iron Wolves 686');
+    
+    if (!oaklandCougars || !shadowRunners || !ironWolves) {
+      return res.status(404).json({ 
+        error: 'Could not find all required teams',
+        found: {
+          oakland: !!oaklandCougars,
+          shadowRunners: !!shadowRunners,
+          ironWolves: !!ironWolves
+        }
+      });
+    }
+    
+    // Find today's match for Oakland Cougars
+    const today = new Date('2025-08-21T00:00:00.000Z');
+    const tomorrow = new Date('2025-08-22T00:00:00.000Z');
+    
+    const todaysMatch = await storage.db.game.findFirst({
+      where: {
+        OR: [
+          { homeTeamId: oaklandCougars.id },
+          { awayTeamId: oaklandCougars.id }
+        ],
+        gameDate: {
+          gte: today,
+          lt: tomorrow
+        }
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      }
+    });
+    
+    if (!todaysMatch) {
+      return res.status(404).json({ error: 'No match found for Oakland Cougars today' });
+    }
+    
+    console.log('🎯 Found today\'s match:', {
+      id: todaysMatch.id,
+      homeTeam: todaysMatch.homeTeam.name,
+      awayTeam: todaysMatch.awayTeam.name,
+      gameDate: todaysMatch.gameDate
+    });
+    
+    // Check if we need to update the opponent
+    let needsUpdate = false;
+    let updateData: any = {};
+    
+    if (todaysMatch.homeTeamId === oaklandCougars.id && todaysMatch.awayTeamId === shadowRunners.id) {
+      // Oakland home vs Shadow Runners - change away team to Iron Wolves
+      updateData.awayTeamId = ironWolves.id;
+      needsUpdate = true;
+      console.log('🔧 Will update away team from Shadow Runners 197 to Iron Wolves 686');
+    } else if (todaysMatch.awayTeamId === oaklandCougars.id && todaysMatch.homeTeamId === shadowRunners.id) {
+      // Shadow Runners home vs Oakland away - change home team to Iron Wolves
+      updateData.homeTeamId = ironWolves.id;
+      needsUpdate = true;
+      console.log('🔧 Will update home team from Shadow Runners 197 to Iron Wolves 686');
+    }
+    
+    if (needsUpdate) {
+      // Update the match using Prisma directly
+      const updatedMatch = await storage.db.game.update({
+        where: { id: todaysMatch.id },
+        data: updateData,
+        include: {
+          homeTeam: true,
+          awayTeam: true
+        }
+      });
+      
+      console.log('✅ Match updated successfully:', {
+        id: updatedMatch.id,
+        homeTeam: updatedMatch.homeTeam.name,
+        awayTeam: updatedMatch.awayTeam.name
+      });
+      
+      return res.json({
+        success: true,
+        message: 'Match opponent updated from Shadow Runners 197 to Iron Wolves 686',
+        before: {
+          homeTeam: todaysMatch.homeTeam.name,
+          awayTeam: todaysMatch.awayTeam.name
+        },
+        after: {
+          homeTeam: updatedMatch.homeTeam.name,
+          awayTeam: updatedMatch.awayTeam.name
+        }
+      });
+    } else {
+      return res.json({
+        success: false,
+        message: 'Match does not involve Shadow Runners 197, no update needed',
+        currentMatch: {
+          homeTeam: todaysMatch.homeTeam.name,
+          awayTeam: todaysMatch.awayTeam.name
+        }
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Error fixing match opponent:', error);
+    return res.status(500).json({ 
+      error: 'Failed to fix match opponent', 
+      details: error.message 
+    });
+  }
 }));
 
 console.log('🔍 [teamRoutes.ts] Router configured with routes, exporting...');
