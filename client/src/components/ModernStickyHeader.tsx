@@ -151,6 +151,25 @@ const ModernStickyHeader: React.FC = () => {
   };
 
   const getNextGameDayCountdown = (): string => {
+    // Check if there's an upcoming match to show countdown to
+    const nextMatch = Array.isArray(upcomingMatches) ? upcomingMatches[0] : null;
+    if (nextMatch) {
+      const gameDate = new Date(nextMatch.gameDate);
+      const now = serverTime;
+      const diff = gameDate.getTime() - now.getTime();
+      
+      if (diff > 0) {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (hours < 1) {
+          return `${minutes}m until next game`;
+        }
+        return `${hours}h ${minutes}m until next game`;
+      }
+    }
+    
+    // Fallback to next day cycle if no upcoming match
     if (!seasonData?.startDate) return "Schedule loading...";
     
     const now = serverTime;
@@ -167,9 +186,9 @@ const ModernStickyHeader: React.FC = () => {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
     if (hours < 1) {
-      return `${minutes}m to 3AM`;
+      return `${minutes}m until next game day`;
     }
-    return `${hours}h ${minutes}m to 3AM`;
+    return `${hours}h ${minutes}m until next game day`;
   };
 
   const getNextMatchInfo = (): { text: string; isOffSeason: boolean } => {
@@ -198,19 +217,29 @@ const ModernStickyHeader: React.FC = () => {
     // Check next upcoming match
     const nextMatch = Array.isArray(upcomingMatches) ? upcomingMatches[0] : null;
     if (nextMatch && nextMatch.matchType === 'LEAGUE') {
-      const opponent = nextMatch.homeTeam.id === team?.id?.toString() 
-        ? nextMatch.awayTeam.name 
-        : nextMatch.homeTeam.name;
-      const gameDate = new Date(nextMatch.gameDate);
-      const today = new Date();
-      const isToday = gameDate.toDateString() === today.toDateString();
+      const isHome = nextMatch.homeTeam.id === team?.id?.toString();
+      const opponent = isHome ? nextMatch.awayTeam.name : nextMatch.homeTeam.name;
+      const homeAwayText = isHome ? "HOME" : "AWAY";
       
-      if (isToday) {
-        return { text: `Today vs ${opponent}`, isOffSeason: false };
+      const gameDate = new Date(nextMatch.gameDate);
+      const now = serverTime;
+      const diffTime = gameDate.getTime() - now.getTime();
+      
+      if (diffTime > 0) {
+        const hours = Math.floor(diffTime / (1000 * 60 * 60));
+        const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (hours < 1) {
+          return { text: `${minutes}m until ${homeAwayText} vs ${opponent}`, isOffSeason: false };
+        } else if (hours < 24) {
+          return { text: `${hours}h ${minutes}m until ${homeAwayText} vs ${opponent}`, isOffSeason: false };
+        } else {
+          const days = Math.floor(hours / 24);
+          const remainingHours = hours % 24;
+          return { text: `${days}d ${remainingHours}h until ${homeAwayText} vs ${opponent}`, isOffSeason: false };
+        }
       } else {
-        const diffTime = gameDate.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return { text: `${diffDays}d vs ${opponent}`, isOffSeason: false };
+        return { text: `${homeAwayText} vs ${opponent}`, isOffSeason: false };
       }
     }
     
