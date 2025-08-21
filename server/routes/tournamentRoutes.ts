@@ -14,6 +14,46 @@ const enterTournamentParamsSchema = z.object({
 });
 
 // History route must come BEFORE the :division route to avoid conflicts
+// Register for Daily Division Tournament
+router.post('/daily-division/register', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || !team.id) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    const { division } = req.body;
+    if (!division || division !== team.division) {
+      return res.status(400).json({ message: "Invalid division for this team" });
+    }
+
+    // Use the domain service for registration
+    const { TournamentDomainService } = await import('../domains/tournaments/service.js');
+    const entry = await TournamentDomainService.registerForTournament(team.id, { division });
+    
+    res.json({
+      success: true,
+      message: "Successfully registered for Daily Division Tournament",
+      entry
+    });
+  } catch (error: any) {
+    console.error('Tournament registration error:', error);
+    
+    if (error.name === 'ConflictError') {
+      return res.status(409).json({ message: error.message });
+    }
+    if (error.name === 'NotFoundError') {
+      return res.status(404).json({ message: error.message });
+    }
+    
+    res.status(500).json({ 
+      message: "Tournament registration failed",
+      error: error.message 
+    });
+  }
+});
+
 router.get('/history', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();

@@ -21,6 +21,7 @@ router.get("/stats", requireAuth, async (req: any, res: Response, next: NextFunc
     const todayStart = moment.tz("America/New_York").startOf('day').toDate();
 
     // Count tournament matches played today (both completed and in progress)
+    const prisma = await getPrismaClient();
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
         matchType: "TOURNAMENT" as any, // Type assertion for enum compatibility
@@ -95,6 +96,7 @@ router.post("/instant-match", requireAuth, async (req: any, res: Response, next:
 
     // Check daily limits
     const todayStart = moment.tz("America/New_York").startOf('day').toDate();
+    const prisma = await getPrismaClient();
     
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
@@ -146,6 +148,7 @@ router.post("/instant-match", requireAuth, async (req: any, res: Response, next:
       scheduledTime: new Date(),
     } as any; // Type assertion to bypass strict Prisma typing
 
+    // Get fresh prisma instance for match creation
     const newMatch = await prisma.game.create({
       data: matchData
     });
@@ -220,6 +223,7 @@ router.post("/challenge-opponent", requireAuth, async (req: any, res: Response, 
 
     // Check daily limits (same logic as instant match)
     const todayStart = moment.tz("America/New_York").startOf('day').toDate();
+    const prisma = await getPrismaClient();
     
     const tournamentMatchesToday = await prisma.game.findMany({
       where: {
@@ -319,6 +323,7 @@ router.get("/recent", requireAuth, async (req: any, res: Response, next: NextFun
 
     // Get recent tournament matches (last 7 days)
     const sevenDaysAgo = moment.tz("America/New_York").subtract(7, 'days').toDate();
+    const prisma = await getPrismaClient();
 
     const recentMatches = await prisma.game.findMany({
       where: {

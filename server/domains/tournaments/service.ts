@@ -9,6 +9,9 @@ export class TournamentDomainService {
     request: TournamentRegistrationRequest
   ): Promise<TournamentEntry> {
     try {
+      // Get Prisma client
+      const prisma = await getPrismaClient();
+      
       // Check if team is already registered for active tournaments
       const existingRegistration = await prisma.tournamentEntry.findFirst({
         where: {
@@ -69,6 +72,7 @@ export class TournamentDomainService {
 
   static async getTournamentHistory(teamId: number): Promise<TournamentEntry[]> {
     try {
+      const prisma = await getPrismaClient();
       const entries = await prisma.tournamentEntry.findMany({
         where: {
           teamId,
@@ -103,6 +107,7 @@ export class TournamentDomainService {
 
   static async getActiveTournaments(teamId: number): Promise<TournamentEntry[]> {
     try {
+      const prisma = await getPrismaClient();
       const entries = await prisma.tournamentEntry.findMany({
         where: {
           teamId,
@@ -129,6 +134,7 @@ export class TournamentDomainService {
 
   static async getany(tournamentId: number): Promise<any> {
     try {
+      const prisma = await getPrismaClient();
       const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId },
         include: {
