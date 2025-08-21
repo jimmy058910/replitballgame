@@ -65,7 +65,7 @@ async function startServer() {
     if (nodeEnv === 'development') {
       console.log('🔧 Initializing Cloud SQL Auth Proxy for development...');
       try {
-        const { initializeCloudSqlProxy } = await import('./cloudSqlProxy.js');
+        const { initializeCloudSqlProxy } = await import('./cloudSqlProxy');
         const proxyStarted = await initializeCloudSqlProxy();
         if (proxyStarted) {
           console.log('✅ Cloud SQL Auth Proxy initialized successfully');
