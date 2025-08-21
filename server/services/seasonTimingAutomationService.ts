@@ -344,7 +344,7 @@ export class SeasonTimingAutomationService {
    */
   /**
    * Check if it's during match simulation window and simulate matches
-   * CORRECTED: Spread across subdivisions every 15 minutes to reduce server load
+   * FIXED: Always process overdue games regardless of subdivision cycle
    */
   public async checkMatchSimulationWindow(): Promise<void> {
     try {
@@ -353,11 +353,17 @@ export class SeasonTimingAutomationService {
       const currentHour = estTime.getHours();
       const currentMinute = estTime.getMinutes();
       
-      // Match simulation window: 4:00 PM - 10:00 PM EDT
+      console.log(`🕐 [SIMULATION] Current EDT time: ${estTime.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} (${currentHour}:${currentMinute.toString().padStart(2, '0')})`);
+      
+      // ALWAYS process overdue games first - regardless of time window
+      await this.catchUpOnMissedMatches();
+      
+      // Match simulation window: 4:00 PM - 10:00 PM EDT for new scheduled games
       if (currentHour >= 16 && currentHour <= 22) {
         // Determine which subdivisions to process based on time
         // Every 15 minutes, process different subdivisions to spread server load
         const subdivisionCycle = Math.floor(currentMinute / 15); // 0, 1, 2, 3
+        console.log(`🎮 [SIMULATION] Processing subdivision cycle ${subdivisionCycle} at ${currentHour}:${currentMinute.toString().padStart(2, '0')} EDT`);
         await this.simulateScheduledMatchesForSubdivisions(subdivisionCycle);
       }
       
@@ -778,7 +784,7 @@ export class SeasonTimingAutomationService {
       if (currentDayInCycle >= 1 && currentDayInCycle <= 14) {
         logInfo(`Processing matches for subdivision cycle ${subdivisionCycle} on Day ${currentDayInCycle}...`);
         
-        // CATCH UP MECHANISM: First, catch up on overdue matches (don't immediately simulate, just start)
+        // CATCH UP MECHANISM: First, catch up on overdue matches (immediate complete for games past their time)
         await this.catchUpOnMissedMatches();
         
         // Get subdivisions to process this cycle (spread load)
