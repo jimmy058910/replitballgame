@@ -151,26 +151,7 @@ const ModernStickyHeader: React.FC = () => {
   };
 
   const getNextGameDayCountdown = (): string => {
-    // Check if there's an upcoming match to show countdown to
-    const nextMatch = Array.isArray(upcomingMatches) ? upcomingMatches[0] : null;
-    if (nextMatch) {
-      const gameDate = new Date(nextMatch.gameDate);
-      const now = serverTime;
-      const diff = gameDate.getTime() - now.getTime();
-      
-      if (diff > 0) {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        
-        if (hours < 1) {
-          return `${minutes}m until next game`;
-        }
-        return `${hours}h ${minutes}m until next game`;
-      }
-    }
-    
-    // Fallback to next day cycle if no upcoming match
-    if (!seasonData?.startDate) return "Schedule loading...";
+    if (!seasonData?.startDate) return "Loading...";
     
     const now = serverTime;
     const nextDayCycle = new Date();
