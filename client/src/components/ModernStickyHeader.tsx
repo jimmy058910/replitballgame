@@ -109,6 +109,26 @@ const ModernStickyHeader: React.FC = () => {
 
   // Debug logging - track opponent data changes to catch stale data issues
   useEffect(() => {
+    console.log('🔍 [HEADER DEBUG] Component state:', {
+      isReady,
+      hasTeam: !!team,
+      teamId: team?.id,
+      upcomingMatchesLength: upcomingMatches?.length || 0,
+      isAuthenticated,
+      hasError,
+      isLoading
+    });
+    
+    if (upcomingMatches) {
+      console.log('🎯 [HEADER DEBUG] Upcoming matches:', upcomingMatches.map(match => ({
+        id: match.id,
+        homeTeam: match.homeTeam.name,
+        awayTeam: match.awayTeam.name,
+        gameDate: match.gameDate,
+        matchType: match.matchType
+      })));
+    }
+    
     if (isReady && team && upcomingMatches) {
       console.log('✅ [HEADER] Team data ready:', team.name, 'ID:', team.id);
       if (upcomingMatches.length > 0) {
@@ -120,11 +140,15 @@ const ModernStickyHeader: React.FC = () => {
         console.log('🔍 [HEADER] Match details:', {
           matchId: nextMatch.id,
           gameDate: nextMatch.gameDate,
+          matchType: nextMatch.matchType,
+          teamIdMatch: nextMatch.homeTeam.id === team.id?.toString(),
           cacheTimestamp: Date.now()
         });
+      } else {
+        console.log('❌ [HEADER] No upcoming matches found');
       }
     }
-  }, [isReady, team?.id, upcomingMatches?.length, upcomingMatches?.[0]?.homeTeam?.name, upcomingMatches?.[0]?.awayTeam?.name]); // Track opponent changes
+  }, [isReady, team?.id, upcomingMatches, isAuthenticated, hasError, isLoading]); // Track all relevant state
 
   // Industry standard: Never hide the header, show optimistic UI
   if (!isAuthenticated) {
@@ -218,10 +242,26 @@ const ModernStickyHeader: React.FC = () => {
     
     // Check next upcoming match
     const nextMatch = Array.isArray(upcomingMatches) ? upcomingMatches[0] : null;
+    console.log('🔍 [HEADER] getNextMatchInfo debug:', {
+      hasNextMatch: !!nextMatch,
+      matchType: nextMatch?.matchType,
+      teamId: team?.id,
+      homeTeamId: nextMatch?.homeTeam?.id,
+      awayTeamId: nextMatch?.awayTeam?.id,
+      matchDetails: nextMatch
+    });
+    
     if (nextMatch && nextMatch.matchType === 'LEAGUE') {
       const isHome = nextMatch.homeTeam.id === team?.id?.toString();
       const opponent = isHome ? nextMatch.awayTeam.name : nextMatch.homeTeam.name;
       const homeAwayText = isHome ? "HOME" : "AWAY";
+      
+      console.log('🎯 [HEADER] Processing match:', {
+        opponent,
+        homeAwayText,
+        isHome,
+        gameDate: nextMatch.gameDate
+      });
       
       const gameDate = new Date(nextMatch.gameDate);
       const now = serverTime;

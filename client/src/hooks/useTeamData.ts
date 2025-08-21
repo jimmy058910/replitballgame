@@ -86,12 +86,12 @@ export const useMyTeam = (isAuthenticated: boolean) => {
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
-    queryKey: ['/api/teams/my/matches/upcoming', 'cache-bust-iron-wolves', Date.now()], // Force cache bust 
+    queryKey: ['/api/teams/my/matches/upcoming'], // Stable query key
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 0, // Force fresh data 
-    gcTime: 0, // Clear cache completely
-    refetchOnWindowFocus: true, // Force refresh
-    refetchInterval: 5000, // Refresh every 5 seconds to clear browser cache
+    staleTime: 0, // Fresh data
+    gcTime: 1000 * 60 * 5, // 5 minute cache
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 };
 
@@ -184,6 +184,31 @@ export const useTeamDashboardData = (isAuthenticated: boolean) => {
 
   const isLoading = teamLoading || (!!team && matchesLoading);
   const hasError = teamError || matchesError;
+
+  // Debug logging for dashboard data
+  console.log('🔍 [useTeamDashboardData] Debug:', {
+    teamLoading,
+    teamData: !!team,
+    teamId: team?.id,
+    teamError: !!teamError,
+    matchesLoading,
+    upcomingMatchesCount: upcomingMatches?.length || 0,
+    matchesError: !!matchesError,
+    liveLoading,
+    liveMatchesCount: liveMatches?.length || 0,
+    isAuthenticated,
+    isReady: !!team && !isLoading
+  });
+
+  if (upcomingMatches && upcomingMatches.length > 0) {
+    console.log('🎯 [useTeamDashboardData] Upcoming matches data:', upcomingMatches.map(match => ({
+      id: match.id,
+      homeTeam: match.homeTeam.name,
+      awayTeam: match.awayTeam.name,
+      gameDate: match.gameDate,
+      matchType: match.matchType
+    })));
+  }
 
   return {
     team,
