@@ -38,11 +38,12 @@ export default function ComprehensiveSchedule() {
 
   // Fetch ALL games for the user's team across all match types
   const { data: rawGames, isLoading, error } = useQuery<ComprehensiveGame[]>({
-    queryKey: ["/api/teams/my-schedule/comprehensive"],
+    queryKey: ["/api/teams/my-schedule/comprehensive", 'force-refresh-iron-wolves'], // Cache bust for Iron Wolves fix
     staleTime: 0, // Force refresh after duplicate match fix
     gcTime: 0, // Clear cache completely  
     refetchOnMount: true, // Always refetch when component mounts
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // Force focus refresh
+    refetchInterval: 3000, // Refresh every 3 seconds until cache clears
   });
 
   // CRITICAL FIX: Filter out duplicate matches - keep only valid time matches
