@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { useQuery } from '@tanstack/react-query';
-import { useTeamDashboardData } from '@/hooks/useTeamData';
+import { useTeamDashboardData, useTeamCacheManager } from '@/hooks/useTeamData';
 import { 
   Home, Users, Trophy, ShoppingCart, Globe, MessageCircle, 
   Bell, Menu, X, Coins, Star, Clock, Calendar,
@@ -84,6 +84,15 @@ const ModernStickyHeader: React.FC = () => {
     hasError, 
     isReady 
   } = useTeamDashboardData(isAuthenticated);
+
+  // Force cache invalidation on mount to prevent stale opponent display
+  const { clearStaleTeamCache } = useTeamCacheManager();
+  useEffect(() => {
+    if (isAuthenticated && isReady) {
+      // Clear stale cache immediately on component mount to ensure fresh opponent data
+      clearStaleTeamCache();
+    }
+  }, [isAuthenticated, isReady, clearStaleTeamCache]);
 
   // Use finances data from team response
   const finances = team ? {

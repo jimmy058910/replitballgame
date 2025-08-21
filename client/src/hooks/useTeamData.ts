@@ -83,17 +83,19 @@ export const useMyTeam = (isAuthenticated: boolean) => {
  * Hook for upcoming matches  
  * - Zero staleTime for immediate fresh data - this is critical real-time info
  * - Only enabled when team data is available
+ * - Forces fresh data on mount to prevent stale opponent display
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
     queryKey: ['/api/teams/my/matches/upcoming'], // Use the actual API endpoint
     enabled: !!team?.id && isAuthenticated,
     staleTime: 0, // CRITICAL: Always fetch fresh - this is real-time opponent data
-    gcTime: 1000 * 60, // 1 minute cache only - shorter retention
+    gcTime: 1000 * 30, // Very short cache (30 seconds) to prevent stale data
     refetchInterval: 1000 * 30, // Refetch every 30 seconds for live updates  
-    refetchOnMount: true,
+    refetchOnMount: 'always', // CRITICAL: Force fresh fetch on every mount
     refetchOnWindowFocus: true, // Important for match data
     refetchIntervalInBackground: true, // Keep updating even when not focused
+    retry: false, // Don't retry failed requests - fail fast for real-time data
   });
 };
 
