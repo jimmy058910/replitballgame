@@ -69,6 +69,7 @@ import cacheRoutes from "./cacheRoutes.js";
 import quickCacheTest from "./quickCacheTest.js";
 import testAutomationRoutes from "./testAutomationRoutes.js";
 import resetRoutes from "./resetRoutes.js";
+import lateRegistrationRoutes from "./lateRegistrationRoutes.js";
 
 
 // This function will be called by server/index.ts to set up all routes.
@@ -183,7 +184,8 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     console.log('🔍 [registerAllRoutes] lateSignupRoutes type:', typeof lateSignupRoutes);
     console.log('🔍 [registerAllRoutes] lateSignupRoutes:', lateSignupRoutes?.constructor?.name);
     app.use("/api/late-signup", lateSignupRoutes);
-    console.log('✅ [registerAllRoutes] Late signup routes registered successfully');
+    app.use("/api/late-registration", lateRegistrationRoutes);
+    console.log('✅ [registerAllRoutes] Late signup and registration routes registered successfully');
   } catch (error: any) {
     console.error('❌ [registerAllRoutes] Failed to register late signup routes:', error.message);
     console.error('❌ [registerAllRoutes] Error stack:', error.stack);

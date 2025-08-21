@@ -139,9 +139,6 @@ router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: R
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
-  
-  // Use the authenticated user ID directly (same pattern as /my route)
-  const userId = authUserId || 'dev-user-123';
   console.log('🔍 [DEBUG] Final userId for comprehensive schedule:', userId);
 
   const team = await storage.teams.getTeamByUserId(userId);
