@@ -175,6 +175,49 @@ router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: R
   return res.json(transformedGames);
 }));
 
+// Get upcoming matches for team (for header display)
+router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId);
+  
+  // Get authenticated user and verify team ownership
+  const userId = req.user?.uid || req.user?.claims?.sub;
+  const team = await storage.teams.getTeamByUserId(userId);
+  
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.forbidden("Access denied to this team's matches");
+  }
+
+  // Get all matches for the team (same method as comprehensive schedule)
+  const allMatches = await storage.matches.getMatchesByTeamId(teamId);
+  
+  // Filter for upcoming matches (not simulated and in the future)
+  const now = new Date();
+  const upcomingMatches = allMatches
+    .filter((match: any) => 
+      !match.simulated && 
+      new Date(match.gameDate) > now
+    )
+    .sort((a: any, b: any) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime())
+    .slice(0, 5) // Return only next 5 upcoming matches
+    .map((match: any) => ({
+      id: match.id.toString(),
+      homeTeam: { 
+        id: match.homeTeam.id.toString(), 
+        name: match.homeTeam.name 
+      },
+      awayTeam: { 
+        id: match.awayTeam.id.toString(), 
+        name: match.awayTeam.name 
+      },
+      gameDate: match.gameDate,
+      matchType: match.matchType
+    }));
+
+  console.log(`✅ [UPCOMING MATCHES] Found ${upcomingMatches.length} upcoming matches for team ${team.name}`);
+  
+  return res.json(upcomingMatches);
+}));
+
 // Team creation endpoint
 router.post('/create', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.uid || req.user?.claims?.sub;
