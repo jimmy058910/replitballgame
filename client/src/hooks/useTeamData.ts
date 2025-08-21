@@ -86,13 +86,13 @@ export const useMyTeam = (isAuthenticated: boolean) => {
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
-    queryKey: ['/api/teams/my/matches/upcoming', 'iron-wolves-fix'], // Static cache bust for this fix
+    queryKey: ['/api/teams/my/matches/upcoming', Date.now()], // Force fresh data every time
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 1000 * 5, // 5 seconds fresh data
-    gcTime: 1000 * 30, // 30 seconds in memory
+    staleTime: 0, // Always stale, always fetch fresh
+    gcTime: 0, // Don't cache at all
     refetchOnMount: true, // Force refresh on mount
     refetchOnWindowFocus: true, // Force refresh on focus
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 3000, // Refresh every 3 seconds
   });
 };
 
