@@ -108,27 +108,44 @@ const ModernStickyHeader: React.FC = () => {
   });
 
   const { data: upcomingMatches, isLoading: upcomingLoading, error: upcomingError } = useQuery<UpcomingMatch[]>({
-    queryKey: ['/api/teams/my/matches/upcoming'], // Fixed key to avoid template variables
+    queryKey: ['/api/teams/my/matches/upcoming', team?.id, Date.now()], // Force unique keys
     enabled: !!team?.id && isAuthenticated,
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache this data at all
-    refetchInterval: 10000, // More frequent checks - every 10 seconds
+    refetchInterval: 5000, // Very frequent checks - every 5 seconds
     refetchOnMount: true, // Always refetch on mount
     refetchOnWindowFocus: true, // Also refetch on window focus
     retry: 1, // Reduce retries to get fresh data faster
+    refetchIntervalInBackground: true, // Keep refetching even when not focused
   });
 
-  // AGGRESSIVE CACHE INVALIDATION on component mount
+  // NUCLEAR CACHE INVALIDATION on component mount
   useEffect(() => {
     if (isAuthenticated && team?.id) {
-      console.log('🔥 [CACHE BUST] Invalidating all match-related caches for team:', team.name);
+      console.log('🔥 [NUCLEAR CACHE BUST] Starting complete cache clearing for team:', team.name);
+      
+      // Clear React Query caches
       queryClient.invalidateQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
       queryClient.invalidateQueries({ queryKey: ['/api/teams/my-schedule/comprehensive'] });
       queryClient.invalidateQueries({ queryKey: ['/api/matches/live'] });
-      
-      // Remove from cache entirely and refetch
       queryClient.removeQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
-      console.log('🔥 [CACHE BUST] Removed stale upcoming matches cache');
+      
+      // Clear browser storage caches that might be interfering
+      try {
+        localStorage.removeItem('upcoming_matches_cache');
+        localStorage.removeItem('team_schedule_cache');
+        sessionStorage.removeItem('upcoming_matches_cache');
+        sessionStorage.removeItem('team_schedule_cache');
+        console.log('🔥 [NUCLEAR CACHE BUST] Cleared browser storage caches');
+      } catch (e) {
+        console.warn('Could not clear browser storage:', e);
+      }
+      
+      // Force immediate refetch with cache bypass
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/teams/my/matches/upcoming'] });
+        console.log('🔥 [NUCLEAR CACHE BUST] Forced immediate refetch');
+      }, 100);
     }
   }, [team?.id, isAuthenticated, queryClient]);
 
