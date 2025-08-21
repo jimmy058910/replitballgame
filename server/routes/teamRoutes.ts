@@ -175,7 +175,64 @@ router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: R
   return res.json(transformedGames);
 }));
 
-// Get upcoming matches for team (for header display)
+// Get upcoming matches for authenticated user's team (for header display)
+router.get('/my/matches/upcoming', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [API CALL] /api/teams/my/matches/upcoming route called!');
+  
+  // DEBUG: Log what user ID the middleware is actually providing
+  console.log('🔍 [DEBUG] req.user:', req.user);
+  const authUserId = req.user?.uid || req.user?.claims?.sub;
+  console.log('🔍 [DEBUG] Extracted authUserId:', authUserId);
+  
+  // Use the authenticated user ID directly (same pattern as /my route)
+  const userId = authUserId || 'dev-user-123';
+  console.log('🔍 [DEBUG] Final userId for upcoming matches:', userId);
+  
+  const team = await storage.teams.getTeamByUserId(userId);
+  console.log('🔍 [DEBUG] Team lookup result:', team?.name, 'ID:', team?.id);
+  
+  if (!team) {
+    console.log('❌ [UPCOMING MATCHES] No team found for user:', userId);
+    throw ErrorCreators.notFound("No team found for user");
+  }
+
+  // Get all matches for the team (same method as comprehensive schedule)
+  const allMatches = await storage.matches.getMatchesByTeamId(team.id);
+  
+  // Filter for upcoming matches (not simulated and in the future)
+  const now = new Date();
+  const upcomingMatches = allMatches
+    .filter((match: any) => 
+      !match.simulated && 
+      match.status === 'SCHEDULED' &&
+      new Date(match.gameDate) > now
+    )
+    .sort((a: any, b: any) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime())
+    .slice(0, 5) // Return only next 5 upcoming matches
+    .map((match: any) => ({
+      id: match.id.toString(),
+      homeTeam: { 
+        id: match.homeTeam.id.toString(), 
+        name: match.homeTeam.name 
+      },
+      awayTeam: { 
+        id: match.awayTeam.id.toString(), 
+        name: match.awayTeam.name 
+      },
+      gameDate: match.gameDate,
+      matchType: match.matchType
+    }));
+
+  console.log(`✅ [UPCOMING MATCHES] Team ${team.name} - Total matches: ${allMatches.length}, Upcoming: ${upcomingMatches.length}`);
+  if (upcomingMatches.length > 0) {
+    const nextMatch = upcomingMatches[0];
+    console.log(`🎯 [NEXT MATCH] ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name} on ${nextMatch.gameDate}`);
+  }
+  
+  return res.json(upcomingMatches);
+}));
+
+// Get upcoming matches for team (for header display) - LEGACY ENDPOINT
 router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const teamId = parseInt(req.params.teamId);
   

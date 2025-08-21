@@ -40,7 +40,10 @@ export default function ComprehensiveSchedule() {
   const { data: allGames, isLoading, error } = useQuery<ComprehensiveGame[]>({
     queryKey: ["/api/teams/my-schedule/comprehensive"],
     staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache this data at all
     refetchInterval: 30000, // Refetch every 30 seconds
+    refetchOnMount: true, // Always refetch on mount
+    refetchOnWindowFocus: false,
   });
 
   // Fetch user's team info

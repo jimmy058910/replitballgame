@@ -184,7 +184,10 @@ export default function ComprehensiveCompetitionCenter() {
     queryKey: ["/api/teams/my-schedule/comprehensive"],
     enabled: isAuthenticated,
     staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache this data at all
     refetchInterval: 30000, // Refetch every 30 seconds
+    refetchOnMount: true, // Always refetch on mount
+    refetchOnWindowFocus: false,
   });
 
   // Exhibition-specific queries

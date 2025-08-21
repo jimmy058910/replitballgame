@@ -78,6 +78,9 @@ const ModernStickyHeader: React.FC = () => {
   const { data: team } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
     enabled: isAuthenticated,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
   });
 
   // Use finances data from team response instead of separate API call
@@ -104,11 +107,35 @@ const ModernStickyHeader: React.FC = () => {
   });
 
   const { data: upcomingMatches } = useQuery<UpcomingMatch[]>({
-    queryKey: [`/api/teams/${team?.id}/matches/upcoming`],
+    queryKey: ['/api/teams/my/matches/upcoming'], // Fixed key to avoid template variables
     enabled: !!team?.id && isAuthenticated,
     staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache this data at all
     refetchInterval: 30000, // Check every 30 seconds for upcoming matches
+    refetchOnMount: true, // Always refetch on mount
+    refetchOnWindowFocus: false,
   });
+
+  // Debug logging with useEffect
+  useEffect(() => {
+    console.log('🔍 [HEADER DEBUG] Authentication state:', isAuthenticated);
+    if (team) {
+      console.log('🔍 [HEADER DEBUG] Team data updated:', team.name, 'ID:', team.id);
+    } else if (isAuthenticated) {
+      console.log('🔍 [HEADER DEBUG] Authenticated but no team data yet');
+    }
+  }, [team, isAuthenticated]);
+
+  useEffect(() => {
+    if (upcomingMatches) {
+      console.log('🔍 [HEADER DEBUG] Upcoming matches updated:', upcomingMatches.length, 'matches');
+      if (upcomingMatches.length > 0) {
+        console.log('🔍 [HEADER DEBUG] Next match:', upcomingMatches[0].homeTeam.name, 'vs', upcomingMatches[0].awayTeam.name, 'on', upcomingMatches[0].gameDate);
+      }
+    } else if (isAuthenticated && team) {
+      console.log('🔍 [HEADER DEBUG] No upcoming matches data yet, but have team:', team.name);
+    }
+  }, [upcomingMatches, isAuthenticated, team]);
 
   // Navigation items
   const navItems = [
