@@ -960,9 +960,10 @@ export default function Competition() {
 
   // Fetch league standings for position calculation
   const { data: rawStandings, isLoading: standingsLoading } = useQuery({
-    queryKey: [`/api/leagues/${team?.division}/standings`],
+    queryKey: ["leagues", team?.division, "standings"],
     queryFn: () => apiRequest(`/api/leagues/${team?.division}/standings`),
     enabled: !!team && !!team.division,
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
   });
   const standings = (rawStandings || []) as any[];
 

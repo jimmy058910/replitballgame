@@ -31,9 +31,8 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: rawStandings, isLoading } = useQuery<Team[]>({
-    queryKey: [`/api/leagues/${division}/standings`, Date.now()],
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache at all for now
+    queryKey: ["leagues", division, "standings"],
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
   });
   const standings = (rawStandings || []) as Team[];
   

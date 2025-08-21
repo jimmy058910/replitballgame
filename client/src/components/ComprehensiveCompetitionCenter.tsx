@@ -181,13 +181,10 @@ export default function ComprehensiveCompetitionCenter() {
 
   // Fetch comprehensive schedule data for games remaining calculation
   const { data: allGames } = useQuery<any[]>({
-    queryKey: ["/api/teams/my-schedule/comprehensive"],
+    queryKey: ["teams", "my", "schedule", "comprehensive"],
     enabled: isAuthenticated,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache this data at all
-    refetchInterval: 30000, // Refetch every 30 seconds
-    refetchOnMount: true, // Always refetch on mount
-    refetchOnWindowFocus: false,
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes only
   });
 
   // Exhibition-specific queries
@@ -236,8 +233,9 @@ export default function ComprehensiveCompetitionCenter() {
   });
 
   const { data: divisionStandings, isLoading: standingsLoading, error: standingsError } = useQuery<Team[]>({
-    queryKey: [`/api/leagues/${team?.division || 8}/standings`],
+    queryKey: ["leagues", team?.division || 8, "standings"],
     enabled: !!team?.division || !!team,  // Try enabling if team exists at all
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
   });
 
   // Debug logging for standings issues
