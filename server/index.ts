@@ -60,20 +60,52 @@ async function startServer() {
       }
     }));
 
-    // Initialize Cloud SQL proxy for development
+    // Initialize Cloud SQL proxy for development - ESSENTIAL FOR OAKLAND COUGARS ACCESS
     const nodeEnv = process.env.NODE_ENV || 'development';
     if (nodeEnv === 'development') {
-      console.log('🔧 Initializing Cloud SQL Auth Proxy for development...');
+      console.log('🔧 [PROXY INIT] Starting Cloud SQL Auth Proxy for development...');
+      
+      // Direct proxy startup - bypass module import issues
+      const { spawn } = await import('child_process');
+      const fs = await import('fs');
+      
       try {
-        const { initializeCloudSqlProxy } = await import('./cloudSqlProxy');
-        const proxyStarted = await initializeCloudSqlProxy();
-        if (proxyStarted) {
-          console.log('✅ Cloud SQL Auth Proxy initialized successfully');
+        // Ensure credentials file exists
+        const credentialsContent = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+        const credentialsPath = '/tmp/cloudsql-credentials.json';
+        
+        if (credentialsContent) {
+          fs.writeFileSync(credentialsPath, credentialsContent, { mode: 0o600 });
+          console.log('✅ [PROXY INIT] Credentials file created');
+          
+          // Start proxy process
+          const proxyArgs = [
+            `--instances=direct-glider-465821-p7:us-central1:realm-rivalry-dev=tcp:5432`,
+            `--credential_file=${credentialsPath}`
+          ];
+          
+          const proxyProcess = spawn('./cloud_sql_proxy', proxyArgs, {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            detached: false
+          });
+          
+          proxyProcess.stdout?.on('data', (data) => {
+            console.log(`📋 [PROXY] ${data.toString().trim()}`);
+          });
+          
+          proxyProcess.stderr?.on('data', (data) => {
+            console.log(`⚠️ [PROXY] ${data.toString().trim()}`);
+          });
+          
+          // Wait for proxy to be ready
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          console.log('✅ [PROXY INIT] Cloud SQL Auth Proxy started for Oakland Cougars access');
+          
         } else {
-          console.log('⚠️ Cloud SQL Auth Proxy failed to start - using fallback');
+          console.log('⚠️ [PROXY INIT] No service account key found');
         }
       } catch (error) {
-        console.log('⚠️ Cloud SQL Auth Proxy initialization failed:', error.message);
+        console.log('⚠️ [PROXY INIT] Failed to start proxy:', error.message);
       }
     }
 
