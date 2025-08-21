@@ -1365,7 +1365,7 @@ class MatchStateManager {
               gamesPlayedLastSeason: (playerToUpdate.gamesPlayedLastSeason || 0) + 1,
               // Store match participation but don't update non-existent lifetime stats
             };
-            playerUpdates.push(await (await getPrismaClient()).player.update({
+            playerUpdates.push((await getPrismaClient()).player.update({
               where: { id: parseInt(playerId) },
               data: updatedStats
             }));
