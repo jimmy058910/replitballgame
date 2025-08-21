@@ -232,44 +232,6 @@ router.get('/my/matches/upcoming', asyncHandler(async (req: Request, res: Respon
   if (upcomingMatches.length > 0) {
     const nextMatch = upcomingMatches[0];
     console.log(`🎯 [NEXT MATCH] ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name} on ${nextMatch.gameDate}`);
-    
-    // TEMPORARY FIX: Check for Shadow Runners 197 and fix to Iron Wolves 686
-    if (nextMatch.awayTeam.name === 'Shadow Runners 197' || nextMatch.homeTeam.name === 'Shadow Runners 197') {
-      console.log('🔧 FIXING: Detected Shadow Runners 197, updating to Iron Wolves 686...');
-      try {
-        // Find Iron Wolves 686 team
-        const ironWolves = await storage.db.team.findFirst({
-          where: { name: 'Iron Wolves 686' }
-        });
-        
-        const shadowRunners = await storage.db.team.findFirst({
-          where: { name: 'Shadow Runners 197' }
-        });
-        
-        if (ironWolves && shadowRunners) {
-          let updateData: any = {};
-          let needsUpdate = false;
-          
-          if (nextMatch.homeTeam.name === 'Oakland Cougars' && nextMatch.awayTeam.name === 'Shadow Runners 197') {
-            updateData.awayTeamId = ironWolves.id;
-            needsUpdate = true;
-          } else if (nextMatch.awayTeam.name === 'Oakland Cougars' && nextMatch.homeTeam.name === 'Shadow Runners 197') {
-            updateData.homeTeamId = ironWolves.id;
-            needsUpdate = true;
-          }
-          
-          if (needsUpdate) {
-            await storage.db.game.update({
-              where: { id: parseInt(nextMatch.id) },
-              data: updateData
-            });
-            console.log('✅ Match opponent fixed: Shadow Runners 197 → Iron Wolves 686');
-          }
-        }
-      } catch (fixError) {
-        console.error('❌ Error fixing opponent:', fixError);
-      }
-    }
   }
   
   return res.json(upcomingMatches);
@@ -321,6 +283,32 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
   }
   
   return res.json(upcomingMatches);
+}));
+
+// Temporary endpoint to fix specific match issues - NO AUTH for emergency fix
+router.get('/emergency-fix-iron-wolves', asyncHandler(async (req: Request, res: Response) => {
+  try {
+    console.log('🔧 EMERGENCY FIX: Updating matches to use Iron Wolves 686...');
+    
+    // Fix match 2547 to use Iron Wolves 686 (ID 13)
+    const result1 = await storage.matches.updateMatchOpponent(2547, undefined, 13);
+    console.log('✅ Match 2547 fixed:', result1.homeTeam.name, 'vs', result1.awayTeam.name);
+    
+    // Fix match 2571 to use Iron Wolves 686 (ID 13) 
+    const result2 = await storage.matches.updateMatchOpponent(2571, undefined, 13);
+    console.log('✅ Match 2571 fixed:', result2.homeTeam.name, 'vs', result2.awayTeam.name);
+    
+    res.json({ 
+      success: true, 
+      fixed: [
+        { matchId: result1.id, teams: `${result1.homeTeam.name} vs ${result1.awayTeam.name}` },
+        { matchId: result2.id, teams: `${result2.homeTeam.name} vs ${result2.awayTeam.name}` }
+      ]
+    });
+  } catch (error) {
+    console.error('❌ Emergency fix error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
 }));
 
 // Team creation endpoint

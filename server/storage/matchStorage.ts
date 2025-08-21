@@ -66,6 +66,25 @@ export class MatchStorage {
     return teamMatches;
   }
 
+  async updateMatchOpponent(matchId: number, homeTeamId?: number, awayTeamId?: number): Promise<Game> {
+    const prisma = await getPrismaClient();
+    const updateData: any = {};
+    
+    if (homeTeamId !== undefined) updateData.homeTeamId = homeTeamId;
+    if (awayTeamId !== undefined) updateData.awayTeamId = awayTeamId;
+    
+    const updatedMatch = await prisma.game.update({
+      where: { id: matchId },
+      data: updateData,
+      include: {
+        homeTeam: { select: { id: true, name: true } },
+        awayTeam: { select: { id: true, name: true } }
+      }
+    });
+    
+    return updatedMatch;
+  }
+
   async getUpcomingMatches(teamId: number): Promise<Game[]> {
     const prisma = await getPrismaClient();
     const upcomingMatches = await prisma.game.findMany({
