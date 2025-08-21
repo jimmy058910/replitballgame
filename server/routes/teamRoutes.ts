@@ -285,63 +285,28 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
   return res.json(upcomingMatches);
 }));
 
-// Emergency endpoint to fix ALL Shadow Runners variants in upcoming matches
-router.get('/emergency-fix-all-shadow-runners', asyncHandler(async (req: Request, res: Response) => {
+// Fix the exact Shadow Runners matches
+router.get('/fix-exact-matches', asyncHandler(async (req: Request, res: Response) => {
   try {
-    console.log('🔧 COMPREHENSIVE FIX: Finding and fixing ALL Shadow Runners variants...');
+    console.log('🔧 FIXING: Match 2583 and 2590 with Shadow Runners...');
     
-    // Get Oakland Cougars team ID
-    const team = await storage.teams.getTeamByUserId("test-user-id"); // We know this works
-    if (!team) {
-      return res.status(404).json({ error: 'Team not found' });
-    }
+    // Fix match 2583: Shadow Runners 197 at 8:30 PM (this shows in header)
+    const result1 = await storage.matches.updateMatchOpponent(2583, undefined, 13);
+    console.log(`✅ Fixed match 2583: ${result1.homeTeam.name} vs ${result1.awayTeam.name}`);
     
-    // Get all matches for the team
-    const allMatches = await storage.matches.getMatchesByTeamId(team.id);
-    
-    // Find all matches with Shadow Runners variants
-    const shadowRunnersMatches = allMatches.filter((match: any) => 
-      match.awayTeam?.name?.includes('Shadow Runners') || 
-      match.homeTeam?.name?.includes('Shadow Runners')
-    );
-    
-    console.log(`🎯 Found ${shadowRunnersMatches.length} matches with Shadow Runners variants`);
-    
-    const fixedMatches = [];
-    
-    for (const match of shadowRunnersMatches) {
-      // Replace Shadow Runners with Iron Wolves 686 (ID 13)
-      if (match.awayTeam?.name?.includes('Shadow Runners')) {
-        const result = await storage.matches.updateMatchOpponent(match.id, undefined, 13);
-        fixedMatches.push({
-          matchId: result.id,
-          old: match.awayTeam.name,
-          new: result.awayTeam.name,
-          teams: `${result.homeTeam.name} vs ${result.awayTeam.name}`
-        });
-        console.log(`✅ Fixed match ${match.id}: ${match.awayTeam.name} → ${result.awayTeam.name}`);
-      }
-      
-      if (match.homeTeam?.name?.includes('Shadow Runners')) {
-        const result = await storage.matches.updateMatchOpponent(match.id, 13, undefined);
-        fixedMatches.push({
-          matchId: result.id,
-          old: match.homeTeam.name,
-          new: result.homeTeam.name,
-          teams: `${result.homeTeam.name} vs ${result.awayTeam.name}`
-        });
-        console.log(`✅ Fixed match ${match.id}: ${match.homeTeam.name} → ${result.homeTeam.name}`);
-      }
-    }
+    // Fix match 2590: Shadow Runners 500 
+    const result2 = await storage.matches.updateMatchOpponent(2590, undefined, 13);
+    console.log(`✅ Fixed match 2590: ${result2.homeTeam.name} vs ${result2.awayTeam.name}`);
     
     res.json({ 
       success: true, 
-      totalFound: shadowRunnersMatches.length,
-      totalFixed: fixedMatches.length,
-      fixed: fixedMatches
+      fixed: [
+        `Match 2583: ${result1.homeTeam.name} vs ${result1.awayTeam.name}`,
+        `Match 2590: ${result2.homeTeam.name} vs ${result2.awayTeam.name}`
+      ]
     });
   } catch (error) {
-    console.error('❌ Comprehensive fix error:', error.message);
+    console.error('❌ Fix error:', error.message);
     res.status(500).json({ error: error.message });
   }
 }));
