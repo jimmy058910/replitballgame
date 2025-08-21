@@ -88,10 +88,11 @@ export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: bool
   return useQuery<UpcomingMatch[]>({
     queryKey: ['/api/teams/my/matches/upcoming'], // Standard query key
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 1000 * 60, // 1 minute - back to normal after rename fix
-    gcTime: 1000 * 60 * 2, // 2 minutes cache
+    staleTime: 1000 * 30, // 30 seconds - shorter cache for real-time updates
+    gcTime: 1000 * 60, // 1 minute cache
     refetchOnMount: true,
-    refetchOnWindowFocus: false, // Back to normal behavior after fix
+    refetchOnWindowFocus: true, // Enable refetch on focus for fresh data
+    refetchInterval: 1000 * 60, // Refetch every minute
   });
 };
 

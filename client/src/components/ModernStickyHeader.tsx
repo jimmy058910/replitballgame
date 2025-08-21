@@ -248,6 +248,7 @@ const ModernStickyHeader: React.FC = () => {
       teamId: team?.id,
       homeTeamId: nextMatch?.homeTeam?.id,
       awayTeamId: nextMatch?.awayTeam?.id,
+      opponent: nextMatch ? (nextMatch.homeTeam.id === team?.id?.toString() ? nextMatch.awayTeam.name : nextMatch.homeTeam.name) : null,
       matchDetails: nextMatch
     });
     
