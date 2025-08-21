@@ -7,11 +7,12 @@ Realm Rivalry is a mobile-first fantasy sports management game offering deep, en
 Preferred communication style: Simple, everyday language.
 
 ## Recent Technical Improvements (August 2025)
-**CRITICAL DATABASE CORRUPTION FIX** (August 21, 2025): Resolved match opponent corruption in Division 8 schedule where multiple matches incorrectly showed "Shadow Runners" variants instead of proper team opponents:
-- **Root Cause**: Database entries had incorrect `awayTeamId` references pointing to Shadow Runners teams (IDs 11, 500) instead of legitimate opponents
-- **Proper Solution**: Added `updateMatchOpponent` method to `MatchStorage` class following industry-standard storage interface patterns
-- **Affected Matches**: Fixed matches 2547 and 2571 to correctly show "Iron Wolves 686" as opponent
-- **Zero Technical Debt**: Used proper storage layer architecture instead of temporary database scripts or direct SQL fixes
+**CRITICAL LATE SIGNUP SYSTEM FIX** (August 21, 2025): Resolved Shadow Runners placeholder issue in Division 8 late registration system:
+- **Root Cause**: AI team generation service was using "Shadow Runners" as first name in list, creating variants like "Shadow Runners 197", "Shadow Runners 500"
+- **System Design**: Division 8 teams trigger late signup service which fills subdivisions with AI opponents for 36-game shortened schedules
+- **Proper Solution**: Removed "Shadow Runners" from AI team name list, prioritized "Iron Wolves" and other professional names
+- **Database Fix**: Renamed existing Shadow Runners teams to proper AI team names (Iron Wolves, Fire Hawks, etc.)
+- **Zero Technical Debt**: Fixed root cause in late signup service, updated frontend cache invalidation
 
 **CRITICAL CACHING ARCHITECTURE OVERHAUL**: Completely replaced problematic cache-fighting approaches with industry-standard React Query patterns. Key improvements:
 - **Hierarchical Query Keys**: Structured keys (`['teams', 'my', 'matches', 'upcoming']`) for efficient cache invalidation

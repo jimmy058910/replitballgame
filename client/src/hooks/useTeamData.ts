@@ -86,12 +86,12 @@ export const useMyTeam = (isAuthenticated: boolean) => {
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
-    queryKey: ['/api/teams/my/matches/upcoming', 'shadow-fix-final'], // Cache bust for Shadow Runners fix
+    queryKey: ['/api/teams/my/matches/upcoming', 'ai-team-fix'], // Cache bust for AI team name fix
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 1000 * 30, // 30 seconds - shorter cache due to recent fixes
-    gcTime: 1000 * 60 * 2, // 2 minutes cache
+    staleTime: 1000 * 60, // 1 minute - normal cache after fix
+    gcTime: 1000 * 60 * 5, // 5 minutes cache
     refetchOnMount: true,
-    refetchOnWindowFocus: true, // Force refresh to get corrected data
+    refetchOnWindowFocus: false, // Normal behavior after fix
   });
 };
 

@@ -308,10 +308,10 @@ export class LateSignupService {
    */
   private static async generateAITeamsForSubdivision(subdivisionName: string, teamCount: number): Promise<void> {
     const aiTeamNames = [
-      'Shadow Runners', 'Storm Breakers', 'Iron Wolves', 'Fire Hawks',
-      'Thunder Eagles', 'Crimson Tide', 'Golden Lions', 'Silver Falcons',
-      'Lightning Bolts', 'Frost Giants', 'Ember Knights', 'Wind Dancers',
-      'Steel Warriors', 'Flame Guardians', 'Night Stalkers', 'Dawn Riders'
+      'Iron Wolves', 'Fire Hawks', 'Thunder Eagles', 'Crimson Tide', 
+      'Golden Lions', 'Silver Falcons', 'Lightning Bolts', 'Frost Giants', 
+      'Ember Knights', 'Wind Dancers', 'Steel Warriors', 'Flame Guardians', 
+      'Night Stalkers', 'Dawn Riders', 'Storm Breakers', 'Void Hunters'
     ];
     
     logInfo(`🤖 GENERATING ${teamCount} AI teams for subdivision ${subdivisionName}`);

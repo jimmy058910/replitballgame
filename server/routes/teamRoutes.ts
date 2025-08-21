@@ -287,28 +287,54 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
 
 
 
-// EMERGENCY: Fix corrupted Shadow Runners matches using working storage layer
-router.get('/fix-shadow-corruption-final', asyncHandler(async (req: Request, res: Response) => {
+// FINAL FIX: Rename existing Shadow Runners teams using storage layer
+router.get('/fix-shadow-teams-final', asyncHandler(async (req: Request, res: Response) => {
   try {
-    console.log('🚨 EMERGENCY FIX: Correcting matches 2619 and 2626 using storage layer...');
+    console.log('🔧 FINAL FIX: Renaming existing Shadow Runners teams...');
     
-    // Use the working storage layer pattern from other routes
-    const result1 = await storage.matches.updateMatchOpponent(2619, undefined, 13);
-    console.log(`✅ Fixed 2619: ${result1.homeTeam?.name || 'Home'} vs ${result1.awayTeam?.name || 'Away'}`);
+    // Get all Division 8 teams via storage layer
+    const division8Teams = await storage.teams.getTeamsByDivisionAndSubdivision(8);
+    console.log(`Found ${division8Teams.length} teams in Division 8`);
     
-    const result2 = await storage.matches.updateMatchOpponent(2626, undefined, 13);
-    console.log(`✅ Fixed 2626: ${result2.homeTeam?.name || 'Home'} vs ${result2.awayTeam?.name || 'Away'}`);
+    const shadowTeams = division8Teams.filter(team => 
+      team.name.includes('Shadow Runners')
+    );
+    
+    console.log(`Found ${shadowTeams.length} Shadow Runners teams to rename`);
+    
+    const properNames = [
+      'Iron Wolves', 'Fire Hawks', 'Thunder Eagles', 'Crimson Tide',
+      'Golden Lions', 'Silver Falcons', 'Lightning Bolts', 'Frost Giants'
+    ];
+    
+    const renamedTeams = [];
+    
+    for (let i = 0; i < shadowTeams.length; i++) {
+      const team = shadowTeams[i];
+      const newBaseName = properNames[i % properNames.length];
+      const newName = `${newBaseName} ${Math.floor(Math.random() * 900) + 100}`;
+      
+      try {
+        // Use storage layer to update team name
+        const updatedTeam = await storage.teams.updateTeam(team.id, { name: newName });
+        console.log(`✅ Renamed: ${team.name} → ${newName}`);
+        renamedTeams.push({
+          oldName: team.name,
+          newName: newName,
+          teamId: team.id
+        });
+      } catch (error) {
+        console.error(`❌ Failed to rename team ${team.id}:`, error);
+      }
+    }
     
     res.json({ 
       success: true,
-      message: 'Shadow Runners corruption eliminated via storage layer',
-      fixes: [
-        { matchId: 2619, status: 'updated' },
-        { matchId: 2626, status: 'updated' }
-      ]
+      message: `Renamed ${renamedTeams.length} Shadow Runners teams`,
+      renamedTeams: renamedTeams
     });
   } catch (error: any) {
-    console.error('❌ Emergency fix failed:', error.message);
+    console.error('❌ Team renaming failed:', error.message);
     res.status(500).json({ error: error.message });
   }
 }));
