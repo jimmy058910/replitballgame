@@ -92,7 +92,7 @@ const ModernStickyHeader: React.FC = () => {
   } : null;
 
   const { data: seasonData } = useQuery<SeasonData>({
-    queryKey: ['/api/season/current-cycle'],
+    queryKey: ['/api/season/current'], // Use the correct working API endpoint
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5, // 5 minutes - season data changes infrequently
   });
@@ -192,10 +192,9 @@ const ModernStickyHeader: React.FC = () => {
   };
 
   const getNextGameDayCountdown = (): string => {
-    if (!seasonData?.startDate) return "Loading...";
-    
+    // Don't require seasonData for basic countdown - use current server time
     const now = serverTime;
-    const nextDayCycle = new Date();
+    const nextDayCycle = new Date(now); // Use current time as base
     nextDayCycle.setHours(3, 0, 0, 0); // 3 AM EDT = next day cycle
     
     // If it's already past 3 AM today, target 3 AM tomorrow
