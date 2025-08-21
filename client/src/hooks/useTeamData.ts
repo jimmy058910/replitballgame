@@ -86,13 +86,12 @@ export const useMyTeam = (isAuthenticated: boolean) => {
  */
 export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: boolean) => {
   return useQuery<UpcomingMatch[]>({
-    queryKey: ['/api/teams/my/matches/upcoming', Date.now()], // Force fresh data every time
+    queryKey: ['/api/teams/my/matches/upcoming'], // Stable query key
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 0, // Always stale, always fetch fresh
-    gcTime: 0, // Don't cache at all
-    refetchOnMount: true, // Force refresh on mount
-    refetchOnWindowFocus: true, // Force refresh on focus
-    refetchInterval: 3000, // Refresh every 3 seconds
+    staleTime: 1000 * 60, // 1 minute stale time
+    gcTime: 1000 * 60 * 5, // 5 minutes cache
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 };
 

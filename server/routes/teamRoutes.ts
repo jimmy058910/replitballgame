@@ -285,31 +285,7 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
   return res.json(upcomingMatches);
 }));
 
-// Fix the exact Shadow Runners matches
-router.get('/fix-exact-matches', asyncHandler(async (req: Request, res: Response) => {
-  try {
-    console.log('🔧 FIXING: Match 2583 and 2590 with Shadow Runners...');
-    
-    // Fix match 2583: Shadow Runners 197 at 8:30 PM (this shows in header)
-    const result1 = await storage.matches.updateMatchOpponent(2583, undefined, 13);
-    console.log(`✅ Fixed match 2583: ${result1.homeTeam.name} vs ${result1.awayTeam.name}`);
-    
-    // Fix match 2590: Shadow Runners 500 
-    const result2 = await storage.matches.updateMatchOpponent(2590, undefined, 13);
-    console.log(`✅ Fixed match 2590: ${result2.homeTeam.name} vs ${result2.awayTeam.name}`);
-    
-    res.json({ 
-      success: true, 
-      fixed: [
-        `Match 2583: ${result1.homeTeam.name} vs ${result1.awayTeam.name}`,
-        `Match 2590: ${result2.homeTeam.name} vs ${result2.awayTeam.name}`
-      ]
-    });
-  } catch (error) {
-    console.error('❌ Fix error:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-}));
+
 
 // Team creation endpoint
 router.post('/create', requireAuth, asyncHandler(async (req: Request, res: Response) => {
