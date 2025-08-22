@@ -157,13 +157,15 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
               </table>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <i className="fas fa-trophy text-4xl text-gray-600 mb-4"></i>
-              <p className="text-gray-400">No standings available</p>
+            <div className="text-center py-8 text-gray-400">
+              <Trophy className="h-12 w-12 mx-auto mb-4" />
+              <p className="text-lg font-semibold mb-2">No standings data available</p>
+              <p className="text-sm">Division {division} standings will load shortly</p>
+              <p className="text-xs text-gray-500 mt-2">API: /api/teams/{division}/standings</p>
             </div>
           )}
           
-          {standings && standings.length > 0 && (
+          {rawStandings && rawStandings.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-700">
               <div className="text-xs text-gray-400 space-y-1">
                 {division > 1 && (

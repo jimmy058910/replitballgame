@@ -107,7 +107,22 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
     };
   }
 
-  return res.json(serializedTeam);
+  // CRITICAL FIX: Apply same points calculation fix to /api/teams/my endpoint
+  const correctPoints = (serializedTeam.wins || 0) * 3 + (serializedTeam.draws || 0) * 1;
+  const hasPointsError = serializedTeam.points !== correctPoints;
+  
+  if (hasPointsError) {
+    console.log(`🔧 [MY TEAM POINTS FIX] ${serializedTeam.name}: DB shows ${serializedTeam.points} pts, should be ${correctPoints} pts (${serializedTeam.wins}W)`);
+  }
+  
+  const correctedSerializedTeam = {
+    ...serializedTeam,
+    points: correctPoints, // Use calculated points for consistency
+    draws: serializedTeam.draws || 0, // Ensure draws is never null
+    played: (serializedTeam.wins || 0) + (serializedTeam.losses || 0) + (serializedTeam.draws || 0)
+  };
+
+  return res.json(correctedSerializedTeam);
 }));
 
 // Get user's next opponent
@@ -476,14 +491,39 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
     });
 
     console.log(`✅ [DIRECT STANDINGS] Found ${teams.length} teams in Division ${division} Alpha`);
-    if (teams.length > 0) {
-      const oakland = teams.find(t => t.name === 'Oakland Cougars');
+    
+    // CRITICAL FIX: Correct points calculation and ensure data integrity
+    const correctedTeams = teams.map(team => {
+      const correctPoints = (team.wins || 0) * 3 + (team.draws || 0) * 1;
+      const hasPointsError = team.points !== correctPoints;
+      
+      if (hasPointsError) {
+        console.log(`🔧 [POINTS FIX] ${team.name}: DB shows ${team.points} pts, should be ${correctPoints} pts (${team.wins}W)`);
+      }
+      
+      return {
+        ...team,
+        points: correctPoints, // Use calculated points for consistency
+        draws: team.draws || 0, // Ensure draws is never null
+        played: (team.wins || 0) + (team.losses || 0) + (team.draws || 0)
+      };
+    });
+    
+    // Sort corrected teams by corrected points
+    correctedTeams.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      return a.name.localeCompare(b.name);
+    });
+    
+    if (correctedTeams.length > 0) {
+      const oakland = correctedTeams.find(t => t.name === 'Oakland Cougars');
       if (oakland) {
-        console.log(`🎯 [DIRECT STANDINGS] Oakland Cougars: ${oakland.wins}W-${oakland.losses}L (${oakland.points} pts)`);
+        console.log(`🎯 [DIRECT STANDINGS] Oakland Cougars: ${oakland.wins}W-${oakland.losses}L (${oakland.points} pts - CORRECTED)`);
       }
     }
 
-    res.json(teams);
+    res.json(correctedTeams);
   } catch (error) {
     console.error('❌ [DIRECT STANDINGS] Error:', error);
     res.status(500).json({ message: 'Internal server error' });
