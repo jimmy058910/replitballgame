@@ -233,7 +233,7 @@ export default function ComprehensiveCompetitionCenter() {
   });
 
   const { data: divisionStandings, isLoading: standingsLoading, error: standingsError } = useQuery<Team[]>({
-    queryKey: ["leagues", team?.division || 8, "standings"],
+    queryKey: [`/api/teams/${team?.division || 8}/standings`],  // ✅ FIXED: Correct API endpoint
     enabled: !!team?.division || !!team,  // Try enabling if team exists at all
     staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
   });
@@ -250,7 +250,7 @@ export default function ComprehensiveCompetitionCenter() {
       standingsDataLength: divisionStandings?.length,
       standingsLoading,
       standingsError: standingsError?.message,
-      queryKey: `/api/leagues/${team?.division || 8}/standings`
+      queryKey: `/api/teams/${team?.division || 8}/standings`
     });
 
     if (standingsError) {
