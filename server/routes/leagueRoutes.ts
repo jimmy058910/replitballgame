@@ -1360,4 +1360,109 @@ router.post('/generate-schedule', requireAuth, async (req: Request, res: Respons
   }
 });
 
+/**
+ * CLEAR AND REGENERATE SCHEDULE ENDPOINT
+ * Admin endpoint to completely clear all games and regenerate shortened season
+ */
+router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Response) => {
+  try {
+    console.log('🔥 [ADMIN] Starting complete schedule regeneration...');
+    
+    const prisma = await getPrismaClient();
+    
+    // Step 1: Clear all league games
+    const deletedGames = await prisma.game.deleteMany({
+      where: { matchType: 'LEAGUE' }
+    });
+    console.log(`✅ Deleted ${deletedGames.count} existing league games`);
+    
+    // Step 2: Reset team stats
+    const resetStats = await prisma.team.updateMany({
+      where: { division: 8, subdivision: 'alpha' },
+      data: { wins: 0, losses: 0, points: 0 }
+    });
+    console.log(`✅ Reset stats for ${resetStats.count} teams`);
+    
+    // Step 3: Get teams for schedule generation
+    const teams = await prisma.team.findMany({
+      where: { division: 8, subdivision: 'alpha' },
+      select: { id: true, name: true }
+    });
+    
+    if (teams.length !== 8) {
+      return res.status(400).json({ 
+        error: `Expected 8 teams, found ${teams.length}`,
+        teams: teams.map(t => t.name)
+      });
+    }
+    
+    // Step 4: Generate round-robin schedule (Days 7-14)
+    const games = [];
+    const startDate = new Date('2025-08-16T00:00:00.000Z');
+    
+    // Round-robin: each team plays every other team once (7 games per team)
+    for (let i = 0; i < teams.length; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        const homeTeam = teams[i];
+        const awayTeam = teams[j];
+        
+        // Distribute across Days 7-14 (8 days)
+        const gameNumber = games.length;
+        const dayOffset = 6 + (gameNumber % 8); // Days 7-14
+        const gameDate = new Date(startDate);
+        gameDate.setDate(gameDate.getDate() + dayOffset);
+        gameDate.setHours(16 + (gameNumber % 4), 15 * (gameNumber % 4), 0, 0);
+        
+        games.push({
+          homeTeamId: homeTeam.id,
+          awayTeamId: awayTeam.id,
+          gameDate: gameDate,
+          matchType: 'LEAGUE' as const,
+          status: 'SCHEDULED' as const,
+          homeScore: null,
+          awayScore: null,
+          simulated: false
+        });
+      }
+    }
+    
+    console.log(`🎮 Generated ${games.length} total games (${games.length / teams.length} per team)`);
+    
+    // Step 5: Save games to database
+    const createdGames = await prisma.game.createMany({
+      data: games
+    });
+    
+    console.log(`✅ Created ${createdGames.count} new league games`);
+    
+    // Generate distribution report
+    const gamesByDay: Record<number, number> = {};
+    games.forEach(game => {
+      const daysSinceStart = Math.floor((game.gameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const dayNumber = daysSinceStart + 1;
+      gamesByDay[dayNumber] = (gamesByDay[dayNumber] || 0) + 1;
+    });
+    
+    res.json({
+      success: true,
+      summary: {
+        gamesDeleted: deletedGames.count,
+        teamsReset: resetStats.count,
+        gamesCreated: createdGames.count,
+        gamesPerTeam: games.length / teams.length,
+        teams: teams.map(t => t.name),
+        gamesByDay
+      },
+      message: 'Schedule completely regenerated for Days 7-14'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error regenerating schedule:', error);
+    res.status(500).json({ 
+      error: 'Failed to regenerate schedule', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
