@@ -1370,22 +1370,35 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     
     const prisma = await getPrismaClient();
     
-    // Step 1: Clear ALL games completely - league games AND any completed games
-    console.log('🧹 Clearing all existing games...');
+    // Step 1: NUCLEAR DELETION - Delete ALL games from Day 6 and all LEAGUE games
+    console.log('🧹 NUCLEAR CLEANUP: Clearing all problematic games...');
     
-    // First delete specific problematic games
-    const specificDeletion = await prisma.game.deleteMany({
-      where: { id: { in: [3453, 3462] } }
+    const seasonStartDate = new Date('2025-08-16T00:00:00.000Z');
+    const day6Date = new Date(seasonStartDate);
+    day6Date.setDate(day6Date.getDate() + 5); // Day 6
+    const day6Start = new Date(day6Date);
+    day6Start.setHours(0, 0, 0, 0);
+    const day6End = new Date(day6Date);
+    day6End.setHours(23, 59, 59, 999);
+    
+    // Delete ALL games on Day 6 (regardless of type or status)
+    const day6Deletion = await prisma.game.deleteMany({
+      where: {
+        gameDate: {
+          gte: day6Start,
+          lte: day6End
+        }
+      }
     });
-    console.log(`✅ Deleted ${specificDeletion.count} specific Day 6 completed games`);
+    console.log(`✅ NUCLEAR: Deleted ${day6Deletion.count} games from Day 6`);
     
-    // Then delete all league games  
+    // Delete all LEAGUE games
     const leagueDeletion = await prisma.game.deleteMany({
       where: { matchType: 'LEAGUE' }
     });
-    console.log(`✅ Deleted ${leagueDeletion.count} league games`);
+    console.log(`✅ NUCLEAR: Deleted ${leagueDeletion.count} league games`);
     
-    // Count remaining games for verification
+    // Verify complete cleanup
     const remainingGames = await prisma.game.count();
     console.log(`📊 Total games remaining in database: ${remainingGames}`);
     
@@ -1440,7 +1453,7 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
         const pair = allPairings[pairingIndex];
         
         const gameTime = new Date(gameDate);
-        gameTime.setHours(20 + gameSlot, 0, 0, 0); // 4PM, 5PM, 6PM, 7PM EDT (UTC: 20, 21, 22, 23)
+        gameTime.setUTCHours(20 + gameSlot, 0, 0, 0); // 4PM, 5PM, 6PM, 7PM EDT (UTC: 20, 21, 22, 23)
         
         console.log(`   Game ${gameSlot + 1}: ${pair[0].name} vs ${pair[1].name} at ${4 + gameSlot}:00 PM EDT`);
         
@@ -1485,7 +1498,7 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     res.json({
       success: true,
       summary: {
-        gamesDeleted: deletedGames.count,
+        gamesDeleted: day6Deletion.count + leagueDeletion.count,
         teamsReset: resetStats.count,
         gamesCreated: createdGames.count,
         gamesPerTeam: games.length / teams.length,
