@@ -70,13 +70,12 @@ interface LiveMatch {
  */
 export const useMyTeam = (isAuthenticated: boolean) => {
   return useQuery<Team>({
-    queryKey: ['/api/teams/my', new Date().getTime()], // Force unique key every render
+    queryKey: ['/api/teams/my'], // Fixed: Stable query key for proper caching
     enabled: isAuthenticated,
-    staleTime: 0, // No cache - always fetch fresh data for consistency fix
-    gcTime: 0, // No cache at all
-    refetchOnMount: true,
-    refetchOnWindowFocus: true, // Enable to get fresh data
-    refetchInterval: 1000 * 5, // Refetch every 5 seconds for debugging
+    staleTime: 1000 * 60 * 2, // 2 minutes - team data changes infrequently
+    gcTime: 1000 * 60 * 5, // 5 minute cache
+    refetchOnMount: false, // Use cached data on mount
+    refetchOnWindowFocus: false, // Don't refetch on focus
   });
 };
 
@@ -89,11 +88,10 @@ export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: bool
   return useQuery<UpcomingMatch[]>({
     queryKey: ['/api/teams/my/matches/upcoming'], // Standard query key
     enabled: !!team?.id && isAuthenticated,
-    staleTime: 0, // No cache - always fetch fresh data after comprehensive fix
-    gcTime: 1000 * 60, // 1 minute cache
-    refetchOnMount: true,
-    refetchOnWindowFocus: true, // Enable refetch on focus for fresh data
-    refetchInterval: 1000 * 60, // Refetch every minute
+    staleTime: 1000 * 60 * 5, // 5 minutes - matches change infrequently during day
+    gcTime: 1000 * 60 * 10, // 10 minute cache
+    refetchOnMount: false, // Use cached data
+    refetchOnWindowFocus: false, // Don't constantly refetch
   });
 };
 
