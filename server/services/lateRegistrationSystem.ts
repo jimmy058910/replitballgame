@@ -226,14 +226,8 @@ export class LateRegistrationSystem {
       
       console.log(`📅 Generating schedule for ${subdivision}: Days ${currentDay}-${SEASON_END_DAY} (${remainingDays} games per team)`);
 
-      // Generate base round-robin (7 games where each team plays each other once)
-      const baseRoundRobin = this.generateRoundRobinMatchups(teams);
-      
-      // Balance home/away for base round-robin
-      const balancedMatchups = this.balanceHomeAwayGames(baseRoundRobin, teams);
-
-      // Extend schedule to cover all remaining days
-      const fullSchedule = this.extendSchedule(balancedMatchups, remainingDays);
+      // Generate daily schedule using proper team pairing (each team plays exactly once per day)
+      const fullSchedule = this.generateDailyPairings(teams, remainingDays);
 
       // Get time slots for this subdivision
       const timeSlots = this.getSubdivisionTimeSlots(subdivision);
@@ -396,57 +390,34 @@ export class LateRegistrationSystem {
     return date;
   }
 
-  private static generateRoundRobinMatchups(teams: Team[]): Array<{ homeTeam: Team; awayTeam: Team }> {
-    const matchups: Array<{ homeTeam: Team; awayTeam: Team }> = [];
+  private static generateDailyPairings(teams: Team[], totalDays: number): Array<Array<{ homeTeam: Team; awayTeam: Team }>> {
+    const dailySchedule: Array<Array<{ homeTeam: Team; awayTeam: Team }>> = [];
     
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        matchups.push({
-          homeTeam: teams[i],
-          awayTeam: teams[j]
-        });
-      }
-    }
-    
-    return matchups;
-  }
-
-  private static balanceHomeAwayGames(matchups: Array<{ homeTeam: Team; awayTeam: Team }>, teams: Team[]): Array<Array<{ homeTeam: Team; awayTeam: Team }>> {
-    // Randomly select 4 teams for 4-home/3-away, others get 3-home/4-away
-    const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
-    const fourHomeTeams = new Set(shuffledTeams.slice(0, 4).map(t => t.id));
-
-    // Group matchups by day (4 games per day for 7 days)
-    const dailyMatchups: Array<Array<{ homeTeam: Team; awayTeam: Team }>> = [];
-    
-    for (let day = 0; day < 7; day++) {
-      dailyMatchups.push(matchups.slice(day * 4, (day + 1) * 4));
-    }
-
-    return dailyMatchups;
-  }
-
-  private static extendSchedule(baseSchedule: Array<Array<{ homeTeam: Team; awayTeam: Team }>>, totalDays: number): Array<Array<{ homeTeam: Team; awayTeam: Team }>> {
-    const extendedSchedule: Array<Array<{ homeTeam: Team; awayTeam: Team }>> = [];
+    console.log(`🏗️ [LATE REG] Generating daily pairings for ${teams.length} teams over ${totalDays} days`);
     
     for (let day = 0; day < totalDays; day++) {
-      const baseDay = day % baseSchedule.length;
-      const dayMatchups = baseSchedule[baseDay];
+      // Shuffle teams for this day to ensure variety
+      const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
       
-      if (day < 7) {
-        // First 7 days: use original home/away
-        extendedSchedule.push([...dayMatchups]);
-      } else {
-        // Remaining days: flip home/away for balance
-        const flippedMatchups = dayMatchups.map(matchup => ({
-          homeTeam: matchup.awayTeam,
-          awayTeam: matchup.homeTeam
-        }));
-        extendedSchedule.push(flippedMatchups);
+      // Pair teams sequentially: [0vs1, 2vs3, 4vs5, 6vs7] = 4 matches, each team plays exactly once
+      const dayMatchups: Array<{ homeTeam: Team; awayTeam: Team }> = [];
+      
+      for (let pairIndex = 0; pairIndex < 4; pairIndex++) {
+        const homeTeam = shuffledTeams[pairIndex * 2];
+        const awayTeam = shuffledTeams[pairIndex * 2 + 1];
+        
+        dayMatchups.push({
+          homeTeam,
+          awayTeam
+        });
+        
+        console.log(`   Day ${day + 1}, Game ${pairIndex + 1}: ${homeTeam.name} vs ${awayTeam.name}`);
       }
+      
+      dailySchedule.push(dayMatchups);
     }
     
-    return extendedSchedule;
+    return dailySchedule;
   }
 
   private static getSubdivisionTimeSlots(subdivision: string): Array<{ hour: number; minute: number }> {

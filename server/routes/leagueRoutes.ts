@@ -1436,10 +1436,12 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
       const gameDate = new Date(startDate);
       gameDate.setDate(gameDate.getDate() + dayOffset);
       
-      console.log(`📅 Generating Day ${dayOffset + 1} (${gameDate.toDateString()}) games`);
+      console.log(`📅 [DEBUG] Generating Day ${dayOffset + 1} (${gameDate.toDateString()}) games`);
+      console.log(`📅 [DEBUG] Teams available:`, teams.map(t => t.name));
       
       // Create a shuffled copy of teams for this day to ensure variety
       const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+      console.log(`📅 [DEBUG] Shuffled teams:`, shuffledTeams.map(t => t.name));
       
       // Pair teams: [0vs1, 2vs3, 4vs5, 6vs7] = 4 matches, each team plays exactly once
       for (let gameSlot = 0; gameSlot < 4; gameSlot++) {
@@ -1449,7 +1451,8 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
         const gameTime = new Date(gameDate);
         gameTime.setUTCHours(20 + gameSlot, 0, 0, 0); // 4PM, 5PM, 6PM, 7PM EDT (UTC: 20, 21, 22, 23)
         
-        console.log(`   Game ${gameSlot + 1}: ${homeTeam.name} vs ${awayTeam.name} at ${4 + gameSlot}:00 PM EDT`);
+        console.log(`   🏟️ [DEBUG] Game ${gameSlot + 1}: ${homeTeam.name} vs ${awayTeam.name} at ${4 + gameSlot}:00 PM EDT`);
+        console.log(`   🏟️ [DEBUG] HomeTeam ID: ${homeTeam.id}, AwayTeam ID: ${awayTeam.id}`);
         
         games.push({
           homeTeamId: homeTeam.id,
