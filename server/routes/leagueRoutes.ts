@@ -1370,37 +1370,38 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     
     const prisma = await getPrismaClient();
     
-    // Step 1: NUCLEAR DELETION - Delete ALL games from Day 6 and all LEAGUE games
-    console.log('🧹 NUCLEAR CLEANUP: Clearing all problematic games...');
+    // Step 1: TOTAL NUCLEAR DELETION - Delete ALL games involving Division 8 Alpha teams
+    console.log('🧹 TOTAL NUCLEAR CLEANUP: Deleting ALL games for Division 8 Alpha teams...');
     
-    const seasonStartDate = new Date('2025-08-16T00:00:00.000Z');
-    const day6Date = new Date(seasonStartDate);
-    day6Date.setDate(day6Date.getDate() + 5); // Day 6
-    const day6Start = new Date(day6Date);
-    day6Start.setHours(0, 0, 0, 0);
-    const day6End = new Date(day6Date);
-    day6End.setHours(23, 59, 59, 999);
+    // Get all Division 8 Alpha team IDs
+    const divisionTeams = await prisma.team.findMany({
+      where: { division: 8, subdivision: 'alpha' },
+      select: { id: true, name: true }
+    });
+    const teamIds = divisionTeams.map(t => t.id);
+    console.log(`🎯 Target teams for deletion:`, divisionTeams.map(t => t.name));
     
-    // Delete ALL games on Day 6 (regardless of type or status)
-    const day6Deletion = await prisma.game.deleteMany({
+    // Delete ALL games where any Division 8 Alpha team is involved (home or away)
+    const totalDeletion = await prisma.game.deleteMany({
       where: {
-        gameDate: {
-          gte: day6Start,
-          lte: day6End
-        }
+        OR: [
+          { homeTeamId: { in: teamIds } },
+          { awayTeamId: { in: teamIds } }
+        ]
       }
     });
-    console.log(`✅ NUCLEAR: Deleted ${day6Deletion.count} games from Day 6`);
-    
-    // Delete all LEAGUE games
-    const leagueDeletion = await prisma.game.deleteMany({
-      where: { matchType: 'LEAGUE' }
-    });
-    console.log(`✅ NUCLEAR: Deleted ${leagueDeletion.count} league games`);
+    console.log(`✅ TOTAL NUCLEAR: Deleted ${totalDeletion.count} games involving Division 8 Alpha teams`);
     
     // Verify complete cleanup
-    const remainingGames = await prisma.game.count();
-    console.log(`📊 Total games remaining in database: ${remainingGames}`);
+    const remainingGames = await prisma.game.count({
+      where: {
+        OR: [
+          { homeTeamId: { in: teamIds } },
+          { awayTeamId: { in: teamIds } }
+        ]
+      }
+    });
+    console.log(`📊 Remaining games for Division 8 Alpha: ${remainingGames} (should be 0)`);
     
     // Step 2: Reset team stats
     const resetStats = await prisma.team.updateMany({
@@ -1498,7 +1499,7 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     res.json({
       success: true,
       summary: {
-        gamesDeleted: day6Deletion.count + leagueDeletion.count,
+        gamesDeleted: totalDeletion.count,
         teamsReset: resetStats.count,
         gamesCreated: createdGames.count,
         gamesPerTeam: games.length / teams.length,
