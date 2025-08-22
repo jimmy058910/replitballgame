@@ -70,13 +70,13 @@ interface LiveMatch {
  */
 export const useMyTeam = (isAuthenticated: boolean) => {
   return useQuery<Team>({
-    queryKey: ['/api/teams/my'], // Use the actual API endpoint
+    queryKey: ['/api/teams/my', new Date().getTime()], // Force unique key every render
     enabled: isAuthenticated,
     staleTime: 0, // No cache - always fetch fresh data for consistency fix
-    gcTime: 1000 * 30, // 30 seconds cache
+    gcTime: 0, // No cache at all
     refetchOnMount: true,
     refetchOnWindowFocus: true, // Enable to get fresh data
-    refetchInterval: 1000 * 60, // Refetch every minute
+    refetchInterval: 1000 * 5, // Refetch every 5 seconds for debugging
   });
 };
 

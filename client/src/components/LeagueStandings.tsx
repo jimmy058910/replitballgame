@@ -31,12 +31,12 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: rawStandings, isLoading } = useQuery<Team[]>({
-    queryKey: [`/api/teams/${division}/standings`],
+    queryKey: [`/api/teams/${division}/standings`, new Date().getTime()],
     staleTime: 0, // No cache - force fresh data fetch
     gcTime: 0, // No cache at all
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    refetchInterval: 1000 * 30, // Refetch every 30 seconds
+    refetchInterval: 1000 * 5, // Refetch every 5 seconds for debugging
   });
   const standings = (rawStandings || []) as Team[];
   
@@ -53,7 +53,11 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
 
   // Get current user's team to properly highlight it in standings
   const { data: currentUserTeam } = useQuery<any>({
-    queryKey: ['/api/teams/my'],
+    queryKey: ['/api/teams/my', new Date().getTime()],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const handleTeamClick = (teamId: string) => {
