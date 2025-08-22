@@ -49,9 +49,26 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   console.log("STANDINGS DEBUG - Testing direct API call...");
   
   // Debug: Test direct API call
-  fetch(`/api/teams/${division}/standings`)
-    .then(res => res.json())
-    .then(data => console.log("STANDINGS DEBUG - Direct fetch result:", data))
+  fetch(`/api/teams/${division}/standings`, {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(res => {
+      console.log("STANDINGS DEBUG - Response status:", res.status);
+      console.log("STANDINGS DEBUG - Response content-type:", res.headers.get('content-type'));
+      return res.text();
+    })
+    .then(text => {
+      console.log("STANDINGS DEBUG - Raw response text (first 200 chars):", text.substring(0, 200));
+      try {
+        const data = JSON.parse(text);
+        console.log("STANDINGS DEBUG - Parsed JSON result:", data);
+      } catch (e) {
+        console.log("STANDINGS DEBUG - JSON parse error - got HTML instead of JSON");
+      }
+    })
     .catch(err => console.log("STANDINGS DEBUG - Direct fetch error:", err));
   
   if (standings.length > 0) {

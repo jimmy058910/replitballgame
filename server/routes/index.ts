@@ -111,7 +111,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   });
   console.log('🔍 [registerAllRoutes] Registered /api/v2 routes');
   
-  // Legacy routes (existing system)
+  // Legacy routes (existing system) - CRITICAL: Register teamRoutes with higher priority
   app.use("/api/auth", authRoutes);
   console.log('🔍 [registerAllRoutes] Registered /api/auth routes');
   
@@ -120,8 +120,17 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     const teamRoutesModule = await import("./teamRoutes.js");
     const teamRoutesRouter = teamRoutesModule.default;
     console.log('🔍 [registerAllRoutes] teamRoutes imported successfully, type:', typeof teamRoutesRouter);
-    app.use("/api/teams", teamRoutesRouter); // Note: some routes like /api/teams/division/:division were moved to leagueRoutes
+    
+    // CRITICAL FIX: Register specific routes first to prevent conflicts
+    app.use("/api/teams", teamRoutesRouter); 
     console.log('✅ [registerAllRoutes] Registered /api/teams routes successfully');
+    
+    // Add explicit route logging for debugging
+    app.use('/api/teams/*', (req: any, res: any, next: any) => {
+      console.log(`🔍 [ROUTE DEBUG] Handling ${req.method} ${req.originalUrl}`);
+      next();
+    });
+    
   } catch (teamImportError: any) {
     console.error('❌ [registerAllRoutes] Failed to import teamRoutes:', teamImportError.message);
     console.error('❌ [registerAllRoutes] Error stack:', teamImportError.stack);
