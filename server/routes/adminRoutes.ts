@@ -34,6 +34,54 @@ router.post('/trigger-simulation', async (req: Request, res: Response) => {
   }
 });
 
+// CRITICAL FIX: Force advance day to Day 7 (manual day advancement)
+router.post('/force-advance-to-day-7', async (req, res) => {
+  try {
+    console.log('🔥 [ADMIN] CRITICAL FIX: Manually advancing to Day 7...');
+    
+    const { getPrismaClient } = await import('../database');
+    const prisma = await getPrismaClient();
+    
+    // Get current season
+    const currentSeason = await prisma.season.findFirst({
+      orderBy: { startDate: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      return res.status(404).json({
+        success: false,
+        error: 'No current season found'
+      });
+    }
+    
+    console.log(`🔥 Current season Day ${currentSeason.currentDay} -> advancing to Day 7`);
+    
+    // Force update to Day 7
+    await prisma.season.update({
+      where: { id: currentSeason.id },
+      data: { currentDay: 7 }
+    });
+    
+    console.log('✅ Season successfully advanced to Day 7');
+    
+    res.json({
+      success: true,
+      message: 'Season manually advanced to Day 7',
+      previousDay: currentSeason.currentDay,
+      newDay: 7,
+      seasonId: currentSeason.id,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error advancing to Day 7:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Force complete all overdue Day 6 games
 router.post('/force-complete-day-6-games', async (req, res) => {
   try {

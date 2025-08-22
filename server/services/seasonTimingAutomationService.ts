@@ -1135,8 +1135,17 @@ export class SeasonTimingAutomationService {
       
       // FIXED LOGIC: Calculate what day we should actually be on based on season start date
       const seasonStart = new Date(currentSeason.startDate || currentSeason.start_date || "2025-08-16");
-      const daysSinceStart = Math.floor((now.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24));
-      const calculatedDay = Math.min((daysSinceStart % 17) + 1, 17);
+      
+      // CRITICAL FIX: Use UTC midnight to avoid timezone calculation errors
+      const seasonStartUTC = new Date(seasonStart);
+      seasonStartUTC.setUTCHours(0, 0, 0, 0);
+      
+      const nowUTC = new Date(now);
+      nowUTC.setUTCHours(0, 0, 0, 0);
+      
+      // Calculate days elapsed since season start (inclusive of start day)
+      const daysSinceStart = Math.floor((nowUTC.getTime() - seasonStartUTC.getTime()) / (1000 * 60 * 60 * 24));
+      const calculatedDay = Math.min(daysSinceStart + 1, 17); // +1 because Day 1 = 0 days elapsed
       
       console.log('PROGRESSION CHECK:', {
         seasonStart: seasonStart.toISOString(),
