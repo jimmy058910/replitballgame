@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamInfoDialog from "@/components/TeamInfoDialog";
@@ -31,45 +31,51 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: rawStandings, isLoading, error } = useQuery<Team[]>({
-    queryKey: [`/api/teams/${division}/standings`, new Date().getTime()],
-    staleTime: 0, // No cache - force fresh data fetch
-    gcTime: 0, // No cache at all
+    queryKey: [`/api/teams/${division}/standings`],
+    staleTime: 1000 * 30, // 30 seconds cache to prevent loops
+    gcTime: 1000 * 60 * 5, // 5 minutes cache retention
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    refetchInterval: 1000 * 5, // Refetch every 5 seconds for debugging
-    retry: false, // Don't retry failed requests to see the actual error
+    refetchOnWindowFocus: false, // Disable to prevent loops
+    refetchInterval: false, // Disable auto-refetch to prevent loops
+    retry: 1, // Single retry
   });
   const standings = (rawStandings || []) as Team[];
   
-  // Debug logging to see what data we're actually receiving
-  console.log("STANDINGS DEBUG - Raw API data:", rawStandings);
-  console.log("STANDINGS DEBUG - Query state:", { isLoading, error: error?.message });
-  console.log("STANDINGS DEBUG - Division requested:", division);
-  console.log("STANDINGS DEBUG - API endpoint:", `/api/teams/${division}/standings`);
-  console.log("STANDINGS DEBUG - Testing direct API call...");
+  // CRITICAL DEBUG: Force component render logging
+  console.log("🏆 STANDINGS COMPONENT RENDER - Division:", division);
+  console.log("🏆 STANDINGS DATA:", { 
+    hasData: !!rawStandings, 
+    dataLength: rawStandings?.length || 0,
+    isLoading, 
+    error: error?.message,
+    endpoint: `/api/teams/${division}/standings`
+  });
   
-  // Debug: Test direct API call
-  fetch(`/api/teams/${division}/standings`, {
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
-  })
-    .then(res => {
-      console.log("STANDINGS DEBUG - Response status:", res.status);
-      console.log("STANDINGS DEBUG - Response content-type:", res.headers.get('content-type'));
-      return res.text();
-    })
-    .then(text => {
-      console.log("STANDINGS DEBUG - Raw response text (first 200 chars):", text.substring(0, 200));
-      try {
-        const data = JSON.parse(text);
-        console.log("STANDINGS DEBUG - Parsed JSON result:", data);
-      } catch (e) {
-        console.log("STANDINGS DEBUG - JSON parse error - got HTML instead of JSON");
+  // Test direct API call ONCE using useEffect to prevent loops
+  React.useEffect(() => {
+    console.log("🏆 STANDINGS - Testing direct fetch...");
+    fetch(`/api/teams/${division}/standings`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
     })
-    .catch(err => console.log("STANDINGS DEBUG - Direct fetch error:", err));
+      .then(res => {
+        console.log("🏆 STANDINGS - Response status:", res.status);
+        console.log("🏆 STANDINGS - Content-Type:", res.headers.get('content-type'));
+        return res.text();
+      })
+      .then(text => {
+        console.log("🏆 STANDINGS - Raw response (first 100 chars):", text.substring(0, 100));
+        try {
+          const data = JSON.parse(text);
+          console.log("🏆 STANDINGS - SUCCESS: Got", data.length, "teams");
+        } catch (e) {
+          console.log("🏆 STANDINGS - ERROR: Got HTML instead of JSON");
+        }
+      })
+      .catch(err => console.log("🏆 STANDINGS - Fetch error:", err));
+  }, [division]); // Only run when division changes
   
   if (standings.length > 0) {
     console.log("STANDINGS DEBUG - First team data:", {
