@@ -492,20 +492,64 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
 
     console.log(`✅ [DIRECT STANDINGS] Found ${teams.length} teams in Division ${division} Alpha`);
     
-    // CRITICAL FIX: Correct points calculation and ensure data integrity
+    // Get all SIMULATED matches for score calculations
+    const simulatedMatches = await prisma.game.findMany({
+      where: {
+        simulated: true,
+        matchType: 'LEAGUE',
+        OR: [
+          { homeTeamId: { in: teams.map(t => t.id) } },
+          { awayTeamId: { in: teams.map(t => t.id) } }
+        ]
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      }
+    });
+
+    console.log(`🎮 [STANDINGS] Found ${simulatedMatches.length} simulated league matches for score calculations`);
+
+    // CRITICAL FIX: Correct points calculation and score calculations
     const correctedTeams = teams.map(team => {
       const correctPoints = (team.wins || 0) * 3 + (team.draws || 0) * 1;
       const hasPointsError = team.points !== correctPoints;
+      
+      // Calculate actual scores from simulated games
+      const teamMatches = simulatedMatches.filter(match => 
+        match.homeTeamId === team.id || match.awayTeamId === team.id
+      );
+      
+      let totalScores = 0;
+      let scoresAgainst = 0;
+      
+      teamMatches.forEach(match => {
+        if (match.homeTeamId === team.id) {
+          totalScores += match.homeScore || 0;
+          scoresAgainst += match.awayScore || 0;
+        } else {
+          totalScores += match.awayScore || 0;
+          scoresAgainst += match.homeScore || 0;
+        }
+      });
+      
+      const scoreDifference = totalScores - scoresAgainst;
+      const actualPlayed = teamMatches.length; // Only count SIMULATED games
       
       if (hasPointsError) {
         console.log(`🔧 [POINTS FIX] ${team.name}: DB shows ${team.points} pts, should be ${correctPoints} pts (${team.wins}W)`);
       }
       
+      console.log(`🎯 [SCORE CALC] ${team.name}: ${actualPlayed} games, ${totalScores} for, ${scoresAgainst} against, ${scoreDifference} diff`);
+      
       return {
         ...team,
         points: correctPoints, // Use calculated points for consistency
         draws: team.draws || 0, // Ensure draws is never null
-        played: (team.wins || 0) + (team.losses || 0) + (team.draws || 0)
+        played: actualPlayed, // Only count simulated games
+        totalScores,
+        scoresAgainst,
+        scoreDifference
       };
     });
     
