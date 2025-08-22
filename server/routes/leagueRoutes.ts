@@ -764,21 +764,71 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
 
     // CRITICAL FIX: Check if user is in Division 8 (late signup division)
     if (userTeam.division === 8) {
-      console.log('🎯 [LATE SIGNUP] User team is in Division 8 - generating shortened schedule for Days 6-14');
+      console.log('🎯 [LATE SIGNUP] User team is in Division 8 - retrieving existing schedule');
       
-      // Import late signup service
-      const { LateSignupService } = await import('../services/lateSignupService.js');
-      
-      // Generate/get late signup schedule for Days 6-14
-      const lateSignupSchedule = await generateLateSignupScheduleForTeam(userTeam, currentDayInCycle, currentSeason);
-      
-      console.log('✅ [LATE SIGNUP] Generated schedule:', { 
-        totalGames: Object.values(lateSignupSchedule.schedule).flat().length,
-        dayRange: Object.keys(lateSignupSchedule.schedule).join('-'),
-        currentDay: currentDayInCycle 
+      // FIXED: Use existing stored games instead of regenerating on every call
+      const prisma = await getPrismaClient();
+      const existingGames = await prisma.game.findMany({
+        where: {
+          matchType: 'LEAGUE',
+          OR: [
+            { homeTeamId: userTeam.id },
+            { awayTeamId: userTeam.id }
+          ]
+        },
+        include: {
+          homeTeam: { select: { id: true, name: true } },
+          awayTeam: { select: { id: true, name: true } }
+        },
+        orderBy: { gameDate: 'asc' }
       });
       
-      return res.json(lateSignupSchedule);
+      console.log(`✅ [LATE SIGNUP] Found ${existingGames.length} existing games for team ${userTeam.name}`);
+      
+      // Organize games by day for display
+      const schedule: any = {};
+      const startDate = currentSeason.startDate || new Date('2025-08-16');
+      
+      existingGames.forEach(game => {
+        const daysSinceStart = Math.floor((game.gameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        const dayNumber = daysSinceStart + 1;
+        
+        if (!schedule[dayNumber]) {
+          schedule[dayNumber] = [];
+        }
+        
+        // FIXED: Properly detect completed games by scores, not just status
+        const isCompleted = game.homeScore !== null && game.awayScore !== null;
+        const gameStatus = isCompleted ? 'COMPLETED' : (game.status || 'SCHEDULED');
+        
+        schedule[dayNumber].push({
+          id: game.id,
+          homeTeamId: game.homeTeamId,
+          awayTeamId: game.awayTeamId,
+          homeTeamName: game.homeTeam.name,
+          awayTeamName: game.awayTeam.name,
+          gameDate: game.gameDate,
+          scheduledTime: game.gameDate.toISOString(),
+          scheduledTimeFormatted: formatGameTime(game.gameDate),
+          matchType: game.matchType,
+          status: gameStatus, // FIXED: Use proper completion status
+          simulated: game.simulated || false,
+          homeScore: game.homeScore || 0,
+          awayScore: game.awayScore || 0,
+          isLive: false, // Static for now
+          canWatch: isCompleted
+        });
+      });
+      
+      console.log(`✅ [LATE SIGNUP] Schedule organized - Days with games:`, Object.keys(schedule).sort());
+      
+      return res.json({
+        schedule,
+        totalDays: 17,
+        currentDay: currentDayInCycle,
+        organizedByDay: schedule,
+        message: `Retrieved existing games - ${existingGames.length} total games`
+      });
     }
 
     // Get all matches for the user's division and subdivision
