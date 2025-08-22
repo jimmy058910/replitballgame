@@ -308,6 +308,13 @@ export default function ComprehensiveCompetitionCenter() {
     enabled: !!team?.id,
   });
 
+  // Query for current tournament status (for Live Tournament UI)
+  const { data: currentTournamentStatus, isLoading: isCurrentTournamentLoading } = useQuery<any>({
+    queryKey: ["/api/new-tournaments/oakland-cougars-tournament"],
+    enabled: !!team?.id,
+    refetchInterval: 60000, // Refresh every minute for live updates
+  });
+
   // Check if Mid-Season Cup registration deadline has passed (Day 7 at 1PM EDT)
   const isMidSeasonRegistrationDeadlinePassed = () => {
     if (!seasonData) return false;
@@ -911,138 +918,215 @@ export default function ComprehensiveCompetitionCenter() {
 
           </TabsContent>
 
-          {/* TOURNAMENTS TAB - ENHANCED DRAMATIC DESIGN */}
+          {/* TOURNAMENTS TAB - LIVE TOURNAMENT EXPERIENCE */}
           <TabsContent value="tournaments" className="space-y-4">
             
-            {/* ACTIVE TOURNAMENTS - COLLAPSIBLE PROGRESSIVE DISCLOSURE */}
-            <Collapsible defaultOpen className="space-y-2">
-              <CollapsibleTrigger className="w-full">
-                <Card className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 border-2 border-yellow-500/50 hover:border-yellow-400 transition-all duration-300 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Award className="h-6 w-6 text-yellow-400" />
-                        <div className="text-left">
-                          <h3 className="text-lg font-bold text-white">Active Tournaments</h3>
-                          <p className="text-yellow-300 text-sm">Championship competitions await</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-yellow-600 text-yellow-100">2 Available</Badge>
-                        <ChevronDown className="h-5 w-5 text-yellow-400" />
-                      </div>
+            {/* YOUR ACTIVE TOURNAMENT - SINGLE FOCUS */}
+            {isCurrentTournamentLoading ? (
+              <Card className="bg-gray-800/90 border border-gray-600">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="animate-spin h-8 w-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading tournament status...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : currentTournamentStatus?.registered ? (
+              /* WHEN IN TOURNAMENT - LIVE TOURNAMENT CARD */
+              <Card className="bg-gradient-to-r from-red-900 via-orange-800 to-yellow-800 border-2 border-red-400/50 shadow-2xl">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
+                    <Trophy className="h-6 w-6 text-red-300" />
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white">🔴 LIVE: {currentTournamentStatus.tournament?.name || 'Daily Division Tournament'}</h3>
+                      <p className="text-orange-200 text-sm">Elite Competition • Premium Rewards</p>
                     </div>
-                  </CardContent>
-                </Card>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
+                  </div>
                   
-                  {/* Daily Division Tournament - ENHANCED */}
-                  <Card className="bg-gradient-to-r from-green-800 via-green-700 to-emerald-800 border-2 border-green-400 shadow-2xl">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-3 h-3 bg-green-300 rounded-full animate-pulse"></div>
-                        <Trophy className="h-6 w-6 text-green-300" />
-                        <h3 className="text-xl font-bold text-white">Daily Division Tournament</h3>
+                  <div className="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Trophy className="h-5 w-5 text-yellow-400" />
+                          <span className="text-lg font-bold text-white">YOUR STATUS: Active Participant</span>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Zap className="h-5 w-5 text-orange-400" />
+                          <span className="text-orange-200 font-semibold">Oakland Cougars vs TBD</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-5 w-5 text-blue-400" />
+                          <span className="text-blue-200">Next Match: Schedule Generating...</span>
+                        </div>
                       </div>
                       
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                        <div className="flex-1">
-                          <p className="text-green-200 font-semibold mb-2">🏆 Championship Glory • 💰 Daily Rewards</p>
-                          <p className="text-green-100 text-sm">
-                            Compete against teams in Division {team?.division || 8} for daily rewards and championship bragging rights.
-                          </p>
+                      <div className="bg-gray-900/50 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="h-5 w-5 text-green-400" />
+                          <span className="text-green-300 font-semibold">Tournament Progress: 0-0 (Champion Path)</span>
                         </div>
-                        <div className="text-center">
-                          <Badge className="bg-green-600 text-green-100 text-lg px-4 py-2 mb-2">
-                            🎟️ Free Entry: 1/1
-                          </Badge>
-                          <p className="text-green-200 text-xs">Resets daily at 3 AM</p>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-5 w-5 text-yellow-400" />
+                          <span className="text-yellow-200">Prize Tier: Champion Rewards Available</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Button 
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 rounded-xl shadow-lg"
+                        disabled
+                      >
+                        <Eye className="h-5 w-5 mr-2" />
+                        📊 View Full Bracket (Coming Soon)
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-orange-400 text-orange-300 hover:bg-orange-900/20 font-bold py-3 rounded-xl"
+                        disabled
+                      >
+                        <Activity className="h-5 w-5 mr-2" />
+                        🎫 Match Details (Generating...)
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Tournament Journey Progress */}
+                  <div className="bg-gray-900/30 rounded-lg p-4 border border-gray-700">
+                    <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-blue-400" />
+                      📈 YOUR TOURNAMENT JOURNEY
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Registration: ✅ Oakland Cougars registered</span>
+                        <span className="text-green-400 font-semibold">Status: Active</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Bracket Generation: ⏳ Schedule creating...</span>
+                        <span className="text-yellow-400 font-semibold">In Progress</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">First Match: 🔄 TBD vs TBD</span>
+                        <span className="text-gray-500">Pending</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              /* WHEN NOT IN TOURNAMENT - NEXT OPPORTUNITY */
+              <Card className="bg-gradient-to-r from-gray-800 via-blue-800 to-purple-800 border-2 border-blue-400/50 shadow-2xl">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Trophy className="h-6 w-6 text-blue-300" />
+                    <div>
+                      <h3 className="text-xl font-bold text-white">🏆 Next Tournament Opportunity</h3>
+                      <p className="text-blue-200 text-sm">Championship competitions await</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {/* Daily Division Tournament Opportunity */}
+                    <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="text-lg font-bold text-white">🎯 Daily Division Tournament</h4>
+                          <p className="text-green-200 text-sm">Division {team?.division || 8} Championship</p>
+                        </div>
+                        <Badge className="bg-green-600 text-green-100">Free Entry</Badge>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="h-4 w-4 text-green-400" />
+                            <span className="text-green-300 font-semibold">📅 Available Daily</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-yellow-400" />
+                            <span className="text-yellow-200">💰 Championship Rewards</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="h-4 w-4 text-blue-400" />
+                            <span className="text-blue-300">⏰ Registration Open</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-purple-400" />
+                            <span className="text-purple-300">🎟️ Entry: Free (1/1 daily)</span>
+                          </div>
                         </div>
                       </div>
                       
                       <Button 
                         onClick={() => registerDailyTournament.mutate()}
-                        disabled={registerDailyTournament.isPending || isRegisteredForDailyTournament}
-                        className={`w-full font-bold py-3 rounded-xl shadow-lg ${
-                          isRegisteredForDailyTournament 
-                            ? "bg-green-800 hover:bg-green-900 cursor-not-allowed" 
-                            : "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                        } text-white`}
+                        disabled={registerDailyTournament.isPending}
+                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg"
                       >
                         <Trophy className="h-5 w-5 mr-2" />
-                        {registerDailyTournament.isPending 
-                          ? "Registering..." 
-                          : isRegisteredForDailyTournament 
-                            ? "✓ Already Registered" 
-                            : "Enter Tournament"
-                        }
+                        {registerDailyTournament.isPending ? "Registering..." : "Enter Tournament"}
                       </Button>
-                    </CardContent>
-                  </Card>
+                    </div>
 
-                  {/* Mid-Season Cup - ENHANCED */}
-                  <Card className="bg-gradient-to-r from-purple-800 via-purple-700 to-indigo-800 border-2 border-purple-400 shadow-2xl">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Flame className="h-6 w-6 text-purple-300" />
-                        <h3 className="text-xl font-bold text-white">Mid-Season Cup</h3>
+                    {/* Mid-Season Cup Opportunity */}
+                    <div className="bg-purple-900/30 rounded-lg p-4 border border-purple-600">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="text-lg font-bold text-white">🔥 Mid-Season Cup</h4>
+                          <p className="text-purple-200 text-sm">Elite Cross-Division Championship</p>
+                        </div>
                         <Badge className="bg-purple-600 text-purple-100">Elite</Badge>
                       </div>
                       
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                        <div className="flex-1">
-                          <p className="text-purple-200 font-semibold mb-2">🔥 Elite Competition • 💎 Premium Rewards</p>
-                          <div className="flex items-center gap-4 mb-3">
-                            <div className="flex items-center gap-2">
-                              <Timer className="h-4 w-4 text-purple-400" />
-                              <span className="text-purple-300 font-semibold">Starts Day 7</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4 text-purple-400" />
-                              <span className="text-purple-300">Countdown: {getMidSeasonCountdown()}</span>
-                            </div>
+                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Timer className="h-4 w-4 text-purple-400" />
+                            <span className="text-purple-300 font-semibold">Starts Day 7</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Flame className="h-4 w-4 text-orange-400" />
+                            <span className="text-orange-300">🔥 Elite Competition</span>
                           </div>
                         </div>
-                        <div className="text-center">
-                          <p className="text-purple-300 text-sm font-semibold mb-1">Entry Cost</p>
-                          <div className="bg-purple-900/50 rounded-lg p-3">
-                            <p className="text-purple-200 font-bold text-lg">₡10,000</p>
-                            <p className="text-purple-300 text-sm">or 💎20</p>
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="h-4 w-4 text-blue-400" />
+                            <span className="text-blue-300">Countdown: {getMidSeasonCountdown()}</span>
+                          </div>
+                          <div className="bg-purple-900/50 rounded-lg p-2">
+                            <p className="text-purple-200 font-bold text-center">₡10,000 or 💎20</p>
                           </div>
                         </div>
                       </div>
                       
                       <Button 
                         onClick={() => registerMidSeasonCup.mutate()}
-                        disabled={registerMidSeasonCup.isPending || isRegisteredForMidSeasonCup || isMidSeasonRegistrationDeadlinePassed()}
+                        disabled={registerMidSeasonCup.isPending || isMidSeasonRegistrationDeadlinePassed()}
                         className={`w-full font-bold py-3 rounded-xl shadow-lg ${
-                          isRegisteredForMidSeasonCup 
-                            ? "bg-purple-800 hover:bg-purple-900 cursor-not-allowed" 
-                            : isMidSeasonRegistrationDeadlinePassed()
-                              ? "bg-gray-700 hover:bg-gray-800 cursor-not-allowed"
-                              : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                          isMidSeasonRegistrationDeadlinePassed()
+                            ? "bg-gray-700 hover:bg-gray-800 cursor-not-allowed"
+                            : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                         } text-white`}
                       >
                         <Award className="h-5 w-5 mr-2" />
                         {registerMidSeasonCup.isPending 
                           ? "Registering..." 
-                          : isRegisteredForMidSeasonCup 
-                            ? "✓ Already Registered" 
-                            : isMidSeasonRegistrationDeadlinePassed()
-                              ? "Registration Closed"
-                              : "Register Now"
+                          : isMidSeasonRegistrationDeadlinePassed()
+                            ? "Registration Closed"
+                            : "Register Now"
                         }
                       </Button>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* TOURNAMENT HISTORY - COLLAPSIBLE */}
+            {/* TOURNAMENT HISTORY - YOUR RESULTS ONLY */}
             <Collapsible className="space-y-2">
               <CollapsibleTrigger className="w-full">
                 <Card className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 border border-blue-500/50 hover:border-blue-400 transition-all duration-300">
@@ -1052,7 +1136,7 @@ export default function ComprehensiveCompetitionCenter() {
                         <Star className="h-6 w-6 text-blue-400" />
                         <div className="text-left">
                           <h3 className="text-lg font-bold text-white">Tournament History</h3>
-                          <p className="text-blue-300 text-sm">Past championships & achievements</p>
+                          <p className="text-blue-300 text-sm">Your championship legacy</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1069,28 +1153,44 @@ export default function ComprehensiveCompetitionCenter() {
                     {isHistoryLoading ? (
                       <div className="text-center py-12">
                         <div className="animate-spin h-8 w-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-gray-400">Loading tournament history...</p>
+                        <p className="text-gray-400">Loading your tournament history...</p>
                       </div>
                     ) : tournamentHistory.length === 0 ? (
                       <div className="text-center py-12">
                         <Award className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-                        <h4 className="text-xl font-bold text-gray-400 mb-2">No Tournament History Yet</h4>
+                        <h4 className="text-xl font-bold text-gray-400 mb-2">Build Your Championship Legacy</h4>
                         <p className="text-gray-500 text-lg">Your tournament results will appear here</p>
-                        <p className="text-gray-600 text-sm mt-2">Keep participating to build your championship legacy!</p>
+                        <p className="text-gray-600 text-sm mt-2">Participate in tournaments to start your journey!</p>
                       </div>
                     ) : (
                       <div className="space-y-4">
+                        <div className="text-center mb-6">
+                          <h4 className="text-lg font-bold text-white mb-2">Your Tournament Performance</h4>
+                          <div className="flex justify-center gap-4 text-sm">
+                            <div className="bg-yellow-900/30 px-3 py-1 rounded-lg">
+                              <span className="text-yellow-400 font-semibold">Championships: {tournamentHistory.filter((e: any) => e.finalRank === 1).length}</span>
+                            </div>
+                            <div className="bg-blue-900/30 px-3 py-1 rounded-lg">
+                              <span className="text-blue-400 font-semibold">Top 3: {tournamentHistory.filter((e: any) => e.finalRank && e.finalRank <= 3).length}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
                         {tournamentHistory.map((entry: any, index: number) => (
                           <div key={entry.id || index} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-600/20 rounded-lg">
-                                  <Trophy className="h-5 w-5 text-blue-400" />
+                                <div className={`p-2 rounded-lg ${
+                                  entry.finalRank === 1 ? 'bg-yellow-600/20' :
+                                  entry.finalRank <= 3 ? 'bg-blue-600/20' :
+                                  'bg-gray-600/20'
+                                }`}>
+                                  {entry.finalRank === 1 ? <Medal className="h-5 w-5 text-yellow-400" /> : <Trophy className="h-5 w-5 text-blue-400" />}
                                 </div>
                                 <div>
                                   <h5 className="font-bold text-white">{entry.tournament?.name || 'Tournament'}</h5>
                                   <p className="text-sm text-gray-400 capitalize">
-                                    {entry.tournament?.type?.replace('_', ' ').toLowerCase() || 'Unknown Type'}
+                                    {entry.tournament?.type?.replace('_', ' ').toLowerCase() || 'Unknown Type'} • Division {entry.tournament?.division || 'Unknown'}
                                   </p>
                                 </div>
                               </div>
@@ -1100,20 +1200,16 @@ export default function ComprehensiveCompetitionCenter() {
                                   entry.finalRank <= 3 ? 'bg-blue-600 text-blue-100' :
                                   'bg-gray-600 text-gray-100'
                                 }`}>
-                                  {entry.finalRank ? `#${entry.finalRank}` : 'Participated'}
+                                  {entry.finalRank === 1 ? '🏆 Champion' : entry.finalRank ? `#${entry.finalRank}` : 'Participated'}
                                 </Badge>
                               </div>
                             </div>
                             <div className="flex items-center justify-between text-sm text-gray-400">
-                              <span>Division {entry.tournament?.division || 'Unknown'}</span>
                               <span>{entry.registeredAt ? new Date(entry.registeredAt).toLocaleDateString() : 'Date Unknown'}</span>
+                              {entry.finalRank === 1 && (
+                                <span className="text-yellow-400 font-semibold">🏅 Victory!</span>
+                              )}
                             </div>
-                            {entry.finalRank === 1 && (
-                              <div className="mt-2 flex items-center gap-2 text-yellow-400">
-                                <Medal className="h-4 w-4" />
-                                <span className="text-sm font-semibold">Champion!</span>
-                              </div>
-                            )}
                           </div>
                         ))}
                       </div>
