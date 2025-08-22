@@ -1661,18 +1661,18 @@ export class SeasonTimingAutomationService {
       console.log(`   First game: ${firstGameDate.toISOString().split('T')[0]} (Day ${currentFirstDay})`);
       console.log(`   Last game: ${lastGameDate.toISOString().split('T')[0]} (Day ${currentLastDay})`);
       console.log(`   Current range: Days ${currentFirstDay}-${currentLastDay}`);
-      console.log(`   Target range: Days 5-14 (Late signup shortened season)`);
+      console.log(`   Target range: Days 7-14 (Late signup shortened season)`);
       
-      // Check if fix is needed
-      if (currentFirstDay === 5 && currentLastDay === 14) {
+      // Check if fix is needed - UPDATED FOR LATE SIGNUP: Days 7-14 (not 5-14)
+      if (currentFirstDay === 7 && currentLastDay === 14) {
         console.log('✅ [ALPHA FIX] Oakland Cougars schedule already correct! No fix needed.');
-        console.log('   ✅ Late signup shortened season: Days 5-14');
-        console.log('   ✅ 10 game days, 40 total games');
-        console.log('   ✅ Perfect for alpha testing');
+        console.log('   ✅ Late signup shortened season: Days 7-14');
+        console.log('   ✅ 8 game days, 32 total games');
+        console.log('   ✅ Perfect for late signup testing');
         return;
       }
       
-      const adjustment = currentFirstDay - 5; // Should start on Day 5
+      const adjustment = currentFirstDay - 7; // Should start on Day 7 for late signup
       console.log(`⚙️ [ALPHA FIX] Adjustment needed: ${adjustment} days ${adjustment > 0 ? 'earlier' : 'later'}`);
       
       console.log(`🔄 [ALPHA FIX] Applying comprehensive schedule fix...`);
@@ -1731,16 +1731,16 @@ export class SeasonTimingAutomationService {
       console.log(`   First game: ${finalFirstGame.toISOString().split('T')[0]} (Day ${finalFirstDay})`);
       console.log(`   Last game: ${finalLastGame.toISOString().split('T')[0]} (Day ${finalLastDay})`);
       
-      const isCorrect = finalFirstDay === 5 && finalLastDay === 14;
+      const isCorrect = finalFirstDay === 7 && finalLastDay === 14;
       
       if (isCorrect) {
         console.log('🎉 [ALPHA FIX] SUCCESS! Oakland Cougars schedule PERFECTLY fixed for alpha testing!');
-        console.log('   ✅ Late signup shortened season: Days 5-14');
-        console.log('   ✅ 10 game days, 40 total games');
-        console.log('   ✅ Starts from current day for immediate gameplay');
+        console.log('   ✅ Late signup shortened season: Days 7-14');
+        console.log('   ✅ 8 game days, 32 total games');
+        console.log('   ✅ Perfect for late signup dynamic registration');
         console.log('   ✅ ZERO TECHNICAL DEBT REMAINING');
       } else {
-        console.log(`⚠️ [ALPHA FIX] WARNING: Final range is Days ${finalFirstDay}-${finalLastDay}, expected 5-14`);
+        console.log(`⚠️ [ALPHA FIX] WARNING: Final range is Days ${finalFirstDay}-${finalLastDay}, expected 7-14`);
         console.log('   This may require additional investigation');
       }
       
