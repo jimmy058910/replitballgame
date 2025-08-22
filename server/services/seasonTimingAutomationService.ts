@@ -63,16 +63,12 @@ export class SeasonTimingAutomationService {
       console.error('❌ [AUTOMATION DEBUG] Error stack:', (error as Error).stack);
     }
 
-    // ALPHA TESTING FIX: Ensure Oakland Cougars has correct late signup schedule
-    console.log('🔧 [ALPHA TESTING] Checking Oakland Cougars schedule timing...');
+    // ALPHA TESTING FIX: DISABLED - Was creating Day 6 games repeatedly on server startup
+    console.log('🔧 [ALPHA TESTING] Oakland Cougars schedule automation DISABLED (was creating Day 6 games)');
+    console.log('✅ [ALPHA TESTING] Using manual schedule regeneration API instead for stability');
     
-    try {
-      await this.fixOaklandCougarsScheduleForAlpha();
-      console.log('✅ [ALPHA TESTING] Oakland Cougars schedule verification completed');
-    } catch (error) {
-      console.error('❌ [ALPHA TESTING] Oakland schedule fix failed:', error);
-      console.error('❌ [ALPHA TESTING] Error stack:', (error as Error).stack);
-    }
+    // NOTE: Use POST /api/leagues/clear-and-regenerate for schedule fixes
+    // This ensures clean Days 7-14 schedule without automation conflicts
 
     // Schedule daily progression at 3:00 AM EST
     this.scheduleDailyProgression();

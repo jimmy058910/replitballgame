@@ -17,6 +17,8 @@ Preferred communication style: Simple, everyday language.
 
 **COMPREHENSIVE PROBLEM-SOLVING APPROACH**: When encountering development issues, ALWAYS perform complete systematic analysis to identify all root causes simultaneously, rather than fixing the first issue found. Implement comprehensive solutions that address the entire problem domain in a single change, not symptom-by-symptom fixes.
 
+**AUTOMATION SYSTEM SAFEGUARDS**: The Day 6 game issue (August 2025) was caused by faulty startup automation that repeatedly created unintended games on server restart. All problematic automation methods have been permanently disabled in favor of stable manual APIs. Future automation changes require careful testing to prevent similar recurring issues.
+
 **DEVELOPMENT APPROACH**: Always prioritize industry-standard practices and proper implementations from the beginning. Avoid shortcuts, bypasses, or band-aid solutions. Research and implement the correct solution first - this saves significant time and effort compared to fixing temporary approaches later.
 
 **INDUSTRY STANDARD CODE QUALITY**: ALWAYS follow rigorous development practices to prevent syntax errors:
