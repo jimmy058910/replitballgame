@@ -512,6 +512,7 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
     console.log(`🎮 [STANDINGS] Found ${completedMatches.length} completed league matches for score calculations`);
     
     // Debug log to see what games we found
+    console.log(`🎯 [STANDINGS DEBUG] Found ${completedMatches.length} completed matches`);
     if (completedMatches.length > 0) {
       console.log(`🎯 [STANDINGS DEBUG] Sample completed match:`, {
         id: completedMatches[0].id,
@@ -519,19 +520,8 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
         awayTeam: completedMatches[0].awayTeam.name,
         homeScore: completedMatches[0].homeScore,
         awayScore: completedMatches[0].awayScore,
-        status: completedMatches[0].status
-      });
-    }
-
-    // Debug log to see what games we found
-    if (completedMatches.length > 0) {
-      console.log(`🎯 [STANDINGS DEBUG] Sample completed match:`, {
-        id: completedMatches[0].id,
-        homeTeam: completedMatches[0].homeTeam.name,
-        awayTeam: completedMatches[0].awayTeam.name,
-        homeScore: completedMatches[0].homeScore,
-        awayScore: completedMatches[0].awayScore,
-        status: completedMatches[0].status
+        status: completedMatches[0].status,
+        gameDate: completedMatches[0].gameDate
       });
     }
 

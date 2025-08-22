@@ -459,18 +459,21 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     console.log(`✅ Found ${teamsInDivision.length} teams in Division ${division}`);
     console.log(`✅ Returning standings for ${teamsInDivision.length} teams: [${teamsInDivision.map(t => `'${t.name}'`).join(', ')}]`);
 
-    // Get all completed league matches for this division to calculate real goals
+    // Get all league matches with scores (completed games)
     const prisma = await getPrismaClient();
     const completedMatches = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
-        status: 'COMPLETED',
+        homeScore: { not: null }, // Games with actual scores
+        awayScore: { not: null },
         OR: [
           { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
           { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
         ]
       }
     });
+    
+    console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores`);
 
     // Enhanced standings with streak and additional stats
     const enhancedTeams = teamsInDivision.map((team) => {
