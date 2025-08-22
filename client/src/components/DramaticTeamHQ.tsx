@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
+import { useTeamDashboardData } from "@/hooks/useTeamData";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ModernStickyHeader from "@/components/ModernStickyHeader";
@@ -134,46 +135,19 @@ export default function DramaticTeamHQ() {
     localStorage.setItem(`dailyTasks_${today}`, JSON.stringify(dailyTasks));
   }, [dailyTasks]);
 
-  // Team data query with enhanced error handling
-  const { data: teamData, isLoading, error: teamError } = useQuery({
-    queryKey: ["/api/teams/my"],
-    enabled: isAuthenticated,
-    retry: false,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
-    refetchInterval: false
-  });
+  // Use the same unified hook as the header for consistent data
+  const { 
+    team: teamData, 
+    upcomingMatches, 
+    liveMatches, 
+    isLoading, 
+    hasError, 
+    isReady 
+  } = useTeamDashboardData(isAuthenticated);
 
   // Exhibition games with error handling
   const { data: exhibitionStats, error: exhibitionError } = useQuery<ExhibitionStats>({
     queryKey: ["/api/exhibitions/stats"],
-    enabled: isAuthenticated,
-    retry: false,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
-    refetchInterval: false
-  });
-
-  // Live matches with error handling
-  const { data: upcomingMatches, error: matchesError } = useQuery({
-    queryKey: ["/api/matches/live"],
-    enabled: isAuthenticated,
-    retry: false,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
-    refetchInterval: false
-  });
-
-  // Next opponent with error handling
-  const { data: nextOpponentData, error: opponentError } = useQuery<{
-    nextOpponent: string;
-    gameDate?: string;
-    isHome?: boolean;
-    matchType?: string;
-    division?: number;
-    timeUntil?: string;
-  }>({
-    queryKey: ['/api/teams/my/next-opponent'],
     enabled: isAuthenticated,
     retry: false,
     staleTime: 60000,
@@ -360,7 +334,7 @@ export default function DramaticTeamHQ() {
   const exhibitionGamesPlayedToday = exhibitionStats?.gamesPlayedToday || 0;
   const freeExhibitionsRemaining = Math.max(0, 3 - exhibitionGamesPlayedToday);
 
-  // Extract next opponent data - USE EXACT SAME LOGIC AS HEADER
+  // Extract next opponent data - EXACT SAME LOGIC AS HEADER
   const getNextOpponentFromMatches = () => {
     // Check next upcoming match - EXACT same logic as header
     const sortedMatches = Array.isArray(upcomingMatches) ? 
@@ -379,9 +353,8 @@ export default function DramaticTeamHQ() {
     }
 
     // EXACT same logic as header component
-    const isHome = nextMatch.homeTeam.id === team?.id?.toString();
+    const isHome = nextMatch.homeTeam.id === teamData?.id?.toString();
     const opponent = isHome ? nextMatch.awayTeam.name : nextMatch.homeTeam.name;
-    const homeAwayText = isHome ? "HOME" : "AWAY";
     
     // Calculate time until match - same as header
     const gameDate = new Date(nextMatch.gameDate);
@@ -407,7 +380,7 @@ export default function DramaticTeamHQ() {
     return {
       name: opponent,
       homeGame: isHome,
-      division: team?.division || "?",
+      division: teamData?.division || "?",
       timeUntil: timeUntil,
       matchType: nextMatch.matchType || "League"
     };
