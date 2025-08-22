@@ -30,18 +30,30 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { data: rawStandings, isLoading } = useQuery<Team[]>({
+  const { data: rawStandings, isLoading, error } = useQuery<Team[]>({
     queryKey: [`/api/teams/${division}/standings`, new Date().getTime()],
     staleTime: 0, // No cache - force fresh data fetch
     gcTime: 0, // No cache at all
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchInterval: 1000 * 5, // Refetch every 5 seconds for debugging
+    retry: false, // Don't retry failed requests to see the actual error
   });
   const standings = (rawStandings || []) as Team[];
   
   // Debug logging to see what data we're actually receiving
   console.log("STANDINGS DEBUG - Raw API data:", rawStandings);
+  console.log("STANDINGS DEBUG - Query state:", { isLoading, error: error?.message });
+  console.log("STANDINGS DEBUG - Division requested:", division);
+  console.log("STANDINGS DEBUG - API endpoint:", `/api/teams/${division}/standings`);
+  console.log("STANDINGS DEBUG - Testing direct API call...");
+  
+  // Debug: Test direct API call
+  fetch(`/api/teams/${division}/standings`)
+    .then(res => res.json())
+    .then(data => console.log("STANDINGS DEBUG - Direct fetch result:", data))
+    .catch(err => console.log("STANDINGS DEBUG - Direct fetch error:", err));
+  
   if (standings.length > 0) {
     console.log("STANDINGS DEBUG - First team data:", {
       name: standings[0].name,
