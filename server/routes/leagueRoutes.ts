@@ -1424,22 +1424,13 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     }
     
     // Step 4: Generate proper shortened season schedule (Days 7-14)
-    // EXACTLY 4 games per day, cycling team pairings to ensure fair distribution
+    // EXACTLY 4 games per day, each team plays exactly once per day
     const games = [];
     const startDate = new Date('2025-08-16T00:00:00.000Z');
     
-    // Generate ALL possible team pairings for cycling
-    const allPairings = [];
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        allPairings.push([teams[i], teams[j]]);
-      }
-    }
-    
-    console.log(`📋 Generated ${allPairings.length} total team pairings for cycling`);
+    console.log(`📋 Creating daily round-robin with 8 teams = 4 matches per day`);
     
     // Generate exactly 32 games (4 games per day × 8 days = 32 total)
-    let gameCount = 0;
     for (let day = 0; day < 8; day++) { // 8 days total
       const dayOffset = 6 + day; // Days 7-14 (6-13 offset)
       const gameDate = new Date(startDate);
@@ -1447,20 +1438,22 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
       
       console.log(`📅 Generating Day ${dayOffset + 1} (${gameDate.toDateString()}) games`);
       
-      // Schedule exactly 4 games for this day (4:00, 5:00, 6:00, 7:00 PM EDT)
+      // Create a shuffled copy of teams for this day to ensure variety
+      const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+      
+      // Pair teams: [0vs1, 2vs3, 4vs5, 6vs7] = 4 matches, each team plays exactly once
       for (let gameSlot = 0; gameSlot < 4; gameSlot++) {
-        // Cycle through all pairings to ensure variety
-        const pairingIndex = gameCount % allPairings.length;
-        const pair = allPairings[pairingIndex];
+        const homeTeam = shuffledTeams[gameSlot * 2];
+        const awayTeam = shuffledTeams[gameSlot * 2 + 1];
         
         const gameTime = new Date(gameDate);
         gameTime.setUTCHours(20 + gameSlot, 0, 0, 0); // 4PM, 5PM, 6PM, 7PM EDT (UTC: 20, 21, 22, 23)
         
-        console.log(`   Game ${gameSlot + 1}: ${pair[0].name} vs ${pair[1].name} at ${4 + gameSlot}:00 PM EDT`);
+        console.log(`   Game ${gameSlot + 1}: ${homeTeam.name} vs ${awayTeam.name} at ${4 + gameSlot}:00 PM EDT`);
         
         games.push({
-          homeTeamId: pair[0].id,
-          awayTeamId: pair[1].id,
+          homeTeamId: homeTeam.id,
+          awayTeamId: awayTeam.id,
           gameDate: gameTime,
           matchType: 'LEAGUE' as const,
           status: 'SCHEDULED' as const,
@@ -1468,8 +1461,6 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
           awayScore: null,
           simulated: false
         });
-        
-        gameCount++;
       }
     }
     
