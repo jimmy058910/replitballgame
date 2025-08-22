@@ -333,6 +333,7 @@ export class TournamentService {
 
   // Create AI teams specifically for Mid-Season Cup
   async createAITeamsForMidSeasonCup(division: number, count: number): Promise<void> {
+    const prisma = await getPrismaClient();
     const aiTeamNames = [
       'Shadow Runners', 'Storm Breakers', 'Iron Wolves', 'Fire Hawks',
       'Thunder Eagles', 'Crimson Tide', 'Golden Lions', 'Silver Falcons',
@@ -1041,6 +1042,7 @@ export class TournamentService {
 
   // Auto-start tournament management
   async checkAndStartTournaments(): Promise<void> {
+    const prisma = await getPrismaClient();
     const now = new Date();
 
     // Find tournaments that are ready to start
@@ -1102,6 +1104,7 @@ export class TournamentService {
 
   // Start a tournament
   async startTournament(tournamentId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     const id = Number(tournamentId);
     await prisma.tournament.update({
       where: { id },
@@ -1130,6 +1133,7 @@ export class TournamentService {
   
   // Generate tournament matches (8-team single elimination for Daily, 16-team for Mid-Season Cup)
   async generateTournamentMatches(tournamentId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     // Get tournament participants
     const tournament = await prisma.tournament.findUnique({
       where: { id: tournamentId },
@@ -1212,6 +1216,7 @@ export class TournamentService {
 
   // Method to advance tournament to next round (called when previous round completes)
   async advanceTournamentRound(tournamentId: number, completedRound: number): Promise<void> {
+    const prisma = await getPrismaClient();
     const tournament = await prisma.tournament.findUnique({
       where: { id: tournamentId }
     });
