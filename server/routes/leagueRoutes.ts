@@ -1370,11 +1370,16 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     
     const prisma = await getPrismaClient();
     
-    // Step 1: Clear all league games
+    // Step 1: Clear all league games AND specific completed games that shouldn't exist
     const deletedGames = await prisma.game.deleteMany({
-      where: { matchType: 'LEAGUE' }
+      where: { 
+        OR: [
+          { matchType: 'LEAGUE' },
+          { id: { in: [3453, 3462] } } // Delete specific completed games from Day 6
+        ]
+      }
     });
-    console.log(`✅ Deleted ${deletedGames.count} existing league games`);
+    console.log(`✅ Deleted ${deletedGames.count} existing league games and invalid completed games`);
     
     // Step 2: Reset team stats
     const resetStats = await prisma.team.updateMany({
@@ -1396,37 +1401,63 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
       });
     }
     
-    // Step 4: Generate round-robin schedule (Days 7-14)
+    // Step 4: Generate proper shortened season schedule (Days 7-14)
+    // EXACTLY 4 games per day, cycling team pairings to ensure fair distribution
     const games = [];
     const startDate = new Date('2025-08-16T00:00:00.000Z');
     
-    // Round-robin: each team plays every other team once (7 games per team)
+    // Generate ALL possible team pairings for cycling
+    const allPairings = [];
     for (let i = 0; i < teams.length; i++) {
       for (let j = i + 1; j < teams.length; j++) {
-        const homeTeam = teams[i];
-        const awayTeam = teams[j];
+        allPairings.push([teams[i], teams[j]]);
+      }
+    }
+    
+    console.log(`📋 Generated ${allPairings.length} total team pairings for cycling`);
+    
+    // Generate exactly 32 games (4 games per day × 8 days = 32 total)
+    let gameCount = 0;
+    for (let day = 0; day < 8; day++) { // 8 days total
+      const dayOffset = 6 + day; // Days 7-14 (6-13 offset)
+      const gameDate = new Date(startDate);
+      gameDate.setDate(gameDate.getDate() + dayOffset);
+      
+      console.log(`📅 Generating Day ${dayOffset + 1} (${gameDate.toDateString()}) games`);
+      
+      // Schedule exactly 4 games for this day (4:00, 5:00, 6:00, 7:00 PM EDT)
+      for (let gameSlot = 0; gameSlot < 4; gameSlot++) {
+        // Cycle through all pairings to ensure variety
+        const pairingIndex = gameCount % allPairings.length;
+        const pair = allPairings[pairingIndex];
         
-        // Distribute across Days 7-14 (8 days)
-        const gameNumber = games.length;
-        const dayOffset = 6 + (gameNumber % 8); // Days 7-14
-        const gameDate = new Date(startDate);
-        gameDate.setDate(gameDate.getDate() + dayOffset);
-        gameDate.setHours(16 + (gameNumber % 4), 15 * (gameNumber % 4), 0, 0);
+        const gameTime = new Date(gameDate);
+        gameTime.setHours(16 + gameSlot, 0, 0, 0); // 4PM, 5PM, 6PM, 7PM EDT
+        
+        console.log(`   Game ${gameSlot + 1}: ${pair[0].name} vs ${pair[1].name} at ${4 + gameSlot}:00 PM`);
         
         games.push({
-          homeTeamId: homeTeam.id,
-          awayTeamId: awayTeam.id,
-          gameDate: gameDate,
+          homeTeamId: pair[0].id,
+          awayTeamId: pair[1].id,
+          gameDate: gameTime,
           matchType: 'LEAGUE' as const,
           status: 'SCHEDULED' as const,
           homeScore: null,
           awayScore: null,
           simulated: false
         });
+        
+        gameCount++;
       }
     }
     
+    // Ensure we have exactly 32 games
+    if (games.length !== 32) {
+      throw new Error(`Expected 32 games, but generated ${games.length} games`);
+    }
+    
     console.log(`🎮 Generated ${games.length} total games (${games.length / teams.length} per team)`);
+    console.log(`📊 Target: 32 games (4 per day × 8 days), Actual: ${games.length} games`);
     
     // Step 5: Save games to database
     const createdGames = await prisma.game.createMany({
