@@ -28,19 +28,30 @@ interface Team {
 }
 
 export default function LeagueStandings({ division }: LeagueStandingsProps) {
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  console.log("🏆 STANDINGS COMPONENT START - Division:", division);
+  
+  try {
+    const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { data: rawStandings, isLoading, error } = useQuery<Team[]>({
-    queryKey: [`/api/teams/${division}/standings`],
-    staleTime: 1000 * 30, // 30 seconds cache to prevent loops
-    gcTime: 1000 * 60 * 5, // 5 minutes cache retention
-    refetchOnMount: true,
-    refetchOnWindowFocus: false, // Disable to prevent loops
-    refetchInterval: false, // Disable auto-refetch to prevent loops
-    retry: 1, // Single retry
-  });
-  const standings = (rawStandings || []) as Team[];
+    const { data: rawStandings, isLoading, error } = useQuery<Team[]>({
+      queryKey: [`/api/teams/${division}/standings`],
+      staleTime: 1000 * 30, // 30 seconds cache to prevent loops
+      gcTime: 1000 * 60 * 5, // 5 minutes cache retention
+      refetchOnMount: true,
+      refetchOnWindowFocus: false, // Disable to prevent loops
+      refetchInterval: false, // Disable auto-refetch to prevent loops
+      retry: 1, // Single retry
+    });
+    
+    console.log("🏆 STANDINGS QUERY RESULT:", { 
+      hasData: !!rawStandings, 
+      dataLength: rawStandings?.length, 
+      isLoading, 
+      errorMessage: error?.message 
+    });
+    
+    const standings = (rawStandings || []) as Team[];
   
   // CRITICAL DEBUG: Force component render logging
   console.log("🏆 STANDINGS COMPONENT RENDER - Division:", division);
@@ -52,8 +63,8 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     endpoint: `/api/teams/${division}/standings`
   });
   
-  // SUCCESS: API is working perfectly! 
-  console.log("🏆 STANDINGS COMPONENT RENDERING for division:", division);
+    // SUCCESS: API is working perfectly! 
+    console.log("🏆 STANDINGS COMPONENT RENDERING for division:", division);
   
   if (standings.length > 0) {
     console.log("STANDINGS DEBUG - First team data:", {
@@ -239,4 +250,13 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
       />
     </>
   );
+  } catch (error) {
+    console.error("🏆 STANDINGS COMPONENT ERROR:", error);
+    return (
+      <div className="text-center py-8 text-red-400">
+        <p className="text-lg font-semibold mb-2">Standings Error</p>
+        <p className="text-sm">{error.message || "Unknown error"}</p>
+      </div>
+    );
+  }
 }
