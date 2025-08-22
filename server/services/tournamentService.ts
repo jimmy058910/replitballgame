@@ -253,6 +253,7 @@ export class TournamentService {
 
   // Fill Mid-Season Cup with AI teams if needed at 1PM on Day 7
   async fillMidSeasonCupWithAI(tournamentId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     const tournament = await prisma.tournament.findUnique({
       where: { id: tournamentId },
       include: { entries: true }
@@ -693,6 +694,7 @@ export class TournamentService {
 
   // Get tournaments a team is registered for
   async getTeamTournaments(teamId: number) {
+    const prisma = await getPrismaClient();
     const entries = await prisma.tournamentEntry.findMany({
       where: { teamId },
       include: { tournament: true },
@@ -704,6 +706,7 @@ export class TournamentService {
 
   // Get tournament history for a team
   async getTournamentHistory(teamId: number) {
+    const prisma = await getPrismaClient();
     const completedTournaments = await prisma.tournamentEntry.findMany({
       where: {
         teamId,
@@ -729,6 +732,7 @@ export class TournamentService {
 
   // Get tournament statistics for a team
   async getTournamentStats(teamId: number) {
+    const prisma = await getPrismaClient();
     const entries = await prisma.tournamentEntry.findMany({
       where: { teamId: teamId }
     });
@@ -752,6 +756,7 @@ export class TournamentService {
   }
 
   async createOrJoinDailyTournament(teamId: number, division: number): Promise<string> {
+    const prisma = await getPrismaClient();
     const gameDay = this.getCurrentGameDay();
     const season = this.getCurrentSeason();
 
@@ -974,6 +979,7 @@ export class TournamentService {
 
   // Fill tournament with AI teams
   async fillTournamentWithAI(tournamentId: number, spotsToFill: number): Promise<void> {
+    const prisma = await getPrismaClient();
     const tournament = await prisma.tournament.findUnique({
       where: { id: Number(tournamentId) },
       include: {
