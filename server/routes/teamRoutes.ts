@@ -492,11 +492,13 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
 
     console.log(`✅ [DIRECT STANDINGS] Found ${teams.length} teams in Division ${division} Alpha`);
     
-    // Get all SIMULATED matches for score calculations
-    const simulatedMatches = await prisma.game.findMany({
+    // Get all COMPLETED matches for score calculations (games with scores)
+    const completedMatches = await prisma.game.findMany({
       where: {
-        simulated: true,
         matchType: 'LEAGUE',
+        status: 'COMPLETED', // Use status instead of simulated flag
+        homeScore: { not: null }, // Ensure scores exist
+        awayScore: { not: null },
         OR: [
           { homeTeamId: { in: teams.map(t => t.id) } },
           { awayTeamId: { in: teams.map(t => t.id) } }
@@ -508,15 +510,15 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
       }
     });
 
-    console.log(`🎮 [STANDINGS] Found ${simulatedMatches.length} simulated league matches for score calculations`);
+    console.log(`🎮 [STANDINGS] Found ${completedMatches.length} completed league matches for score calculations`);
 
     // CRITICAL FIX: Correct points calculation and score calculations
     const correctedTeams = teams.map(team => {
       const correctPoints = (team.wins || 0) * 3 + (team.draws || 0) * 1;
       const hasPointsError = team.points !== correctPoints;
       
-      // Calculate actual scores from simulated games
-      const teamMatches = simulatedMatches.filter(match => 
+      // Calculate actual scores from completed games
+      const teamMatches = completedMatches.filter(match => 
         match.homeTeamId === team.id || match.awayTeamId === team.id
       );
       
@@ -534,7 +536,7 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
       });
       
       const scoreDifference = totalScores - scoresAgainst;
-      const actualPlayed = teamMatches.length; // Only count SIMULATED games
+      const actualPlayed = teamMatches.length; // Only count COMPLETED games
       
       if (hasPointsError) {
         console.log(`🔧 [POINTS FIX] ${team.name}: DB shows ${team.points} pts, should be ${correctPoints} pts (${team.wins}W)`);
