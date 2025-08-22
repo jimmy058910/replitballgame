@@ -293,7 +293,75 @@ router.get('/:teamId/matches/upcoming', requireAuth, asyncHandler(async (req: Re
   return res.json(upcomingMatches);
 }));
 
+// Get next opponent for team (unified next match display)
+router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.uid || req.user?.claims?.sub || 'dev-user-123';
+  const team = await storage.teams.getTeamByUserId(userId);
+  
+  if (!team) {
+    throw ErrorCreators.forbidden("No team found for user");
+  }
 
+  // Get all matches for the team (same method as working endpoints)
+  const allMatches = await storage.matches.getMatchesByTeamId(team.id);
+  
+  // Filter for upcoming matches (same logic as working endpoints)
+  const now = new Date();
+  const upcomingMatches = allMatches
+    .filter((match: any) => 
+      !match.simulated && 
+      match.status === 'SCHEDULED' &&
+      new Date(match.gameDate) > now
+    )
+    .sort((a: any, b: any) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
+
+  if (upcomingMatches.length === 0) {
+    return res.json({
+      nextOpponent: "No matches scheduled",
+      name: "TBD",
+      hasMatch: false,
+      timeUntil: "No matches scheduled"
+    });
+  }
+
+  const nextMatch = upcomingMatches[0];
+  const isHome = nextMatch.homeTeam.id === team.id;
+  const opponent = isHome ? nextMatch.awayTeam : nextMatch.homeTeam;
+  
+  // Calculate time until match
+  const gameDate = new Date(nextMatch.gameDate);
+  const diffTime = gameDate.getTime() - now.getTime();
+  let timeUntil = "Loading...";
+  
+  if (diffTime > 0) {
+    const hours = Math.floor(diffTime / (1000 * 60 * 60));
+    const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours < 1) {
+      timeUntil = `${minutes}m`;
+    } else if (hours < 24) {
+      timeUntil = `${hours}h ${minutes}m`;
+    } else {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      timeUntil = `${days}d ${remainingHours}h`;
+    }
+  }
+
+  console.log(`🎯 [NEXT OPPONENT API] ${team.name} next opponent: ${opponent.name} (${isHome ? 'Home' : 'Away'}) in ${timeUntil}`);
+
+  return res.json({
+    nextOpponent: opponent.name,
+    name: opponent.name,
+    gameDate: nextMatch.gameDate,
+    isHome: isHome,
+    homeGame: isHome,
+    matchType: nextMatch.matchType || 'League',
+    division: opponent.division || 8,
+    timeUntil: timeUntil,
+    hasMatch: true
+  });
+}));
 
 // Shadow Runners fix completed - route can be removed in future cleanup
 

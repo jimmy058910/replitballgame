@@ -360,14 +360,69 @@ export default function DramaticTeamHQ() {
   const exhibitionGamesPlayedToday = exhibitionStats?.gamesPlayedToday || 0;
   const freeExhibitionsRemaining = Math.max(0, 3 - exhibitionGamesPlayedToday);
 
-  // Extract next opponent data
-  const nextOpponent = {
-    name: nextOpponentData?.nextOpponent || "TBD",
-    homeGame: nextOpponentData?.isHome,
-    division: nextOpponentData?.division || team?.division || "?",
-    timeUntil: nextOpponentData?.timeUntil || "Loading...",
-    matchType: nextOpponentData?.matchType || "League"
+  // Extract next opponent data - USE SAME DATA SOURCE AS HEADER
+  const getNextOpponentFromMatches = () => {
+    if (!upcomingMatches || !Array.isArray(upcomingMatches) || upcomingMatches.length === 0) {
+      return {
+        name: "TBD",
+        homeGame: false,
+        division: "?",
+        timeUntil: "Loading...",
+        matchType: "League"
+      };
+    }
+
+    // Sort matches by date and get the next one
+    const sortedMatches = [...upcomingMatches].sort((a, b) => 
+      new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime()
+    );
+    const nextMatch = sortedMatches[0];
+
+    if (!nextMatch) {
+      return {
+        name: "No matches scheduled",
+        homeGame: false,
+        division: "?",
+        timeUntil: "No matches scheduled",
+        matchType: "League"
+      };
+    }
+
+    // Calculate opponent and match details (same logic as header)
+    const isHome = nextMatch.homeTeam.id === team?.id?.toString();
+    const opponent = isHome ? nextMatch.awayTeam : nextMatch.homeTeam;
+    
+    // Calculate time until match
+    const gameDate = new Date(nextMatch.gameDate);
+    const now = new Date();
+    const diffTime = gameDate.getTime() - now.getTime();
+    let timeUntil = "Loading...";
+    
+    if (diffTime > 0) {
+      const hours = Math.floor(diffTime / (1000 * 60 * 60));
+      const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (hours < 1) {
+        timeUntil = `${minutes}m`;
+      } else if (hours < 24) {
+        timeUntil = `${hours}h ${minutes}m`;
+      } else {
+        const days = Math.floor(hours / 24);
+        const remainingHours = hours % 24;
+        timeUntil = `${days}d ${remainingHours}h`;
+      }
+    }
+
+    return {
+      name: opponent?.name || "TBD",
+      homeGame: isHome,
+      division: opponent?.division || team?.division || "?",
+      timeUntil: timeUntil,
+      matchType: nextMatch.matchType || "League"
+    };
   };
+
+  const nextOpponent = getNextOpponentFromMatches();
 
   // Calculate daily task completion
   const completedTasks = [
