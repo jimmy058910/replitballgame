@@ -921,7 +921,7 @@ export default function ComprehensiveCompetitionCenter() {
           {/* TOURNAMENTS TAB - LIVE TOURNAMENT EXPERIENCE */}
           <TabsContent value="tournaments" className="space-y-4">
             
-            {/* YOUR ACTIVE TOURNAMENT - SINGLE FOCUS */}
+            {/* ACTIVE TOURNAMENTS - DUAL CARD LAYOUT */}
             {isCurrentTournamentLoading ? (
               <Card className="bg-gray-800/90 border border-gray-600">
                 <CardContent className="p-6">
@@ -931,200 +931,262 @@ export default function ComprehensiveCompetitionCenter() {
                   </div>
                 </CardContent>
               </Card>
-            ) : currentTournamentStatus?.registered ? (
-              /* WHEN IN TOURNAMENT - LIVE TOURNAMENT CARD */
-              <Card className="bg-gradient-to-r from-red-900 via-orange-800 to-yellow-800 border-2 border-red-400/50 shadow-2xl">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
-                    <Trophy className="h-6 w-6 text-red-300" />
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-white">🔴 LIVE: {currentTournamentStatus.tournament?.name || 'Daily Division Tournament'}</h3>
-                      <p className="text-orange-200 text-sm">Elite Competition • Premium Rewards</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Trophy className="h-5 w-5 text-yellow-400" />
-                          <span className="text-lg font-bold text-white">YOUR STATUS: Active Participant</span>
-                        </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Zap className="h-5 w-5 text-orange-400" />
-                          <span className="text-orange-200 font-semibold">Oakland Cougars vs TBD</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-5 w-5 text-blue-400" />
-                          <span className="text-blue-200">Next Match: Schedule Generating...</span>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-900/50 rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Target className="h-5 w-5 text-green-400" />
-                          <span className="text-green-300 font-semibold">Tournament Progress: 0-0 (Champion Path)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="h-5 w-5 text-yellow-400" />
-                          <span className="text-yellow-200">Prize Tier: Champion Rewards Available</span>
-                        </div>
+            ) : (
+              <div className="grid lg:grid-cols-2 gap-4">
+                
+                {/* DAILY DIVISION TOURNAMENT */}
+                <Card className={`${
+                  currentTournamentStatus?.registered 
+                    ? "bg-gradient-to-r from-red-900 via-orange-800 to-yellow-800 border-2 border-red-400/50" 
+                    : "bg-gradient-to-r from-green-800 via-green-700 to-emerald-800 border-2 border-green-400"
+                } shadow-2xl`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      {currentTournamentStatus?.registered ? (
+                        <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
+                      ) : (
+                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      )}
+                      <Trophy className="h-6 w-6 text-white" />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-white">
+                          {currentTournamentStatus?.registered ? "🔴 Daily Division 8" : "🎯 Daily Division 8"}
+                        </h3>
+                        <p className="text-sm text-gray-200">Elite Competition</p>
                       </div>
                     </div>
                     
-                    <div className="space-y-3">
-                      <Button 
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 rounded-xl shadow-lg"
-                        disabled
-                      >
-                        <Eye className="h-5 w-5 mr-2" />
-                        📊 View Full Bracket (Coming Soon)
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full border-orange-400 text-orange-300 hover:bg-orange-900/20 font-bold py-3 rounded-xl"
-                        disabled
-                      >
-                        <Activity className="h-5 w-5 mr-2" />
-                        🎫 Match Details (Generating...)
-                      </Button>
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-4 w-4 text-orange-400" />
+                        <span className="text-white font-semibold">
+                          {currentTournamentStatus?.registered ? "Oakland vs TBD" : "Oakland Cougars"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-blue-400" />
+                        <span className="text-gray-200">
+                          {currentTournamentStatus?.registered ? "Schedule generating..." : "Registration OPEN"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-yellow-400" />
+                        <span className="text-gray-200">
+                          {currentTournamentStatus?.registered ? "Quarterfinals" : "Free Entry"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-green-400" />
+                        <span className="text-gray-200">Champion: ₡25,000</span>
+                      </div>
                     </div>
-                  </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      {currentTournamentStatus?.registered ? (
+                        <>
+                          <Button 
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
+                            disabled
+                          >
+                            📊 Bracket
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            className="border-orange-400 text-orange-300 hover:bg-orange-900/20 font-bold py-2 rounded-lg"
+                            disabled
+                          >
+                            ⚡ Details
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button 
+                            onClick={() => registerDailyTournament.mutate()}
+                            disabled={registerDailyTournament.isPending}
+                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg col-span-2"
+                          >
+                            {registerDailyTournament.isPending ? "Registering..." : "🎫 Enter Tournament"}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Tournament Journey Progress */}
-                  <div className="bg-gray-900/30 rounded-lg p-4 border border-gray-700">
-                    <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-blue-400" />
-                      📈 YOUR TOURNAMENT JOURNEY
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Registration: ✅ Oakland Cougars registered</span>
-                        <span className="text-green-400 font-semibold">Status: Active</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-300">Bracket Generation: ⏳ Schedule creating...</span>
-                        <span className="text-yellow-400 font-semibold">In Progress</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-400">First Match: 🔄 TBD vs TBD</span>
-                        <span className="text-gray-500">Pending</span>
+                {/* MID-SEASON CUP */}
+                <Card className={`${
+                  isRegisteredForMidSeasonCup
+                    ? "bg-gradient-to-r from-red-900 via-purple-800 to-indigo-800 border-2 border-red-400/50"
+                    : isMidSeasonRegistrationDeadlinePassed()
+                      ? "bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 border-2 border-gray-500"
+                      : "bg-gradient-to-r from-purple-800 via-purple-700 to-indigo-800 border-2 border-purple-400"
+                } shadow-2xl`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      {isRegisteredForMidSeasonCup ? (
+                        <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
+                      ) : isMidSeasonRegistrationDeadlinePassed() ? (
+                        <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      ) : (
+                        <div className="w-3 h-3 bg-purple-400 rounded-full"></div>
+                      )}
+                      <Award className="h-6 w-6 text-white" />
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-white">
+                          {isRegisteredForMidSeasonCup ? "🔴 Mid-Season Cup LIVE" : "🏆 Mid-Season Cup"}
+                        </h3>
+                        <p className="text-sm text-gray-200">Elite Championship</p>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              /* WHEN NOT IN TOURNAMENT - NEXT OPPORTUNITY */
-              <Card className="bg-gradient-to-r from-gray-800 via-blue-800 to-purple-800 border-2 border-blue-400/50 shadow-2xl">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Trophy className="h-6 w-6 text-blue-300" />
-                    <div>
-                      <h3 className="text-xl font-bold text-white">🏆 Next Tournament Opportunity</h3>
-                      <p className="text-blue-200 text-sm">Championship competitions await</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {/* Daily Division Tournament Opportunity */}
-                    <div className="bg-green-900/30 rounded-lg p-4 border border-green-600">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="text-lg font-bold text-white">🎯 Daily Division Tournament</h4>
-                          <p className="text-green-200 text-sm">Division {team?.division || 8} Championship</p>
-                        </div>
-                        <Badge className="bg-green-600 text-green-100">Free Entry</Badge>
-                      </div>
-                      
-                      <div className="grid md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Calendar className="h-4 w-4 text-green-400" />
-                            <span className="text-green-300 font-semibold">📅 Available Daily</span>
+                    
+                    <div className="space-y-3 mb-4">
+                      {isRegisteredForMidSeasonCup ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Trophy className="h-4 w-4 text-yellow-400" />
+                            <span className="text-white font-semibold">YOUR STATUS: Quarterfinals</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Zap className="h-4 w-4 text-orange-400" />
+                            <span className="text-gray-200">Oakland Cougars vs Thunder Hawks</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-blue-400" />
+                            <span className="text-gray-200">Match: 15:30 today</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-green-400" />
+                            <span className="text-gray-200">Win: +₡15,000 bonus</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-purple-400" />
+                            <span className="text-gray-200">
+                              {isMidSeasonRegistrationDeadlinePassed() ? "Registration: CLOSED" : "Starts Day 7"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-blue-400" />
+                            <span className="text-gray-200">
+                              {isMidSeasonRegistrationDeadlinePassed() ? "Tournament Active" : `Closes in: ${getMidSeasonCountdown()}`}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-yellow-400" />
-                            <span className="text-yellow-200">💰 Championship Rewards</span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Clock className="h-4 w-4 text-blue-400" />
-                            <span className="text-blue-300">⏰ Registration Open</span>
+                            <span className="text-gray-200">Entry: ₡10,000 / 💎20</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-purple-400" />
-                            <span className="text-purple-300">🎟️ Entry: Free (1/1 daily)</span>
+                            <Trophy className="h-4 w-4 text-green-400" />
+                            <span className="text-gray-200">Prize: ₡75,000 + Trophy</span>
                           </div>
-                        </div>
-                      </div>
-                      
-                      <Button 
-                        onClick={() => registerDailyTournament.mutate()}
-                        disabled={registerDailyTournament.isPending}
-                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg"
-                      >
-                        <Trophy className="h-5 w-5 mr-2" />
-                        {registerDailyTournament.isPending ? "Registering..." : "Enter Tournament"}
-                      </Button>
+                        </>
+                      )}
                     </div>
-
-                    {/* Mid-Season Cup Opportunity */}
-                    <div className="bg-purple-900/30 rounded-lg p-4 border border-purple-600">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="text-lg font-bold text-white">🔥 Mid-Season Cup</h4>
-                          <p className="text-purple-200 text-sm">Elite Cross-Division Championship</p>
-                        </div>
-                        <Badge className="bg-purple-600 text-purple-100">Elite</Badge>
-                      </div>
-                      
-                      <div className="grid md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Timer className="h-4 w-4 text-purple-400" />
-                            <span className="text-purple-300 font-semibold">Starts Day 7</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Flame className="h-4 w-4 text-orange-400" />
-                            <span className="text-orange-300">🔥 Elite Competition</span>
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Clock className="h-4 w-4 text-blue-400" />
-                            <span className="text-blue-300">Countdown: {getMidSeasonCountdown()}</span>
-                          </div>
-                          <div className="bg-purple-900/50 rounded-lg p-2">
-                            <p className="text-purple-200 font-bold text-center">₡10,000 or 💎20</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <Button 
-                        onClick={() => registerMidSeasonCup.mutate()}
-                        disabled={registerMidSeasonCup.isPending || isMidSeasonRegistrationDeadlinePassed()}
-                        className={`w-full font-bold py-3 rounded-xl shadow-lg ${
-                          isMidSeasonRegistrationDeadlinePassed()
-                            ? "bg-gray-700 hover:bg-gray-800 cursor-not-allowed"
-                            : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                        } text-white`}
-                      >
-                        <Award className="h-5 w-5 mr-2" />
-                        {registerMidSeasonCup.isPending 
-                          ? "Registering..." 
-                          : isMidSeasonRegistrationDeadlinePassed()
-                            ? "Registration Closed"
-                            : "Register Now"
-                        }
-                      </Button>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      {isRegisteredForMidSeasonCup ? (
+                        <>
+                          <Button 
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg"
+                            disabled
+                          >
+                            📺 Watch
+                          </Button>
+                          <Button 
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg"
+                            disabled
+                          >
+                            📊 Bracket
+                          </Button>
+                        </>
+                      ) : isMidSeasonRegistrationDeadlinePassed() ? (
+                        <>
+                          <Button 
+                            className="bg-gray-600 cursor-not-allowed text-gray-300 font-bold py-2 rounded-lg col-span-2"
+                            disabled
+                          >
+                            Registration Closed
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button 
+                            onClick={() => registerMidSeasonCup.mutate()}
+                            disabled={registerMidSeasonCup.isPending}
+                            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg"
+                          >
+                            {registerMidSeasonCup.isPending ? "Registering..." : "🎫 Register"}
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            className="border-purple-400 text-purple-300 hover:bg-purple-900/20 font-bold py-2 rounded-lg"
+                            disabled
+                          >
+                            📋 Info
+                          </Button>
+                        </>
+                      )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             )}
+
+            {/* SIMPLIFIED TOURNAMENT STATUS */}
+            <Card className="bg-gray-800/90 border border-gray-600">
+              <CardContent className="p-4">
+                <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-blue-400" />
+                  📊 TOURNAMENT STATUS
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300 flex items-center gap-2">
+                      {currentTournamentStatus?.registered ? (
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      ) : (
+                        <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      )}
+                      Daily Division 8: {currentTournamentStatus?.registered ? "Active • Round 1 Quarterfinals" : "Registration OPEN • Not Entered"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300 flex items-center gap-2">
+                      {isRegisteredForMidSeasonCup ? (
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      ) : isMidSeasonRegistrationDeadlinePassed() ? (
+                        <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                      ) : (
+                        <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      )}
+                      Mid-Season Cup: {
+                        isRegisteredForMidSeasonCup ? "Active • Registered" : 
+                        isMidSeasonRegistrationDeadlinePassed() ? "Registration CLOSED • Missed" :
+                        "Registration OPEN • Not Entered"
+                      }
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <div className="flex flex-wrap gap-4 text-xs text-gray-400">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      Registered
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      Upcoming
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                      Missed
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* TOURNAMENT HISTORY - YOUR RESULTS ONLY */}
             <Collapsible className="space-y-2">
