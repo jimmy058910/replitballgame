@@ -20,16 +20,41 @@ async function startServer() {
     const app = express();
     const httpServer = http.createServer(app);
 
-    // Basic middleware
+    // Basic middleware with Firebase-compatible CSP
     app.use(helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-          fontSrc: ["'self'", "https://fonts.gstatic.com"],
+          scriptSrc: [
+            "'self'", 
+            "'unsafe-inline'", 
+            "'unsafe-eval'",
+            "https://cdn.unity3d.com",
+            "https://replit.com",
+            "blob:"
+          ],
+          styleSrc: [
+            "'self'", 
+            "'unsafe-inline'", 
+            "https://fonts.googleapis.com",
+            "https://cdnjs.cloudflare.com"
+          ],
+          fontSrc: [
+            "'self'", 
+            "https://fonts.gstatic.com",
+            "https://cdnjs.cloudflare.com"
+          ],
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'", "ws:", "wss:"]
+          connectSrc: [
+            "'self'", 
+            "ws:", 
+            "wss:",
+            "https://securetoken.googleapis.com",
+            "https://identitytoolkit.googleapis.com",
+            "https://www.googleapis.com",
+            "https://firebase.googleapis.com"
+          ],
+          workerSrc: ["'self'", "blob:"]
         }
       }
     }));

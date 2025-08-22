@@ -106,12 +106,14 @@ export const getQueryFn: <T>(options: {
         }
       }
     } catch (error) {
-      console.warn('⚠️ Failed to get Firebase token for query:', error);
+      // Reduce console spam - only log meaningful errors  
+      if (!error.message?.includes('network-request-failed')) {
+        console.warn('⚠️ Firebase token error:', error.message);
+      }
       // Try stored token as fallback
       const storedToken = localStorage.getItem('firebase_token');
       if (storedToken) {
         headers['Authorization'] = `Bearer ${storedToken}`;
-        console.log('🔐 Added stored Firebase token as fallback');
       }
     }
     
