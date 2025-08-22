@@ -495,7 +495,7 @@ function TournamentsTab() {
                       <div className="text-lg font-bold text-yellow-400">Power: {opponent.teamPower || 'N/A'}</div>
                       <div className="text-sm text-blue-400 font-semibold">
                         Global Rank: #{(() => {
-                          if (!globalRankings || globalRankings.length === 0) return '?';
+                          if (!globalRankings || !Array.isArray(globalRankings) || globalRankings.length === 0) return '?';
                           const teamRanking = globalRankings.find((r: any) => r.id === opponent.id || String(r.id) === String(opponent.id));
                           return teamRanking?.globalRank || '?';
                         })()}
@@ -1154,9 +1154,7 @@ export default function Competition() {
             </TabsTrigger>
           </TabsList>
 
-          {console.log("🔥 ABOUT TO RENDER LEAGUE TAB CONTENT")}
           <TabsContent value="league" className="space-y-6">
-            {console.log("🔥 INSIDE LEAGUE TAB CONTENT - THIS SHOULD RENDER!")}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>

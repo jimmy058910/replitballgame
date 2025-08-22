@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamInfoDialog from "@/components/TeamInfoDialog";
+import { Trophy } from "lucide-react";
 import { getDivisionName, getDivisionNameWithSubdivision } from "@shared/divisionUtils";
 
 interface LeagueStandingsProps {
