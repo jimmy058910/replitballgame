@@ -766,14 +766,27 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     if (userTeam.division === 8) {
       console.log('🎯 [LATE SIGNUP] User team is in Division 8 - retrieving existing schedule');
       
-      // FIXED: Use existing stored games instead of regenerating on every call
+      // FIXED: Use existing stored games for entire subdivision, not just user team
       const prisma = await getPrismaClient();
+      
+      // Get all teams in user's subdivision
+      const subdivisionTeams = await prisma.team.findMany({
+        where: { 
+          division: 8,
+          subdivision: userTeam.subdivision 
+        },
+        select: { id: true, name: true }
+      });
+      
+      const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
+      
+      // Get all games involving teams in this subdivision
       const existingGames = await prisma.game.findMany({
         where: {
           matchType: 'LEAGUE',
           OR: [
-            { homeTeamId: userTeam.id },
-            { awayTeamId: userTeam.id }
+            { homeTeamId: { in: subdivisionTeamIds } },
+            { awayTeamId: { in: subdivisionTeamIds } }
           ]
         },
         include: {
@@ -783,7 +796,7 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
         orderBy: { gameDate: 'asc' }
       });
       
-      console.log(`✅ [LATE SIGNUP] Found ${existingGames.length} existing games for team ${userTeam.name}`);
+      console.log(`✅ [LATE SIGNUP] Found ${existingGames.length} existing games for subdivision ${userTeam.subdivision} (${subdivisionTeams.length} teams)`);
       
       // Organize games by day for display
       const schedule: any = {};
@@ -801,6 +814,10 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
         const isCompleted = game.homeScore !== null && game.awayScore !== null;
         const gameStatus = isCompleted ? 'COMPLETED' : (game.status || 'SCHEDULED');
         
+        // FIXED: Don't show games with null scores as completed
+        const displayHomeScore = game.homeScore || 0;
+        const displayAwayScore = game.awayScore || 0;
+        
         schedule[dayNumber].push({
           id: game.id,
           homeTeamId: game.homeTeamId,
@@ -813,8 +830,8 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
           matchType: game.matchType,
           status: gameStatus, // FIXED: Use proper completion status
           simulated: game.simulated || false,
-          homeScore: game.homeScore || 0,
-          awayScore: game.awayScore || 0,
+          homeScore: displayHomeScore,
+          awayScore: displayAwayScore,
           isLive: false, // Static for now
           canWatch: isCompleted
         });
