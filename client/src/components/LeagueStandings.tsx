@@ -52,30 +52,53 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     endpoint: `/api/teams/${division}/standings`
   });
   
-  // Test direct API call ONCE using useEffect to prevent loops
+  // Test direct API call with SAME auth as React Query
   React.useEffect(() => {
-    console.log("🏆 STANDINGS - Testing direct fetch...");
-    fetch(`/api/teams/${division}/standings`, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    })
-      .then(res => {
-        console.log("🏆 STANDINGS - Response status:", res.status);
-        console.log("🏆 STANDINGS - Content-Type:", res.headers.get('content-type'));
-        return res.text();
-      })
-      .then(text => {
-        console.log("🏆 STANDINGS - Raw response (first 100 chars):", text.substring(0, 100));
-        try {
-          const data = JSON.parse(text);
-          console.log("🏆 STANDINGS - SUCCESS: Got", data.length, "teams");
-        } catch (e) {
-          console.log("🏆 STANDINGS - ERROR: Got HTML instead of JSON");
+    const testWithAuth = async () => {
+      console.log("🏆 STANDINGS - Testing React Query setup...");
+      
+      // Get Firebase auth headers EXACTLY like React Query does
+      let headers: Record<string, string> = { 'Accept': 'application/json' };
+      
+      try {
+        const { getAuth } = await import('firebase/auth');
+        const auth = getAuth();
+        const user = auth.currentUser;
+        
+        if (user) {
+          const idToken = await user.getIdToken();
+          headers['Authorization'] = `Bearer ${idToken}`;
+          console.log("🏆 STANDINGS - Added Firebase token, first 50 chars:", idToken.substring(0, 50));
+        } else {
+          const storedToken = localStorage.getItem('firebase_token');
+          if (storedToken) {
+            headers['Authorization'] = `Bearer ${storedToken}`;
+            console.log("🏆 STANDINGS - Added stored token, first 50 chars:", storedToken.substring(0, 50));
+          }
         }
-      })
-      .catch(err => console.log("🏆 STANDINGS - Fetch error:", err));
+      } catch (error) {
+        console.log("🏆 STANDINGS - Auth error:", error.message);
+      }
+      
+      fetch(`/api/teams/${division}/standings`, { headers })
+        .then(res => {
+          console.log("🏆 STANDINGS - Auth test response status:", res.status);
+          console.log("🏆 STANDINGS - Auth test Content-Type:", res.headers.get('content-type'));
+          return res.text();
+        })
+        .then(text => {
+          console.log("🏆 STANDINGS - Auth test response (first 100 chars):", text.substring(0, 100));
+          try {
+            const data = JSON.parse(text);
+            console.log("🏆 STANDINGS - Auth test SUCCESS: Got", data.length, "teams");
+          } catch (e) {
+            console.log("🏆 STANDINGS - Auth test ERROR: Got HTML instead of JSON");
+          }
+        })
+        .catch(err => console.log("🏆 STANDINGS - Auth test fetch error:", err));
+    };
+    
+    testWithAuth();
   }, [division]); // Only run when division changes
   
   if (standings.length > 0) {
