@@ -492,12 +492,11 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
 
     console.log(`✅ [DIRECT STANDINGS] Found ${teams.length} teams in Division ${division} Alpha`);
     
-    // Get all COMPLETED matches for score calculations (games with scores)
+    // Get all matches with scores (completed games) - simplified query
     const completedMatches = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
-        status: 'COMPLETED', // Use status instead of simulated flag
-        homeScore: { not: null }, // Ensure scores exist
+        homeScore: { not: null }, // Games with actual scores
         awayScore: { not: null },
         OR: [
           { homeTeamId: { in: teams.map(t => t.id) } },
@@ -511,6 +510,30 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
     });
 
     console.log(`🎮 [STANDINGS] Found ${completedMatches.length} completed league matches for score calculations`);
+    
+    // Debug log to see what games we found
+    if (completedMatches.length > 0) {
+      console.log(`🎯 [STANDINGS DEBUG] Sample completed match:`, {
+        id: completedMatches[0].id,
+        homeTeam: completedMatches[0].homeTeam.name,
+        awayTeam: completedMatches[0].awayTeam.name,
+        homeScore: completedMatches[0].homeScore,
+        awayScore: completedMatches[0].awayScore,
+        status: completedMatches[0].status
+      });
+    }
+
+    // Debug log to see what games we found
+    if (completedMatches.length > 0) {
+      console.log(`🎯 [STANDINGS DEBUG] Sample completed match:`, {
+        id: completedMatches[0].id,
+        homeTeam: completedMatches[0].homeTeam.name,
+        awayTeam: completedMatches[0].awayTeam.name,
+        homeScore: completedMatches[0].homeScore,
+        awayScore: completedMatches[0].awayScore,
+        status: completedMatches[0].status
+      });
+    }
 
     // CRITICAL FIX: Correct points calculation and score calculations
     const correctedTeams = teams.map(team => {
