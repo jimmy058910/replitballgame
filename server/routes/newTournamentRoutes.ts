@@ -229,6 +229,46 @@ router.get('/stats', requireAuth, async (req: any, res: Response, next: NextFunc
   }
 });
 
+// Find active tournament for Oakland Cougars 
+router.get('/oakland-cougars-tournament', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Find active tournament entry for Oakland Cougars (team ID 4)
+    const tournamentEntry = await prisma.tournamentEntry.findFirst({
+      where: {
+        teamId: 4 // Oakland Cougars team ID
+      },
+      include: {
+        tournament: true
+      },
+      orderBy: {
+        registeredAt: 'desc'
+      }
+    });
+
+    if (!tournamentEntry) {
+      return res.json({ registered: false, message: "No tournament registration found" });
+    }
+
+    res.json({ 
+      registered: true,
+      tournamentId: Number(tournamentEntry.tournamentId),
+      tournament: {
+        id: Number(tournamentEntry.tournament.id),
+        name: tournamentEntry.tournament.name,
+        type: tournamentEntry.tournament.type,
+        status: tournamentEntry.tournament.status,
+        startTime: tournamentEntry.tournament.startTime
+      },
+      accessUrl: `/competition/tournaments/${tournamentEntry.tournamentId}`
+    });
+  } catch (error) {
+    console.error("Error finding Oakland Cougars tournament:", error);
+    res.json({ registered: false, error: "Could not check tournament status" });
+  }
+});
+
 // Get team's current tournament entries
 router.get('/team/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
@@ -355,11 +395,16 @@ router.get('/team/:teamId/history', requireAuth, async (req: any, res: Response,
   }
 });
 
-// Get tournament details by ID
-router.get('/:tournamentId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+// Get tournament details by ID - MOVE this after current-registrations
+router.get('/tournament/:tournamentId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();
     const { tournamentId } = req.params;
+    
+    // Validate tournamentId parameter
+    if (!tournamentId || isNaN(parseInt(tournamentId))) {
+      return res.status(400).json({ message: "Invalid tournament ID" });
+    }
     
     const tournament = await prisma.tournament.findUnique({
       where: { id: parseInt(tournamentId) }
