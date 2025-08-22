@@ -1370,16 +1370,24 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     
     const prisma = await getPrismaClient();
     
-    // Step 1: Clear all league games AND specific completed games that shouldn't exist
-    const deletedGames = await prisma.game.deleteMany({
-      where: { 
-        OR: [
-          { matchType: 'LEAGUE' },
-          { id: { in: [3453, 3462] } } // Delete specific completed games from Day 6
-        ]
-      }
+    // Step 1: Clear ALL games completely - league games AND any completed games
+    console.log('🧹 Clearing all existing games...');
+    
+    // First delete specific problematic games
+    const specificDeletion = await prisma.game.deleteMany({
+      where: { id: { in: [3453, 3462] } }
     });
-    console.log(`✅ Deleted ${deletedGames.count} existing league games and invalid completed games`);
+    console.log(`✅ Deleted ${specificDeletion.count} specific Day 6 completed games`);
+    
+    // Then delete all league games  
+    const leagueDeletion = await prisma.game.deleteMany({
+      where: { matchType: 'LEAGUE' }
+    });
+    console.log(`✅ Deleted ${leagueDeletion.count} league games`);
+    
+    // Count remaining games for verification
+    const remainingGames = await prisma.game.count();
+    console.log(`📊 Total games remaining in database: ${remainingGames}`);
     
     // Step 2: Reset team stats
     const resetStats = await prisma.team.updateMany({
@@ -1432,9 +1440,9 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
         const pair = allPairings[pairingIndex];
         
         const gameTime = new Date(gameDate);
-        gameTime.setHours(16 + gameSlot, 0, 0, 0); // 4PM, 5PM, 6PM, 7PM EDT
+        gameTime.setHours(20 + gameSlot, 0, 0, 0); // 4PM, 5PM, 6PM, 7PM EDT (UTC: 20, 21, 22, 23)
         
-        console.log(`   Game ${gameSlot + 1}: ${pair[0].name} vs ${pair[1].name} at ${4 + gameSlot}:00 PM`);
+        console.log(`   Game ${gameSlot + 1}: ${pair[0].name} vs ${pair[1].name} at ${4 + gameSlot}:00 PM EDT`);
         
         games.push({
           homeTeamId: pair[0].id,
