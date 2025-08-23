@@ -800,6 +800,39 @@ router.post('/:teamId/fix-financial-balance', requireAuth, asyncHandler(async (r
   }
 }));
 
+// Set all players camaraderie to base level
+router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔧 [CAMARADERIE] Setting all players camaraderie to base level (50)');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Update all players' camaraderie to 50
+    const updateResult = await prisma.player.updateMany({
+      data: {
+        camaraderieScore: 50
+      }
+    });
+    
+    console.log(`✅ [CAMARADERIE] Updated ${updateResult.count} players to camaraderie 50`);
+    
+    res.json({
+      success: true,
+      message: `Successfully set camaraderie to 50 for ${updateResult.count} players`,
+      playersUpdated: updateResult.count
+    });
+    
+  } catch (error) {
+    console.error('❌ [CAMARADERIE] Error setting camaraderie:', error);
+    res.status(500).json({ message: `Failed to set camaraderie: ${error.message}` });
+  }
+}));
+
 // Add transactions route that matches frontend expectations
 router.get('/transactions', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [TRANSACTIONS] /api/teams/transactions route called');
