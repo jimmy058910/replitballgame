@@ -122,6 +122,41 @@ const formatMatchTime = (gameDate: string) => {
   });
 };
 
+// Helper function to get division name
+const getDivisionName = (division: number): string => {
+  const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+  return divisionNames[division] || "Stone";
+};
+
+// Helper function to get Daily Division Tournament rewards
+const getDailyTournamentRewards = (division: number) => {
+  const rewardTable: Record<number, { champion: number; runnerUp: number; championGems?: number }> = {
+    2: { champion: 16000, runnerUp: 6000, championGems: 8 },
+    3: { champion: 12000, runnerUp: 4500, championGems: 5 },
+    4: { champion: 9000, runnerUp: 3000, championGems: 3 },
+    5: { champion: 6000, runnerUp: 2000 },
+    6: { champion: 4000, runnerUp: 1500 },
+    7: { champion: 2500, runnerUp: 1000 },
+    8: { champion: 1500, runnerUp: 500 }
+  };
+  return rewardTable[division] || rewardTable[8];
+};
+
+// Helper function to get Mid-Season Cup rewards
+const getMidSeasonCupRewards = (division: number) => {
+  const rewardTable: Record<number, { champion: number; runnerUp: number; championGems: number; semifinalist?: number }> = {
+    1: { champion: 200000, runnerUp: 80000, championGems: 75, semifinalist: 30000 },
+    2: { champion: 150000, runnerUp: 60000, championGems: 60, semifinalist: 25000 },
+    3: { champion: 100000, runnerUp: 40000, championGems: 40, semifinalist: 15000 },
+    4: { champion: 75000, runnerUp: 30000, championGems: 30, semifinalist: 10000 },
+    5: { champion: 50000, runnerUp: 20000, championGems: 20, semifinalist: 7500 },
+    6: { champion: 30000, runnerUp: 12000, championGems: 15, semifinalist: 5000 },
+    7: { champion: 20000, runnerUp: 8000, championGems: 10, semifinalist: 2500 },
+    8: { champion: 15000, runnerUp: 6000, championGems: 5, semifinalist: 2000 }
+  };
+  return rewardTable[division] || rewardTable[8];
+};
+
 export default function ComprehensiveCompetitionCenter() {
   const { isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
@@ -513,7 +548,7 @@ export default function ComprehensiveCompetitionCenter() {
     onError: (error: any) => {
       toast({
         title: "Registration Failed",
-        description: error.message || "Unable to register for Mid-Season Cup. Check your credits (₡10,000) or gems (💎20).",
+        description: error.message || "Unable to register for Mid-Season Cup. Check your credits (10,000₡) or gems (20💎).",
         variant: "destructive",
       });
     },
@@ -934,9 +969,9 @@ export default function ComprehensiveCompetitionCenter() {
                       <Trophy className="h-6 w-6 text-white" />
                       <div className="flex-1">
                         <h3 className="text-lg font-bold text-white">
-                          {currentTournamentStatus?.registered ? "🔴 Daily Division 8" : "🎯 Daily Division 8"}
+                          {currentTournamentStatus?.registered ? "🔴 Daily Divisional Tournament" : "🎯 Daily Divisional Tournament"}
                         </h3>
-                        <p className="text-sm text-gray-200">Elite Competition</p>
+                        <p className="text-sm text-gray-200">{getDivisionName(team?.division || 8)} Division</p>
                       </div>
                     </div>
                     
@@ -956,12 +991,12 @@ export default function ComprehensiveCompetitionCenter() {
                       <div className="flex items-center gap-2">
                         <Trophy className="h-4 w-4 text-yellow-400" />
                         <span className="text-gray-200">
-                          {currentTournamentStatus?.registered ? "Quarterfinals" : "Free Entry"}
+                          {currentTournamentStatus?.registered ? "Quarterfinals" : "1 Free Entry/Day + Tournament Entry Items"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-green-400" />
-                        <span className="text-gray-200">Champion: ₡25,000</span>
+                        <span className="text-gray-200">Champion: {getDailyTournamentRewards(team?.division || 8).champion.toLocaleString()}₡{getDailyTournamentRewards(team?.division || 8).championGems ? ` + ${getDailyTournamentRewards(team?.division || 8).championGems}💎` : ''}</span>
                       </div>
                     </div>
                     
@@ -1019,7 +1054,7 @@ export default function ComprehensiveCompetitionCenter() {
                         <h3 className="text-lg font-bold text-white">
                           {isRegisteredForMidSeasonCup ? "🔴 Mid-Season Cup LIVE" : "🏆 Mid-Season Cup"}
                         </h3>
-                        <p className="text-sm text-gray-200">Elite Championship</p>
+                        <p className="text-sm text-gray-200">{getDivisionName(team?.division || 8)} Championship</p>
                       </div>
                     </div>
                     
@@ -1028,7 +1063,7 @@ export default function ComprehensiveCompetitionCenter() {
                         <>
                           <div className="flex items-center gap-2">
                             <Trophy className="h-4 w-4 text-yellow-400" />
-                            <span className="text-white font-semibold">YOUR STATUS: Quarterfinals</span>
+                            <span className="text-white font-semibold">YOUR STATUS: Round of 16</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Zap className="h-4 w-4 text-orange-400" />
@@ -1040,7 +1075,7 @@ export default function ComprehensiveCompetitionCenter() {
                           </div>
                           <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-green-400" />
-                            <span className="text-gray-200">Win: +₡15,000 bonus</span>
+                            <span className="text-gray-200">Win: +15,000₡ bonus</span>
                           </div>
                         </>
                       ) : (
@@ -1059,11 +1094,11 @@ export default function ComprehensiveCompetitionCenter() {
                           </div>
                           <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-yellow-400" />
-                            <span className="text-gray-200">Entry: ₡10,000 / 💎20</span>
+                            <span className="text-gray-200">Entry: 10,000₡ + 20💎</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Trophy className="h-4 w-4 text-green-400" />
-                            <span className="text-gray-200">Prize: ₡75,000 + Trophy</span>
+                            <span className="text-gray-200">Prize: {getMidSeasonCupRewards(team?.division || 8).champion.toLocaleString()}₡ + {getMidSeasonCupRewards(team?.division || 8).championGems}💎 + Trophy</span>
                           </div>
                         </>
                       )}
@@ -1133,7 +1168,7 @@ export default function ComprehensiveCompetitionCenter() {
                       ) : (
                         <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
                       )}
-                      Daily Division 8: {currentTournamentStatus?.registered ? "Active • Round 1 Quarterfinals" : "Registration OPEN • Not Entered"}
+                      Daily Divisional Tournament: {currentTournamentStatus?.registered ? "Active • Round 1 Quarterfinals" : "Registration OPEN • Not Entered"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -1435,7 +1470,7 @@ export default function ComprehensiveCompetitionCenter() {
                           onClick={() => buyExhibitionToken.mutate()}
                           disabled={buyExhibitionToken.isPending}
                         >
-                          {buyExhibitionToken.isPending ? 'Purchasing...' : 'Buy Token - ₡500'}
+                          {buyExhibitionToken.isPending ? 'Purchasing...' : 'Buy Token - 500₡'}
                         </Button>
                       </div>
                     </div>
