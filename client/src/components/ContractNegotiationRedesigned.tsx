@@ -132,7 +132,7 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
         toast({
           title: "Contract Accepted!",
           // @ts-expect-error TS18046
-          description: `New contract runs Season ${data.startSeason}-${data.endSeason}. ₡${data.signingBonus.toLocaleString()} bonus paid now.`,
+          description: `New contract runs Season ${data.startSeason}-${data.endSeason}. ${data.signingBonus.toLocaleString()}₡ bonus paid now.`,
         });
         queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
         queryClient.invalidateQueries({ queryKey: ['/api/players'] });
@@ -258,7 +258,7 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-xl font-bold text-green-400">
-                      ₡{contractInfo?.currentSalary?.toLocaleString() || '0'}/season
+                      {contractInfo?.currentSalary?.toLocaleString() || '0'}₡/season
                     </div>
                     <div className="text-sm text-gray-400">
                       {contractInfo?.currentYears || 0} seasons remaining
@@ -299,10 +299,10 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
                     <Label className="text-white font-semibold">Annual Salary</Label>
                     <div className="text-right">
                       <div className="text-xl font-bold text-green-400">
-                        ₡{offerSalary.toLocaleString()}
+                        {offerSalary.toLocaleString()}₡
                       </div>
                       <div className="text-xs text-gray-400">
-                        Expected: ₡{calculation?.salaryRange?.min?.toLocaleString() || '0'} - ₡{calculation?.salaryRange?.max?.toLocaleString() || '0'}
+                        Expected: {calculation?.salaryRange?.min?.toLocaleString() || '0'}₡ - {calculation?.salaryRange?.max?.toLocaleString() || '0'}₡
                       </div>
                     </div>
                   </div>
@@ -317,9 +317,9 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
                   />
                   
                   <div className="flex justify-between text-xs text-gray-400">
-                    <span>Min: ₡{calculation?.salaryRange?.min?.toLocaleString() || '0'}</span>
-                    <span>Market: ₡{calculation?.marketValue?.toLocaleString() || '0'}</span>
-                    <span>Max: ₡{calculation?.salaryRange?.max?.toLocaleString() || '0'}</span>
+                    <span>Min: {calculation?.salaryRange?.min?.toLocaleString() || '0'}₡</span>
+                    <span>Market: {calculation?.marketValue?.toLocaleString() || '0'}₡</span>
+                    <span>Max: {calculation?.salaryRange?.max?.toLocaleString() || '0'}₡</span>
                   </div>
                 </div>
 

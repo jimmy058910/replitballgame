@@ -416,7 +416,7 @@ export default function TeamPage() {
                         <p className="text-2xl font-bold text-green-400">
                           {/*
                            // @ts-expect-error TS7006 */}
-                          ₡{playersWithRoles.reduce((total, player) => total + (player.contract?.salary || 0), 0).toLocaleString()}
+                          {playersWithRoles.reduce((total, player) => total + (player.contract?.salary || 0), 0).toLocaleString()}₡
                         </p>
                       </div>
                     )}
@@ -458,7 +458,7 @@ export default function TeamPage() {
                               </div>
                               <div className="text-right">
                                 <p className="font-semibold text-green-400">
-                                  ₡{(Number(player.contract?.salary) || 0).toLocaleString()}
+                                  {(Number(player.contract?.salary) || 0).toLocaleString()}₡
                                 </p>
                                 <p className="text-sm text-gray-400">
                                   {(player.contract?.length || 1)} seasons remaining

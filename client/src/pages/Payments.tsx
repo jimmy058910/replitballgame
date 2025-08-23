@@ -312,7 +312,7 @@ export default function Payments() {
                           {(pkg.bonusCredits ?? 0) > 0 && (
                             <div className="flex justify-between items-center text-green-400">
                               <span>Bonus Credits:</span>
-                              <span className="font-semibold">+{ (pkg.bonusCredits ?? 0).toLocaleString()}₡</span>
+                              <span className="font-semibold">+{(pkg.bonusCredits ?? 0).toLocaleString()}₡</span>
                             </div>
                           )}
                           

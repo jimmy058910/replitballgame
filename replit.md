@@ -4,6 +4,12 @@ Realm Rivalry is a mobile-first fantasy sports management game offering deep, en
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
+**UNIVERSAL CREDIT FORMAT STANDARD**: Credits must ALWAYS be displayed with the amount BEFORE the ₡ symbol.
+- ✅ CORRECT FORMAT: "25,000₡", "1.5M₡", "0₡"
+- ❌ INCORRECT FORMAT: "₡25,000", "₡1.5M", "₡0"
+- All credit displays across the entire application must follow this format consistently
+- Use the creditFormatter utility (client/src/utils/creditFormatter.ts) for standardized formatting
+
 **CRITICAL COMMUNICATION REQUIREMENT**: Always confirm before implementing changes
 - When user asks for suggestions/advice: Provide information and recommendations, then ASK for permission to implement
 - When user asks questions: Answer the question, don't automatically take action

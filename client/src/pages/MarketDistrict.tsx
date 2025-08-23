@@ -275,7 +275,7 @@ export default function MarketDistrict() {
       const creditsReceived = data?.data?.creditsReceived || (gemAmount * 200);
       toast({
         title: "Exchange Successful!",
-        description: `Exchanged ${gemAmount} gems for ₡${creditsReceived.toLocaleString()}.`,
+        description: `Exchanged ${gemAmount} gems for ${creditsReceived.toLocaleString()}₡.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
@@ -362,7 +362,7 @@ export default function MarketDistrict() {
               <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm sm:text-base">
                 <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
                   <Coins className="h-5 w-5 text-yellow-400" />
-                  <span className="text-white font-bold">₡{((team as any)?.finances?.credits || (team as any)?.credits || 0).toLocaleString()}</span>
+                  <span className="text-white font-bold">{((team as any)?.finances?.credits || (team as any)?.credits || 0).toLocaleString()}₡</span>
                 </div>
                 <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
                   <Gem className="h-5 w-5 text-blue-400" />
@@ -565,7 +565,7 @@ export default function MarketDistrict() {
                                     onClick={() => handlePurchase(item.id, 'credits')}
                                     disabled={purchaseWithCreditsMutation.isPending || !item.canPurchase}
                                   >
-                                    {item.canPurchase ? `₡${item.credits.toLocaleString()}` : 'Limit Reached'}
+                                    {item.canPurchase ? `${item.credits.toLocaleString()}₡` : 'Limit Reached'}
                                   </Button>
                                 )}
                                 {item.gems && (
@@ -773,7 +773,7 @@ export default function MarketDistrict() {
                             <CardContent className="p-3">
                               <div className="text-purple-400 font-bold text-sm">{rate.gems} 💎</div>
                               <ArrowRightLeft className="h-3 w-3 text-gray-400 mx-auto my-1" />
-                              <div className="text-green-400 font-bold text-sm">₡{rate.credits.toLocaleString()}</div>
+                              <div className="text-green-400 font-bold text-sm">{rate.credits.toLocaleString()}₡</div>
                               <div className="text-gray-500 text-xs mb-2">1:{rate.ratio}</div>
                               <Badge className="mb-2 bg-blue-600 text-xs">
                                 {rate.label}

@@ -379,7 +379,7 @@ export default function Market() {
                   <span className="text-white font-medium">Total Credits</span>
                 </div>
                 <div className="text-2xl font-bold text-yellow-300">
-                  ₡{(parseInt(teamFinances?.credits as string) || teamFinances?.credits || team?.credits || 0).toLocaleString()}
+                  {(parseInt(teamFinances?.credits as string) || teamFinances?.credits || team?.credits || 0).toLocaleString()}₡
                 </div>
               </div>
               <div className="text-center">
@@ -407,7 +407,7 @@ export default function Market() {
                   <span className="text-white font-medium">Stadium Revenue</span>
                 </div>
                 <div className="text-xl font-bold text-green-300">
-                  ₡{(teamFinances?.stadiumRevenue || 0).toLocaleString()}
+                  {(teamFinances?.stadiumRevenue || 0).toLocaleString()}₡
                 </div>
               </div>
               <div className="text-center">
@@ -416,7 +416,7 @@ export default function Market() {
                   <span className="text-white font-medium">Net Revenue</span>
                 </div>
                 <div className="text-xl font-bold text-white">
-                  ₡{(teamFinances?.netRevenue || 0).toLocaleString()}
+                  {(teamFinances?.netRevenue || 0).toLocaleString()}₡
                 </div>
               </div>
             </div>
@@ -602,7 +602,7 @@ export default function Market() {
                                 onClick={() => handlePurchase(item.id, 'credits')}
                                 disabled={purchaseWithCreditsMutation.isPending || !item.canPurchase}
                               >
-                                {item.canPurchase ? `₡${item.credits.toLocaleString()}` : 'Daily Limit Reached'}
+                                {item.canPurchase ? `${item.credits.toLocaleString()}₡` : 'Daily Limit Reached'}
                               </Button>
                             )}
                             {item.gems && (
@@ -740,21 +740,21 @@ export default function Market() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
                             <h4 className="font-semibold text-yellow-700 dark:text-yellow-300">Playoff Champion</h4>
-                            <div className="text-lg font-bold">₡{division.champion.credits.toLocaleString()}</div>
+                            <div className="text-lg font-bold">{division.champion.credits.toLocaleString()}₡</div>
                             {division.champion.gems > 0 && (
                               <div className="text-blue-600">💎{division.champion.gems}</div>
                             )}
                           </div>
                           <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded">
                             <h4 className="font-semibold text-gray-700 dark:text-gray-300">Playoff Runner-Up</h4>
-                            <div className="text-lg font-bold">₡{division.runnerUp.credits.toLocaleString()}</div>
+                            <div className="text-lg font-bold">{division.runnerUp.credits.toLocaleString()}₡</div>
                             {division.runnerUp.gems > 0 && (
                               <div className="text-blue-600">💎{division.runnerUp.gems}</div>
                             )}
                           </div>
                           <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded">
                             <h4 className="font-semibold text-green-700 dark:text-green-300">Regular Season Winner</h4>
-                            <div className="text-lg font-bold">₡{division.regularWinner.credits.toLocaleString()}</div>
+                            <div className="text-lg font-bold">{division.regularWinner.credits.toLocaleString()}₡</div>
                             {division.regularWinner.gems > 0 && (
                               <div className="text-blue-600">💎{division.regularWinner.gems}</div>
                             )}
@@ -1024,7 +1024,7 @@ export default function Market() {
                     <li>• Higher gem amounts offer better exchange rates</li>
                     <li>• All exchanges are permanent and cannot be reversed</li>
                     <li>• Your current gems: {(teamFinances?.gems || 0).toLocaleString()} 💎</li>
-                    <li>• Your current credits: {(teamFinances?.credits || 0).toLocaleString()} ₡</li>
+                    <li>• Your current credits: {(teamFinances?.credits || 0).toLocaleString()}₡</li>
                   </ul>
                 </div>
               </CardContent>

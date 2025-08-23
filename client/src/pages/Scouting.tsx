@@ -368,7 +368,7 @@ export default function Scouting() {
                                   <div className="text-right">
                                     {/*
                                      // @ts-expect-error TS2339 */}
-                                    <div className="text-sm text-yellow-400">₡{Number(player.contract.salary).toLocaleString()}</div>
+                                    <div className="text-sm text-yellow-400">{Number(player.contract.salary).toLocaleString()}₡</div>
                                     <div className="text-xs text-gray-400">Salary</div>
                                   </div>
                                 )}
