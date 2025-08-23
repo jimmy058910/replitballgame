@@ -466,6 +466,14 @@ function PlayerSelector({
 }
 
 export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) {
+  // Debug logging for teamId
+  console.log('🔍 TapToAssignTactics Debug:', { 
+    teamId, 
+    teamIdType: typeof teamId, 
+    teamIdLength: teamId?.length,
+    enabled: !!teamId 
+  });
+
   const [formationSlots, setFormationSlots] = useState<FormationSlot[]>([
     { id: "blocker1", label: "Blocker #1", position: "B1", player: null, requiredRole: "blocker" },
     { id: "blocker2", label: "Blocker #2", position: "B2", player: null, requiredRole: "blocker" },
@@ -502,15 +510,25 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
   }, []);
 
   // Fetch team players (main roster only)
-  const { data: rawPlayers = [], isLoading } = useQuery({
+  const { data: rawPlayers = [], isLoading, error: playersError } = useQuery({
     queryKey: [`/api/teams/${teamId}/players`],
-    enabled: !!teamId,
+    enabled: !!teamId && teamId !== '',
   });
 
   // Fetch taxi squad players to exclude them
-  const { data: taxiSquadPlayers = [] } = useQuery({
+  const { data: taxiSquadPlayers = [], error: taxiError } = useQuery({
     queryKey: [`/api/teams/${teamId}/taxi-squad`],
-    enabled: !!teamId,
+    enabled: !!teamId && teamId !== '',
+  });
+
+  // Debug logging for API responses
+  console.log('🔍 TapToAssignTactics API Debug:', { 
+    teamId,
+    rawPlayersLength: rawPlayers?.length || 0,
+    taxiSquadLength: taxiSquadPlayers?.length || 0,
+    playersError,
+    taxiError,
+    isLoading
   });
 
   const taxiSquadIds = (taxiSquadPlayers as Player[]).map(p => p.id);

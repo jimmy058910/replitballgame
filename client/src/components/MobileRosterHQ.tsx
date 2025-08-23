@@ -827,7 +827,14 @@ export default function MobileRosterHQ() {
 
           {/* TAB 2: TACTICS */}
           <TabsContent value="tactics" className="space-y-6 px-2">
-            <TapToAssignTactics teamId={team?.id?.toString() || ''} />
+            {team?.id ? (
+              <TapToAssignTactics teamId={team.id.toString()} />
+            ) : (
+              <div className="text-center text-white py-8">
+                <div className="text-xl font-bold mb-2">Loading Team Data...</div>
+                <div className="text-gray-300">Please wait while we load your team information.</div>
+              </div>
+            )}
           </TabsContent>
 
           {/* TAB 3: CAMARADERIE */}
