@@ -205,139 +205,160 @@ export default function LeagueSchedule() {
     );
   };
 
-  // Sort days in ascending order (upcoming days first)
-  const sortedDays = Object.keys(schedule.schedule)
-    .map(Number)
-    .sort((a, b) => a - b);
-  
-  // DEBUG: Log what we're actually working with
-  console.log('🔍 Frontend Debug:', {
-    allScheduleKeys: Object.keys(schedule.schedule),
-    sortedDays: sortedDays,
-    totalDaysToRender: sortedDays.length,
-    scheduleStructure: Object.fromEntries(
-      Object.entries(schedule.schedule).map(([day, games]) => [day, games?.length || 0])
-    )
+  // Separate completed and upcoming games
+  const allMatches: ScheduledMatch[] = [];
+  Object.entries(schedule.schedule).forEach(([day, dayMatches]) => {
+    if (dayMatches && dayMatches.length > 0) {
+      dayMatches.forEach(match => {
+        allMatches.push({ ...match, gameDay: parseInt(day) });
+      });
+    }
   });
 
-  return (
-    <Card>
+  // Split matches into completed and upcoming
+  const completedMatches = allMatches
+    .filter(match => match.status.toUpperCase() === 'COMPLETED')
+    .sort((a, b) => b.gameDay - a.gameDay); // Most recent first
+
+  const upcomingMatches = allMatches
+    .filter(match => match.status.toUpperCase() !== 'COMPLETED')
+    .sort((a, b) => a.gameDay - b.gameDay); // Chronological order
+
+  // Group upcoming matches by day
+  const upcomingByDay: Record<number, ScheduledMatch[]> = {};
+  upcomingMatches.forEach(match => {
+    if (!upcomingByDay[match.gameDay]) {
+      upcomingByDay[match.gameDay] = [];
+    }
+    upcomingByDay[match.gameDay].push(match);
+  });
+
+  // Group completed matches by day
+  const completedByDay: Record<number, ScheduledMatch[]> = {};
+  completedMatches.forEach(match => {
+    if (!completedByDay[match.gameDay]) {
+      completedByDay[match.gameDay] = [];
+    }
+    completedByDay[match.gameDay].push(match);
+  });
+
+  const upcomingDays = Object.keys(upcomingByDay).map(Number).sort((a, b) => a - b);
+  const completedDays = Object.keys(completedByDay).map(Number).sort((a, b) => b - a);
+
+  const renderMatchesSection = (title: string, daysList: number[], matchesByDay: Record<number, ScheduledMatch[]>, isCompleted = false) => (
+    <Card className="mt-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="w-5 h-5" />
-          League Schedule
-          <Badge variant="outline" className="ml-auto">
-            Day {schedule.currentDay} of {schedule.totalDays}
-          </Badge>
+          {title}
+          {!isCompleted && (
+            <Badge variant="outline" className="ml-auto">
+              Day {schedule.currentDay} of {schedule.totalDays}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 max-h-none">
-        {sortedDays.map(day => {
-          const dayMatches = schedule.schedule[day.toString()];
-          console.log(`🔍 Rendering Day ${day}:`, { dayMatches: dayMatches?.length || 0, hasMatches: !!dayMatches, shouldRender: !(!dayMatches || dayMatches.length === 0) });
-          
-          // FORCE RENDER ALL DAYS FOR DEBUGGING - TEMPORARILY REMOVE THE FILTER
-          if (!dayMatches || dayMatches.length === 0) {
-            console.log(`⚠️ SKIPPING Day ${day} - No matches found`);
-            // TEMPORARILY FORCE RENDER EMPTY DAYS TO SEE IF THEY APPEAR
+        {daysList.length === 0 ? (
+          <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+            <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>No {isCompleted ? 'completed' : 'upcoming'} games</p>
+          </div>
+        ) : (
+          daysList.map(day => {
+            const dayMatches = matchesByDay[day];
+            if (!dayMatches || dayMatches.length === 0) return null;
+
+            const isCurrentDay = day === schedule.currentDay;
+
             return (
               <div key={day} className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-red-500">
-                    Day {day} - NO GAMES FOUND (Debug)
+                  <h3 className="text-lg font-semibold">
+                    Day {day}
+                    {isCurrentDay && (
+                      <Badge variant="default" className="ml-2">
+                        Current
+                      </Badge>
+                    )}
                   </h3>
+                  <div className="flex-1">
+                    <Separator />
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {dayMatches.length} games
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {dayMatches.map((match, index) => {
+                    const isUserMatch = isUserTeamMatch(match);
+                    return (
+                      <div
+                        key={match.id}
+                        className={`flex items-center justify-between p-3 rounded-lg border ${
+                          match.isLive || match.status.toUpperCase() === 'IN_PROGRESS'
+                            ? 'border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/30' 
+                            : isUserMatch 
+                              ? 'border-blue-400 bg-blue-100 text-blue-900 dark:border-blue-500 dark:bg-blue-800/30 dark:text-blue-100' 
+                              : 'border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {getScoreDisplay(match, index)}
+                          
+                          <div className="flex items-center gap-2">
+                            <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`} />
+                            <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
+                              {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
+                            </span>
+                            <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-200'}`}>vs</span>
+                            <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
+                              {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(match)}
+                          
+                          {(match.canWatch && (match.isLive || match.status.toUpperCase() === 'IN_PROGRESS')) && (
+                            <Link href={`/live-match/${match.id}`}>
+                              <Button size="sm" variant="default" className="gap-1">
+                                <Eye className="w-3 h-3" />
+                                Watch Live
+                              </Button>
+                            </Link>
+                          )}
+                          
+                          {match.status.toUpperCase() === 'COMPLETED' && (
+                            <Link href={`/live-match/${match.id}`}>
+                              <Button size="sm" variant="outline" className="gap-1">
+                                <Eye className="w-3 h-3" />
+                                View Result
+                              </Button>
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
-          }
-
-          const isCurrentDay = day === schedule.currentDay;
-          
-          return (
-            <div key={day} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold">
-                  Day {day}
-                  {isCurrentDay && (
-                    <Badge variant="default" className="ml-2">
-                      Current
-                    </Badge>
-                  )}
-                </h3>
-                <div className="flex-1">
-                  <Separator />
-                </div>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {dayMatches.length} games
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {dayMatches.map((match, index) => {
-                  const isUserMatch = isUserTeamMatch(match);
-                  return (
-                    <div
-                      key={match.id}
-                      className={`flex items-center justify-between p-3 rounded-lg border ${
-                        match.isLive || match.status.toUpperCase() === 'IN_PROGRESS'
-                          ? 'border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/30' 
-                          : isUserMatch 
-                            ? 'border-blue-400 bg-blue-100 text-blue-900 dark:border-blue-500 dark:bg-blue-800/30 dark:text-blue-100' 
-                            : 'border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/50'
-                      }`}
-                    >
-                    <div className="flex items-center gap-3">
-                      {getScoreDisplay(match, index)}
-                      
-                      <div className="flex items-center gap-2">
-                        <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`} />
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
-                          {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
-                        </span>
-                        <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-200'}`}>vs</span>
-                        <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
-                          {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(match)}
-                      
-                      {(match.canWatch && (match.isLive || match.status.toUpperCase() === 'IN_PROGRESS')) && (
-                        <Link href={`/live-match/${match.id}`}>
-                          <Button size="sm" variant="default" className="gap-1">
-                            <Eye className="w-3 h-3" />
-                            Watch Live
-                          </Button>
-                        </Link>
-                      )}
-                      
-                      {match.status.toUpperCase() === 'COMPLETED' && (
-                        <Link href={`/live-match/${match.id}`}>
-                          <Button size="sm" variant="outline" className="gap-1">
-                            <Eye className="w-3 h-3" />
-                            View Result
-                          </Button>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-
-        {sortedDays.length === 0 && (
-          <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-            <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>No league games scheduled yet</p>
-            <p className="text-sm">Games will appear here once the season begins</p>
-          </div>
+          })
         )}
       </CardContent>
     </Card>
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Remaining League Schedule Section */}
+      {renderMatchesSection("Remaining League Schedule", upcomingDays, upcomingByDay, false)}
+      
+      {/* Completed League Games Section */}
+      {renderMatchesSection("Completed League Games", completedDays, completedByDay, true)}
+    </div>
   );
 }
