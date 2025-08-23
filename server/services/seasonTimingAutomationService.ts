@@ -52,16 +52,10 @@ export class SeasonTimingAutomationService {
     this.isRunning = true;
     logInfo('Starting season timing automation system...');
 
-    // CRITICAL FIX: Check for missed daily progressions on startup
-    console.log('🔧 [AUTOMATION DEBUG] About to call checkAndExecuteMissedDailyProgressions...');
-    
-    try {
-      await this.checkAndExecuteMissedDailyProgressions();
-      console.log('✅ [AUTOMATION DEBUG] checkAndExecuteMissedDailyProgressions completed successfully');
-    } catch (error) {
-      console.error('❌ [AUTOMATION DEBUG] checkAndExecuteMissedDailyProgressions failed:', error);
-      console.error('❌ [AUTOMATION DEBUG] Error stack:', (error as Error).stack);
-    }
+    // DISABLED: Check for missed daily progressions on startup
+    // This was causing premature day advancement - daily progression should only happen at 3:00 AM EDT
+    console.log('🔧 [AUTOMATION DEBUG] Missed progression check DISABLED to prevent premature day advancement');
+    console.log('✅ [AUTOMATION DEBUG] Daily progression will only occur at scheduled 3:00 AM EDT time');
 
     // ALPHA TESTING FIX: DISABLED - Was creating Day 6 games repeatedly on server startup
     console.log('🔧 [ALPHA TESTING] Oakland Cougars schedule automation DISABLED (was creating Day 6 games)');

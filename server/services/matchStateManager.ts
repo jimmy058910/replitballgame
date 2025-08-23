@@ -1831,40 +1831,54 @@ class MatchStateManager {
       
       logger.info(`🔄 Converted IDs: Home ${homeId}, Away ${awayId}`);
       
-      // Determine winner
+      // Determine winner and update standings
       if (homeScore > awayScore) {
         // Home team wins
         await (await getPrismaClient()).team.update({
           where: { id: homeId },
-          data: { wins: { increment: 1 }, points: { increment: 3 } }
+          data: { 
+            wins: { increment: 1 }, 
+            points: { increment: 3 }
+          }
         });
         await (await getPrismaClient()).team.update({
           where: { id: awayId },
-          data: { losses: { increment: 1 } }
+          data: { 
+            losses: { increment: 1 }
+          }
         });
-        logger.info(`Home team ${homeId} wins, Away team ${awayId} loses`);
+        logger.info(`✅ STANDINGS: Home team ${homeId} wins (W+1, Pts+3), Away team ${awayId} loses (L+1)`);
       } else if (awayScore > homeScore) {
         // Away team wins
         await (await getPrismaClient()).team.update({
           where: { id: awayId },
-          data: { wins: { increment: 1 }, points: { increment: 3 } }
+          data: { 
+            wins: { increment: 1 }, 
+            points: { increment: 3 }
+          }
         });
         await (await getPrismaClient()).team.update({
           where: { id: homeId },
-          data: { losses: { increment: 1 } }
+          data: { 
+            losses: { increment: 1 }
+          }
         });
-        logger.info(`Away team ${awayId} wins, Home team ${homeId} loses`);
+        logger.info(`✅ STANDINGS: Away team ${awayId} wins (W+1, Pts+3), Home team ${homeId} loses (L+1)`);
       } else {
-        // Draw - award 1 point to each team (no draws field in Team model)
+        // Draw - award 1 point to each team
         await (await getPrismaClient()).team.update({
           where: { id: homeId },
-          data: { points: { increment: 1 } }
+          data: { 
+            points: { increment: 1 }
+          }
         });
         await (await getPrismaClient()).team.update({
           where: { id: awayId },
-          data: { points: { increment: 1 } }
+          data: { 
+            points: { increment: 1 }
+          }
         });
-        logger.info(`Draw between teams ${homeId} and ${awayId} - both teams awarded 1 point`);
+        logger.info(`✅ STANDINGS: Draw between teams ${homeId} and ${awayId} (both: Pts+1)`);
       }
     } catch (error) {
       console.error(`Error updating team records for teams ${homeTeamId} and ${awayTeamId}:`, error);
