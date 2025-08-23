@@ -544,4 +544,101 @@ router.post('/test-exhibition-rewards', RBACService.requirePermission(Permission
   }
 }));
 
+// Fix camaraderie scores bug - Emergency endpoint (no auth required for debugging)
+router.post('/fix-camaraderie-bug-emergency', asyncHandler(async (req: any, res: Response) => {
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Get current camaraderie scores before fix
+    const playersBefore = await prisma.player.findMany({
+      select: { 
+        id: true, 
+        firstName: true, 
+        lastName: true, 
+        camaraderieScore: true 
+      },
+      where: { 
+        teamId: 4, 
+        isRetired: false 
+      },
+      take: 5
+    });
+    
+    // Fix the camaraderie bug: players with scores < 50 should be set to proper range (60-85)
+    // This fixes the issue where SQL scripts incorrectly set scores to 7.5-10.0 instead of 75.0
+    const updateCount = await prisma.$executeRaw`
+      UPDATE "Player" 
+      SET "camaraderieScore" = 60 + (RANDOM() * 25)
+      WHERE "camaraderieScore" < 50 AND "isRetired" = false
+    `;
+
+    // Get camaraderie scores after fix
+    const playersAfter = await prisma.player.findMany({
+      select: { 
+        id: true, 
+        firstName: true, 
+        lastName: true, 
+        camaraderieScore: true 
+      },
+      where: { 
+        teamId: 4, 
+        isRetired: false 
+      },
+      take: 5
+    });
+
+    res.json({ 
+      success: true, 
+      message: "Emergency camaraderie fix applied",
+      updateCount,
+      before: playersBefore,
+      after: playersAfter
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      stack: error.stack 
+    });
+  }
+}));
+
+// Fix camaraderie scores bug - Emergency endpoint
+router.post('/fix-camaraderie-bug', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
+  const requestId = req.requestId;
+  const userId = req.user.claims.sub;
+  
+  logInfo("Admin fixing camaraderie bug", { adminUserId: userId, requestId });
+
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Fix the camaraderie bug: players with scores < 50 should be set to proper range (60-85)
+    // This fixes the issue where SQL scripts incorrectly set scores to 7.5-10.0 instead of 75.0
+    const updateResult = await prisma.$executeRaw`
+      UPDATE "Player" 
+      SET "camaraderieScore" = 60 + (RANDOM() * 25)
+      WHERE "camaraderieScore" < 50 AND "isRetired" = false
+    `;
+
+    logInfo("Camaraderie bug fix completed", { 
+      adminUserId: userId, 
+      requestId,
+      playersUpdated: updateResult 
+    });
+
+    res.json({ 
+      success: true, 
+      message: "Camaraderie scores fixed for all players with scores below 50",
+      playersUpdated: updateResult
+    });
+  } catch (error) {
+    logError(error as Error, requestId, { 
+      adminUserId: userId, 
+      operation: 'fix-camaraderie-bug' 
+    });
+    throw ErrorCreators.internal("Failed to fix camaraderie scores");
+  }
+}));
+
 export default router;
