@@ -157,6 +157,17 @@ const getMidSeasonCupRewards = (division: number) => {
   return rewardTable[division] || rewardTable[8];
 };
 
+// Helper function to get Mid-Season Cup entry fees
+const getMidSeasonCupEntryFees = (division: number) => {
+  // Divisions 1-4 (Diamond, Platinum, Gold, Silver): 2500₡ + 8💎
+  // Divisions 5-8 (Bronze, Copper, Iron, Stone): 1200₡ + 8💎
+  if (division >= 1 && division <= 4) {
+    return { credits: 2500, gems: 8 };
+  } else {
+    return { credits: 1200, gems: 8 };
+  }
+};
+
 export default function ComprehensiveCompetitionCenter() {
   const { isAuthenticated } = useAuth();
   const [location, setLocation] = useLocation();
@@ -548,7 +559,7 @@ export default function ComprehensiveCompetitionCenter() {
     onError: (error: any) => {
       toast({
         title: "Registration Failed",
-        description: error.message || "Unable to register for Mid-Season Cup. Check your credits (10,000₡) or gems (20💎).",
+        description: error.message || `Unable to register for Mid-Season Cup. Check your credits (${getMidSeasonCupEntryFees(team?.division || 8).credits.toLocaleString()}₡) or gems (${getMidSeasonCupEntryFees(team?.division || 8).gems}💎).`,
         variant: "destructive",
       });
     },
@@ -991,7 +1002,7 @@ export default function ComprehensiveCompetitionCenter() {
                       <div className="flex items-center gap-2">
                         <Trophy className="h-4 w-4 text-yellow-400" />
                         <span className="text-gray-200">
-                          {currentTournamentStatus?.registered ? "Quarterfinals" : "1 Free Entry/Day + Tournament Entry Items"}
+                          {currentTournamentStatus?.registered ? "Round 1" : "1 Free Entry/Day + Tournament Entry Items"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1094,7 +1105,7 @@ export default function ComprehensiveCompetitionCenter() {
                           </div>
                           <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-yellow-400" />
-                            <span className="text-gray-200">Entry: 10,000₡ + 20💎</span>
+                            <span className="text-gray-200">Entry: {getMidSeasonCupEntryFees(team?.division || 8).credits.toLocaleString()}₡ + {getMidSeasonCupEntryFees(team?.division || 8).gems}💎</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Trophy className="h-4 w-4 text-green-400" />
@@ -1168,7 +1179,7 @@ export default function ComprehensiveCompetitionCenter() {
                       ) : (
                         <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
                       )}
-                      Daily Divisional Tournament: {currentTournamentStatus?.registered ? "Active • Round 1 Quarterfinals" : "Registration OPEN • Not Entered"}
+                      Daily Divisional Tournament: {currentTournamentStatus?.registered ? "Active • Round 1" : "Registration OPEN • Not Entered"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">

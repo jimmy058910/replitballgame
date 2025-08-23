@@ -218,12 +218,24 @@ export class TournamentService {
     return created.id.toString();
   }
 
+  // Get Mid-Season Cup entry fees based on division
+  private getMidSeasonCupEntryFees(division: number): { credits: number; gems: number } {
+    // Divisions 1-4 (Diamond, Platinum, Gold, Silver): 2500₡ + 8💎
+    // Divisions 5-8 (Bronze, Copper, Iron, Stone): 1200₡ + 8💎
+    if (division >= 1 && division <= 4) {
+      return { credits: 2500, gems: 8 };
+    } else {
+      return { credits: 1200, gems: 8 };
+    }
+  }
+
   // Create Mid-Season Cup tournament
   async createMidSeasonCup(division: number): Promise<string> {
     const prisma = await getPrismaClient();
     const season = this.getCurrentSeason();
     const gameDay = 7; // Always Day 7
     const rewards = this.getMidSeasonCupRewards(division);
+    const entryFees = this.getMidSeasonCupEntryFees(division);
     
     const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
     const tournamentName = `${divisionNames[division]} Mid-Season Cup - Season ${season}`;
@@ -237,8 +249,8 @@ export class TournamentService {
       type: "MID_SEASON_CLASSIC" as const, // Use MID_SEASON_CLASSIC to match the existing logic
       division,
       seasonDay: 7,
-      entryFeeCredits: BigInt(10000),
-      entryFeeGems: 20,
+      entryFeeCredits: BigInt(entryFees.credits),
+      entryFeeGems: entryFees.gems,
       status: "REGISTRATION_OPEN" as const,
       prizePoolJson: rewards as any,
       registrationEndTime: moment.tz("America/New_York").endOf('day').toDate(), // End of Day 6
@@ -879,13 +891,15 @@ export class TournamentService {
     const teamCredits = Number(teamFinances?.credits || 0);
     const teamGems = teamFinances?.gems || 0;
 
+    const entryFees = this.getMidSeasonCupEntryFees(team.division || 8);
+
     if (paymentType === "credits") {
-      if (teamCredits < 10000) {
-        throw new Error("Insufficient credits for Mid-Season Cup entry (10,000₡ required)");
+      if (teamCredits < entryFees.credits) {
+        throw new Error(`Insufficient credits for Mid-Season Cup entry (${entryFees.credits.toLocaleString()}₡ required)`);
       }
       await prisma.teamFinances.update({
         where: { teamId: Number(teamId) },
-        data: { credits: BigInt(teamCredits - 10000) }
+        data: { credits: BigInt(teamCredits - entryFees.credits) }
       });
 
       // Log Mid-Season Cup entry fee transaction
@@ -897,17 +911,17 @@ export class TournamentService {
           teamWithUser.userProfileId.toString(),
           teamId.toString(),
           "Mid-Season Cup Entry (Credits)",
-          "0",
+          entryFees.credits.toString(),
           0
         );
       }
     } else if (paymentType === "gems") {
-      if (teamGems < 20) {
-        throw new Error("Insufficient gems for Mid-Season Cup entry (20💎 required)");
+      if (teamGems < entryFees.gems) {
+        throw new Error(`Insufficient gems for Mid-Season Cup entry (${entryFees.gems}💎 required)`);
       }
       await prisma.teamFinances.update({
         where: { teamId: Number(teamId) },
-        data: { gems: teamGems - 20 }
+        data: { gems: teamGems - entryFees.gems }
       });
 
       // Log Mid-Season Cup entry fee transaction
@@ -920,18 +934,18 @@ export class TournamentService {
           teamId.toString(),
           "Mid-Season Cup Entry (Gems)",
           "0",
-          20
+          entryFees.gems
         );
       }
     } else if (paymentType === "both") {
-      if (teamCredits < 10000 || teamGems < 20) {
-        throw new Error("Insufficient credits AND gems for Mid-Season Cup entry (10,000₡ AND 20💎 required)");
+      if (teamCredits < entryFees.credits || teamGems < entryFees.gems) {
+        throw new Error(`Insufficient credits AND gems for Mid-Season Cup entry (${entryFees.credits.toLocaleString()}₡ AND ${entryFees.gems}💎 required)`);
       }
       await prisma.teamFinances.update({
         where: { teamId: Number(teamId) },
         data: { 
-          credits: BigInt(teamCredits - 10000),
-          gems: teamGems - 20
+          credits: BigInt(teamCredits - entryFees.credits),
+          gems: teamGems - entryFees.gems
         }
       });
 
@@ -944,8 +958,8 @@ export class TournamentService {
           teamWithUser.userProfileId.toString(),
           teamId.toString(),
           "Mid-Season Cup Entry (Credits + Gems)",
-          "10000",
-          20
+          entryFees.credits.toString(),
+          entryFees.gems
         );
       }
     }
