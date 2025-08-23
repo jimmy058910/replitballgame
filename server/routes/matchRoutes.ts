@@ -188,13 +188,20 @@ router.get('/live', requireAuth, async (req: Request, res: Response, next: NextF
 router.get('/:matchId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
+    console.log(`=== GET /api/matches/${matchId} ===`);
+    
     const matchIdNum = parseInt(matchId, 10);
     if (isNaN(matchIdNum)) {
+      console.log(`Invalid match ID: ${matchId}`);
       return res.status(400).json({ message: "Invalid match ID" });
     }
+    
+    console.log(`Attempting to get match ${matchIdNum} from storage...`);
     const match = await matchStorage.getMatchById(matchIdNum); // Use matchStorage
+    console.log(`Match result:`, match ? `Found match ${match.id}` : 'No match found');
 
     if (!match) {
+      console.log(`Match ${matchIdNum} not found in database`);
       return res.status(404).json({ message: "Match not found" });
     }
 

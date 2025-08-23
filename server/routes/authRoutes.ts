@@ -3,6 +3,40 @@ import { requireAuth } from "../middleware/firebaseAuth.js";
 
 const router = Router();
 
+// ✅ DEVELOPMENT TOKEN ENDPOINT - For testing and frontend auth
+router.get('/dev-token', async (req: Request, res: Response) => {
+  try {
+    console.log('🔥 Creating development Firebase token...');
+    
+    // Development user profile
+    const testUser = {
+      uid: 'dev-user-123',
+      email: 'developer@realmrivalry.com',
+      displayName: 'Development User'
+    };
+    
+    // Import Firebase Admin (already initialized in middleware)
+    const admin = (await import('firebase-admin')).default;
+    
+    // Create custom token for development
+    const customToken = await admin.auth().createCustomToken(testUser.uid, {
+      email: testUser.email,
+      displayName: testUser.displayName,
+      dev: true
+    });
+    
+    // Also create an ID token for immediate use (simulate frontend auth flow)
+    console.log('✅ Development token created');
+    
+    // Return the custom token directly as plain text for easy curl usage
+    return res.send(customToken);
+    
+  } catch (error: any) {
+    console.error('❌ Development token creation failed:', error);
+    return res.status(500).send('TOKEN_CREATION_FAILED');
+  }
+});
+
 // ✅ FIREBASE CUSTOM TOKEN LOGIN - Development authentication
 router.post('/login', async (req: Request, res: Response) => {
   try {
