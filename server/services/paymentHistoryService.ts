@@ -3,18 +3,97 @@ import type { PaymentTransaction, Prisma } from "@prisma/client";
 
 export class PaymentHistoryService {
   /**
-   * Record a new payment transaction
+   * Record a new payment transaction and update team balance
    */
   static async recordTransaction(transaction: Prisma.PaymentTransactionCreateInput): Promise<any> {
     const prisma = await getPrismaClient();
+    
+    // Create the transaction
     const newTransaction = await prisma.paymentTransaction.create({
       data: transaction
     });
+    
+    // Update team balance if teamId is provided
+    if (transaction.teamId) {
+      await this.updateTeamBalanceFromTransactionHistory(transaction.teamId);
+    }
     
     // Serialize BigInt fields for JSON response
     return {
       ...newTransaction,
       creditsAmount: newTransaction.creditsAmount?.toString() || '0',
+    };
+  }
+
+  /**
+   * Manually update team balance based on transaction history (public method)
+   */
+  static async fixTeamBalanceFromTransactionHistory(teamId: number): Promise<{
+    totalCredits: number;
+    totalGems: number;
+    transactionCount: number;
+  }> {
+    const result = await this.updateTeamBalanceFromTransactionHistory(teamId);
+    return result;
+  }
+
+  /**
+   * Update team balance based on transaction history
+   */
+  static async updateTeamBalanceFromTransactionHistory(teamId: number): Promise<{
+    totalCredits: number;
+    totalGems: number;
+    transactionCount: number;
+  }> {
+    const prisma = await getPrismaClient();
+    
+    // Get all completed transactions for this team
+    const transactions = await prisma.paymentTransaction.findMany({
+      where: { 
+        teamId: teamId,
+        status: 'completed'
+      },
+    });
+    
+    // Calculate totals
+    let totalCredits = 0;
+    let totalGems = 0;
+    
+    transactions.forEach(transaction => {
+      const creditsAmount = Number(transaction.creditsAmount || 0);
+      const gemsAmount = transaction.gemsAmount || 0;
+      
+      totalCredits += creditsAmount;
+      totalGems += gemsAmount;
+    });
+    
+    // Update team finances (correct table for financial data)
+    await prisma.teamFinances.upsert({
+      where: { teamId: teamId },
+      update: {
+        credits: totalCredits,
+        gems: totalGems
+      },
+      create: {
+        teamId: teamId,
+        credits: totalCredits,
+        gems: totalGems,
+        escrowCredits: 0,
+        escrowGems: 0,
+        projectedIncome: 0,
+        projectedExpenses: 0,
+        lastSeasonRevenue: 0,
+        lastSeasonExpenses: 0,
+        facilitiesMaintenanceCost: 5000
+      }
+    });
+    
+    console.log(`💰 [BALANCE UPDATE] Team ${teamId}: ${totalCredits}₡, ${totalGems} gems (from ${transactions.length} transactions)`);
+    
+    return {
+      totalCredits,
+      totalGems,
+      transactionCount: transactions.length
     };
   }
 
@@ -99,16 +178,22 @@ export class PaymentHistoryService {
       limit?: number;
       offset?: number;
     } = {}
-  ): Promise<PaymentTransaction[]> {
+  ): Promise<any[]> {
     const { limit = 50, offset = 0 } = options;
 
     const prisma = await getPrismaClient();
-    return await prisma.paymentTransaction.findMany({
+    const transactions = await prisma.paymentTransaction.findMany({
       where: { teamId: parseInt(teamId, 10) },
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
     });
+
+    // Convert BigInt to string for JSON serialization
+    return transactions.map(transaction => ({
+      ...transaction,
+      creditsAmount: transaction.creditsAmount?.toString() || '0'
+    }));
   }
 
   /**

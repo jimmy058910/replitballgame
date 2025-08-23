@@ -9,6 +9,7 @@ import { getPrismaClient } from "../database.js";
 import { TeamNameValidator } from '../services/teamNameValidation.js';
 import { CamaraderieService } from '../services/camaraderieService.js';
 import { cacheResponse } from "../middleware/cacheMiddleware.js";
+import { PaymentHistoryService } from '../services/paymentHistoryService.js';
 
 const router = Router();
 
@@ -714,6 +715,124 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+// Fix financial balance based on transaction history (direct database approach)
+router.post('/:teamId/fix-financial-balance', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔧 [FINANCIAL FIX] Fixing team financial balance from transaction history');
+  
+  const { teamId } = req.params;
+  const userId = req.user?.claims?.sub;
+  
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Get all completed transactions for this team
+    const transactions = await prisma.paymentTransaction.findMany({
+      where: { 
+        teamId: parseInt(teamId),
+        status: 'completed'
+      },
+    });
+    
+    // Calculate totals
+    let totalCredits = 0;
+    let totalGems = 0;
+    
+    transactions.forEach(transaction => {
+      const creditsAmount = Number(transaction.creditsAmount || 0);
+      const gemsAmount = transaction.gemsAmount || 0;
+      
+      totalCredits += creditsAmount;
+      totalGems += gemsAmount;
+    });
+    
+    console.log(`💰 [FINANCIAL FIX] Calculated from ${transactions.length} transactions: ${totalCredits}₡, ${totalGems} gems`);
+    
+    // Direct update to TeamFinances table
+    const updatedFinances = await prisma.teamFinances.upsert({
+      where: { teamId: parseInt(teamId) },
+      update: {
+        credits: totalCredits,
+        gems: totalGems
+      },
+      create: {
+        teamId: parseInt(teamId),
+        credits: totalCredits,
+        gems: totalGems,
+        escrowCredits: 0,
+        escrowGems: 0,
+        projectedIncome: 0,
+        projectedExpenses: 0,
+        lastSeasonRevenue: 0,
+        lastSeasonExpenses: 0,
+        facilitiesMaintenanceCost: 5000
+      }
+    });
+    
+    console.log(`✅ [FINANCIAL FIX] Updated TeamFinances: ${updatedFinances.credits}₡, ${updatedFinances.gems} gems`);
+    
+    res.json({
+      success: true,
+      message: 'Financial balance corrected from transaction history',
+      before: { credits: 0, gems: 0 },
+      after: { credits: Number(updatedFinances.credits), gems: Number(updatedFinances.gems) },
+      transactionCount: transactions.length,
+      breakdown: {
+        totalCredits,
+        totalGems,
+        transactionSummary: transactions.map((t: any) => ({
+          date: t.createdAt,
+          type: t.transactionType,
+          item: t.itemName,
+          credits: t.creditsAmount?.toString() || '0',
+          gems: t.gemsAmount
+        }))
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ [FINANCIAL FIX] Error fixing balance:', error);
+    res.status(500).json({ message: `Failed to fix financial balance: ${error.message}` });
+  }
+}));
+
+// Add transactions route that matches frontend expectations
+router.get('/transactions', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [TRANSACTIONS] /api/teams/transactions route called');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  // Get user's team first
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team) {
+    return res.status(404).json({ message: "Team not found" });
+  }
+  
+  try {
+    // Get team payment history and convert BigInt to strings
+    const transactions = await PaymentHistoryService.getTeamPaymentHistory(team.id.toString());
+    
+    // Convert BigInt values to strings for JSON serialization
+    const serializedTransactions = transactions.map((transaction: any) => ({
+      ...transaction,
+      creditsAmount: transaction.creditsAmount?.toString() || '0',
+      gemsAmount: transaction.gemsAmount || 0
+    }));
+    
+    console.log(`✅ [TRANSACTIONS] Found ${serializedTransactions.length} transactions for team ${team.id}`);
+    res.json(serializedTransactions);
+  } catch (error) {
+    console.error('❌ [TRANSACTIONS] Error getting transactions:', error);
+    res.status(500).json({ message: "Failed to get transactions" });
+  }
+}));
 
 console.log('🔍 [teamRoutes.ts] Router configured with routes, exporting...');
 console.log('🔍 [teamRoutes.ts] Router stack length:', router.stack.length);
