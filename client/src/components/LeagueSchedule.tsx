@@ -270,7 +270,7 @@ export default function LeagueSchedule() {
                   Day {schedule.currentDay} of {schedule.totalDays}
                 </Badge>
               )}
-              <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''} ${isCompleted ? 'ml-auto' : ''}`} />
             </CardTitle>
           </CardHeader>
         </CollapsibleTrigger>
