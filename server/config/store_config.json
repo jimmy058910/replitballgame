@@ -51,8 +51,8 @@
     "exhibition_credit": { "credits": 1000, "gems": 2 },
     "daily_tournament_ticket_div_5_8": { "credits": 500, "gems": 10 },
     "daily_tournament_ticket_div_1_4": { "credits": 1000, "gems": 10 },
-    "mid_season_cup_entry_div_5_8": { "credits": 1200, "gems": 8 },
-    "mid_season_cup_entry_div_1_4": { "credits": 2500, "gems": 8 }
+    "mid_season_cup_entry_div_5_8": { "credits": 1500, "gems": 10 },
+    "mid_season_cup_entry_div_1_4": { "credits": 7500, "gems": 20 }
   },
   "creditsPerGem": 1000,
   "gemPackages": [

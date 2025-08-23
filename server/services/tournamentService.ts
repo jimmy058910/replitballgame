@@ -220,12 +220,12 @@ export class TournamentService {
 
   // Get Mid-Season Cup entry fees based on division
   private getMidSeasonCupEntryFees(division: number): { credits: number; gems: number } {
-    // Divisions 1-4 (Diamond, Platinum, Gold, Silver): 2500₡ + 8💎
-    // Divisions 5-8 (Bronze, Copper, Iron, Stone): 1200₡ + 8💎
+    // Divisions 1-4 (Diamond, Platinum, Gold, Silver): 7500₡ OR 20💎
+    // Divisions 5-8 (Bronze, Copper, Iron, Stone): 1500₡ OR 10💎
     if (division >= 1 && division <= 4) {
-      return { credits: 2500, gems: 8 };
+      return { credits: 7500, gems: 20 };
     } else {
-      return { credits: 1200, gems: 8 };
+      return { credits: 1500, gems: 10 };
     }
   }
 

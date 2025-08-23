@@ -159,12 +159,12 @@ const getMidSeasonCupRewards = (division: number) => {
 
 // Helper function to get Mid-Season Cup entry fees
 const getMidSeasonCupEntryFees = (division: number) => {
-  // Divisions 1-4 (Diamond, Platinum, Gold, Silver): 2500₡ + 8💎
-  // Divisions 5-8 (Bronze, Copper, Iron, Stone): 1200₡ + 8💎
+  // Divisions 1-4 (Diamond, Platinum, Gold, Silver): 7500₡ OR 20💎
+  // Divisions 5-8 (Bronze, Copper, Iron, Stone): 1500₡ OR 10💎
   if (division >= 1 && division <= 4) {
-    return { credits: 2500, gems: 8 };
+    return { credits: 7500, gems: 20 };
   } else {
-    return { credits: 1200, gems: 8 };
+    return { credits: 1500, gems: 10 };
   }
 };
 
@@ -1105,7 +1105,7 @@ export default function ComprehensiveCompetitionCenter() {
                           </div>
                           <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-yellow-400" />
-                            <span className="text-gray-200">Entry: {getMidSeasonCupEntryFees(team?.division || 8).credits.toLocaleString()}₡ + {getMidSeasonCupEntryFees(team?.division || 8).gems}💎</span>
+                            <span className="text-gray-200">Entry: {getMidSeasonCupEntryFees(team?.division || 8).credits.toLocaleString()}₡ OR {getMidSeasonCupEntryFees(team?.division || 8).gems}💎</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Trophy className="h-4 w-4 text-green-400" />
