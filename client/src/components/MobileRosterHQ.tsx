@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { useUnifiedAuth } from '../hooks/useUnifiedAuth';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -106,6 +107,7 @@ type RosterView = 'all' | 'medical' | 'contracts';
 export default function MobileRosterHQ() {
   const { isAuthenticated } = useUnifiedAuth();
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<TabType>('roster');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
@@ -216,19 +218,27 @@ export default function MobileRosterHQ() {
     return names[type] || type.replace('_', ' ');
   };
 
+  // Handle tab changes and update URL
+  const handleTabChange = (newTab: TabType) => {
+    setActiveTab(newTab);
+    setLocation(`/roster-hq?tab=${newTab}`);
+  };
+
+  // Handle view changes and update URL
+  const handleViewChange = (newView: RosterView) => {
+    setRosterView(newView);
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', newView);
+    window.history.pushState({}, '', url.toString());
+  };
+
   // Navigation helper functions
   const handleQuickAction = (action: string, view?: RosterView, tab?: TabType) => {
     if (view) {
-      setRosterView(view);
-      const url = new URL(window.location.href);
-      url.searchParams.set('view', view);
-      window.history.pushState({}, '', url.toString());
+      handleViewChange(view);
     }
     if (tab) {
-      setActiveTab(tab);
-      const url = new URL(window.location.href);
-      url.searchParams.set('tab', tab);
-      window.history.pushState({}, '', url.toString());
+      handleTabChange(tab);
     }
     setIsQuickActionsOpen(false);
   };
@@ -362,7 +372,7 @@ export default function MobileRosterHQ() {
     </div>
   );
 
-  // URL parameter handling
+  // URL parameter handling for direct tab navigation
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get('view') as RosterView;
@@ -374,7 +384,7 @@ export default function MobileRosterHQ() {
     if (tab && ['roster', 'tactics', 'camaraderie', 'stadium', 'staff'].includes(tab)) {
       setActiveTab(tab);
     }
-  }, []);
+  }, [location]);
 
   // Mark roster visit for daily tasks
   useEffect(() => {
@@ -550,7 +560,7 @@ export default function MobileRosterHQ() {
         </div>
 
         {/* Five-Tab Navigation - Clean and responsive */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as TabType)} className="w-full">
           <TabsList className="grid w-full grid-cols-5 bg-slate-800/50 border border-slate-600">
             <TabsTrigger value="roster" className="text-xs font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white py-2 px-2">
               👥 Roster
