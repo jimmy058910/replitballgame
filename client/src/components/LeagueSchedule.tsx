@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, Eye, Users } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Calendar, Clock, Eye, Users, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface ScheduledMatch {
   id: string;
@@ -30,6 +31,10 @@ interface DailySchedule {
 }
 
 export default function LeagueSchedule() {
+  // State for accordion sections
+  const [isRemainingOpen, setIsRemainingOpen] = useState(true); // Open by default
+  const [isCompletedOpen, setIsCompletedOpen] = useState(false); // Minimized by default
+
   useEffect(() => {
     console.log("✅ LeagueSchedule component mounted successfully");
   }, []);
@@ -245,120 +250,148 @@ export default function LeagueSchedule() {
   const upcomingDays = Object.keys(upcomingByDay).map(Number).sort((a, b) => a - b);
   const completedDays = Object.keys(completedByDay).map(Number).sort((a, b) => b - a);
 
-  const renderMatchesSection = (title: string, daysList: number[], matchesByDay: Record<number, ScheduledMatch[]>, isCompleted = false) => (
-    <Card className="mt-4">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
-          {title}
-          {!isCompleted && (
-            <Badge variant="outline" className="ml-auto">
-              Day {schedule.currentDay} of {schedule.totalDays}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6 max-h-none">
-        {daysList.length === 0 ? (
-          <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-            <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>No {isCompleted ? 'completed' : 'upcoming'} games</p>
-          </div>
-        ) : (
-          daysList.map(day => {
-            const dayMatches = matchesByDay[day];
-            if (!dayMatches || dayMatches.length === 0) return null;
-
-            const isCurrentDay = day === schedule.currentDay;
-
-            return (
-              <div key={day} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold">
-                    Day {day}
-                    {isCurrentDay && (
-                      <Badge variant="default" className="ml-2">
-                        Current
-                      </Badge>
-                    )}
-                  </h3>
-                  <div className="flex-1">
-                    <Separator />
-                  </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {dayMatches.length} games
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  {dayMatches.map((match, index) => {
-                    const isUserMatch = isUserTeamMatch(match);
-                    return (
-                      <div
-                        key={match.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border ${
-                          match.isLive || match.status.toUpperCase() === 'IN_PROGRESS'
-                            ? 'border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/30' 
-                            : isUserMatch 
-                              ? 'border-blue-400 bg-blue-100 text-blue-900 dark:border-blue-500 dark:bg-blue-800/30 dark:text-blue-100' 
-                              : 'border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          {getScoreDisplay(match, index)}
-                          
-                          <div className="flex items-center gap-2">
-                            <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`} />
-                            <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
-                              {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
-                            </span>
-                            <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-200'}`}>vs</span>
-                            <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
-                              {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(match)}
-                          
-                          {(match.canWatch && (match.isLive || match.status.toUpperCase() === 'IN_PROGRESS')) && (
-                            <Link href={`/live-match/${match.id}`}>
-                              <Button size="sm" variant="default" className="gap-1">
-                                <Eye className="w-3 h-3" />
-                                Watch Live
-                              </Button>
-                            </Link>
-                          )}
-                          
-                          {match.status.toUpperCase() === 'COMPLETED' && (
-                            <Link href={`/live-match/${match.id}`}>
-                              <Button size="sm" variant="outline" className="gap-1">
-                                <Eye className="w-3 h-3" />
-                                View Result
-                              </Button>
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+  const renderAccordionSection = (
+    title: string, 
+    daysList: number[], 
+    matchesByDay: Record<number, ScheduledMatch[]>, 
+    isCompleted = false,
+    isOpen: boolean,
+    setIsOpen: (open: boolean) => void
+  ) => (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="bg-gray-800/90 border border-gray-600">
+        <CollapsibleTrigger asChild>
+          <CardHeader className="hover:bg-gray-700/50 transition-colors cursor-pointer">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              {title}
+              {!isCompleted && (
+                <Badge variant="outline" className="ml-auto mr-2">
+                  Day {schedule.currentDay} of {schedule.totalDays}
+                </Badge>
+              )}
+              <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </CardTitle>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="space-y-6 max-h-none">
+            {daysList.length === 0 ? (
+              <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No {isCompleted ? 'completed' : 'upcoming'} games</p>
               </div>
-            );
-          })
-        )}
-      </CardContent>
-    </Card>
+            ) : (
+              daysList.map(day => {
+                const dayMatches = matchesByDay[day];
+                if (!dayMatches || dayMatches.length === 0) return null;
+
+                const isCurrentDay = day === schedule.currentDay;
+
+                return (
+                  <div key={day} className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold">
+                        Day {day}
+                        {isCurrentDay && (
+                          <Badge variant="default" className="ml-2">
+                            Current
+                          </Badge>
+                        )}
+                      </h3>
+                      <div className="flex-1">
+                        <Separator />
+                      </div>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {dayMatches.length} games
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {dayMatches.map((match, index) => {
+                        const isUserMatch = isUserTeamMatch(match);
+                        return (
+                          <div
+                            key={match.id}
+                            className={`flex items-center justify-between p-3 rounded-lg border ${
+                              match.isLive || match.status.toUpperCase() === 'IN_PROGRESS'
+                                ? 'border-red-400 bg-red-50 dark:border-red-500 dark:bg-red-900/30' 
+                                : isUserMatch 
+                                  ? 'border-blue-400 bg-blue-100 text-blue-900 dark:border-blue-500 dark:bg-blue-800/30 dark:text-blue-100' 
+                                  : 'border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-800/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              {getScoreDisplay(match, index)}
+                              
+                              <div className="flex items-center gap-2">
+                                <Users className={`w-4 h-4 ${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`} />
+                                <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
+                                  {match.homeTeamName || `Team ${match.homeTeamId.slice(0, 8)}`}
+                                </span>
+                                <span className={`${isUserMatch ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-200'}`}>vs</span>
+                                <span className={`text-sm ${isUserMatch ? 'font-semibold text-blue-900 dark:text-blue-100' : 'text-gray-800 dark:text-gray-100'}`}>
+                                  {match.awayTeamName || `Team ${match.awayTeamId.slice(0, 8)}`}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {getStatusBadge(match)}
+                              
+                              {(match.canWatch && (match.isLive || match.status.toUpperCase() === 'IN_PROGRESS')) && (
+                                <Link href={`/live-match/${match.id}`}>
+                                  <Button size="sm" variant="default" className="gap-1">
+                                    <Eye className="w-3 h-3" />
+                                    Watch Live
+                                  </Button>
+                                </Link>
+                              )}
+                              
+                              {match.status.toUpperCase() === 'COMPLETED' && (
+                                <Link href={`/live-match/${match.id}`}>
+                                  <Button size="sm" variant="outline" className="gap-1">
+                                    <Eye className="w-3 h-3" />
+                                    View Result
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 
   return (
     <div className="space-y-4">
       {/* Remaining League Schedule Section */}
-      {renderMatchesSection("Remaining League Schedule", upcomingDays, upcomingByDay, false)}
+      {renderAccordionSection(
+        "Remaining League Schedule", 
+        upcomingDays, 
+        upcomingByDay, 
+        false, 
+        isRemainingOpen, 
+        setIsRemainingOpen
+      )}
       
       {/* Completed League Games Section */}
-      {renderMatchesSection("Completed League Games", completedDays, completedByDay, true)}
+      {renderAccordionSection(
+        "Completed League Games", 
+        completedDays, 
+        completedByDay, 
+        true, 
+        isCompletedOpen, 
+        setIsCompletedOpen
+      )}
     </div>
   );
 }
