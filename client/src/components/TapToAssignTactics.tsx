@@ -176,9 +176,44 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Field Size and Tactical Focus Side by Side */}
+      {/* Tactical Focus and Field Size Side by Side */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Field Size Selection */}
+        {/* Tactical Focus Selection - NOW ON LEFT */}
+        <div>
+          <h4 className="flex items-center text-white font-medium mb-4">
+            <Target className="w-5 h-5 mr-2 text-purple-400" />
+            Tactical Focus
+          </h4>
+          <div className="space-y-2">
+            {tacticalFocusOptions.map((option) => (
+              <div 
+                key={option.value}
+                onClick={() => updateTacticalFocusMutation.mutate(option.value)}
+                className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                  // @ts-expect-error TS2339
+                  (tacticalData?.tacticalFocus || 'BALANCED') === option.value 
+                    ? 'border-purple-500 bg-purple-900/30' 
+                    : 'border-gray-600 bg-gray-700/30 hover:bg-gray-600/50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-white">{option.label}</div>
+                    <div className="text-sm text-gray-400">{option.description}</div>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    // @ts-expect-error TS2339
+                    (tacticalData?.tacticalFocus || 'BALANCED') === option.value 
+                      ? 'border-purple-400 bg-purple-400' 
+                      : 'border-gray-500'
+                  }`}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Field Size Selection - NOW ON RIGHT */}
         <div>
           <h4 className="flex items-center text-white font-medium mb-4">
             <Settings className="w-5 h-5 mr-2 text-blue-400" />
@@ -196,7 +231,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
                 onClick={() => canChangeFieldSize() && updateFieldSizeMutation.mutate(option.value)}
                 className={`p-3 rounded-lg border transition-colors ${
                   // @ts-expect-error TS2339
-                  tacticalData?.fieldSize === option.value 
+                  (tacticalData?.fieldSize || 'STANDARD') === option.value 
                     ? 'border-blue-500 bg-blue-900/30' 
                     : 'border-gray-600 bg-gray-700/30'
                 } ${
@@ -212,43 +247,8 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
                   </div>
                   <div className={`w-4 h-4 rounded-full border-2 ${
                     // @ts-expect-error TS2339
-                    tacticalData?.fieldSize === option.value 
+                    (tacticalData?.fieldSize || 'STANDARD') === option.value 
                       ? 'border-blue-400 bg-blue-400' 
-                      : 'border-gray-500'
-                  }`}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Tactical Focus Selection */}
-        <div>
-          <h4 className="flex items-center text-white font-medium mb-4">
-            <Target className="w-5 h-5 mr-2 text-purple-400" />
-            Tactical Focus
-          </h4>
-          <div className="space-y-2">
-            {tacticalFocusOptions.map((option) => (
-              <div 
-                key={option.value}
-                onClick={() => updateTacticalFocusMutation.mutate(option.value)}
-                className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                  // @ts-expect-error TS2339
-                  tacticalData?.tacticalFocus === option.value 
-                    ? 'border-purple-500 bg-purple-900/30' 
-                    : 'border-gray-600 bg-gray-700/30 hover:bg-gray-600/50'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium text-white">{option.label}</div>
-                    <div className="text-sm text-gray-400">{option.description}</div>
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border-2 ${
-                    // @ts-expect-error TS2339
-                    tacticalData?.tacticalFocus === option.value 
-                      ? 'border-purple-400 bg-purple-400' 
                       : 'border-gray-500'
                   }`}></div>
                 </div>
