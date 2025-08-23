@@ -636,11 +636,69 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
       };
     });
     
-    // Sort corrected teams by corrected points
+    // Helper function to calculate head-to-head record between two teams
+    const getHeadToHeadRecord = (teamA: any, teamB: any) => {
+      const h2hMatches = completedMatches.filter((match: any) => 
+        (match.homeTeamId === teamA.id && match.awayTeamId === teamB.id) ||
+        (match.homeTeamId === teamB.id && match.awayTeamId === teamA.id)
+      );
+      
+      let teamAWins = 0;
+      let teamBWins = 0;
+      let draws = 0;
+      
+      h2hMatches.forEach((match: any) => {
+        const homeScore = match.homeScore || 0;
+        const awayScore = match.awayScore || 0;
+        
+        if (homeScore > awayScore) {
+          if (match.homeTeamId === teamA.id) teamAWins++;
+          else teamBWins++;
+        } else if (awayScore > homeScore) {
+          if (match.awayTeamId === teamA.id) teamAWins++;
+          else teamBWins++;
+        } else {
+          draws++;
+        }
+      });
+      
+      return {
+        teamAWins,
+        teamBWins,
+        draws,
+        totalMatches: h2hMatches.length
+      };
+    };
+
+    // Sort corrected teams using comprehensive tiebreaker rules
     correctedTeams.sort((a, b) => {
+      // 1. Primary: Points (3 for win, 1 for draw, 0 for loss)
       if (b.points !== a.points) return b.points - a.points;
+      
+      // 2. First Tiebreaker: Head-to-head record
+      if (a.points === b.points) {
+        const h2h = getHeadToHeadRecord(a, b);
+        if (h2h.totalMatches > 0) {
+          // If teams have played each other, use head-to-head wins
+          if (h2h.teamAWins !== h2h.teamBWins) {
+            return h2h.teamBWins - h2h.teamAWins; // More wins for team B = higher position for B
+          }
+        }
+      }
+      
+      // 3. Second Tiebreaker: Score Difference (SD = Total Scores - Scores Against)
+      if (b.scoreDifference !== a.scoreDifference) return b.scoreDifference - a.scoreDifference;
+      
+      // 4. Third Tiebreaker: Total Scores (offensive output)
+      if (b.totalScores !== a.totalScores) return b.totalScores - a.totalScores;
+      
+      // 5. Fourth Tiebreaker: Wins
       if (b.wins !== a.wins) return b.wins - a.wins;
-      return a.name.localeCompare(b.name);
+      
+      // 6. Final Tiebreaker: Fewer losses
+      const aLosses = a.losses || 0;
+      const bLosses = b.losses || 0;
+      return aLosses - bLosses;
     });
     
     if (correctedTeams.length > 0) {
