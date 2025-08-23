@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -169,9 +170,13 @@ function getTierColor(tier: string) {
   }
 }
 
+type MarketTabType = 'store' | 'marketplace' | 'inventory' | 'finances';
+
 export default function MarketDistrict() {
   const { isAuthenticated } = useUnifiedAuth();
   const { toast } = useToast();
+  const [location] = useLocation();
+  const [activeTab, setActiveTab] = useState<MarketTabType>('store');
   const [gemsToExchange, setGemsToExchange] = useState(1);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   
@@ -179,6 +184,24 @@ export default function MarketDistrict() {
   const [storeSectionOpen, setStoreSectionOpen] = useState(true);
   const [gemSectionOpen, setGemSectionOpen] = useState(true);
   const [exchangeSectionOpen, setExchangeSectionOpen] = useState(false);
+
+  // Handle tab changes and update URL
+  const handleTabChange = (newTab: MarketTabType) => {
+    setActiveTab(newTab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', newTab);
+    window.history.pushState({}, '', url.toString());
+  };
+
+  // URL parameter handling for direct tab navigation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab') as MarketTabType;
+    
+    if (tab && ['store', 'marketplace', 'inventory', 'finances'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location]);
 
   // Get team and financial data
   const { data: team } = useQuery({
@@ -380,7 +403,7 @@ export default function MarketDistrict() {
 
       <div className="container mx-auto max-w-7xl p-4 space-y-6">
         {/* Main Tabs */}
-        <Tabs defaultValue="store" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-gray-800 h-auto p-1">
             <TabsTrigger value="store" className="flex flex-col items-center gap-1 py-3 px-2 text-xs sm:text-sm">
               <Store className="h-5 w-5" />
