@@ -132,11 +132,6 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
 
   return (
     <div className="space-y-6 px-4 py-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Team Camaraderie</h2>
-        <p className="text-gray-400">Team chemistry and player relationships</p>
-      </div>
 
       {/* A. Team Camaraderie Overview - Radial Gauge */}
       <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700">
@@ -189,6 +184,17 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Team Camaraderie Summary */}
+            <div className="p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-2xl">{emoji}</span>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Team Camaraderie: {teamCamaraderie}</h3>
+                  <p className="text-gray-300">{status} – Team spirit is suffering badly.</p>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex justify-between items-center">
               <span className="text-gray-300">High Morale Players</span>
               <Badge className="bg-green-500/20 text-green-400 border-green-500">
@@ -223,15 +229,15 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-green-500/20 border border-green-500 rounded-lg text-center">
                 <div className="text-green-400 font-bold">Catching</div>
-                <div className="text-white text-lg">+{effects.inGameStatBonus.catching}</div>
+                <div className="text-white text-lg">{effects.inGameStatBonus.catching >= 0 ? '+' : ''}{effects.inGameStatBonus.catching}</div>
               </div>
               <div className="p-3 bg-blue-500/20 border border-blue-500 rounded-lg text-center">
                 <div className="text-blue-400 font-bold">Agility</div>
-                <div className="text-white text-lg">+{effects.inGameStatBonus.agility}</div>
+                <div className="text-white text-lg">{effects.inGameStatBonus.agility >= 0 ? '+' : ''}{effects.inGameStatBonus.agility}</div>
               </div>
               <div className="p-3 bg-purple-500/20 border border-purple-500 rounded-lg text-center">
                 <div className="text-purple-400 font-bold">Pass Accuracy</div>
-                <div className="text-white text-lg">+{effects.inGameStatBonus.passAccuracy}</div>
+                <div className="text-white text-lg">{effects.inGameStatBonus.passAccuracy >= 0 ? '+' : ''}{effects.inGameStatBonus.passAccuracy}</div>
               </div>
               <div className="p-3 bg-teal-500/20 border border-teal-500 rounded-lg text-center">
                 <div className="text-teal-400 font-bold">Fumble Risk</div>
