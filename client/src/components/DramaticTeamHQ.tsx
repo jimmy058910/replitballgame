@@ -219,7 +219,7 @@ export default function DramaticTeamHQ() {
   }
 
   // Handle critical API errors gracefully
-  if (teamError && (teamError as Error).message?.includes('500')) {
+  if (hasError && (hasError as Error).message?.includes('500')) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-900">
         <div className="text-center max-w-md mx-auto p-6">
