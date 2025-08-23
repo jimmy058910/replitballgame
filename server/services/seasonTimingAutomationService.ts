@@ -219,14 +219,21 @@ export class SeasonTimingAutomationService {
    */
   private async executeDailyProgression(): Promise<void> {
     try {
-      logInfo('Starting daily progression execution...');
+      const executionTime = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+      logInfo(`🚀 [DAILY PROGRESSION] Starting at ${executionTime} EDT`);
       
       // Get current season to determine if we're at end of season
       const currentSeason = await storage.seasons.getCurrentSeason();
-      const { currentDayInCycle } = currentSeason ? this.getCurrentSeasonInfo(currentSeason) : { currentDayInCycle: 1 };
-      const isEndOfSeason = currentDayInCycle === 16; // Day 15→16 transition
+      if (!currentSeason) {
+        console.error('❌ [DAILY PROGRESSION] No current season found - aborting');
+        return;
+      }
       
-      console.log(`🔄 Daily progression for Day ${currentDayInCycle}, End of season: ${isEndOfSeason}`);
+      const currentDayFromDB = currentSeason.currentDay || 1;
+      const nextDay = currentDayFromDB + 1;
+      const isEndOfSeason = currentDayFromDB === 16; // Day 16→17 transition
+      
+      console.log(`🔄 [DAILY PROGRESSION] Processing Day ${currentDayFromDB} → Day ${nextDay}, End of season: ${isEndOfSeason}`);
       
       // 1. ONLY at end of season: Aging and retirement processing  
       if (isEndOfSeason) {
@@ -234,7 +241,7 @@ export class SeasonTimingAutomationService {
         await this.executeAgingProcessing();
         console.log('✅ END OF SEASON: Aging and retirement completed');
       } else {
-        console.log('ℹ️  Aging/retirement skipped - only occurs at end of season (Day 15→16)');
+        console.log('ℹ️  Aging/retirement skipped - only occurs at end of season (Day 16→17)');
       }
       
       // 2. Injury recovery and stamina restoration (daily during season)
@@ -252,14 +259,16 @@ export class SeasonTimingAutomationService {
       await this.resetDailyAdLimits();
       console.log('✅ Daily ad limits reset completed');
       
-      // 5. Update season day
-      console.log('🔄 Updating season day...');
+      // 5. CRITICAL: Update season day (advance to next day)
+      console.log('🔄 [CRITICAL] Advancing season day...');
       await this.updateSeasonDay();
-      console.log('✅ Season day update completed');
+      console.log('✅ [CRITICAL] Season day advancement completed');
       
-      logInfo('✅ Daily progression execution completed successfully');
+      const completionTime = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+      logInfo(`✅ [DAILY PROGRESSION] Execution completed successfully at ${completionTime} EDT`);
     } catch (error) {
-      console.error('❌ Error during daily progression execution:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('❌ [DAILY PROGRESSION] Error during execution:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('❌ [DAILY PROGRESSION] Full error:', error);
     }
   }
 
@@ -1058,7 +1067,7 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * Get next execution time for a specific hour and minute in EST
+   * Get next execution time for a specific hour and minute in EST/EDT
    */
   private getNextExecutionTime(hour: number, minute: number): Date {
     // Use shared timezone utilities for consistent EST/EDT handling
@@ -1067,13 +1076,20 @@ export class SeasonTimingAutomationService {
     // Set to target time today
     const targetTime = easternTime.clone().hour(hour).minute(minute).second(0).millisecond(0);
     
+    console.log(`🕐 [SCHEDULING] Current EDT time: ${easternTime.format('YYYY-MM-DD HH:mm:ss')} EDT`);
+    console.log(`🕐 [SCHEDULING] Target time today: ${targetTime.format('YYYY-MM-DD HH:mm:ss')} EDT`);
+    
     // If target time has already passed today, schedule for tomorrow
     if (targetTime.isBefore(easternTime)) {
       targetTime.add(1, 'day');
+      console.log(`🕐 [SCHEDULING] Target time passed, scheduling for tomorrow: ${targetTime.format('YYYY-MM-DD HH:mm:ss')} EDT`);
     }
     
     // Convert to UTC Date object for setTimeout
-    return targetTime.toDate();
+    const utcTime = targetTime.toDate();
+    console.log(`🕐 [SCHEDULING] Next execution scheduled for: ${utcTime.toISOString()} UTC (${targetTime.format('YYYY-MM-DD HH:mm:ss')} EDT)`);
+    
+    return utcTime;
   }
 
   /**
@@ -1223,7 +1239,7 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * Update season day in database (CRITICAL FIX)
+   * Update season day in database (CRITICAL FIX - ADVANCE TO NEXT DAY)
    */
   private async updateSeasonDay(): Promise<void> {
     try {
@@ -1233,26 +1249,41 @@ export class SeasonTimingAutomationService {
         return;
       }
 
-      console.log('DEBUG: currentSeason object:', currentSeason);
-      const { currentDayInCycle } = this.getCurrentSeasonInfo(currentSeason);
-      console.log('DEBUG: currentDayInCycle calculated:', currentDayInCycle);
+      console.log('🔧 [DAY ADVANCEMENT] Current season object:', {
+        id: currentSeason.id,
+        currentDay: currentSeason.currentDay,
+        startDate: currentSeason.startDate
+      });
       
-      // Ensure currentDayInCycle is a valid number
-      if (currentDayInCycle === undefined || currentDayInCycle === null || isNaN(currentDayInCycle)) {
-        console.error('Invalid currentDayInCycle value:', currentDayInCycle);
+      const currentDayFromDB = currentSeason.currentDay || 1;
+      const nextDay = currentDayFromDB + 1;
+      
+      console.log(`🔧 [DAY ADVANCEMENT] Advancing from Day ${currentDayFromDB} to Day ${nextDay}`);
+      
+      // Ensure we have valid day values
+      if (isNaN(currentDayFromDB) || isNaN(nextDay)) {
+        console.error('❌ [DAY ADVANCEMENT] Invalid day values:', { currentDayFromDB, nextDay });
         return;
       }
       
-      // Update the database with the current day - using correct table/column names
+      // Handle season rollover (Day 17 -> Day 1 of next season)
+      if (nextDay > 17) {
+        console.log('🔄 [DAY ADVANCEMENT] Season complete - triggering rollover');
+        await this.executeSeasonRollover(currentSeason.seasonNumber);
+        return;
+      }
+      
+      // Update the database with the NEXT day (critical fix)
       const prisma = await getPrismaClient();
       await prisma.season.update({
         where: { id: currentSeason.id },
-        data: { currentDay: currentDayInCycle }
+        data: { currentDay: nextDay }
       });
       
-      logInfo(`Season day updated from Day ${currentSeason.currentDay} to Day ${currentDayInCycle}`);
+      console.log(`✅ [DAY ADVANCEMENT] Season day successfully updated: Day ${currentDayFromDB} → Day ${nextDay}`);
+      logInfo(`CRITICAL FIX: Season day advanced from Day ${currentDayFromDB} to Day ${nextDay}`);
     } catch (error) {
-      console.error('Error updating season day:', error);
+      console.error('❌ [DAY ADVANCEMENT] Error updating season day:', error);
     }
   }
 

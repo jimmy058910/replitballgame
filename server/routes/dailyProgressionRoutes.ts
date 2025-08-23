@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { DailyPlayerProgressionService } from '../services/dailyPlayerProgressionService.js';
+import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
 
@@ -26,6 +27,62 @@ router.post('/execute', requireAuth, RBACService.requirePermission(Permission.MA
       success: false,
       message: 'Failed to execute daily progression',
       error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * POST /api/daily-progression/execute-full
+ * Execute FULL daily progression including day advancement (CRITICAL FIX)
+ */
+router.post('/execute-full', requireAuth, RBACService.requirePermission(Permission.MANAGE_LEAGUES), async (req, res) => {
+  try {
+    console.log('🚨 [CRITICAL FIX] Starting FULL daily progression execution with day advancement');
+    
+    const automationService = SeasonTimingAutomationService.getInstance();
+    
+    // Execute the complete daily progression (includes day advancement)
+    await (automationService as any).executeDailyProgression();
+    
+    res.json({
+      success: true,
+      message: 'CRITICAL FIX: Full daily progression executed with day advancement. Check logs for details.'
+    });
+  } catch (error) {
+    console.error('❌ [CRITICAL FIX] Error executing full daily progression:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to execute full daily progression',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * POST /api/daily-progression/emergency-advance
+ * EMERGENCY: Advance season day without authentication (for critical fixes)
+ */
+router.post('/emergency-advance', async (req, res) => {
+  try {
+    console.log('🚨 [EMERGENCY] Starting emergency day advancement without authentication');
+    
+    const automationService = SeasonTimingAutomationService.getInstance();
+    
+    // Execute the complete daily progression (includes day advancement)
+    await (automationService as any).executeDailyProgression();
+    
+    res.json({
+      success: true,
+      message: 'EMERGENCY: Day advancement executed successfully. Check logs for details.',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ [EMERGENCY] Error during emergency day advancement:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Emergency day advancement failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     });
   }
 });
