@@ -52,10 +52,13 @@ export class SeasonTimingAutomationService {
     this.isRunning = true;
     logInfo('Starting season timing automation system...');
 
-    // DISABLED: Check for missed daily progressions on startup
-    // This was causing premature day advancement - daily progression should only happen at 3:00 AM EDT
-    console.log('🔧 [AUTOMATION DEBUG] Missed progression check DISABLED to prevent premature day advancement');
-    console.log('✅ [AUTOMATION DEBUG] Daily progression will only occur at scheduled 3:00 AM EDT time');
+    // ENHANCED: Smart missed progression detection with safeguards
+    // Prevents schedule generation issues while allowing safe day advancement
+    console.log('🔧 [AUTOMATION DEBUG] Smart missed progression check ENABLED with enhanced safeguards');
+    console.log('✅ [AUTOMATION DEBUG] Will safely advance missed days without touching schedules');
+    
+    // Check for missed progressions on startup
+    await this.checkAndExecuteSmartMissedProgressions();
 
     // ALPHA TESTING FIX: DISABLED - Was creating Day 6 games repeatedly on server startup
     console.log('🔧 [ALPHA TESTING] Oakland Cougars schedule automation DISABLED (was creating Day 6 games)');
@@ -1093,7 +1096,106 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * FIXED: Check for missed daily progressions and create season if none exists
+   * ENHANCED: Smart missed progression detection with safeguards
+   * Safely advances days without triggering schedule generation issues
+   */
+  private async checkAndExecuteSmartMissedProgressions(): Promise<void> {
+    try {
+      logInfo('🔍 [SMART PROGRESSION] Checking for missed daily progressions...');
+      
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      if (!currentSeason) {
+        logInfo('⚠️ [SMART PROGRESSION] No current season found - skipping progression check');
+        return;
+      }
+
+      const databaseDay = currentSeason.currentDay || 1;
+      const calculatedDay = this.calculateCorrectDay(currentSeason);
+      
+      console.log('📊 [SMART PROGRESSION] Day Analysis:', {
+        databaseDay,
+        calculatedDay,
+        needsProgression: calculatedDay > databaseDay,
+        seasonStart: currentSeason.startDate,
+        currentTime: new Date().toISOString()
+      });
+      
+      if (calculatedDay > databaseDay) {
+        logInfo(`🚀 [SMART PROGRESSION] Advancing from Day ${databaseDay} to Day ${calculatedDay}...`);
+        
+        // SAFE UPDATE: Only touch the currentDay field
+        const prisma = await getPrismaClient();
+        await prisma.season.update({
+          where: { id: currentSeason.id },
+          data: { 
+            currentDay: calculatedDay
+          }
+        });
+        
+        logInfo(`✅ [SMART PROGRESSION] Successfully advanced from Day ${databaseDay} to Day ${calculatedDay}`);
+        
+        // Create progression tracking entry
+        await this.logProgressionEvent(databaseDay, calculatedDay, 'missed_progression_recovery');
+        
+      } else {
+        logInfo(`✅ [SMART PROGRESSION] Season timing is correct (Day ${databaseDay})`);
+      }
+      
+    } catch (error) {
+      console.error('❌ [SMART PROGRESSION] Error during missed progression check:', error);
+    }
+  }
+
+  /**
+   * Calculate correct day based on season start date and current time
+   */
+  private calculateCorrectDay(season: any): number {
+    const seasonStart = new Date(season.startDate || season.start_date);
+    const now = new Date();
+    
+    // Calculate days since season start (inclusive)
+    const seasonStartUTC = new Date(seasonStart);
+    seasonStartUTC.setUTCHours(0, 0, 0, 0);
+    
+    const nowUTC = new Date(now);
+    nowUTC.setUTCHours(0, 0, 0, 0);
+    
+    const daysSinceStart = Math.floor((nowUTC.getTime() - seasonStartUTC.getTime()) / (1000 * 60 * 60 * 24));
+    const calculatedDay = Math.min(daysSinceStart + 1, 17); // +1 because Day 1 = 0 days elapsed
+    
+    return calculatedDay;
+  }
+
+  /**
+   * Log progression events for tracking and debugging
+   */
+  private async logProgressionEvent(fromDay: number, toDay: number, eventType: string): Promise<void> {
+    try {
+      const eventData = {
+        fromDay,
+        toDay,
+        eventType,
+        timestamp: new Date().toISOString(),
+        executedAt: 'startup_missed_progression'
+      };
+      
+      logInfo(`📝 [PROGRESSION LOG] ${eventType}: Day ${fromDay} → Day ${toDay}`, eventData);
+      
+    } catch (error) {
+      console.error('❌ Failed to log progression event:', error);
+    }
+  }
+
+  /**
+   * Get current day helper method
+   */
+  private async getCurrentDay(): Promise<number> {
+    const currentSeason = await storage.seasons.getCurrentSeason();
+    return currentSeason?.currentDay || 1;
+  }
+
+  /**
+   * ORIGINAL: Check for missed daily progressions and create season if none exists
    * Creates initial season when missing, then checks for missed progressions
    */
   private async checkAndExecuteMissedDailyProgressions(): Promise<void> {
