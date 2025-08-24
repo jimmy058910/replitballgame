@@ -834,6 +834,105 @@ router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req
 }));
 
 
+// Fix completed games standings update
+router.post('/fix-completed-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔧 [STANDINGS FIX] Updating standings for completed games that were missed');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Find COMPLETED league games that have scores but might not have updated standings
+    const completedGames = await prisma.game.findMany({
+      where: {
+        status: 'COMPLETED',
+        matchType: 'LEAGUE',
+        OR: [
+          { homeScore: { gt: 0 } },
+          { awayScore: { gt: 0 } }
+        ]
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      },
+      orderBy: { id: 'asc' }
+    });
+    
+    console.log(`🔧 [STANDINGS FIX] Found ${completedGames.length} completed games to process`);
+    
+    let updatedCount = 0;
+    for (const game of completedGames) {
+      if (game.homeScore !== null && game.awayScore !== null) {
+        // Determine winner and update standings
+        const homeWon = game.homeScore > game.awayScore;
+        const awayWon = game.awayScore > game.homeScore;
+        const tied = game.homeScore === game.awayScore;
+        
+        if (homeWon) {
+          // Home team wins
+          await prisma.team.update({
+            where: { id: game.homeTeamId },
+            data: { 
+              wins: { increment: 1 },
+              points: { increment: 3 }
+            }
+          });
+          await prisma.team.update({
+            where: { id: game.awayTeamId },
+            data: { 
+              losses: { increment: 1 }
+            }
+          });
+        } else if (awayWon) {
+          // Away team wins
+          await prisma.team.update({
+            where: { id: game.awayTeamId },
+            data: { 
+              wins: { increment: 1 },
+              points: { increment: 3 }
+            }
+          });
+          await prisma.team.update({
+            where: { id: game.homeTeamId },
+            data: { 
+              losses: { increment: 1 }
+            }
+          });
+        } else if (tied) {
+          // Tie - both teams get 1 point
+          await prisma.team.updateMany({
+            where: { 
+              id: { in: [game.homeTeamId, game.awayTeamId] }
+            },
+            data: { 
+              points: { increment: 1 }
+            }
+          });
+        }
+        
+        updatedCount++;
+        console.log(`🔧 [STANDINGS FIX] Updated: ${game.homeTeam.name} ${game.homeScore}-${game.awayScore} ${game.awayTeam.name}`);
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: `Successfully updated standings for ${updatedCount} completed games`,
+      gamesProcessed: updatedCount,
+      totalGamesFound: completedGames.length
+    });
+    
+  } catch (error) {
+    console.error('❌ [STANDINGS FIX] Error:', error);
+    res.status(500).json({ message: `Failed to fix standings: ${error.message}` });
+  }
+}));
+
 // Fix Day 8 games with proper simulation
 router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [DAY 8 FIX] Fixing Day 8 games with proper simulation');
