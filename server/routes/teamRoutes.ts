@@ -189,6 +189,60 @@ router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: R
   return res.json(transformedGames);
 }));
 
+// Get recent matches for any team (for competition tab)
+router.get('/:teamId/matches/recent', asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [API CALL] /api/teams/:teamId/matches/recent route called!');
+  
+  const { teamId } = req.params;
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Get recent completed matches for this team
+    const recentMatches = await prisma.game.findMany({
+      where: {
+        OR: [
+          { homeTeamId: parseInt(teamId) },
+          { awayTeamId: parseInt(teamId) }
+        ],
+        status: 'COMPLETED', // Only completed matches
+        matchType: 'LEAGUE'
+      },
+      include: {
+        homeTeam: {
+          select: { id: true, name: true }
+        },
+        awayTeam: {
+          select: { id: true, name: true }
+        }
+      },
+      orderBy: {
+        gameDate: 'desc'
+      },
+      take: 10 // Last 10 matches
+    });
+    
+    // Format the response to match the expected Match type
+    const formattedMatches = recentMatches.map(match => ({
+      id: match.id.toString(),
+      homeTeam: { id: match.homeTeam.id.toString(), name: match.homeTeam.name },
+      awayTeam: { id: match.awayTeam.id.toString(), name: match.awayTeam.name },
+      homeScore: match.homeScore || 0,
+      awayScore: match.awayScore || 0,
+      gameDate: match.gameDate.toISOString(),
+      status: 'COMPLETED' as const,
+      matchType: 'LEAGUE' as const
+    }));
+    
+    console.log(`✅ [RECENT MATCHES] Found ${formattedMatches.length} recent matches for team ${teamId}`);
+    
+    res.json(formattedMatches);
+  } catch (error) {
+    console.error('❌ [RECENT MATCHES] Error:', error);
+    res.status(500).json({ error: 'Failed to fetch recent matches' });
+  }
+}));
+
 // Get upcoming matches for authenticated user's team (for header display)
 router.get('/my/matches/upcoming', asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my/matches/upcoming route called!');
