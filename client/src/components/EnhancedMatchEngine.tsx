@@ -384,10 +384,12 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const { toast } = useToast();
 
-  // Basic match data query - always enabled
+  // Basic match data query - always enabled with fresh data for live matches
   const { data: basicMatchData, isLoading: matchLoading } = useQuery({
-    queryKey: [`/api/matches/${matchId}`],
-    enabled: !!matchId
+    queryKey: [`/api/matches/${matchId}`, Date.now()], // Force fresh data
+    enabled: !!matchId,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0 // Don't cache for live matches
   });
 
   // Enhanced data queries
