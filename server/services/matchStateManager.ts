@@ -867,7 +867,7 @@ class MatchStateManager {
 
     const interval = setInterval(async () => {
       await this.updateMatchState(matchId, homeStarters, awayStarters, homeTeamPlayers, awayTeamPlayers);
-    }, 3000); // 3 real seconds = 9 game seconds (3x speed)
+    }, 10000); // 10 real seconds = slower pace for better LIVE visibility
 
     this.matchIntervals.set(matchId, interval);
   }

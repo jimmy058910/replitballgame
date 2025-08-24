@@ -226,7 +226,11 @@ export default function LeagueSchedule() {
     .sort((a, b) => b.gameDay - a.gameDay); // Most recent first
 
   const upcomingMatches = allMatches
-    .filter(match => match.status.toUpperCase() !== 'COMPLETED')
+    .filter(match => {
+      const status = match.status.toUpperCase();
+      // Keep SCHEDULED and IN_PROGRESS in upcoming section
+      return status === 'SCHEDULED' || status === 'IN_PROGRESS';
+    })
     .sort((a, b) => a.gameDay - b.gameDay); // Chronological order
 
   // Group upcoming matches by day
