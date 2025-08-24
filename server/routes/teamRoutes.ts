@@ -985,6 +985,202 @@ router.post('/reset-test-games', requireAuth, asyncHandler(async (req: Request, 
   }
 }));
 
+// Fix Day 8 games stuck in IN_PROGRESS and recalculate standings
+router.post('/fix-day8-status-and-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔧 [FIX DAY 8] Fixing Day 8 games status and recalculating standings');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Step 1: Fix Day 8 games that are stuck in IN_PROGRESS but have final scores
+    const day8Games = [3969, 3970, 3971, 3972]; // From debug output
+    
+    console.log('🔧 [FIX DAY 8] Updating Day 8 games from IN_PROGRESS to COMPLETED');
+    for (const gameId of day8Games) {
+      await prisma.game.update({
+        where: { id: gameId },
+        data: { status: 'COMPLETED' }
+      });
+      console.log(`✅ [FIX DAY 8] Game ${gameId} status updated to COMPLETED`);
+    }
+    
+    // Step 2: Reset all team standings to 0
+    await prisma.team.updateMany({
+      data: {
+        wins: 0,
+        losses: 0,
+        points: 0
+      }
+    });
+    console.log('🔄 [RESET STANDINGS] All team standings reset to 0');
+    
+    // Step 3: Get all completed league games (should now include Day 8)
+    const completedGames = await prisma.game.findMany({
+      where: {
+        status: 'COMPLETED',
+        matchType: 'LEAGUE',
+        homeScore: { not: null },
+        awayScore: { not: null }
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      },
+      orderBy: { id: 'asc' }
+    });
+    
+    console.log(`🔄 [STANDINGS] Found ${completedGames.length} completed games to process`);
+    
+    // Step 4: Recalculate standings from all games
+    const standingsUpdates = [];
+    
+    for (const game of completedGames) {
+      const homeScore = game.homeScore || 0;
+      const awayScore = game.awayScore || 0;
+      
+      if (homeScore > awayScore) {
+        // Home team wins
+        await prisma.team.update({
+          where: { id: game.homeTeamId },
+          data: { 
+            wins: { increment: 1 },
+            points: { increment: 3 }
+          }
+        });
+        await prisma.team.update({
+          where: { id: game.awayTeamId },
+          data: { 
+            losses: { increment: 1 }
+          }
+        });
+        standingsUpdates.push(`${game.homeTeam.name} beat ${game.awayTeam.name} ${homeScore}-${awayScore}`);
+        
+      } else if (awayScore > homeScore) {
+        // Away team wins
+        await prisma.team.update({
+          where: { id: game.awayTeamId },
+          data: { 
+            wins: { increment: 1 },
+            points: { increment: 3 }
+          }
+        });
+        await prisma.team.update({
+          where: { id: game.homeTeamId },
+          data: { 
+            losses: { increment: 1 }
+          }
+        });
+        standingsUpdates.push(`${game.awayTeam.name} beat ${game.homeTeam.name} ${awayScore}-${homeScore}`);
+        
+      } else {
+        // Tie/Draw - both teams get 1 point (no wins/losses for ties)
+        await prisma.team.update({
+          where: { id: game.homeTeamId },
+          data: { 
+            points: { increment: 1 }
+          }
+        });
+        await prisma.team.update({
+          where: { id: game.awayTeamId },
+          data: { 
+            points: { increment: 1 }
+          }
+        });
+        standingsUpdates.push(`${game.homeTeam.name} tied ${game.awayTeam.name} ${homeScore}-${awayScore}`);
+      }
+      
+      console.log(`🔄 [STANDINGS] Processed: ${game.homeTeam.name} ${homeScore}-${awayScore} ${game.awayTeam.name}`);
+    }
+    
+    // Step 5: Get final standings to verify
+    const finalStandings = await prisma.team.findMany({
+      where: { division: 8, subdivision: 'alpha' },
+      select: {
+        name: true,
+        wins: true,
+        losses: true,
+        points: true
+      },
+      orderBy: [
+        { points: 'desc' },
+        { wins: 'desc' }
+      ]
+    });
+    
+    res.json({
+      success: true,
+      message: `Successfully fixed Day 8 status and recalculated standings from ${completedGames.length} completed games`,
+      gamesProcessed: completedGames.length,
+      standingsUpdates,
+      finalStandings
+    });
+    
+  } catch (error) {
+    console.error('❌ [FIX DAY 8] Error:', error);
+    res.status(500).json({ message: `Failed to fix Day 8 and standings: ${error.message}` });
+  }
+}));
+
+// Debug and check all games status
+router.post('/debug-games-status', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [DEBUG GAMES] Checking all Day 7 and Day 8 games status');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Get all games from the last few days regardless of status
+    const allRecentGames = await prisma.game.findMany({
+      where: {
+        matchType: 'LEAGUE',
+        gameDate: {
+          gte: new Date('2025-08-22T00:00:00Z'), // Last few days
+          lt: new Date('2025-08-25T00:00:00Z')
+        }
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    
+    const gamesByDay = {};
+    allRecentGames.forEach(game => {
+      const day = game.gameDate.toISOString().split('T')[0];
+      if (!gamesByDay[day]) gamesByDay[day] = [];
+      gamesByDay[day].push({
+        id: game.id,
+        teams: `${game.homeTeam.name} vs ${game.awayTeam.name}`,
+        homeScore: game.homeScore,
+        awayScore: game.awayScore,
+        status: game.status,
+        simulated: game.simulated
+      });
+    });
+    
+    res.json({
+      success: true,
+      message: `Found ${allRecentGames.length} recent league games`,
+      gamesByDay,
+      totalGames: allRecentGames.length
+    });
+    
+  } catch (error) {
+    console.error('❌ [DEBUG GAMES] Error:', error);
+    res.status(500).json({ message: `Failed to debug games: ${error.message}` });
+  }
+}));
+
 // Reset and recalculate all standings from scratch
 router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔄 [RESET STANDINGS] Resetting all team standings and recalculating from completed games');

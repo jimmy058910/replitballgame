@@ -177,11 +177,13 @@ class LiveMatchEngineService implements LiveMatchEngine {
   }
 
   /**
-   * Stop a live match
+   * Stop a live match and update database status
    */
-  stopMatch(matchId: string): void {
+  async stopMatch(matchId: string): Promise<void> {
     const liveState = this.activeMatches.get(matchId);
     if (!liveState) return;
+
+    console.log(`🔚 [STOP MATCH] Completing match ${matchId} with final scores: ${liveState.homeScore}-${liveState.awayScore}`);
 
     // Clear simulation interval
     const interval = this.matchIntervals.get(matchId);
@@ -192,6 +194,31 @@ class LiveMatchEngineService implements LiveMatchEngine {
 
     // Set status to completed
     liveState.status = 'completed';
+
+    // CRITICAL FIX: Update database status to COMPLETED to prevent stuck IN_PROGRESS games
+    try {
+      const { getPrismaClient } = await import('../lib/prisma');
+      const prisma = await getPrismaClient();
+      
+      await prisma.game.update({
+        where: { id: parseInt(matchId) },
+        data: {
+          status: 'COMPLETED',
+          homeScore: liveState.homeScore,
+          awayScore: liveState.awayScore,
+          simulationLog: {
+            events: liveState.events?.slice(-20) || [],
+            finalScores: { home: liveState.homeScore, away: liveState.awayScore },
+            matchCompleted: true,
+            completedAt: new Date().toISOString()
+          }
+        }
+      });
+      
+      console.log(`✅ [STOP MATCH] Database updated - Match ${matchId} status set to COMPLETED`);
+    } catch (error) {
+      console.error(`❌ [STOP MATCH] Failed to update database for match ${matchId}:`, error);
+    }
 
     // Broadcast final state
     webSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
@@ -372,8 +399,8 @@ class LiveMatchEngineService implements LiveMatchEngine {
     const liveState = this.activeMatches.get(matchId);
     const speed = liveState?.simulationSpeed || this.simulationSpeed;
     
-    const interval = setInterval(() => {
-      this.simulateTick(matchId);
+    const interval = setInterval(async () => {
+      await this.simulateTick(matchId);
     }, 1000 / speed); // Adjust based on simulation speed
 
     this.matchIntervals.set(matchId, interval);
@@ -382,7 +409,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
   /**
    * Simulate one tick of the match
    */
-  private simulateTick(matchId: string): void {
+  private async simulateTick(matchId: string): Promise<void> {
     const liveState = this.activeMatches.get(matchId);
     if (!liveState || liveState.status !== 'live') return;
 
@@ -406,7 +433,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
 
     // Check for match end
     if (liveState.gameTime >= liveState.maxTime) {
-      this.stopMatch(matchId);
+      await this.stopMatch(matchId);
       return;
     }
 
