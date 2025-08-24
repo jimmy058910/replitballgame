@@ -35,7 +35,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const { data: rawStandings, isLoading, error } = useQuery<Team[]>({
-      queryKey: [`/api/teams/${division}/standings`],
+      queryKey: [`/api/leagues/${division}/standings`],
       staleTime: 1000 * 30, // 30 seconds cache to prevent loops
       gcTime: 1000 * 60 * 5, // 5 minutes cache retention
       refetchOnMount: true,
@@ -60,7 +60,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     dataLength: rawStandings?.length || 0,
     isLoading, 
     error: error?.message,
-    endpoint: `/api/teams/${division}/standings`
+    endpoint: `/api/leagues/${division}/standings`
   });
   
     // SUCCESS: API is working perfectly! 
@@ -189,7 +189,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
               <Trophy className="h-12 w-12 mx-auto mb-4" />
               <p className="text-lg font-semibold mb-2">No standings data available</p>
               <p className="text-sm">Division {division} standings will load shortly</p>
-              <p className="text-xs text-gray-500 mt-2">API: /api/teams/{division}/standings</p>
+              <p className="text-xs text-gray-500 mt-2">API: /api/leagues/{division}/standings</p>
             </div>
           )}
           
