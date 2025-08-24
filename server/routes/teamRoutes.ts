@@ -1002,7 +1002,6 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
       data: {
         wins: 0,
         losses: 0,
-        draws: 0,
         points: 0
       }
     });
@@ -1068,18 +1067,16 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
         standingsUpdates.push(`${game.awayTeam.name} beat ${game.homeTeam.name} ${awayScore}-${homeScore}`);
         
       } else {
-        // Tie/Draw - both teams get 1 point and 1 draw
+        // Tie/Draw - both teams get 1 point (no wins/losses for ties)
         await prisma.team.update({
           where: { id: game.homeTeamId },
           data: { 
-            draws: { increment: 1 },
             points: { increment: 1 }
           }
         });
         await prisma.team.update({
           where: { id: game.awayTeamId },
           data: { 
-            draws: { increment: 1 },
             points: { increment: 1 }
           }
         });
@@ -1095,7 +1092,6 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
       select: {
         name: true,
         wins: true,
-        draws: true,
         losses: true,
         points: true
       },
