@@ -833,6 +833,153 @@ router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req
   }
 }));
 
+// Fix Day 8 games with proper simulation
+router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔧 [DAY 8 FIX] Fixing Day 8 games with proper simulation');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Find all Day 8 games (August 23, 2025) that are marked as FINAL/COMPLETED but have 0-0 scores
+    const brokenDay8Games = await prisma.game.findMany({
+      where: {
+        gameDate: {
+          gte: new Date('2025-08-23T00:00:00.000Z'),
+          lt: new Date('2025-08-24T00:00:00.000Z')
+        },
+        status: 'COMPLETED',
+        homeScore: 0,
+        awayScore: 0,
+        matchType: 'LEAGUE'
+      },
+      include: {
+        homeTeam: {
+          include: {
+            players: true,
+            stadium: true
+          }
+        },
+        awayTeam: {
+          include: {
+            players: true,
+            stadium: true
+          }
+        }
+      }
+    });
+    
+    console.log(`🎯 [DAY 8 FIX] Found ${brokenDay8Games.length} broken Day 8 games to fix`);
+    
+    const fixedGames = [];
+    
+    for (const game of brokenDay8Games) {
+      try {
+        console.log(`🎮 [DAY 8 FIX] Simulating ${game.homeTeam.name} vs ${game.awayTeam.name}`);
+        
+        // Import the match simulation function
+        const { simulateEnhancedMatch } = await import('../services/matchSimulation.js');
+        
+        // Run the full match simulation
+        const simulationResult = await simulateEnhancedMatch(
+          game.homeTeam.players,
+          game.awayTeam.players,
+          game.homeTeamId.toString(),
+          game.awayTeamId.toString(),
+          game.homeTeam.stadium,
+          'league',
+          game.id
+        );
+        
+        // Update the game with proper scores and simulation data
+        await prisma.game.update({
+          where: { id: game.id },
+          data: {
+            homeScore: simulationResult.homeScore,
+            awayScore: simulationResult.awayScore,
+            simulationLog: JSON.stringify(simulationResult.gameData),
+            simulated: true,
+            status: 'COMPLETED'
+          }
+        });
+        
+        // Update team records
+        const homeWin = simulationResult.homeScore > simulationResult.awayScore;
+        const awayWin = simulationResult.awayScore > simulationResult.homeScore;
+        const isDraw = simulationResult.homeScore === simulationResult.awayScore;
+        
+        if (homeWin) {
+          await prisma.team.update({
+            where: { id: game.homeTeamId },
+            data: { 
+              wins: { increment: 1 },
+              points: { increment: 3 }
+            }
+          });
+          await prisma.team.update({
+            where: { id: game.awayTeamId },
+            data: { losses: { increment: 1 } }
+          });
+        } else if (awayWin) {
+          await prisma.team.update({
+            where: { id: game.awayTeamId },
+            data: { 
+              wins: { increment: 1 },
+              points: { increment: 3 }
+            }
+          });
+          await prisma.team.update({
+            where: { id: game.homeTeamId },
+            data: { losses: { increment: 1 } }
+          });
+        } else if (isDraw) {
+          await prisma.team.update({
+            where: { id: game.homeTeamId },
+            data: { 
+              draws: { increment: 1 },
+              points: { increment: 1 }
+            }
+          });
+          await prisma.team.update({
+            where: { id: game.awayTeamId },
+            data: { 
+              draws: { increment: 1 },
+              points: { increment: 1 }
+            }
+          });
+        }
+        
+        fixedGames.push({
+          gameId: game.id,
+          teams: `${game.homeTeam.name} vs ${game.awayTeam.name}`,
+          score: `${simulationResult.homeScore}-${simulationResult.awayScore}`,
+          result: homeWin ? 'HOME_WIN' : awayWin ? 'AWAY_WIN' : 'DRAW'
+        });
+        
+        console.log(`✅ [DAY 8 FIX] Fixed: ${game.homeTeam.name} ${simulationResult.homeScore}-${simulationResult.awayScore} ${game.awayTeam.name}`);
+        
+      } catch (gameError) {
+        console.error(`❌ [DAY 8 FIX] Failed to fix game ${game.id}:`, gameError);
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: `Successfully fixed ${fixedGames.length} Day 8 games with proper simulation`,
+      fixedGames,
+      totalGamesProcessed: brokenDay8Games.length
+    });
+    
+  } catch (error) {
+    console.error('❌ [DAY 8 FIX] Error fixing Day 8 games:', error);
+    res.status(500).json({ message: `Failed to fix Day 8 games: ${error.message}` });
+  }
+}));
+
 // Add transactions route that matches frontend expectations
 router.get('/transactions', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [TRANSACTIONS] /api/teams/transactions route called');
