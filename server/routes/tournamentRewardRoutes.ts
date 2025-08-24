@@ -1,5 +1,8 @@
 import { Router, Response } from 'express';
 import { getPrismaClient } from '../database.js';
+
+// Initialize Prisma client
+const prisma = await getPrismaClient();
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
 

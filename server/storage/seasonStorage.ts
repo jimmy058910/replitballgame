@@ -1,6 +1,9 @@
 import { getPrismaClient } from '../database.js';
 
 // Initialize Prisma client
+const prisma = await getPrismaClient();
+
+// Initialize Prisma client
 const getPrisma = async () => await getPrismaClient();
 
 export class SeasonStorage {

@@ -5,7 +5,7 @@ import { logInfo } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 
 // Initialize Prisma client for all operations in this service
-const getPrisma = async () => await getPrismaClient();
+const prisma = await getPrismaClient();
 
 /**
  * Seasonal Flow Algorithm Service

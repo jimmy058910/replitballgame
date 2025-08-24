@@ -197,7 +197,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
 
     // CRITICAL FIX: Update database status to COMPLETED to prevent stuck IN_PROGRESS games
     try {
-      const { getPrismaClient } = await import('../lib/prisma');
+      const { getPrismaClient } = await import('../database.js');
       const prisma = await getPrismaClient();
       
       await prisma.game.update({
@@ -207,7 +207,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
           homeScore: liveState.homeScore,
           awayScore: liveState.awayScore,
           simulationLog: {
-            events: liveState.events?.slice(-20) || [],
+            events: liveState.gameEvents?.slice(-20) || [],
             finalScores: { home: liveState.homeScore, away: liveState.awayScore },
             matchCompleted: true,
             completedAt: new Date().toISOString()

@@ -1,4 +1,7 @@
-import { getPrismaClient } from '../../db.js';
+import { getPrismaClient } from '../../database.js';
+
+// Initialize Prisma client
+const prisma = await getPrismaClient();
 import { Logger } from '../core/logger.js';
 import { NotFoundError, ValidationError, ConflictError } from '../core/errors.js';
 import { StoreItem, PurchaseRequest, MarketplaceListing, BidRequest, FinancialSummary, AdReward } from './schemas.js';

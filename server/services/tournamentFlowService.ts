@@ -1,5 +1,8 @@
 import { getPrismaClient } from "../database.js";
 
+// Initialize Prisma client
+const prisma = await getPrismaClient();
+
 // Simple logging function for now
 function logInfo(message: string) {
   console.log(`[INFO] ${new Date().toISOString()} - ${message}`);

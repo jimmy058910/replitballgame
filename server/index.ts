@@ -130,7 +130,7 @@ async function startServer() {
           console.log('⚠️ [PROXY INIT] No service account key found');
         }
       } catch (error) {
-        console.log('⚠️ [PROXY INIT] Failed to start proxy:', error.message);
+        console.log('⚠️ [PROXY INIT] Failed to start proxy:', (error as Error).message);
       }
     }
 
@@ -142,7 +142,7 @@ async function startServer() {
       await getPrismaClient();
       console.log('✅ Database connection verified');
     } catch (error) {
-      console.log('⚠️ Database will retry connection when needed:', error.message);
+      console.log('⚠️ Database will retry connection when needed:', (error as Error).message);
     }
 
     // CRITICAL FIX: Ensure API routes have absolute precedence over Vite

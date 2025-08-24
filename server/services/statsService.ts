@@ -1,5 +1,8 @@
 import { getPrismaClient } from "../database.js";
 
+// Initialize Prisma client
+const prisma = await getPrismaClient();
+
 // Only track stats from meaningful match types (exclude exhibitions)
 const MEANINGFUL_MATCH_TYPES = ['LEAGUE', 'PLAYOFF'] as const;
 

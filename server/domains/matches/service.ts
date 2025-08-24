@@ -1,4 +1,7 @@
-import { getPrismaClient } from '../../db.js';
+import { getPrismaClient } from '../../database.js';
+
+// Initialize Prisma client
+const prisma = await getPrismaClient();
 import { Logger } from '../core/logger.js';
 import { NotFoundError, ConflictError } from '../core/errors.js';
 import { MatchState, CreateMatchRequest, LiveMatchUpdate, SimulationEvent } from './schemas.js';

@@ -1,5 +1,8 @@
 import { getPrismaClient } from '../database.js';
 
+// Initialize Prisma client
+const prisma = await getPrismaClient();
+
 /**
  * Integrated Stadium, Finance & Atmosphere Service
  * 
