@@ -976,8 +976,8 @@ export default function Competition() {
 
   // Fetch league standings for position calculation - use direct API route
   const { data: rawStandings, isLoading: standingsLoading } = useQuery({
-    queryKey: [`/api/teams/${effectiveTeam.division}/standings`],
-    queryFn: () => apiRequest(`/api/teams/${effectiveTeam.division}/standings`),
+    queryKey: [`/api/leagues/${effectiveTeam.division}/standings`],
+    queryFn: () => apiRequest(`/api/leagues/${effectiveTeam.division}/standings`),
     staleTime: 0, // No cache - force fresh data
     gcTime: 0, // No cache retention  
     refetchOnMount: true,
