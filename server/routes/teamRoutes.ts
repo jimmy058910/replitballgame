@@ -833,66 +833,6 @@ router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req
   }
 }));
 
-// Add test live match route for debugging LIVE status
-router.post('/start-test-live-match', requireAuth, asyncHandler(async (req: Request, res: Response) => {
-  console.log('🎮 [TEST LIVE MATCH] Starting a test live match for debugging');
-  
-  const userId = req.user?.claims?.sub;
-  if (!userId) {
-    throw ErrorCreators.unauthorized("User ID not found in token");
-  }
-  
-  try {
-    const prisma = await getPrismaClient();
-    
-    // Find a SCHEDULED game to start as live test
-    const scheduledGame = await prisma.game.findFirst({
-      where: {
-        status: 'SCHEDULED',
-        matchType: 'LEAGUE'
-      },
-      include: {
-        homeTeam: { include: { players: true, stadium: true } },
-        awayTeam: { include: { players: true, stadium: true } }
-      }
-    });
-    
-    if (!scheduledGame) {
-      return res.json({ 
-        success: false, 
-        message: 'No scheduled games available for testing'
-      });
-    }
-    
-    // Set game to IN_PROGRESS
-    await prisma.game.update({
-      where: { id: scheduledGame.id },
-      data: { 
-        status: 'IN_PROGRESS',
-        gameDate: new Date() // Start now
-      }
-    });
-    
-    // Initialize live match state
-    const { matchStateManager } = await import('../services/matchStateManager.js');
-    await matchStateManager.startLiveMatch(scheduledGame.id.toString(), false);
-    
-    console.log(`🎮 [DEMO MODE] Live match started - should show LIVE status for ~10 minutes`);
-    
-    console.log(`🎮 [TEST LIVE MATCH] Started: ${scheduledGame.homeTeam.name} vs ${scheduledGame.awayTeam.name}`);
-    
-    res.json({
-      success: true,
-      message: `Test live match started: ${scheduledGame.homeTeam.name} vs ${scheduledGame.awayTeam.name}`,
-      gameId: scheduledGame.id,
-      status: 'IN_PROGRESS'
-    });
-    
-  } catch (error) {
-    console.error('❌ [TEST LIVE MATCH] Error:', error);
-    res.status(500).json({ message: `Failed to start test live match: ${error.message}` });
-  }
-}));
 
 // Fix Day 8 games with proper simulation
 router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
