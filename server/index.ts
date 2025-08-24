@@ -147,7 +147,36 @@ async function startServer() {
 
     // CRITICAL FIX: Ensure API routes have absolute precedence over Vite
     app.use('/api', (req, res, next) => {
+      // Mark this as an API request to prevent Vite interference
+      res.locals.isApiRequest = true;
       res.setHeader('Content-Type', 'application/json');
+      
+      // Override any subsequent middleware that tries to change the response
+      const originalSend = res.send;
+      const originalJson = res.json;
+      const originalEnd = res.end;
+      
+      res.send = function(body) {
+        if (!this.headersSent) {
+          this.setHeader('Content-Type', 'application/json');
+        }
+        return originalSend.call(this, body);
+      };
+      
+      res.json = function(obj) {
+        if (!this.headersSent) {
+          this.setHeader('Content-Type', 'application/json');
+        }
+        return originalJson.call(this, obj);
+      };
+      
+      res.end = function(chunk, encoding) {
+        if (!this.headersSent && chunk && typeof chunk === 'object') {
+          this.setHeader('Content-Type', 'application/json');
+        }
+        return originalEnd.call(this, chunk, encoding);
+      };
+      
       next();
     });
     
@@ -156,6 +185,15 @@ async function startServer() {
     const { registerAllRoutes } = await import('./routes/index.js');
     await registerAllRoutes(app);
     console.log('✅ API routes registered');
+
+    // Add final API protection middleware before Vite
+    app.use('/api/*', (req, res, next) => {
+      // If we get here, the API route wasn't found - return 404 JSON instead of letting Vite handle it
+      if (!res.headersSent) {
+        return res.status(404).json({ error: 'API endpoint not found', path: req.originalUrl });
+      }
+      next();
+    });
 
     // Setup Vite in development
     if (process.env.NODE_ENV !== 'production') {
