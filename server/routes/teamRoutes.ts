@@ -834,6 +834,86 @@ router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req
 }));
 
 
+// Fix Day 9 game dates - move 4 games to August 24th
+router.post('/fix-day9-dates', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('📅 [FIX DAY 9] Moving 4 games from August 25th to August 24th (Day 9)');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Find games scheduled for August 25th that should be on August 24th
+    const aug25Games = await prisma.game.findMany({
+      where: {
+        gameDate: {
+          gte: new Date('2025-08-25T00:00:00Z'),
+          lt: new Date('2025-08-26T00:00:00Z')
+        },
+        status: 'SCHEDULED',
+        matchType: 'LEAGUE'
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      },
+      orderBy: { id: 'asc' }
+    });
+    
+    console.log(`📅 [FIX DAY 9] Found ${aug25Games.length} games on August 25th`);
+    
+    // Move the first 4 games to August 24th (Day 9)
+    const gamesToMove = aug25Games.slice(0, 4);
+    const movedGames = [];
+    
+    for (let i = 0; i < gamesToMove.length; i++) {
+      const game = gamesToMove[i];
+      
+      // Set to August 24th with proper time slots (4-7 PM EDT = UTC 20-23)
+      const day9Date = new Date('2025-08-24T20:00:00Z'); // 4 PM EDT
+      day9Date.setUTCHours(20 + i, 0, 0, 0); // 4PM, 5PM, 6PM, 7PM EDT
+      
+      await prisma.game.update({
+        where: { id: game.id },
+        data: {
+          gameDate: day9Date
+        }
+      });
+      
+      movedGames.push({
+        gameId: game.id,
+        teams: `${game.homeTeam.name} vs ${game.awayTeam.name}`,
+        newDateTime: day9Date.toISOString(),
+        newTimeEST: day9Date.toLocaleString('en-US', { 
+          timeZone: 'America/New_York',
+          weekday: 'short',
+          month: 'short', 
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        })
+      });
+      
+      console.log(`📅 [FIX DAY 9] Moved Game ${game.id}: ${game.homeTeam.name} vs ${game.awayTeam.name} → Aug 24th at ${day9Date.toLocaleString('en-US', { timeZone: 'America/New_York' })}`);
+    }
+    
+    res.json({
+      success: true,
+      message: `Successfully moved ${movedGames.length} games to Day 9 (August 24th)`,
+      movedGames,
+      remainingOnAug25: aug25Games.length - movedGames.length
+    });
+    
+  } catch (error) {
+    console.error('❌ [FIX DAY 9] Error:', error);
+    res.status(500).json({ message: `Failed to fix Day 9 dates: ${error.message}` });
+  }
+}));
+
 // Reset test games to proper Day 9 schedule
 router.post('/reset-test-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔄 [RESET TEST GAMES] Resetting manual test games to proper Day 9 times');
