@@ -877,6 +877,8 @@ router.post('/start-test-live-match', requireAuth, asyncHandler(async (req: Requ
     const { matchStateManager } = await import('../services/matchStateManager.js');
     await matchStateManager.startLiveMatch(scheduledGame.id.toString(), false);
     
+    console.log(`🎮 [DEMO MODE] Live match started - should show LIVE status for ~10 minutes`);
+    
     console.log(`🎮 [TEST LIVE MATCH] Started: ${scheduledGame.homeTeam.name} vs ${scheduledGame.awayTeam.name}`);
     
     res.json({

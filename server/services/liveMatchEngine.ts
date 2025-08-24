@@ -37,6 +37,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
       console.log(`Starting live match: ${matchId}`);
 
       // Fetch match data from database
+      const prisma = await getPrismaClient();
       const match = await prisma.game.findUnique({
         where: { id: parseInt(matchId) },
         include: {
@@ -368,9 +369,12 @@ class LiveMatchEngineService implements LiveMatchEngine {
    * Start simulation loop for a match
    */
   private startSimulationLoop(matchId: string): void {
+    const liveState = this.activeMatches.get(matchId);
+    const speed = liveState?.simulationSpeed || this.simulationSpeed;
+    
     const interval = setInterval(() => {
       this.simulateTick(matchId);
-    }, 1000 / this.simulationSpeed); // Adjust based on simulation speed
+    }, 1000 / speed); // Adjust based on simulation speed
 
     this.matchIntervals.set(matchId, interval);
   }
