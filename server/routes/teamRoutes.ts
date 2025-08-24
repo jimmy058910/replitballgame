@@ -834,6 +834,77 @@ router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req
 }));
 
 
+// Reset test games to proper Day 9 schedule
+router.post('/reset-test-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔄 [RESET TEST GAMES] Resetting manual test games to proper Day 9 times');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    const testGameIds = [3973, 3974, 3975, 3976];
+    const resetGames = [];
+    
+    for (const gameId of testGameIds) {
+      const game = await prisma.game.findUnique({
+        where: { id: gameId },
+        include: {
+          homeTeam: true,
+          awayTeam: true
+        }
+      });
+      
+      if (game) {
+        // Calculate proper Day 9 time (tomorrow at a scheduled time)
+        const day9Date = new Date();
+        day9Date.setDate(day9Date.getDate() + 1); // Tomorrow (Day 9)
+        day9Date.setUTCHours(20 + (gameId % 4), 0, 0, 0); // Spread across 4PM-7PM EDT (UTC: 20-23)
+        
+        // Reset the game
+        await prisma.game.update({
+          where: { id: gameId },
+          data: {
+            status: 'SCHEDULED',
+            homeScore: null,
+            awayScore: null,
+            gameDate: day9Date,
+            simulated: false,
+            simulationLog: null
+          }
+        });
+        
+        resetGames.push({
+          gameId,
+          teams: `${game.homeTeam.name} vs ${game.awayTeam.name}`,
+          newDateTime: day9Date.toISOString(),
+          newTimeEST: day9Date.toLocaleString('en-US', { 
+            timeZone: 'America/New_York',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })
+        });
+        
+        console.log(`🔄 [RESET] Game ${gameId}: ${game.homeTeam.name} vs ${game.awayTeam.name} → Day 9 at ${day9Date.toLocaleString('en-US', { timeZone: 'America/New_York' })}`);
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: `Successfully reset ${resetGames.length} test games to Day 9 schedule`,
+      resetGames
+    });
+    
+  } catch (error) {
+    console.error('❌ [RESET TEST GAMES] Error:', error);
+    res.status(500).json({ message: `Failed to reset test games: ${error.message}` });
+  }
+}));
+
 // Fix completed games standings update
 router.post('/fix-completed-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [STANDINGS FIX] Updating standings for completed games that were missed');
