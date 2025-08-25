@@ -73,6 +73,7 @@ model Team {
   subdivision          String?              @default("main")
   wins                 Int                  @default(0)
   losses               Int                  @default(0)
+  draws                Int                  @default(0)
   points               Int                  @default(0)
   activeBoosts         ActiveBoost[]
   strategy             Strategy?
@@ -90,7 +91,7 @@ model Team {
   @@index([userProfileId])
   @@index([leagueId])
   @@index([division, subdivision])
-  @@index([wins, losses, points])
+  @@index([wins, losses, draws, points])
   @@index([createdAt])
 }
 

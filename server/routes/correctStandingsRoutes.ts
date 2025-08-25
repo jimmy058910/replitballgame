@@ -17,24 +17,25 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
   try {
     const prisma = await getPrismaClient();
     
-    // First, get all completed Day 7 games for Division 8 Alpha
+    // FIXED: Use same team filtering approach as teamRoutes.ts
+    const teams = await prisma.team.findMany({
+      where: { 
+        division: 8,
+        subdivision: 'alpha'
+      }
+    });
+    
+    console.log(`🔍 Found ${teams.length} teams in Division 8 Alpha: [${teams.map(t => t.name).join(', ')}]`);
+    
+    // Get all completed games using same pattern as teamRoutes.ts
     const completedGames = await prisma.game.findMany({
       where: {
-        status: 'COMPLETED',
         matchType: 'LEAGUE',
+        homeScore: { not: null }, // Games with actual scores
+        awayScore: { not: null },
         OR: [
-          {
-            homeTeam: {
-              division: 8,
-              subdivision: 'alpha'
-            }
-          },
-          {
-            awayTeam: {
-              division: 8,
-              subdivision: 'alpha'
-            }
-          }
+          { homeTeamId: { in: teams.map(t => t.id) } },
+          { awayTeamId: { in: teams.map(t => t.id) } }
         ]
       },
       include: {

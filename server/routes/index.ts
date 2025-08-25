@@ -71,6 +71,7 @@ import testAutomationRoutes from "./testAutomationRoutes.js";
 import resetRoutes from "./resetRoutes.js";
 import lateRegistrationRoutes from "./lateRegistrationRoutes.js";
 import correctStandingsRoutes from "./correctStandingsRoutes.js";
+import manualStandingsComplete from "./manualStandingsComplete.js";
 
 
 // This function will be called by server/index.ts to set up all routes.
@@ -230,6 +231,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/cache", cacheRoutes); // Cache management and statistics
   app.use("/api/cache-test", quickCacheTest); // Cache testing and demonstration
   app.use("/api/correct-standings", correctStandingsRoutes); // Fix standings based on actual game results
+  app.use("/api/manual-standings", manualStandingsComplete); // Complete comprehensive standings fix
 
   // Add missing /api/me endpoint that frontend expects (redirect to auth/user)
   app.get("/api/me", (req, res) => {

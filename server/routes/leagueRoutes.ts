@@ -41,7 +41,7 @@ function getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; 
     const seasonStartDate = currentSeason?.startDate ? new Date(currentSeason.startDate) : 
                            currentSeason?.start_date ? new Date(currentSeason.start_date) : 
                            new Date("2025-08-16T15:40:19.081Z"); // Season 1 start date
-    const { calculateCurrentSeasonDay } = await import("../../shared/dayCalculation.js");
+    const { calculateCurrentSeasonDay } = require("../../shared/dayCalculation.js");
     currentDayInCycle = calculateCurrentSeasonDay(seasonStartDate);
   }
   
