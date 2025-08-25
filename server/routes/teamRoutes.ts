@@ -108,19 +108,20 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
     };
   }
 
-  // CRITICAL FIX: Apply same points calculation fix to /api/teams/my endpoint
-  const correctPoints = (serializedTeam.wins || 0) * 3 + (serializedTeam.draws || 0) * 1;
-  const hasPointsError = serializedTeam.points !== correctPoints;
+  // CRITICAL FIX: Use correct calculation logic - calculate draws from points, not vice versa
+  // The standings table calculates correctly: draws = points - (wins * 3)
+  const correctDraws = Math.max(0, (serializedTeam.points || 0) - ((serializedTeam.wins || 0) * 3));
+  const correctPoints = serializedTeam.points || 0; // Keep existing points from game results
   
-  if (hasPointsError) {
-    console.log(`🔧 [MY TEAM POINTS FIX] ${serializedTeam.name}: DB shows ${serializedTeam.points} pts, should be ${correctPoints} pts (${serializedTeam.wins}W)`);
+  if (serializedTeam.draws !== correctDraws) {
+    console.log(`🔧 [MY TEAM DRAWS FIX] ${serializedTeam.name}: DB shows ${serializedTeam.draws} draws, should be ${correctDraws} draws (${serializedTeam.points}pts - ${serializedTeam.wins}*3)`);
   }
   
   const correctedSerializedTeam = {
     ...serializedTeam,
-    points: correctPoints, // Use calculated points for consistency
-    draws: serializedTeam.draws || 0, // Ensure draws is never null
-    played: (serializedTeam.wins || 0) + (serializedTeam.losses || 0) + (serializedTeam.draws || 0)
+    points: correctPoints, // Use existing points from game results
+    draws: correctDraws, // Calculate draws from points (same as standings table)
+    played: (serializedTeam.wins || 0) + (serializedTeam.losses || 0) + correctDraws
   };
 
   return res.json(correctedSerializedTeam);
