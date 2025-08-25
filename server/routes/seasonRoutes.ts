@@ -2,6 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from '../storage/index.js'; // Adjusted path
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod"; // For validation
+import { getPrismaClient } from "../database.js";
 
 // Import asyncHandler for error handling
 const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
@@ -643,5 +644,37 @@ router.post('/fix-oakland-schedule', asyncHandler(async (req: Request, res: Resp
     });
   }
 }));
+
+// EMERGENCY: Manual day reset endpoint for fixing automation issues
+router.post('/manual-day-reset', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { targetDay } = req.body;
+    
+    if (!targetDay || targetDay < 1 || targetDay > 17) {
+      return res.status(400).json({ error: 'Invalid targetDay. Must be 1-17.' });
+    }
+    
+    const prisma = await getPrismaClient();
+    
+    // Update the current season's day
+    const updatedSeason = await prisma.season.updateMany({
+      data: {
+        currentDay: parseInt(targetDay)
+      }
+    });
+    
+    console.log(`🔧 MANUAL DAY RESET: Set currentDay to ${targetDay}`);
+    
+    res.json({
+      success: true,
+      message: `Day manually reset to ${targetDay}`,
+      updatedRecords: updatedSeason.count
+    });
+    
+  } catch (error) {
+    console.error('Manual day reset error:', error);
+    res.status(500).json({ error: 'Failed to reset day' });
+  }
+});
 
 export default router;
