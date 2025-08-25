@@ -48,7 +48,7 @@ gcloud scheduler jobs delete dependency-updates --location=us-central1 --project
 
 gcloud scheduler jobs create http dependency-updates \
   --location=us-central1 \
-  --schedule="0 9 * * 1" \
+  --schedule="30 5 * * 2" \
   --time-zone="America/Detroit" \
   --uri="https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/triggers/dependency-updates:run" \
   --http-method=POST \
@@ -56,7 +56,7 @@ gcloud scheduler jobs create http dependency-updates \
   --oauth-service-account-email="${CLOUD_BUILD_SA}" \
   --project=$PROJECT_ID
 
-echo "✅ Weekly dependency update job created (Mondays at 9 AM EST)"
+echo "✅ Weekly dependency update job created (Tuesdays at 5:30 AM EST)"
 
 # Create Cloud Scheduler job for critical security updates (daily)
 echo "🔒 Creating Cloud Scheduler job for daily security scans..."
@@ -64,7 +64,7 @@ gcloud scheduler jobs delete security-updates --location=us-central1 --project=$
 
 gcloud scheduler jobs create http security-updates \
   --location=us-central1 \
-  --schedule="0 6 * * *" \
+  --schedule="0 5 * * *" \
   --time-zone="America/Detroit" \
   --uri="https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/triggers/security-updates:run" \
   --http-method=POST \
@@ -72,7 +72,7 @@ gcloud scheduler jobs create http security-updates \
   --oauth-service-account-email="${CLOUD_BUILD_SA}" \
   --project=$PROJECT_ID
 
-echo "✅ Daily security update job created (6 AM EST daily)"
+echo "✅ Daily security update job created (5 AM EST daily)"
 
 # Create Cloud Build trigger for dependency updates
 echo "🔨 Creating Cloud Build trigger for dependency updates..."
@@ -97,8 +97,8 @@ echo ""
 echo "🎉 GCP Dependency Management System Setup Complete!"
 echo ""
 echo "📋 Summary:"
-echo "  • Weekly dependency updates: Mondays at 9 AM EST"
-echo "  • Daily security scans: 6 AM EST daily"
+echo "  • Weekly dependency updates: Tuesdays at 5:30 AM EST"
+echo "  • Daily security scans: 5 AM EST daily"
 echo "  • Build triggers: dependency-updates, security-updates"
 echo "  • GitHub token stored in Secret Manager"
 echo "  • Notifications via Pub/Sub topic"
