@@ -1,0 +1,68 @@
+# GCP Cloud Build configuration for automated dependency management
+# Replaces GitHub Dependabot with GCP-native solution
+steps:
+  # Step 1: Install dependencies and tools
+  - name: 'node:18'
+    entrypoint: 'npm'
+    args: ['install', '--production=false']
+    
+  # Step 2: Check for outdated packages
+  - name: 'node:18'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔍 Checking for outdated dependencies..."
+        npm outdated --json > /workspace/outdated.json || true
+        npm audit --json > /workspace/audit.json || true
+        
+  # Step 3: Run dependency analysis script
+  - name: 'node:18'
+    entrypoint: 'node'
+    args: ['/workspace/scripts/dependency-analyzer.js']
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
+      - 'REPO_OWNER=${_REPO_OWNER}'
+      - 'REPO_NAME=${_REPO_NAME}'
+      - 'GITHUB_TOKEN=${_GITHUB_TOKEN}'
+    secretEnv: ['GITHUB_TOKEN']
+    
+  # Step 4: Security vulnerability scan
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔒 Running security scan..."
+        gcloud components install local-extract --quiet
+        gcloud beta container images scan /workspace --format=json > /workspace/security-scan.json || true
+        
+  # Step 5: Create GitHub pull requests for critical updates
+  - name: 'node:18'
+    entrypoint: 'node'
+    args: ['/workspace/scripts/github-pr-creator.js']
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
+      - 'REPO_OWNER=${_REPO_OWNER}'
+      - 'REPO_NAME=${_REPO_NAME}'
+    secretEnv: ['GITHUB_TOKEN']
+
+# Available secrets from Secret Manager
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/github-token/versions/latest
+      env: 'GITHUB_TOKEN'
+
+# Substitutions for flexibility
+substitutions:
+  _REPO_OWNER: 'your-github-username'
+  _REPO_NAME: 'realm-rivalry'
+  _BRANCH_NAME: 'gcp-dependency-updates'
+
+# Options
+options:
+  machineType: 'E2_MEDIUM'
+  logging: CLOUD_LOGGING_ONLY
+
+# Timeout
+timeout: '1200s'
