@@ -47,10 +47,13 @@ export class LateSignupService {
     currentDayInCycle: number;
     seasonNumber: number;
   } {
-    const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate || new Date();
-    const daysSinceStart = Math.floor((new Date().getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
-    const currentDayInCycle = (daysSinceStart % 17) + 1;
-    const seasonNumber = Math.floor(daysSinceStart / 17);
+    // FIXED: Use proper 3AM EDT boundaries instead of simple 24-hour math
+    const seasonStartDate = currentSeason.startDateOriginal || currentSeason.startDate || new Date("2025-08-16T15:40:19.081Z");
+    
+    // Import and use the production-ready day calculation
+    const { calculateCurrentSeasonDay, calculateCurrentSeasonNumber } = require("../../shared/dayCalculation.js");
+    const currentDayInCycle = calculateCurrentSeasonDay(seasonStartDate);
+    const seasonNumber = calculateCurrentSeasonNumber(seasonStartDate);
     
     return { currentDayInCycle, seasonNumber };
   }

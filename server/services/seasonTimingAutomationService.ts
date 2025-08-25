@@ -287,11 +287,10 @@ export class SeasonTimingAutomationService {
       if (currentSeason && typeof currentSeason.currentDay === 'number') {
         currentDayInCycle = currentSeason.currentDay;
       } else {
-        // Fallback to calculation if no database value
-        const startDate = new Date("2025-07-13");
-        const now = new Date();
-        const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        currentDayInCycle = (daysSinceStart % 17) + 1;
+        // Fallback to calculation if no database value - FIXED: Use proper 3AM EDT boundaries
+        const startDate = new Date("2025-08-16T15:40:19.081Z"); // Use actual season start from database
+        const { calculateCurrentSeasonDay } = await import("../../shared/dayCalculation.js");
+        currentDayInCycle = calculateCurrentSeasonDay(startDate);
       }
       
       const seasonNumber = currentSeason?.seasonNumber || 0;

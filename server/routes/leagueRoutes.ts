@@ -37,13 +37,12 @@ function getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; 
   } else if (currentSeason && typeof currentSeason.day_in_cycle === 'number') {
     currentDayInCycle = currentSeason.day_in_cycle;
   } else {
-    // Fallback to calculation if no database value
+    // Fallback to calculation if no database value - FIXED: Use proper 3AM EDT boundaries
     const seasonStartDate = currentSeason?.startDate ? new Date(currentSeason.startDate) : 
                            currentSeason?.start_date ? new Date(currentSeason.start_date) : 
-                           new Date("2025-08-16"); // Season 1 start date
-    const now = new Date();
-    const daysSinceStart = Math.floor((now.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
-    currentDayInCycle = (daysSinceStart % 17) + 1;
+                           new Date("2025-08-16T15:40:19.081Z"); // Season 1 start date
+    const { calculateCurrentSeasonDay } = await import("../../shared/dayCalculation.js");
+    currentDayInCycle = calculateCurrentSeasonDay(seasonStartDate);
   }
   
   const seasonNumber = currentSeason?.seasonNumber || currentSeason?.season_number || 1;
