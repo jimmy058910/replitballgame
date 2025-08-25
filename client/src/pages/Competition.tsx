@@ -918,7 +918,7 @@ function ExhibitionsTab() {
                         <div className="text-center">
                           <div className="text-gray-400 text-sm">League Record:</div>
                           <div className="text-green-400 text-md font-semibold">
-                            {opponent.wins || 0}W-{opponent.losses || 0}L ({opponent.points || 0} pts)
+                            {opponent.wins || 0}W-{opponent.draws || 0}D-{opponent.losses || 0}L ({opponent.points || 0} pts)
                           </div>
                         </div>
                       </div>
