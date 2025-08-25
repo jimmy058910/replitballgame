@@ -128,6 +128,224 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
   return res.json(correctedSerializedTeam);
 }));
 
+// ===== FINANCIAL SYSTEM ROUTES =====
+// Team finances endpoint - User team finances for finance page
+router.get('/my/finances', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [FINANCES] /api/teams/my/finances endpoint called');
+  
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team) {
+    throw ErrorCreators.notFound("Team not found");
+  }
+
+  // Get team finances using storage layer
+  const finances = await storage.teamFinances.getTeamFinances(team.id);
+  if (!finances) {
+    throw ErrorCreators.notFound("Team finances not found");
+  }
+
+  console.log('✅ [FINANCES] Successfully returned finances for team:', team.name);
+  res.json(finances);
+}));
+
+// Team-specific finances endpoint with comprehensive calculations
+router.get('/:teamId/finances', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [FINANCES] /api/teams/:teamId/finances endpoint called');
+  
+  const teamId = parseInt(req.params.teamId);
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  // Get team finances using storage layer
+  const finances = await storage.teamFinances.getTeamFinances(teamId);
+  if (!finances) {
+    throw ErrorCreators.notFound("Team finances not found");
+  }
+
+  // Calculate actual player salaries from contracts
+  const prisma = await import('../database.js').then(m => m.getPrismaClient());
+  const players = await (await prisma).player.findMany({
+    where: { teamId: teamId },
+    select: { id: true }
+  });
+  const playerIds = players.map((p: any) => p.id);
+  
+  const contracts = await (await prisma).contract.findMany({
+    where: {
+      playerId: { in: playerIds }
+    },
+    select: {
+      salary: true
+    }
+  });
+  const totalPlayerSalaries = contracts.reduce((total, contract) => {
+    return total + (contract.salary || 0);
+  }, 0);
+
+  // Calculate actual staff salaries - use level-based calculation
+  let totalStaffSalaries = 0;
+  try {
+    const staff = await storage.staff.getStaffByTeamId(teamId);
+    totalStaffSalaries = staff.reduce((total, staffMember) => {
+      // Staff salary calculation: level * base salary (varies by type)
+      const baseSalary = 50000; // Base salary for all staff
+      const levelMultiplier = staffMember.level || 1;
+      const calculatedSalary = baseSalary * levelMultiplier;
+      return total + calculatedSalary;
+    }, 0);
+  } catch (error) {
+    console.error('Error fetching staff for salary calculation:', error);
+    totalStaffSalaries = 0;
+  }
+
+  // Return finances with calculated values and proper BigInt serialization
+  const facilitiesCost = parseInt(String(finances.facilitiesMaintenanceCost || '0'));
+  const projectedIncome = parseInt(String(finances.projectedIncome || '0'));
+  const totalExpenses = totalPlayerSalaries + totalStaffSalaries + facilitiesCost;
+  
+  // Create comprehensive response object with calculated values
+  const calculatedFinances = {
+    ...finances,
+    // Calculated values for frontend
+    playerSalaries: totalPlayerSalaries,
+    staffSalaries: totalStaffSalaries,
+    totalExpenses: totalExpenses,
+    netIncome: projectedIncome - totalExpenses,
+    // Maintenance cost in proper format
+    maintenanceCosts: facilitiesCost
+  };
+
+  console.log('✅ [FINANCES] Successfully returned calculated finances for teamId:', teamId);
+  console.log('📊 [FINANCES] Calculations: playerSalaries:', totalPlayerSalaries, 'staffSalaries:', totalStaffSalaries, 'netIncome:', projectedIncome - totalExpenses);
+  res.json(calculatedFinances);
+}));
+
+// Team contracts endpoint
+router.get('/:teamId/contracts', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [CONTRACTS] /api/teams/:teamId/contracts endpoint called');
+  
+  const teamId = parseInt(req.params.teamId);
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  // Verify team ownership
+  const userTeam = await storage.teams.getTeamByUserId(userId);
+  if (!userTeam || userTeam.id !== teamId) {
+    throw ErrorCreators.forbidden("Team not found or you don't have permission to access this team");
+  }
+
+  // Get all player contracts for the team
+  const prisma = await import('../database.js').then(m => m.getPrismaClient());
+  const contracts = await (await prisma).contract.findMany({
+    where: { 
+      playerId: { not: null },
+      player: {
+        teamId: teamId
+      }
+    },
+    include: {
+      player: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          race: true,
+          age: true,
+          role: true
+        }
+      }
+    }
+  });
+  
+  // Transform contracts to display format
+  const contractsWithPlayer = contracts.map(contract => ({
+    ...contract,
+    salary: contract.salary,
+    signingBonus: contract.signingBonus,
+    player: contract.player
+  }));
+  
+  console.log('✅ [CONTRACTS] Successfully returned contracts for teamId:', teamId, 'count:', contractsWithPlayer.length);
+  res.json({
+    success: true,
+    contracts: contractsWithPlayer,
+    totalContracts: contractsWithPlayer.length,
+    players: contractsWithPlayer.map(contract => ({
+      id: contract.player?.id,
+      firstName: contract.player?.firstName,
+      lastName: contract.player?.lastName,
+      race: contract.player?.race,
+      age: contract.player?.age,
+      role: contract.player?.role,
+      salary: contract.salary,
+      contractLength: contract.length,
+      signingBonus: contract.signingBonus,
+      startDate: contract.startDate
+    }))
+  });
+}));
+
+// Team transactions endpoint - matches frontend expectation
+router.get('/:teamId/transactions', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔍 [TRANSACTIONS] /api/teams/:teamId/transactions endpoint called');
+  
+  const teamId = parseInt(req.params.teamId);
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
+  
+  // Verify team ownership
+  const userTeam = await storage.teams.getTeamByUserId(userId);
+  if (!userTeam || userTeam.id !== teamId) {
+    throw ErrorCreators.forbidden("Team not found or you don't have permission to access this team");
+  }
+
+  try {
+    const { PaymentHistoryService } = await import('../services/paymentHistoryService.js');
+    
+    // Get team payment history and user payment history
+    const teamTransactions = await PaymentHistoryService.getTeamPaymentHistory(teamId);
+    const userTransactions = await PaymentHistoryService.getUserPaymentHistory(userId, {
+      limit: 50,
+      offset: 0,
+      currencyFilter: "both"
+    });
+    
+    // Combine and sort by date
+    const allTransactions = [
+      ...teamTransactions.transactions || [],
+      ...userTransactions.transactions || []
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    console.log('✅ [TRANSACTIONS] Successfully returned transactions for teamId:', teamId, 'count:', allTransactions.length);
+    res.json({
+      success: true,
+      transactions: allTransactions,
+      totalCount: allTransactions.length
+    });
+  } catch (error) {
+    console.error('❌ [TRANSACTIONS] Error fetching transactions:', error);
+    throw ErrorCreators.internalServer("Failed to fetch transactions");
+  }
+}));
+
 // Get user's next opponent
 router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.uid || req.user?.claims?.sub;

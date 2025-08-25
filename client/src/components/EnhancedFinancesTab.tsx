@@ -130,14 +130,11 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     enabled: !!teamId
   });
 
-  // Fetch transaction data using PaymentHistory API
+  // Fetch transaction data using team-specific transactions API
   const { data: transactionData, isLoading: transactionsLoading } = useQuery({
-    queryKey: ["/api/payment-history", { 
-      currencyFilter: transactionFilter === 'gem_transactions' ? 'gems' : 
-                     transactionFilter === 'credit_transactions' ? 'credits' : 'both',
-      limit: 100 
-    }],
-    enabled: true,
+    queryKey: ['/api/teams', teamId, 'transactions'],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/transactions`),
+    enabled: !!teamId
   });
 
   // Map the actual financial data to our expected format
