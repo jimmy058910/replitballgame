@@ -13,6 +13,34 @@ const router = Router();
 // Apply authentication to all routes
 router.use(requireAuth);
 
+// Set current day - Admin permission required (bypassed in development)
+router.post('/set-current-day', asyncHandler(async (req: any, res: Response) => {
+  const { currentDay } = req.body;
+  
+  if (!currentDay || currentDay < 1 || currentDay > 17) {
+    return res.status(400).json({ error: 'Invalid day. Must be between 1 and 17.' });
+  }
+  
+  const prisma = await getPrismaClient();
+  const currentSeason = await storage.seasons.getCurrentSeason();
+  
+  if (!currentSeason) {
+    return res.status(404).json({ error: 'No current season found' });
+  }
+  
+  await prisma.season.update({
+    where: { id: currentSeason.id },
+    data: { currentDay: parseInt(currentDay) }
+  });
+  
+  res.json({ 
+    success: true, 
+    message: `Current day set to ${currentDay}`,
+    previousDay: currentSeason.currentDay,
+    newDay: currentDay
+  });
+}));
+
 // Grant credits - Admin permission required
 router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CREDITS), asyncHandler(async (req: any, res: Response) => {
   const requestId = req.requestId;

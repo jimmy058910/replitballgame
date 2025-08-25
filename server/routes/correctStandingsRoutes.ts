@@ -10,6 +10,7 @@ const router = Router();
  * This endpoint reads the actual completed game results from the database
  * and applies the correct standings based on real data, not assumptions.
  */
+
 router.post('/fix-real-standings', requireAuth, async (req, res) => {
   console.log('🔧 FIXING STANDINGS BASED ON ACTUAL GAME RESULTS');
   console.log('================================================');
