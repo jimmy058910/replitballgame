@@ -37,7 +37,9 @@ jobs:
         # Runs the Snyk test and outputs results to a SARIF file.
         # The "|| true" ensures the workflow continues even if vulnerabilities are found,
         # so the AI review can still run.
-        run: snyk test --all-projects --sarif-file-output=snyk.sarif || true
+        # Note: Removed --all-projects to avoid multiple SARIF runs in same category
+        # (GitHub policy change July 2025)
+        run: snyk test --sarif-file-output=snyk.sarif || true
         env:
           # Use the secret token you created in Step 1
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
