@@ -5,8 +5,8 @@
 
 set -e
 
-PROJECT_ID="${PROJECT_ID:-your-project-id}"
-REPO_OWNER="${REPO_OWNER:-your-github-username}"
+PROJECT_ID="${PROJECT_ID:-direct-glider-465821-p7}"
+REPO_OWNER="${REPO_OWNER:-jimmy058910}"
 REPO_NAME="${REPO_NAME:-realm-rivalry}"
 GITHUB_TOKEN="${GITHUB_TOKEN:-your-github-token}"
 

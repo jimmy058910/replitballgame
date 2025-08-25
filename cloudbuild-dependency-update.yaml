@@ -55,7 +55,7 @@ availableSecrets:
 
 # Substitutions for flexibility
 substitutions:
-  _REPO_OWNER: 'your-github-username'
+  _REPO_OWNER: 'jimmy058910'
   _REPO_NAME: 'realm-rivalry'
   _BRANCH_NAME: 'gcp-dependency-updates'
 

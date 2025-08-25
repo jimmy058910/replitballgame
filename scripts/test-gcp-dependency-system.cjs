@@ -12,7 +12,7 @@ const { spawn } = require('child_process');
 class GCPDependencySystemTester {
   constructor() {
     this.projectId = process.env.PROJECT_ID || 'direct-glider-465821-p7';
-    this.repoOwner = process.env.REPO_OWNER || 'your-github-username';
+    this.repoOwner = process.env.REPO_OWNER || 'jimmy058910';
     this.repoName = process.env.REPO_NAME || 'realm-rivalry';
     this.workspaceDir = process.cwd();
     this.testResults = [];
