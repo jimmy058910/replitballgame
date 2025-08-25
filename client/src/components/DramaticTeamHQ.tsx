@@ -51,6 +51,7 @@ interface Team {
   subdivision: string;
   wins: number;
   losses: number;
+  draws: number;
   points: number;
 }
 
@@ -312,7 +313,7 @@ export default function DramaticTeamHQ() {
 
   // Use team data from API - now includes players, finances, stadium data
   const team = teamData as any;
-  const draws = 0; // TODO: Calculate draws when implemented
+  const draws = team?.draws || 0; // Use actual draws from team data
   
   // Debug stadium data structure
   console.log('Full team data:', teamData);

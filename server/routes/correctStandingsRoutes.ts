@@ -60,6 +60,7 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
       data: {
         wins: 0,
         losses: 0,
+        draws: 0,
         points: 0
       }
     });
@@ -149,10 +150,11 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
         });
         
       } else {
-        // Draw - both teams get 1 point
+        // Draw - both teams get 1 point and 1 draw
         const homeUpdate = await prisma.team.update({
           where: { id: game.homeTeam.id },
           data: {
+            draws: { increment: 1 },
             points: { increment: 1 }
           }
         });
@@ -160,6 +162,7 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
         const awayUpdate = await prisma.team.update({
           where: { id: game.awayTeam.id },
           data: {
+            draws: { increment: 1 },
             points: { increment: 1 }
           }
         });
