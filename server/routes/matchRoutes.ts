@@ -879,12 +879,40 @@ router.post('/:id/simulate', requireAuth, async (req: Request, res: Response, ne
 
     const result = await fullMatchSimulation(homeTeamPlayers as any, awayTeamPlayers as any, homeTeam.id.toString(), awayTeam.id.toString());
 
-    await matchStorage.updateMatch(parseInt(id), { // Use matchStorage
-      homeScore: result.homeScore, awayScore: result.awayScore,
-      status: "COMPLETED",
-      simulationLog: result.gameData as any,
-      completedAt: new Date(),
-    });
+    // Check if this is a league match - if so, use proper completion flow that includes standings updates
+    if (match.matchType === 'LEAGUE') {
+      console.log(`🏆 LEAGUE MATCH COMPLETION: ${match.id} - Using proper standings update flow`);
+      const { matchStateManager } = await import('../services/matchStateManager');
+      
+      // First update the match with simulation results
+      await matchStorage.updateMatch(parseInt(id), {
+        homeScore: result.homeScore, 
+        awayScore: result.awayScore,
+        status: "COMPLETED",
+        simulationLog: result.gameData as any,
+        completedAt: new Date(),
+      });
+      
+      // Then trigger the proper completion flow with standings updates
+      await matchStateManager.updateTeamRecords(
+        match.homeTeamId, 
+        match.awayTeamId, 
+        result.homeScore, 
+        result.awayScore
+      );
+      
+      console.log(`✅ LEAGUE STANDINGS UPDATED: Match ${match.id} - Home: ${result.homeScore}, Away: ${result.awayScore}`);
+    } else {
+      // Non-league matches (exhibition, tournament) - direct update is fine
+      await matchStorage.updateMatch(parseInt(id), {
+        homeScore: result.homeScore, 
+        awayScore: result.awayScore,
+        status: "COMPLETED",
+        simulationLog: result.gameData as any,
+        completedAt: new Date(),
+      });
+    }
+    
     res.json(result);
   } catch (error) {
     console.error("Error simulating match:", error);
@@ -927,6 +955,7 @@ router.post('/:matchId/simulate-play', requireAuth, async (req: Request, res: Re
     if (randomEventType === 'score') { if (Math.random() < 0.5) homeScore++; else awayScore++; }
 
     const maxTime = match.matchType === 'EXHIBITION' ? 1200 : 1800;
+    const wasCompleted = status === 'COMPLETED';
     if (gameTime >= maxTime) { status = 'COMPLETED'; }
     else if (gameTime >= maxTime / 2 && currentHalf === 1) { currentHalf = 2; }
 
@@ -936,10 +965,33 @@ router.post('/:matchId/simulate-play', requireAuth, async (req: Request, res: Re
         homeScore, awayScore, gameTime, currentHalf, status
     };
 
-    await matchStorage.updateMatch(parseInt(matchId), { // Use matchStorage
-      homeScore, awayScore, status,
-      simulationLog: updatedGameData,
-    });
+    // Check if match just completed and is a league match
+    if (status === 'COMPLETED' && !wasCompleted && match.matchType === 'LEAGUE') {
+      console.log(`🏆 LEAGUE MATCH COMPLETION (simulate-play): ${matchId} - Using proper standings update flow`);
+      const { matchStateManager } = await import('../services/matchStateManager');
+      
+      // Update match status
+      await matchStorage.updateMatch(parseInt(matchId), {
+        homeScore, awayScore, status,
+        simulationLog: updatedGameData,
+      });
+      
+      // Trigger standings update
+      await matchStateManager.updateTeamRecords(
+        match.homeTeamId, 
+        match.awayTeamId, 
+        homeScore, 
+        awayScore
+      );
+      
+      console.log(`✅ LEAGUE STANDINGS UPDATED: Match ${matchId} - Home: ${homeScore}, Away: ${awayScore}`);
+    } else {
+      // Regular update for non-league matches or non-completion updates
+      await matchStorage.updateMatch(parseInt(matchId), {
+        homeScore, awayScore, status,
+        simulationLog: updatedGameData,
+      });
+    }
     res.json({ events: [event], matchUpdate: { homeScore, awayScore, gameTime, currentHalf, status }});
   } catch (error) {
     console.error("Error simulating play:", error);
@@ -975,12 +1027,35 @@ router.patch('/:id/complete', requireAuth, async (req: any, res: Response, next:
     const match = await matchStorage.getMatchById(parseInt(id)); // Use matchStorage
     if (!match) return res.status(404).json({ message: "Match not found" });
 
-    const updatedMatch = await matchStorage.updateMatch(parseInt(id), { // Use matchStorage
-      status: "COMPLETED", homeScore, awayScore,
-      completedAt: new Date(),
-    });
-    // TODO: Notification logic
-    res.json(updatedMatch);
+    // Check if this is a league match - if so, use proper completion flow that includes standings updates
+    if (match.matchType === 'LEAGUE') {
+      console.log(`🏆 LEAGUE MATCH COMPLETION (manual): ${id} - Using proper standings update flow`);
+      const { matchStateManager } = await import('../services/matchStateManager');
+      
+      // Update match status
+      const updatedMatch = await matchStorage.updateMatch(parseInt(id), {
+        status: "COMPLETED", homeScore, awayScore,
+        completedAt: new Date(),
+      });
+      
+      // Trigger standings update
+      await matchStateManager.updateTeamRecords(
+        match.homeTeamId, 
+        match.awayTeamId, 
+        homeScore, 
+        awayScore
+      );
+      
+      console.log(`✅ LEAGUE STANDINGS UPDATED: Match ${id} - Home: ${homeScore}, Away: ${awayScore}`);
+      res.json(updatedMatch);
+    } else {
+      // Non-league matches (exhibition, tournament) - direct update is fine
+      const updatedMatch = await matchStorage.updateMatch(parseInt(id), {
+        status: "COMPLETED", homeScore, awayScore,
+        completedAt: new Date(),
+      });
+      res.json(updatedMatch);
+    }
   } catch (error) {
     console.error("Error completing match:", error);
     next(error);

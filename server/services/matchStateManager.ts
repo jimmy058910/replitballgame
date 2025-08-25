@@ -1821,7 +1821,7 @@ class MatchStateManager {
   /**
    * Update team records (wins/losses/draws) after match completion
    */
-  private async updateTeamRecords(homeTeamId: number, awayTeamId: number, homeScore: number, awayScore: number): Promise<void> {
+  async updateTeamRecords(homeTeamId: number, awayTeamId: number, homeScore: number, awayScore: number): Promise<void> {
     try {
       logger.info(`🏆 TEAM RECORDS UPDATE: Home Team ${homeTeamId} (${homeScore}) vs Away Team ${awayTeamId} (${awayScore})`);
       
