@@ -188,15 +188,13 @@ router.get('/:teamId/finances', requireAuth, asyncHandler(async (req: Request, r
     return total + (contract.salary || 0);
   }, 0);
 
-  // Calculate actual staff salaries - use level-based calculation
+  // Calculate actual staff salaries - use correct level-based calculation
   let totalStaffSalaries = 0;
   try {
     const staff = await storage.staff.getStaffByTeamId(teamId);
     totalStaffSalaries = staff.reduce((total, staffMember) => {
-      // Staff salary calculation: level * base salary (varies by type)
-      const baseSalary = 50000; // Base salary for all staff
-      const levelMultiplier = staffMember.level || 1;
-      const calculatedSalary = baseSalary * levelMultiplier;
+      // Correct staff salary calculation: level * 1000 credits (from teamFinancesStorage.ts)
+      const calculatedSalary = (staffMember.level || 1) * 1000;
       return total + calculatedSalary;
     }, 0);
   } catch (error) {
