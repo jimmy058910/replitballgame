@@ -6,7 +6,7 @@
 # ===================================
 # STAGE 1: Frontend Build Stage
 # ===================================
-FROM node:20-slim AS frontend-builder
+FROM node:20.19.4-trixie-slim AS frontend-builder
 
 # Install system dependencies for build
 RUN apt-get update && apt-get install -y \
@@ -50,7 +50,7 @@ RUN npm run build
 # ===================================
 # STAGE 2: Production Runtime Stage  
 # ===================================
-FROM node:20-slim AS production
+FROM node:20.19.4-trixie-slim AS production
 
 # Install production system dependencies
 RUN apt-get update && apt-get install -y \
