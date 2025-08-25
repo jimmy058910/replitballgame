@@ -1609,7 +1609,7 @@ export default function ComprehensiveCompetitionCenter() {
                       <div className="text-lg">{scoutingData.team?.name || 'Unknown Team'}</div>
                       <div className="text-sm text-gray-400 font-normal">
                         Division {scoutingData.team?.division || '?'} – {scoutingData.team?.subdivision?.charAt(0).toUpperCase() + scoutingData.team?.subdivision?.slice(1) || 'Unknown'} | 
-                        Record {scoutingData.team?.wins || 0}-{scoutingData.team?.draws || 0}-{scoutingData.team?.losses || 0} - Pts {scoutingData.team?.points || 0}
+                        Record {scoutingData.team?.wins || 0}-{Math.max(0, (scoutingData.team?.points || 0) - ((scoutingData.team?.wins || 0) * 3))}-{scoutingData.team?.losses || 0} - Pts {scoutingData.team?.points || 0}
                       </div>
                     </div>
                   </>

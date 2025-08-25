@@ -918,7 +918,7 @@ function ExhibitionsTab() {
                         <div className="text-center">
                           <div className="text-gray-400 text-sm">League Record:</div>
                           <div className="text-green-400 text-md font-semibold">
-                            {opponent.wins || 0}W-{opponent.draws || 0}D-{opponent.losses || 0}L ({opponent.points || 0} pts)
+                            {opponent.wins || 0}W-{Math.max(0, (opponent.points || 0) - ((opponent.wins || 0) * 3))}D-{opponent.losses || 0}L ({opponent.points || 0} pts)
                           </div>
                         </div>
                       </div>
@@ -1182,7 +1182,7 @@ export default function Competition() {
                   <div className="flex justify-between">
                     <span>Record:</span>
                     <span className="font-semibold text-green-400">
-                      {team?.wins || 0}W-{team?.draws || 0}D-{team?.losses || 0}L
+                      {team?.wins || 0}W-{Math.max(0, (team?.points || 0) - ((team?.wins || 0) * 3))}D-{team?.losses || 0}L
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -1191,7 +1191,7 @@ export default function Competition() {
                   </div>
                   <div className="flex justify-between">
                     <span>Games Played:</span>
-                    <span>{team?.wins ?? 0}W - {team?.draws ?? 0}D - {team?.losses ?? 0}L</span>
+                    <span>{team?.wins ?? 0}W - {Math.max(0, (team?.points || 0) - ((team?.wins || 0) * 3))}D - {team?.losses ?? 0}L</span>
                   </div>
                 </CardContent>
               </Card>
@@ -1252,7 +1252,7 @@ export default function Competition() {
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="text-gray-400">Record:</div>
-                        <div className="text-white">{challengeTeam.wins ?? 0}W - {challengeTeam.draws ?? 0}D - {challengeTeam.losses ?? 0}L</div>
+                        <div className="text-white">{challengeTeam.wins ?? 0}W - {Math.max(0, (challengeTeam.points || 0) - ((challengeTeam.wins || 0) * 3))}D - {challengeTeam.losses ?? 0}L</div>
                         <div className="text-gray-400">Power:</div>
                         <div className="text-white">{challengeTeam.teamPower ?? 0}</div>
                       </div>

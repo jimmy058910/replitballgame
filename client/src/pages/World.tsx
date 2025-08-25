@@ -107,7 +107,7 @@ function UniversalTeamPowerRankings() {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    <span>Record: {team.wins}-{team.draws ?? 0}-{team.losses}</span>
+                    <span>Record: {team.wins}-{Math.max(0, (team.points || 0) - ((team.wins || 0) * 3))}-{team.losses}</span>
                     <span>Win Rate: {team.winPercentage}%</span>
                     <span>Team Power: {team.teamPower}</span>
                   </div>
