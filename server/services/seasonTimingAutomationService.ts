@@ -1109,7 +1109,7 @@ export class SeasonTimingAutomationService {
       }
 
       const databaseDay = currentSeason.currentDay || 1;
-      const calculatedDay = this.calculateCorrectDay(currentSeason);
+      const calculatedDay = await this.calculateCorrectDay(currentSeason);
       
       console.log('📊 [SMART PROGRESSION] Day Analysis:', {
         databaseDay,
@@ -1147,22 +1147,14 @@ export class SeasonTimingAutomationService {
 
   /**
    * Calculate correct day based on season start date and current time
+   * FIXED: Use shared utility with proper 3AM EDT boundaries
    */
-  private calculateCorrectDay(season: any): number {
+  private async calculateCorrectDay(season: any): Promise<number> {
     const seasonStart = new Date(season.startDate || season.start_date);
-    const now = new Date();
     
-    // Calculate days since season start (inclusive)
-    const seasonStartUTC = new Date(seasonStart);
-    seasonStartUTC.setUTCHours(0, 0, 0, 0);
-    
-    const nowUTC = new Date(now);
-    nowUTC.setUTCHours(0, 0, 0, 0);
-    
-    const daysSinceStart = Math.floor((nowUTC.getTime() - seasonStartUTC.getTime()) / (1000 * 60 * 60 * 24));
-    const calculatedDay = Math.min(daysSinceStart + 1, 17); // +1 because Day 1 = 0 days elapsed
-    
-    return calculatedDay;
+    // FIXED: Use the shared utility that respects 3AM EDT boundaries
+    const { calculateCurrentSeasonDay } = await import('../../shared/dayCalculation.js');
+    return calculateCurrentSeasonDay(seasonStart);
   }
 
   /**
