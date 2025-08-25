@@ -663,7 +663,7 @@ export default function ComprehensiveCompetitionCenter() {
                 <Trophy className="h-5 w-5 text-green-400" />
                 <div>
                   <h3 className="text-lg font-bold text-white">
-                    {team?.wins || 0} W – {team?.draws || 0} D – {team?.losses || 0} L
+                    {team?.wins || 0} W – {Math.max(0, (team?.points || 0) - ((team?.wins || 0) * 3))} D – {team?.losses || 0} L
                   </h3>
                   <p className="text-sm text-green-400 font-medium">League Record</p>
                 </div>

@@ -313,7 +313,8 @@ export default function DramaticTeamHQ() {
 
   // Use team data from API - now includes players, finances, stadium data
   const team = teamData as any;
-  const draws = team?.draws || 0; // Use actual draws from team data
+  // FIXED: Use same calculation logic as main standings table
+  const draws = Math.max(0, (team?.points || 0) - ((team?.wins || 0) * 3));
   
   // Debug stadium data structure
   console.log('Full team data:', teamData);
