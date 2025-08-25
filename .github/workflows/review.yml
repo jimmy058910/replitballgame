@@ -43,6 +43,8 @@ jobs:
         env:
           # Use the secret token you created in Step 1
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        # Skip Snyk scan for Dependabot PRs if token is unavailable
+        if: ${{ env.SNYK_TOKEN != '' }}
 
       - name: Upload Snyk Scan Results to GitHub
         # This step takes the SARIF file from Snyk and uploads it to the
@@ -50,6 +52,9 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
+          category: snyk-security-scan  # Explicit category to avoid conflicts
+          # Only upload if Snyk scan ran and created the file
+        if: ${{ hashFiles('snyk.sarif') != '' }}
 
       # --- AI Peer Review ---
       - name: AI Code Review
