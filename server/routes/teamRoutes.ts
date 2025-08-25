@@ -62,6 +62,7 @@ router.get('/firebase-test', asyncHandler(async (req: Request, res: Response) =>
 // Get user's team - PRIMARY ROUTE (with auth)
 router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my route called!');
+  console.log('🚨 [UNIQUE DEBUG] This is the FIXED endpoint running!');
   
   const userId = req.user?.claims?.sub;
   if (!userId) {
@@ -649,10 +650,11 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
       });
     }
 
-    // CRITICAL FIX: Correct points calculation and score calculations
+    // CRITICAL FIX: Correct draws calculation (same logic as main fix)
     const correctedTeams = teams.map(team => {
-      const correctPoints = (team.wins || 0) * 3 + (team.draws || 0) * 1;
-      const hasPointsError = team.points !== correctPoints;
+      const correctDraws = Math.max(0, (team.points || 0) - ((team.wins || 0) * 3));
+      const correctPoints = team.points || 0; // Keep existing points from game results
+      const hasDrawsError = (team.draws || 0) !== correctDraws;
       
       // Calculate actual scores from completed games
       const teamMatches = completedMatches.filter(match => 
@@ -675,16 +677,16 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
       const scoreDifference = totalScores - scoresAgainst;
       const actualPlayed = teamMatches.length; // Only count COMPLETED games
       
-      if (hasPointsError) {
-        console.log(`🔧 [POINTS FIX] ${team.name}: DB shows ${team.points} pts, should be ${correctPoints} pts (${team.wins}W)`);
+      if (hasDrawsError) {
+        console.log(`🔧 [STANDINGS DRAWS FIX] ${team.name}: DB shows ${team.draws} draws, should be ${correctDraws} draws (${team.points}pts)`);
       }
       
       console.log(`🎯 [SCORE CALC] ${team.name}: ${actualPlayed} games, ${totalScores} for, ${scoresAgainst} against, ${scoreDifference} diff`);
       
       return {
         ...team,
-        points: correctPoints, // Use calculated points for consistency
-        draws: team.draws || 0, // Ensure draws is never null
+        points: correctPoints, // Keep existing points from game results
+        draws: correctDraws, // Use calculated draws (same as main fix)
         played: actualPlayed, // Only count simulated games
         totalScores,
         scoresAgainst,
