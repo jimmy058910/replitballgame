@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-08-25T22:00:41.857Z",
+  "timestamp": "2025-08-25T22:27:29.498Z",
   "project": "direct-glider-465821-p7",
   "repository": "your-github-username/realm-rivalry",
   "summary": {
     "total": 6,
-    "passed": 4,
-    "failed": 2
+    "passed": 5,
+    "failed": 1
   },
   "results": [
     {
@@ -57,8 +57,10 @@
     },
     {
       "name": "Dependabot Removal",
-      "status": "FAIL",
-      "error": "Dependabot configuration still exists"
+      "status": "PASS",
+      "result": {
+        "dependabotRemoved": true
+      }
     }
   ]
 }
