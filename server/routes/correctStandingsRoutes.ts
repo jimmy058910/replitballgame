@@ -316,4 +316,98 @@ router.post('/fix-gp-discrepancy', requireAuth, async (req, res) => {
   }
 });
 
+/**
+ * Fix Team Records - Recalculate win/loss/draw records from actual game results
+ */
+router.post('/fix-team-records', requireAuth, async (req, res) => {
+  console.log('🔧 FIXING TEAM RECORDS - Recalculating from actual game results');
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Get Division 8 Alpha teams
+    const teams = await prisma.team.findMany({
+      where: { division: 8, subdivision: 'alpha' },
+      select: { id: true, name: true }
+    });
+    
+    // Get completed games  
+    const completedGames = await prisma.game.findMany({
+      where: {
+        matchType: 'LEAGUE',
+        homeScore: { not: null },
+        awayScore: { not: null },
+        OR: [
+          { homeTeamId: { in: teams.map(t => t.id) } },
+          { awayTeamId: { in: teams.map(t => t.id) } }
+        ]
+      },
+      select: { 
+        homeTeamId: true, awayTeamId: true, 
+        homeScore: true, awayScore: true 
+      }
+    });
+    
+    console.log(`📊 Recalculating records from ${completedGames.length} completed games`);
+    
+    let updatedTeams = 0;
+    
+    // Recalculate each team's record from scratch
+    for (const team of teams) {
+      const teamGames = completedGames.filter(g => 
+        g.homeTeamId === team.id || g.awayTeamId === team.id
+      );
+      
+      let wins = 0;
+      let losses = 0; 
+      let draws = 0;
+      
+      teamGames.forEach(game => {
+        const isHome = game.homeTeamId === team.id;
+        const teamScore = isHome ? game.homeScore : game.awayScore;
+        const opponentScore = isHome ? game.awayScore : game.homeScore;
+        
+        if (teamScore > opponentScore) {
+          wins++;
+        } else if (teamScore < opponentScore) {
+          losses++;
+        } else {
+          draws++;
+        }
+      });
+      
+      const totalGames = wins + losses + draws;
+      console.log(`🎯 ${team.name}: ${totalGames} games → ${wins}W-${losses}L-${draws}D`);
+      
+      // Update team record in database (Team model has no draws field)
+      await prisma.team.update({
+        where: { id: team.id },
+        data: {
+          wins,
+          losses,
+          points: (wins * 3) + (draws * 1) // 3 points for win, 1 for draw
+        }
+      });
+      
+      updatedTeams++;
+    }
+    
+    console.log(`✅ Fixed team records: Updated ${updatedTeams} teams`);
+    
+    return res.json({
+      success: true,
+      message: `Fixed team records: updated ${updatedTeams} teams`,
+      result: `All team records now match actual game results`
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fixing team records:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fix team records',
+      details: error.message
+    });
+  }
+});
+
 export default router;

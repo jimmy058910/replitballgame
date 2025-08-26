@@ -521,8 +521,7 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       );
       const actualGamesPlayed = teamMatches.length; // Count actual completed matches
       
-      // DEBUG: Log each team's actual game count vs win/loss record
-      console.log(`🎯 [GP DEBUG] ${team.name}: ${actualGamesPlayed} completed games, ${wins}W-${losses}L-${draws}D (W+L+D=${wins + losses + draws})`);
+      // Clean up debug logging
       
       // Generate form string based on overall record
       const totalGames = actualGamesPlayed; // Use actual games played
@@ -625,8 +624,7 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
 
     console.log(`✅ [STANDINGS API] Returning enhanced standings for ${sortedTeams.length} teams`);
     console.log(`🏆 [STANDINGS API] ========== REQUEST COMPLETE ==========\n`);
-    // DEBUG: Log first team's complete data structure 
-    console.log(`🔍 [API DEBUG] First team complete data:`, JSON.stringify(sortedTeams[0], null, 2));
+    // Clean up debug logging
     
     res.json(sortedTeams);
   } catch (error) {
