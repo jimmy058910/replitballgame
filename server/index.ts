@@ -20,6 +20,9 @@ async function startServer() {
     const app = express();
     const httpServer = http.createServer(app);
 
+    // Trust proxy for Google Cloud Run (must be first!)
+    app.set('trust proxy', 1);
+
     // Basic middleware with Firebase-compatible CSP
     app.use(helmet({
       contentSecurityPolicy: {
