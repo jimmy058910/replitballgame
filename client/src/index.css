@@ -214,12 +214,12 @@ div[class*="min-w"] .final-text-override {
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply font-inter antialiased bg-gray-900 text-gray-100;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: rgb(17 24 39);
+    color: rgb(243 244 246);
     /* Prevent zoom on mobile */
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
@@ -260,36 +260,58 @@ div[class*="min-w"] .final-text-override {
 
   /* Enhanced Mobile Card Layouts */
   .mobile-card {
-    @apply bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-sm;
+    background-color: rgb(31 41 55);
+    border: 1px solid rgb(55 65 81);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
 
   .mobile-card-compact {
-    @apply bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-sm;
+    background-color: rgb(31 41 55);
+    border: 1px solid rgb(55 65 81);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
 
   .mobile-card-interactive {
-    @apply bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-sm transition-all duration-200 hover:bg-gray-700 hover:border-gray-600 active:scale-[0.98];
+    background-color: rgb(31 41 55);
+    border: 1px solid rgb(55 65 81);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    transition: all 200ms;
+  }
+  
+  .mobile-card-interactive:hover {
+    background-color: rgb(55 65 81);
+    border-color: rgb(75 85 99);
+  }
+  
+  .mobile-card-interactive:active {
+    transform: scale(0.98);
   }
 
   /* Hub-Specific Gradients */
   .hub-command-center {
-    @apply bg-gradient-to-br from-blue-900 to-indigo-900;
+    background: linear-gradient(to bottom right, rgb(30 58 138), rgb(49 46 129));
   }
 
   .hub-roster-hq {
-    @apply bg-gradient-to-br from-green-900 to-emerald-900;
+    background: linear-gradient(to bottom right, rgb(20 83 45), rgb(6 78 59));
   }
 
   .hub-competition {
-    @apply bg-gradient-to-br from-orange-900 to-amber-900;
+    background: linear-gradient(to bottom right, rgb(154 52 18), rgb(146 64 14));
   }
 
   .hub-market {
-    @apply bg-gradient-to-br from-purple-900 to-violet-900;
+    background: linear-gradient(to bottom right, rgb(88 28 135), rgb(76 29 149));
   }
 
   .hub-community {
-    @apply bg-gradient-to-br from-teal-900 to-cyan-900;
+    background: linear-gradient(to bottom right, rgb(19 78 74), rgb(22 78 99));
   }
 
   /* Enhanced Typography Scale */
@@ -313,54 +335,100 @@ div[class*="min-w"] .final-text-override {
 
   /* Responsive Grid Systems */
   .grid-mobile-cards {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .grid-mobile-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .grid-mobile-cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   .grid-dashboard {
-    @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    .grid-dashboard {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   .grid-stats {
-    @apply grid grid-cols-2 md:grid-cols-4 gap-4;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  @media (min-width: 768px) {
+    .grid-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
 
   /* Enhanced Loading States */
   .skeleton {
-    @apply animate-pulse bg-gray-700 rounded;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background-color: rgb(55 65 81);
+    border-radius: 0.25rem;
   }
 
   .skeleton-text {
-    @apply skeleton h-4 w-full;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background-color: rgb(55 65 81);
+    border-radius: 0.25rem;
+    height: 1rem;
+    width: 100%;
   }
 
   .skeleton-title {
-    @apply skeleton h-6 w-3/4;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background-color: rgb(55 65 81);
+    border-radius: 0.25rem;
+    height: 1.5rem;
+    width: 75%;
   }
 
   .skeleton-card {
-    @apply skeleton h-32 w-full;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background-color: rgb(55 65 81);
+    border-radius: 0.25rem;
+    height: 8rem;
+    width: 100%;
   }
 
   /* Status Indicators */
   .status-active {
-    @apply bg-green-600 text-green-100;
+    background-color: rgb(22 163 74);
+    color: rgb(220 252 231);
   }
 
   .status-inactive {
-    @apply bg-gray-600 text-gray-100;
+    background-color: rgb(75 85 99);
+    color: rgb(243 244 246);
   }
 
   .status-warning {
-    @apply bg-yellow-600 text-yellow-100;
+    background-color: rgb(202 138 4);
+    color: rgb(254 249 195);
   }
 
   .status-danger {
-    @apply bg-red-600 text-red-100;
+    background-color: rgb(220 38 38);
+    color: rgb(254 226 226);
   }
 
   /* Player Role Colors */
   .role-passer {
-    @apply text-blue-400 bg-blue-400/10 border-blue-400/30;
+    color: rgb(96 165 250);
+    background-color: rgb(96 165 250 / 0.1);
+    border-color: rgb(96 165 250 / 0.3);
   }
 
   .role-runner {
