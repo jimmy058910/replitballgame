@@ -521,7 +521,6 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       );
       const actualGamesPlayed = teamMatches.length; // Count actual completed matches
       
-      // Clean up debug logging
       
       // Generate form string based on overall record
       const totalGames = actualGamesPlayed; // Use actual games played
@@ -624,7 +623,6 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
 
     console.log(`✅ [STANDINGS API] Returning enhanced standings for ${sortedTeams.length} teams`);
     console.log(`🏆 [STANDINGS API] ========== REQUEST COMPLETE ==========\n`);
-    // Clean up debug logging
     
     res.json(sortedTeams);
   } catch (error) {
