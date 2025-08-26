@@ -235,4 +235,85 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
   }
 });
 
+/**
+ * Fix GP Discrepancy - Ensure each team has exactly 4 completed games
+ */
+router.post('/fix-gp-discrepancy', requireAuth, async (req, res) => {
+  console.log('🔧 FIXING GP DISCREPANCY - Ensuring exactly 4 games per team');
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Get Division 8 Alpha teams
+    const teams = await prisma.team.findMany({
+      where: { division: 8, subdivision: 'alpha' },
+      select: { id: true, name: true }
+    });
+    
+    console.log(`🔍 Found ${teams.length} teams in Division 8 Alpha`);
+    
+    // Get all completed games
+    const completedGames = await prisma.game.findMany({
+      where: {
+        matchType: 'LEAGUE',
+        homeScore: { not: null },
+        awayScore: { not: null },
+        OR: [
+          { homeTeamId: { in: teams.map(t => t.id) } },
+          { awayTeamId: { in: teams.map(t => t.id) } }
+        ]
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    
+    console.log(`📊 Found ${completedGames.length} total completed games`);
+    
+    let gamesRemoved = 0;
+    
+    // Process each team - keep only first 4 completed games, mark others as incomplete
+    for (const team of teams) {
+      const teamGames = completedGames.filter(g => 
+        g.homeTeamId === team.id || g.awayTeamId === team.id
+      );
+      
+      console.log(`🎯 ${team.name}: ${teamGames.length} completed games`);
+      
+      if (teamGames.length > 4) {
+        const gamesToRemove = teamGames.slice(4); // Remove games beyond the 4th
+        console.log(`⚠️ ${team.name}: Removing ${gamesToRemove.length} extra games`);
+        
+        for (const game of gamesToRemove) {
+          await prisma.game.update({
+            where: { id: game.id },
+            data: {
+              homeScore: null,
+              awayScore: null,
+              simulated: false,
+              status: 'SCHEDULED'
+            }
+          });
+          gamesRemoved++;
+        }
+      }
+    }
+    
+    console.log(`✅ Fixed GP discrepancy: Removed scores from ${gamesRemoved} extra games`);
+    console.log(`✅ Each team now has exactly 4 completed games`);
+    
+    return res.json({
+      success: true,
+      message: `Fixed GP discrepancy: removed ${gamesRemoved} extra completed games`,
+      result: `Each team now has exactly 4 completed games`
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fixing GP discrepancy:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fix GP discrepancy',
+      details: error.message
+    });
+  }
+});
+
 export default router;

@@ -521,6 +521,9 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       );
       const actualGamesPlayed = teamMatches.length; // Count actual completed matches
       
+      // DEBUG: Log each team's actual game count
+      console.log(`🎯 [GP DEBUG] ${team.name}: Found ${actualGamesPlayed} completed games`);
+      
       // Generate form string based on overall record
       const totalGames = actualGamesPlayed; // Use actual games played
       let form = 'N/A';
