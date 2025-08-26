@@ -6,15 +6,21 @@ steps:
     entrypoint: 'npm'
     args: ['install', '--production=false']
     
-  # Step 2: Check for outdated packages
+  # Step 2: Check for outdated packages and security vulnerabilities
   - name: 'node:18'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "🔍 Checking for outdated dependencies..."
-        npm outdated --json > /workspace/outdated.json || true
-        npm audit --json > /workspace/audit.json || true
+        if [ "${_SECURITY_ONLY}" = "true" ]; then
+          echo "🔒 Security-focused scan: Checking for vulnerabilities only..."
+          npm audit --json > /workspace/audit.json || true
+          echo "{}" > /workspace/outdated.json
+        else
+          echo "🔍 Full dependency scan: Checking for outdated dependencies and vulnerabilities..."
+          npm outdated --json > /workspace/outdated.json || true
+          npm audit --json > /workspace/audit.json || true
+        fi
         
   # Step 3: Run dependency analysis script
   - name: 'node:18'
@@ -58,6 +64,7 @@ substitutions:
   _REPO_OWNER: 'jimmy058910'
   _REPO_NAME: 'realm-rivalry'
   _BRANCH_NAME: 'gcp-dependency-updates'
+  _SECURITY_ONLY: 'false'
 
 # Options
 options:

@@ -171,12 +171,36 @@ class DependencyAnalyzer {
 
 // Main execution
 async function main() {
+  const isSecurityOnly = process.env._SECURITY_ONLY === 'true';
+  
   console.log('🚀 GCP Dependency Analyzer starting...');
   console.log(`📂 Project: ${process.env.PROJECT_ID}`);
   console.log(`🔗 Repository: ${process.env.REPO_OWNER}/${process.env.REPO_NAME}`);
+  console.log(`🔒 Security-only mode: ${isSecurityOnly ? 'ENABLED' : 'DISABLED'}`);
   
   const analyzer = new DependencyAnalyzer();
-  await analyzer.generateUpdateBatches();
+  
+  if (isSecurityOnly) {
+    // Security-only mode: just analyze vulnerabilities
+    const vulnerabilities = await analyzer.analyzeSecurityVulnerabilities();
+    
+    const securityBatch = {
+      name: 'security-updates',
+      description: 'Critical security vulnerability fixes',
+      vulnerabilities: vulnerabilities,
+      priority: 'critical'
+    };
+    
+    await fs.writeFile(
+      path.join('/workspace', 'update-batches.json'),
+      JSON.stringify([securityBatch].filter(batch => batch.vulnerabilities.length > 0), null, 2)
+    );
+    
+    console.log(`🔒 Security scan complete: ${vulnerabilities.length} vulnerabilities found`);
+  } else {
+    // Full analysis mode: outdated packages + security
+    await analyzer.generateUpdateBatches();
+  }
   
   console.log('✅ Dependency analysis complete!');
 }
