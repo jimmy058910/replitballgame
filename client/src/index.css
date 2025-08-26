@@ -432,11 +432,15 @@ div[class*="min-w"] .final-text-override {
   }
 
   .role-runner {
-    @apply text-green-400 bg-green-400/10 border-green-400/30;
+    color: rgb(74 222 128);
+    background-color: rgb(74 222 128 / 0.1);
+    border-color: rgb(74 222 128 / 0.3);
   }
 
   .role-blocker {
-    @apply text-orange-400 bg-orange-400/10 border-orange-400/30;
+    color: rgb(251 146 60);
+    background-color: rgb(251 146 60 / 0.1);
+    border-color: rgb(251 146 60 / 0.3);
   }
 
   /* Performance Optimization */
