@@ -60,7 +60,6 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
       data: {
         wins: 0,
         losses: 0,
-        draws: 0,
         points: 0
       }
     });
