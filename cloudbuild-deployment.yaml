@@ -85,8 +85,8 @@ steps:
       - |
         echo "🔍 Performing comprehensive health checks..."
         
-        SERVICE_URL=$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
-        echo "🚀 Service deployed at: $SERVICE_URL"
+        SERVICE_URL=$$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
+        echo "🚀 Service deployed at: $$SERVICE_URL"
         
         # Wait for deployment to stabilize
         echo "⏳ Waiting 45 seconds for deployment to stabilize..."
@@ -94,39 +94,39 @@ steps:
         
         # Test health endpoint
         echo "🏥 Testing health endpoint..."
-        HEALTH_RESPONSE=$(curl -s -w "%{http_code}" "$SERVICE_URL/health" \
+        HEALTH_RESPONSE=$$(curl -s -w "%{http_code}" "$$SERVICE_URL/health" \
           -H "Accept: application/json" \
           -H "User-Agent: CloudBuild-Health-Check" \
           --max-time 30 \
           --retry 3 \
           --retry-delay 10)
         
-        HTTP_CODE="${HEALTH_RESPONSE: -3}"
-        RESPONSE_BODY="${HEALTH_RESPONSE%???}"
+        HTTP_CODE="$${HEALTH_RESPONSE: -3}"
+        RESPONSE_BODY="$${HEALTH_RESPONSE%???}"
         
-        if [ "$HTTP_CODE" != "200" ]; then
-          echo "❌ Health check failed with HTTP $HTTP_CODE"
-          echo "Response: $RESPONSE_BODY"
+        if [ "$$HTTP_CODE" != "200" ]; then
+          echo "❌ Health check failed with HTTP $$HTTP_CODE"
+          echo "Response: $$RESPONSE_BODY"
           exit 1
         fi
         
-        echo "✅ Health check passed (HTTP $HTTP_CODE)"
-        echo "Health Response: $RESPONSE_BODY"
+        echo "✅ Health check passed (HTTP $$HTTP_CODE)"
+        echo "Health Response: $$RESPONSE_BODY"
         
         # Test database integration
         echo "🗃️ Testing database integration..."
-        DB_RESPONSE=$(curl -s "$SERVICE_URL/api/db-test" \
+        DB_RESPONSE=$$(curl -s "$$SERVICE_URL/api/db-test" \
           -H "Accept: application/json" \
           --max-time 20 \
           --retry 2)
-        echo "Database test response: $(echo "$DB_RESPONSE" | head -c 200)..."
+        echo "Database test response: $$(echo "$$DB_RESPONSE" | head -c 200)..."
         
         # Test authentication status
         echo "🔐 Testing authentication system..."
-        AUTH_RESPONSE=$(curl -s "$SERVICE_URL/api/auth/status" \
+        AUTH_RESPONSE=$$(curl -s "$$SERVICE_URL/api/auth/status" \
           -H "Accept: application/json" \
           --max-time 20)
-        echo "Auth test response: $(echo "$AUTH_RESPONSE" | head -c 200)..."
+        echo "Auth test response: $$(echo "$$AUTH_RESPONSE" | head -c 200)..."
 
   # Step 5: Test Established Game Systems
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -134,34 +134,34 @@ steps:
     args:
       - '-c'
       - |
-        SERVICE_URL=$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
+        SERVICE_URL=$$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
         
         # Test established game systems
         echo "🎮 Testing established game systems..."
         
         echo "  📊 Testing divisions API (8-tier system)..."
-        DIVISIONS_RESPONSE=$(curl -s "$SERVICE_URL/api/divisions" \
+        DIVISIONS_RESPONSE=$$(curl -s "$$SERVICE_URL/api/divisions" \
           -H "Accept: application/json" \
           --max-time 20)
-        echo "  Divisions API response preview: $(echo "$DIVISIONS_RESPONSE" | head -c 150)..."
+        echo "  Divisions API response preview: $$(echo "$$DIVISIONS_RESPONSE" | head -c 150)..."
         
         echo "  👥 Testing players API (race and role systems)..."
-        PLAYERS_RESPONSE=$(curl -s "$SERVICE_URL/api/players?limit=5" \
+        PLAYERS_RESPONSE=$$(curl -s "$$SERVICE_URL/api/players?limit=5" \
           -H "Accept: application/json" \
           --max-time 20)
-        echo "  Players API response preview: $(echo "$PLAYERS_RESPONSE" | head -c 150)..."
+        echo "  Players API response preview: $$(echo "$$PLAYERS_RESPONSE" | head -c 150)..."
         
         echo "  🏆 Testing teams API..."
-        TEAMS_RESPONSE=$(curl -s "$SERVICE_URL/api/teams?limit=5" \
+        TEAMS_RESPONSE=$$(curl -s "$$SERVICE_URL/api/teams?limit=5" \
           -H "Accept: application/json" \
           --max-time 20)
-        echo "  Teams API response preview: $(echo "$TEAMS_RESPONSE" | head -c 150)..."
+        echo "  Teams API response preview: $$(echo "$$TEAMS_RESPONSE" | head -c 150)..."
         
         echo "  📈 Testing statistics API..."
-        STATS_RESPONSE=$(curl -s "$SERVICE_URL/api/stats/overview" \
+        STATS_RESPONSE=$$(curl -s "$$SERVICE_URL/api/stats/overview" \
           -H "Accept: application/json" \
           --max-time 20)
-        echo "  Statistics API response preview: $(echo "$STATS_RESPONSE" | head -c 150)..."
+        echo "  Statistics API response preview: $$(echo "$$STATS_RESPONSE" | head -c 150)..."
 
   # Step 6: Test WebSocket and Frontend
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -169,53 +169,53 @@ steps:
     args:
       - '-c'
       - |
-        SERVICE_URL=$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
+        SERVICE_URL=$$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
         
         echo "🔌 Testing WebSocket endpoint availability..."
-        WS_RESPONSE=$(curl -s -w "%{http_code}" "$SERVICE_URL/ws/" \
+        WS_RESPONSE=$$(curl -s -w "%{http_code}" "$$SERVICE_URL/ws/" \
           -H "Accept: */*" \
           -H "User-Agent: CloudBuild-WebSocket-Test" \
           --max-time 15 \
           --retry 2)
         
-        WS_HTTP_CODE="${WS_RESPONSE: -3}"
-        echo "WebSocket endpoint response code: $WS_HTTP_CODE"
+        WS_HTTP_CODE="$${WS_RESPONSE: -3}"
+        echo "WebSocket endpoint response code: $$WS_HTTP_CODE"
         
-        if [ "$WS_HTTP_CODE" = "400" ] || [ "$WS_HTTP_CODE" = "200" ]; then
+        if [ "$$WS_HTTP_CODE" = "400" ] || [ "$$WS_HTTP_CODE" = "200" ]; then
           echo "✅ WebSocket endpoint accessible (expected 400 for non-WebSocket request)"
         else
-          echo "⚠️ WebSocket endpoint returned unexpected code: $WS_HTTP_CODE"
+          echo "⚠️ WebSocket endpoint returned unexpected code: $$WS_HTTP_CODE"
         fi
         
         echo "🌐 Testing frontend serving..."
-        FRONTEND_RESPONSE=$(curl -s -w "%{http_code}" "$SERVICE_URL/" \
+        FRONTEND_RESPONSE=$$(curl -s -w "%{http_code}" "$$SERVICE_URL/" \
           -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
           -H "User-Agent: Mozilla/5.0 (CloudBuild)" \
           --max-time 30 \
           --retry 3 \
           --retry-delay 5)
         
-        FRONTEND_HTTP_CODE="${FRONTEND_RESPONSE: -3}"
-        FRONTEND_BODY="${FRONTEND_RESPONSE%???}"
+        FRONTEND_HTTP_CODE="$${FRONTEND_RESPONSE: -3}"
+        FRONTEND_BODY="$${FRONTEND_RESPONSE%???}"
         
-        if [ "$FRONTEND_HTTP_CODE" = "200" ]; then
-          echo "✅ Frontend serving successfully (HTTP $FRONTEND_HTTP_CODE)"
+        if [ "$$FRONTEND_HTTP_CODE" = "200" ]; then
+          echo "✅ Frontend serving successfully (HTTP $$FRONTEND_HTTP_CODE)"
           
           # Check if response contains expected HTML structure
-          if echo "$FRONTEND_BODY" | grep -q "<!DOCTYPE html>"; then
+          if echo "$$FRONTEND_BODY" | grep -q "<!DOCTYPE html>"; then
             echo "✅ Valid HTML document served"
           else
             echo "⚠️ Response doesn't appear to be HTML"
           fi
           
-          if echo "$FRONTEND_BODY" | grep -q "Realm Rivalry"; then
+          if echo "$$FRONTEND_BODY" | grep -q "Realm Rivalry"; then
             echo "✅ Frontend contains expected title"
           else
             echo "⚠️ Frontend title not found in response"
           fi
         else
-          echo "❌ Frontend serving failed with HTTP $FRONTEND_HTTP_CODE"
-          echo "Response preview: $(echo "$FRONTEND_BODY" | head -c 200)..."
+          echo "❌ Frontend serving failed with HTTP $$FRONTEND_HTTP_CODE"
+          echo "Response preview: $$(echo "$$FRONTEND_BODY" | head -c 200)..."
         fi
 
   # Step 7: Performance and Load Testing
@@ -224,14 +224,14 @@ steps:
     args:
       - '-c'
       - |
-        SERVICE_URL=$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
+        SERVICE_URL=$$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
         
         echo "⚡ Running basic performance tests..."
         
         # Test multiple concurrent health checks
         echo "  Testing concurrent health check performance..."
         for i in {1..5}; do
-          curl -s "$SERVICE_URL/health" \
+          curl -s "$$SERVICE_URL/health" \
             -H "Accept: application/json" \
             --max-time 10 &
         done
@@ -240,7 +240,7 @@ steps:
         
         # Test API response times
         echo "  Testing API response times..."
-        time curl -s "$SERVICE_URL/api/divisions" \
+        time curl -s "$$SERVICE_URL/api/divisions" \
           -H "Accept: application/json" \
           --max-time 15 > /dev/null
         echo "  ✅ API response time test completed"
@@ -251,17 +251,17 @@ steps:
     args:
       - '-c'
       - |
-        SERVICE_URL=$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
+        SERVICE_URL=$$(gcloud run services describe ${_SERVICE_NAME} --region ${_REGION} --format 'value(status.url)')
         
         echo ""
         echo "🎉 GCP CLOUD BUILD DEPLOYMENT SUCCESSFUL!"
         echo "========================================"
         echo ""
-        echo "🔗 Production Service URL: $SERVICE_URL"
-        echo "🏥 Health Check: $SERVICE_URL/health"
-        echo "🔌 WebSocket Endpoint: $SERVICE_URL/ws"
-        echo "📊 API Base: $SERVICE_URL/api"
-        echo "🌐 Frontend: $SERVICE_URL/"
+        echo "🔗 Production Service URL: $$SERVICE_URL"
+        echo "🏥 Health Check: $$SERVICE_URL/health"
+        echo "🔌 WebSocket Endpoint: $$SERVICE_URL/ws"
+        echo "📊 API Base: $$SERVICE_URL/api"
+        echo "🌐 Frontend: $$SERVICE_URL/"
         echo ""
         echo "✨ UNIFIED FEATURES DEPLOYED:"
         echo "   • Express Framework with Security Middleware"
