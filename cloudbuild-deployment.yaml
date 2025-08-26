@@ -36,12 +36,12 @@ steps:
           --build-arg VITE_FIREBASE_PROJECT_ID="$$VITE_FIREBASE_PROJECT_ID" \
           --build-arg VITE_FIREBASE_APP_ID="$$VITE_FIREBASE_APP_ID" \
           -t ${_IMAGE_NAME}:latest \
-          -t ${_IMAGE_NAME}:${BUILD_TIMESTAMP} \
+          -t ${_IMAGE_NAME}:$BUILD_TIMESTAMP \
           .
         
         echo "📤 Pushing unified production image to registry..."
         docker push ${_IMAGE_NAME}:latest
-        docker push ${_IMAGE_NAME}:${BUILD_TIMESTAMP}
+        docker push ${_IMAGE_NAME}:$BUILD_TIMESTAMP
     secretEnv: 
       - 'VITE_FIREBASE_API_KEY'
       - 'VITE_FIREBASE_PROJECT_ID' 
