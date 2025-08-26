@@ -2,7 +2,7 @@
 # Replaces GitHub Actions workflow for production deployments
 steps:
   # Step 1: Configure Docker for Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
+  - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
