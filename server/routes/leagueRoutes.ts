@@ -521,8 +521,8 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       );
       const actualGamesPlayed = teamMatches.length; // Count actual completed matches
       
-      // DEBUG: Log each team's actual game count
-      console.log(`🎯 [GP DEBUG] ${team.name}: Found ${actualGamesPlayed} completed games`);
+      // DEBUG: Log each team's actual game count vs win/loss record
+      console.log(`🎯 [GP DEBUG] ${team.name}: ${actualGamesPlayed} completed games, ${wins}W-${losses}L-${draws}D (W+L+D=${wins + losses + draws})`);
       
       // Generate form string based on overall record
       const totalGames = actualGamesPlayed; // Use actual games played
@@ -545,7 +545,8 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
         totalScores, // TS column
         scoresAgainst, // SA column  
         scoreDifference, // SD column (TS - SA)
-        played: actualGamesPlayed
+        played: actualGamesPlayed,
+        gamesPlayed: actualGamesPlayed // Add backup field name
       };
     });
 
@@ -622,19 +623,11 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       return aLosses - bLosses;
     });
 
-    console.log(`✅ [STANDINGS API] Returning enhanced standings:`, {
-      count: sortedTeams.length,
-      subdivision: userSubdivision,
-      teams: sortedTeams.map(t => ({ 
-        id: t.id, 
-        name: t.name, 
-        points: t.points, 
-        wins: t.wins, 
-        losses: t.losses,
-        subdivision: t.subdivision 
-      }))
-    });
+    console.log(`✅ [STANDINGS API] Returning enhanced standings for ${sortedTeams.length} teams`);
     console.log(`🏆 [STANDINGS API] ========== REQUEST COMPLETE ==========\n`);
+    // DEBUG: Log first team's complete data structure 
+    console.log(`🔍 [API DEBUG] First team complete data:`, JSON.stringify(sortedTeams[0], null, 2));
+    
     res.json(sortedTeams);
   } catch (error) {
     console.error('❌ [STANDINGS API] ERROR:', error);
