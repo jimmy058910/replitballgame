@@ -18,9 +18,7 @@ steps:
       - |
         echo "🏗️ Building Step 7 Unified Production Docker image..."
         
-        # Create consistent timestamp variable
-        export BUILD_TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-        echo "📅 Using build timestamp: $BUILD_TIMESTAMP"
+        echo "📅 Using build ID: $SHORT_SHA"
         
         # Verify Dockerfile exists
         if [ ! -f "Dockerfile.step7-unified" ]; then
@@ -36,12 +34,12 @@ steps:
           --build-arg VITE_FIREBASE_PROJECT_ID="$$VITE_FIREBASE_PROJECT_ID" \
           --build-arg VITE_FIREBASE_APP_ID="$$VITE_FIREBASE_APP_ID" \
           -t ${_IMAGE_NAME}:latest \
-          -t ${_IMAGE_NAME}:$BUILD_TIMESTAMP \
+          -t ${_IMAGE_NAME}:$SHORT_SHA \
           .
         
         echo "📤 Pushing unified production image to registry..."
         docker push ${_IMAGE_NAME}:latest
-        docker push ${_IMAGE_NAME}:$BUILD_TIMESTAMP
+        docker push ${_IMAGE_NAME}:$SHORT_SHA
     secretEnv: 
       - 'VITE_FIREBASE_API_KEY'
       - 'VITE_FIREBASE_PROJECT_ID' 
