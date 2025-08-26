@@ -18,7 +18,7 @@ steps:
       - |
         echo "🏗️ Building Step 7 Unified Production Docker image..."
         
-        echo "📅 Using build ID: $SHORT_SHA"
+        echo "📅 Using build ID: ${SHORT_SHA}"
         
         # Verify Dockerfile exists
         if [ ! -f "Dockerfile.step7-unified" ]; then
@@ -34,12 +34,12 @@ steps:
           --build-arg VITE_FIREBASE_PROJECT_ID="$$VITE_FIREBASE_PROJECT_ID" \
           --build-arg VITE_FIREBASE_APP_ID="$$VITE_FIREBASE_APP_ID" \
           -t ${_IMAGE_NAME}:latest \
-          -t ${_IMAGE_NAME}:$SHORT_SHA \
+          -t ${_IMAGE_NAME}:${SHORT_SHA} \
           .
         
         echo "📤 Pushing unified production image to registry..."
         docker push ${_IMAGE_NAME}:latest
-        docker push ${_IMAGE_NAME}:$SHORT_SHA
+        docker push ${_IMAGE_NAME}:${SHORT_SHA}
     secretEnv: 
       - 'VITE_FIREBASE_API_KEY'
       - 'VITE_FIREBASE_PROJECT_ID' 
@@ -53,9 +53,7 @@ steps:
       - |
         echo "🚀 Deploying Step 7 Unified Application to Cloud Run..."
         
-        # Base64 encode service account key for deployment
-        SERVICE_ACCOUNT_BASE64=$(echo "$$GOOGLE_SERVICE_ACCOUNT_KEY" | base64 -w 0)
-        
+        # Deploy with inline base64 encoding to avoid bash variable issues
         gcloud run deploy ${_SERVICE_NAME} \
           --image ${_IMAGE_NAME}:latest \
           --region ${_REGION} \
@@ -64,7 +62,7 @@ steps:
           --port 8080 \
           --set-env-vars="NODE_ENV=production" \
           --set-env-vars="DATABASE_URL=$$DATABASE_URL" \
-          --set-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY_BASE64=$SERVICE_ACCOUNT_BASE64" \
+          --set-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY_BASE64=$(echo "$$GOOGLE_SERVICE_ACCOUNT_KEY" | base64 -w 0)" \
           --set-env-vars="SESSION_SECRET=$$SESSION_SECRET" \
           --memory 4Gi \
           --cpu 2 \
@@ -73,7 +71,7 @@ steps:
           --timeout 300 \
           --concurrency 200 \
           --execution-environment gen2 \
-          --add-cloudsql-instances $PROJECT_ID:${_REGION}:realm-rivalry-prod
+          --add-cloudsql-instances ${PROJECT_ID}:${_REGION}:realm-rivalry-prod
     secretEnv:
       - 'DATABASE_URL'
       - 'GOOGLE_SERVICE_ACCOUNT_KEY'
