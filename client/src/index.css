@@ -37,6 +37,36 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-size: 16px;
+}
+
+/* Enhanced typography for better readability */
+h1, h2, h3, h4, h5, h6 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }
+
+/* Larger text for key UI elements */
+button, .btn {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Card content text sizing */
+.mobile-card, .mobile-card-compact, .mobile-card-interactive {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Larger text for navigation and important labels */
+nav, .nav, .tab, .menu {
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 @layer utilities {
