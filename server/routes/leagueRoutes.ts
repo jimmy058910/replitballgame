@@ -515,8 +515,14 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
         currentStreak = Math.min(draws, 3);
       }
       
+      // Calculate actual games played from completed matches
+      const teamMatches = completedMatches.filter((match: any) => 
+        match.homeTeamId === team.id || match.awayTeamId === team.id
+      );
+      const actualGamesPlayed = teamMatches.length; // Count actual completed matches
+      
       // Generate form string based on overall record
-      const totalGames = wins + losses + draws;
+      const totalGames = actualGamesPlayed; // Use actual games played
       let form = 'N/A';
       if (totalGames > 0) {
         const winRate = wins / totalGames;
@@ -536,7 +542,7 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
         totalScores, // TS column
         scoresAgainst, // SA column  
         scoreDifference, // SD column (TS - SA)
-        played: totalGames
+        played: actualGamesPlayed
       };
     });
 
