@@ -28,7 +28,8 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
     }
 
     // Get team inventory
-    const inventory = await prisma.inventoryItem.findMany({
+    const prisma2 = await getPrismaClient();
+    const inventory = await prisma2.inventoryItem.findMany({
       where: { teamId: team.id },
       include: {
         item: true
@@ -66,6 +67,7 @@ router.get('/:teamId', requireAuth, async (req: any, res: Response, next: NextFu
     // Handle "my" team ID
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
+      const prisma = await getPrismaClient();
       const userProfile = await prisma.userProfile.findFirst({
         where: { userId: userId }
       });
@@ -81,6 +83,7 @@ router.get('/:teamId', requireAuth, async (req: any, res: Response, next: NextFu
       teamId = team.id;
     } else {
       // Verify user owns this team
+      const prisma = await getPrismaClient();
       const team = await prisma.team.findFirst({
         where: { id: parseInt(teamId) },
         include: { user: true }
@@ -91,7 +94,8 @@ router.get('/:teamId', requireAuth, async (req: any, res: Response, next: NextFu
     }
 
     // Get team inventory
-    const inventory = await prisma.inventoryItem.findMany({
+    const prisma2 = await getPrismaClient();
+    const inventory = await prisma2.inventoryItem.findMany({
       where: { teamId: parseInt(teamId) },
       include: {
         item: true
@@ -130,6 +134,7 @@ router.post('/:teamId/use-item', requireAuth, async (req: any, res: Response, ne
     // Handle "my" team ID
     if (teamId === "my") {
       const userId = req.user?.claims?.sub;
+      const prisma = await getPrismaClient();
       const userProfile = await prisma.userProfile.findFirst({
         where: { userId: userId }
       });
@@ -145,6 +150,7 @@ router.post('/:teamId/use-item', requireAuth, async (req: any, res: Response, ne
       teamId = team.id;
     } else {
       // Verify user owns this team
+      const prisma = await getPrismaClient();
       const team = await prisma.team.findFirst({
         where: { id: parseInt(teamId) },
         include: { user: true }
@@ -155,7 +161,8 @@ router.post('/:teamId/use-item', requireAuth, async (req: any, res: Response, ne
     }
 
     // Find the inventory item
-    const item = await prisma.inventoryItem.findFirst({
+    const prisma3 = await getPrismaClient();
+    const item = await prisma3.inventoryItem.findFirst({
       where: {
         teamId: parseInt(teamId),
         id: itemId
@@ -172,7 +179,7 @@ router.post('/:teamId/use-item', requireAuth, async (req: any, res: Response, ne
 
     // Verify player belongs to team if playerId is provided
     if (playerId) {
-      const player = await prisma.player.findFirst({
+      const player = await prisma3.player.findFirst({
         where: {
           id: parseInt(playerId),
           teamId: parseInt(teamId)
@@ -185,14 +192,14 @@ router.post('/:teamId/use-item', requireAuth, async (req: any, res: Response, ne
     }
 
     // Reduce item quantity
-    await prisma.inventoryItem.update({
+    await prisma3.inventoryItem.update({
       where: { id: itemId },
       data: { quantity: item.quantity - 1 }
     });
 
     // Remove item if quantity reaches 0
     if (item.quantity - 1 <= 0) {
-      await prisma.inventoryItem.delete({
+      await prisma3.inventoryItem.delete({
         where: { id: itemId }
       });
     }
