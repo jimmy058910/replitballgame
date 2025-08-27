@@ -41,6 +41,12 @@ Preferred communication style: Simple, everyday language.
 
 **ZERO TECHNICAL DEBT POLICY**: No band-aids, no temporary fixes, no shortcuts. Every solution must be implemented correctly from the start using industry-standard practices. If a temporary approach is suggested, it must be rejected in favor of the proper implementation.
 
+**DEPLOYMENT TROUBLESHOOTING SUCCESS CASE (August 2025)**: Applied comprehensive root cause analysis to resolve multiple Cloud Run deployment failures:
+- **Issue 1**: Mixed secrets with environment variables (syntax error)
+- **Issue 2**: Used reserved PORT environment variable (Cloud Run auto-manages)
+- **Solution**: Systematic analysis identified both issues simultaneously, implemented comprehensive fix in single deployment
+- **Result**: Zero technical debt, proper industry-standard configuration, successful end-to-end pipeline
+
 **COMPREHENSIVE TROUBLESHOOTING METHODOLOGY**: ALWAYS perform holistic analysis to identify ALL root causes simultaneously, rather than fixing symptoms individually. Required approach:
 
 **Phase 1: Complete System Analysis**
@@ -73,7 +79,15 @@ Preferred communication style: Simple, everyday language.
 - **NO SHORTCUTS**: All features must be implemented using proper, industry-standard approaches
 - **NO TECHNICAL DEBT**: Every solution must be the correct, long-term implementation from the start
 
-**CRITICAL DEPLOYMENT PREFERENCE**: NEVER use Replit's Deploy button. User has custom hybrid deployment pipeline (Google Cloud Run + Firebase + Cloud SQL) that auto-deploys on Git push from Replit using GitHub Actions Blue-Green deployment workflow for zero-downtime releases.
+**CRITICAL DEPLOYMENT PREFERENCE**: NEVER use Replit's Deploy button. User has custom hybrid deployment pipeline (Google Cloud Run + Firebase + Cloud SQL) that auto-deploys on Git push from Replit using **Google Cloud Build** Blue-Green deployment workflow for zero-downtime releases.
+
+**RECENT MAJOR ACHIEVEMENT (August 2025)**: Successfully migrated from GitHub Actions to Google Cloud Build with comprehensive performance optimizations:
+- ✅ **Deployment Pipeline Migration**: Complete transition from GitHub Actions to Google Cloud Build
+- ✅ **Docker Layer Caching**: Implemented multi-stage Dockerfile with aggressive layer caching ("Layer already exists" optimization)
+- ✅ **Secrets Management**: Proper separation of environment variables and Secret Manager integration
+- ✅ **Cloud Run Deployment**: Resolved reserved environment variable conflicts (PORT auto-managed by Cloud Run)
+- ✅ **End-to-End Success**: Full deployment pipeline working with health checks and database integration
+- ✅ **Performance Gains**: Significantly faster builds with layer reuse and optimized build context
 
 # System Architecture
 

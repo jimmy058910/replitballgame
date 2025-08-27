@@ -5,9 +5,10 @@
  * Creates automated pull requests for dependency updates
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const { spawn } = require('child_process');
+import { promises as fs } from 'fs';
+import path from 'path';
+import { spawn } from 'child_process';
+import https from 'https';
 
 class GitHubPRCreator {
   constructor() {
@@ -142,7 +143,7 @@ class GitHubPRCreator {
     }
     
     return new Promise((resolve, reject) => {
-      const request = require('https').request(url, options, (response) => {
+      const request = https.request(url, options, (response) => {
         let body = '';
         
         response.on('data', (chunk) => {
