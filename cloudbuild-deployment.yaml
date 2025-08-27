@@ -311,12 +311,15 @@ substitutions:
   _REPOSITORY: 'realm-rivalry'
   _IMAGE_NAME: 'us-central1-docker.pkg.dev/direct-glider-465821-p7/realm-rivalry/unified-production'
 
-# Options
+# Options - Phase 1 Performance Optimizations
 options:
   machineType: 'E2_HIGHCPU_8'
-  diskSizeGb: '50'
+  diskSizeGb: '100'                    # Increased for layer caching
   logging: CLOUD_LOGGING_ONLY
   logStreamingOption: STREAM_ON
+  substitution_option: 'ALLOW_LOOSE'   # Enable flexible substitutions
+  dynamic_substitutions: true          # Better variable handling
+  requestedVerifyOption: 'VERIFIED'    # Security + performance
 
 # Timeout (20 minutes for comprehensive testing)
 timeout: '1200s'
