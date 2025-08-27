@@ -205,7 +205,8 @@ async function main() {
   console.log('✅ Dependency analysis complete!');
 }
 
-if (require.main === module) {
+// Check if this script is being run directly (ES module equivalent of require.main === module)
+if (import.meta.url === new URL(process.argv[1], 'file://').href) {
   main().catch(error => {
     console.error('💥 Dependency analyzer failed:', error);
     process.exit(1);

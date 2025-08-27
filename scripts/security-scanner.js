@@ -5,9 +5,9 @@
  * Integrates with Container Analysis and Security Command Center
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const { exec } = require('child_process');
+import { promises as fs } from 'fs';
+import path from 'path';
+import { exec } from 'child_process';
 
 class SecurityScanner {
   constructor() {
@@ -337,7 +337,8 @@ async function main() {
   console.log(`📊 Summary: ${summary.total} issues (Critical: ${summary.critical}, High: ${summary.high})`);
 }
 
-if (require.main === module) {
+// Check if this script is being run directly (ES module equivalent of require.main === module)
+if (import.meta.url === new URL(process.argv[1], 'file://').href) {
   main().catch(error => {
     console.error('💥 Security scan failed:', error);
     process.exit(1);
