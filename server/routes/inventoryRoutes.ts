@@ -8,6 +8,7 @@ const router = Router();
 router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub;
+    const prisma = await getPrismaClient();
     
     // Get user's team
     const userProfile = await prisma.userProfile.findFirst({

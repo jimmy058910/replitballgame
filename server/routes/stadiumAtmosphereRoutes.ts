@@ -421,6 +421,7 @@ router.get('/atmosphere-data', requireAuth, async (req: any, res) => {
 router.get('/revenue-breakdown', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
+    const prisma = await getPrismaClient();
     
     // Get user's profile first
     const userProfile = await prisma.userProfile.findFirst({
@@ -435,7 +436,8 @@ router.get('/revenue-breakdown', requireAuth, async (req: any, res) => {
     }
     
     const team = await prisma.team.findFirst({
-      where: { userProfileId: userProfile.id }
+      where: { userProfileId: userProfile.id },
+      include: { stadium: true }
     });
     
     if (!team) {
@@ -445,17 +447,46 @@ router.get('/revenue-breakdown', requireAuth, async (req: any, res) => {
       });
     }
     
-    // Basic revenue calculation
-    const baseRevenue = 25000;
-    const loyaltyMultiplier = (team.fanLoyalty || 50) / 100;
+    // Calculate cumulative revenue using enhanced game economy service
+    const { EnhancedGameEconomyService } = await import('../services/enhancedGameEconomyService.js');
+    
+    // Get historical revenue from home games (simulate accumulated income)
+    const stadium = team.stadium;
+    const capacity = stadium?.capacity || 10000;
+    const division = team.division || 4;
+    const fanLoyalty = team.fanLoyalty || 50;
+    
+    // Calculate average game revenue (what user would see accumulated)
+    const actualAttendance = EnhancedGameEconomyService.calculateGameAttendance(capacity, division, fanLoyalty, 0);
+    
+    // Division scaling multiplier
+    let divisionMultiplier = 1.0;
+    if (division <= 2) divisionMultiplier = 1.5;
+    else if (division <= 5) divisionMultiplier = 1.2;
+    else if (division <= 7) divisionMultiplier = 1.1;
+    
+    // Calculate typical game revenues (what user should see as income streams)
+    const concessionsLevel = stadium?.concessionsLevel || 1;
+    const parkingLevel = stadium?.parkingLevel || 1;
+    const vipSuitesLevel = stadium?.vipSuitesLevel || 0;
+    const merchandisingLevel = stadium?.merchandisingLevel || 1;
+    
+    const breakdown = {
+      ticketSales: Math.floor(actualAttendance * 25 * divisionMultiplier),
+      concessions: Math.floor(actualAttendance * 8 * concessionsLevel * divisionMultiplier),
+      parking: Math.floor(actualAttendance * 0.3 * 10 * parkingLevel * divisionMultiplier),
+      vipSuites: Math.floor(vipSuitesLevel * 5000),
+      apparelSales: Math.floor(actualAttendance * 3 * merchandisingLevel * divisionMultiplier),
+      atmosphereBonus: fanLoyalty > 80 ? Math.floor(actualAttendance * 2) : 0
+    };
+    
+    const totalRevenue = Object.values(breakdown).reduce((sum, val) => sum + val, 0);
     
     res.json({
       success: true,
       data: {
-        ticketSales: Math.floor(baseRevenue * loyaltyMultiplier),
-        concessions: Math.floor(baseRevenue * 0.3 * loyaltyMultiplier),
-        parking: Math.floor(baseRevenue * 0.2 * loyaltyMultiplier),
-        totalRevenue: Math.floor(baseRevenue * 1.5 * loyaltyMultiplier)
+        ...breakdown,
+        totalRevenue
       }
     });
   } catch (error) {

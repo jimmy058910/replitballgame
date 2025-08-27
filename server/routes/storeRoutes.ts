@@ -550,7 +550,7 @@ router.post('/purchase/:itemId', requireAuth, async (req: any, res: Response, ne
           userId,
           team.id,
           storeItem.name,
-          storeItem.statEffects ? "equipment" : (storeItem.type === "entry" ? "entry" : "consumable"),
+          (storeItem.statEffects || storeItem.statBoosts) ? "equipment" : (storeItem.type === "entry" ? "entry" : "consumable"),
           0,
           actualPrice,
           { itemId, storeType: (itemId === 'exhibition_credit' || itemId === 'exhibition_gem') ? "permanent" : "daily_rotation" }
@@ -560,8 +560,8 @@ router.post('/purchase/:itemId', requireAuth, async (req: any, res: Response, ne
     }
 
     // Add item to appropriate inventory system
-    const isConsumable = !storeItem.statEffects && storeItem.effect;
-    const isEquipment = storeItem.statEffects && storeItem.slot;
+    const isConsumable = !(storeItem.statEffects || storeItem.statBoosts) && storeItem.effect;
+    const isEquipment = (storeItem.statEffects || storeItem.statBoosts) && storeItem.slot;
     const isExhibitionEntry = itemId === 'exhibition_credit' || itemId === 'exhibition_gem';
     const isEntry = (storeItem.id && storeItem.id.includes('tournament')) || storeItem.id === 'exhibition_match' || isExhibitionEntry;
     
