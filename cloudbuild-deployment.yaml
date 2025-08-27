@@ -53,25 +53,25 @@ steps:
       - |
         echo "🚀 Deploying Step 7 Unified Application to Cloud Run..."
         
-        # Deploy with inline base64 encoding to avoid bash variable issues
+        # Deploy with corrected environment variable syntax
         gcloud run deploy ${_SERVICE_NAME} \
           --image ${_IMAGE_NAME}:latest \
           --region ${_REGION} \
           --platform managed \
           --allow-unauthenticated \
           --port 8080 \
-          --set-env-vars="NODE_ENV=production" \
-          --set-env-vars="DATABASE_URL=$$DATABASE_URL" \
-          --set-env-vars="GOOGLE_SERVICE_ACCOUNT_KEY_BASE64=$(echo "$$GOOGLE_SERVICE_ACCOUNT_KEY" | base64 -w 0)" \
-          --set-env-vars="SESSION_SECRET=$$SESSION_SECRET" \
           --memory 4Gi \
           --cpu 2 \
-          --min-instances 1 \
+          --min-instances 0 \
           --max-instances 10 \
           --timeout 300 \
-          --concurrency 200 \
+          --concurrency 80 \
           --execution-environment gen2 \
-          --add-cloudsql-instances ${PROJECT_ID}:${_REGION}:realm-rivalry-prod
+          --set-env-vars NODE_ENV=production,PORT=8080,PROJECT_ID=direct-glider-465821-p7 \
+          --set-env-vars DATABASE_URL="$$DATABASE_URL" \
+          --set-env-vars GOOGLE_SERVICE_ACCOUNT_KEY="$$GOOGLE_SERVICE_ACCOUNT_KEY" \
+          --set-env-vars SESSION_SECRET="$$SESSION_SECRET" \
+          --add-cloudsql-instances direct-glider-465821-p7:${_REGION}:realm-rivalry-prod
     secretEnv:
       - 'DATABASE_URL'
       - 'GOOGLE_SERVICE_ACCOUNT_KEY'
