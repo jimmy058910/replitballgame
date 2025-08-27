@@ -67,7 +67,7 @@ steps:
           --timeout 300 \
           --concurrency 80 \
           --execution-environment gen2 \
-          --set-env-vars NODE_ENV=production,PORT=8080,PROJECT_ID=direct-glider-465821-p7 \
+          --set-env-vars NODE_ENV=production,PROJECT_ID=direct-glider-465821-p7 \
           --set-secrets DATABASE_URL=database-url:latest,GOOGLE_SERVICE_ACCOUNT_KEY=google-service-account-key:latest,SESSION_SECRET=session-secret:latest \
           --add-cloudsql-instances direct-glider-465821-p7:${_REGION}:realm-rivalry-prod
     secretEnv:
