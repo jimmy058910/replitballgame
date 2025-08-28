@@ -198,6 +198,33 @@ async function startServer() {
       next();
     });
 
+    // Setup WebSocket servers with proper path separation
+    console.log('🔌 Initializing WebSocket servers...');
+    
+    // Initialize Socket.IO server for live matches and real-time features
+    const { Server: SocketIOServer } = await import('socket.io');
+    const io = new SocketIOServer(httpServer, {
+      path: '/socket.io/',  // Explicit path to avoid conflicts
+      cors: {
+        origin: process.env.NODE_ENV === 'production' ? false : true,
+        credentials: true
+      },
+      transports: ['websocket', 'polling']
+    });
+    
+    // Setup Socket.IO WebSocket service
+    const { setupWebSocketServer } = await import('./services/webSocketService.js');
+    await setupWebSocketServer(io);
+    console.log('✅ Socket.IO server initialized on path /socket.io/');
+
+    // Setup native WebSocket server for development only (to avoid conflicts)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔧 Setting up development WebSocket manager...');
+      const { webSocketManager } = await import('./websocket/webSocketManager.js');
+      webSocketManager.initialize(httpServer);
+      console.log('✅ Development WebSocket manager initialized on path /ws');
+    }
+
     // Setup Vite in development
     if (process.env.NODE_ENV !== 'production') {
       console.log('🛠️ Setting up Vite development server...');
