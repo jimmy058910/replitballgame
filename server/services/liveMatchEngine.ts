@@ -212,12 +212,12 @@ class LiveMatchEngineService implements LiveMatchEngine {
           status: 'COMPLETED',
           homeScore: liveState.homeScore,
           awayScore: liveState.awayScore,
-          simulationLog: {
+          simulationLog: JSON.stringify({
             events: liveState.gameEvents?.slice(-20) || [],
             finalScores: { home: liveState.homeScore, away: liveState.awayScore },
             matchCompleted: true,
             completedAt: new Date().toISOString()
-          }
+          })
         }
       });
       
@@ -359,12 +359,24 @@ class LiveMatchEngineService implements LiveMatchEngine {
         minutesPlayed: 0,
         scores: 0,
         assists: 0,
-        tackles: 0,
-        interceptions: 0,
         passAttempts: 0,
         passCompletions: 0,
+        passingYards: 0,
+        perfectPasses: 0,
+        rushingAttempts: 0,
+        rushingYards: 0,
+        breakawayRuns: 0,
+        catches: 0,
+        receivingYards: 0,
+        drops: 0,
+        tackles: 0,
+        knockdowns: 0,
+        interceptions: 0,
+        fumblesLost: 0,
+        clutchPlays: 0,
         staminaUsed: 0,
-        injuries: 0
+        injuries: 0,
+        skillsUsed: 0
       };
       
       liveState.playerStats.set(player.id, stats);

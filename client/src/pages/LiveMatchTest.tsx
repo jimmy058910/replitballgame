@@ -153,7 +153,7 @@ export function LiveMatchTest() {
           
           <TextBasedMatchViewer
             matchId={selectedMatch.id}
-            userId={user.id}
+            userId={(user as any).userId || (user as any).id || "test-user"}
             homeTeamName={selectedMatch.homeTeam?.name || 'Home Team'}
             awayTeamName={selectedMatch.awayTeam?.name || 'Away Team'}
           />

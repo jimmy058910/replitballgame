@@ -4,6 +4,7 @@ import { commentaryService } from "./commentaryService.js";
 import { DeterministicRNG } from '../utils/deterministicRNG.js';
 import { configManager } from '../utils/configManager.js';
 import { stadiumEffectsCalculator } from '../utils/stadiumEffects.js';
+import { getPrismaClient } from '../database.js';
 
 interface MatchEvent {
   time: number;
@@ -661,7 +662,7 @@ async function getPlayerEquipmentEffects(playerId: string): Promise<Record<strin
   const effects: Record<string, number> = {};
   
   try {
-    const { prisma } = await import('../db.js');
+    const prisma = await getPrismaClient();
     
     // Get all equipment for the player
     const playerEquipment = await prisma.playerEquipment.findMany({
@@ -696,7 +697,7 @@ async function getStaffEffectsForPlayer(teamId: string, playerRole: string): Pro
   const effects: Record<string, number> = {};
   
   try {
-    const { prisma } = await import('../db.js');
+    const prisma = await getPrismaClient();
     
     // Get all staff for the team
     const staff = await prisma.staff.findMany({
@@ -786,7 +787,7 @@ async function getActiveMatchConsumables(teamId: string, playerId: string): Prom
   const effects: Record<string, number> = {};
   
   try {
-    const { prisma } = await import('../db.js');
+    const prisma = await getPrismaClient();
     
     // Get active consumables from team inventory instead of non-existent matchConsumable table
     // const activeConsumables = await prisma.consumableItem.findMany({ // Table not in schema

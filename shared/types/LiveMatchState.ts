@@ -114,6 +114,7 @@ export interface PlayerMatchStats {
 
   // Scoring
   scores: number;
+  assists: number;
 
   // Passing
   passAttempts: number;

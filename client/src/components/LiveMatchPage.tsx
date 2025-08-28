@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { useAuth } from '@/providers/AuthProvider';
-import EnhancedMatchEngine from '@/components/EnhancedMatchEngine';
+import { TextBasedMatchViewer } from '@/components/TextBasedMatchViewer';
 
 interface User {
   userId?: string;
@@ -46,11 +46,13 @@ export default function LiveMatchPage() {
 
   const userId = user?.userId || user?.id || "";
 
-  // Use enhanced match engine with 2D Canvas for all live matches
+  // Use the new text-based match viewer for all live matches
   return (
-    <EnhancedMatchEngine 
+    <TextBasedMatchViewer 
       matchId={matchId}
       userId={userId}
+      homeTeamName="Home Team"
+      awayTeamName="Away Team"
     />
   );
 }

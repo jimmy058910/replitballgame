@@ -28,27 +28,33 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
     webSocketManager.connect(userId);
     webSocketManager.joinMatch(matchId);
 
-    // Set up event listeners
-    const handleMatchUpdate = (data: LiveMatchState) => {
-      setLiveState(data);
-    };
-
-    const handleMatchEvent = (event: MatchEvent) => {
-      setEvents(prevEvents => [event, ...prevEvents.slice(0, 49)]);
-      if (event.priority.label === 'Critical') {
-        setCriticalEvent(event);
-        setTimeout(() => setCriticalEvent(null), 5000); // Show for 5 seconds
+    // Set up callbacks
+    const callbacks = {
+      onMatchUpdate: (data: LiveMatchState) => {
+        setLiveState(data);
+      },
+      onMatchEvent: (event: MatchEvent) => {
+        setEvents(prevEvents => [event, ...prevEvents.slice(0, 49)]);
+        if (event.priority.label === 'Critical') {
+          setCriticalEvent(event);
+          setTimeout(() => setCriticalEvent(null), 5000); // Show for 5 seconds
+        }
+      },
+      onConnectionStatus: (connected: boolean) => {
+        console.log('WebSocket connection status:', connected);
       }
     };
 
-    webSocketManager.on('matchUpdate', handleMatchUpdate);
-    webSocketManager.on('matchEvent', handleMatchEvent);
+    webSocketManager.setCallbacks(callbacks);
 
     // Clean up on component unmount
     return () => {
-      webSocketManager.leaveMatch(matchId);
-      webSocketManager.off('matchUpdate', handleMatchUpdate);
-      webSocketManager.off('matchEvent', handleMatchEvent);
+      webSocketManager.leaveMatch();
+      webSocketManager.setCallbacks({
+        onMatchUpdate: () => {},
+        onMatchEvent: () => {},
+        onConnectionStatus: () => {}
+      });
     };
   }, [matchId, userId]);
 
