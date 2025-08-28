@@ -14,8 +14,39 @@ import { LiveMatchState, MatchEvent } from '@/../../shared/types/LiveMatchState'
 interface TextBasedMatchViewerProps {
   matchId: string;
   userId: string;
-  homeTeamName: string;
-  awayTeamName: string;
+  homeTeamName?: string;
+  awayTeamName?: string;
+}
+
+interface GameData {
+  id: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  homeScore: number;
+  awayScore: number;
+  simulationLog?: {
+    status: string;
+    gameTime: number;
+    maxTime: number;
+    currentHalf: number;
+    homeScore: number;
+    awayScore: number;
+    isRunning: boolean;
+    gameEvents: Array<{
+      time: number;
+      type: string;
+      description: string;
+      teamId?: string;
+      actingPlayerId?: string;
+    }>;
+    teamStats: any;
+    playerStats: any;
+  };
+}
+
+interface TeamData {
+  id: string;
+  name: string;
 }
 
 export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamName }: TextBasedMatchViewerProps) {
@@ -24,70 +55,112 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
   const [criticalEvent, setCriticalEvent] = useState<MatchEvent | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
-  // Fetch initial live state for the specific match
-  const { data: liveMatches } = useQuery<any[]>({
-    queryKey: ['/api/matches/live'],
-    refetchInterval: 2000, // Check every 2 seconds
+  // Fetch match data directly
+  const { data: matchData } = useQuery<GameData>({
+    queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId
   });
 
-  // Find the specific match and extract live state
+  // Fetch team data
+  const { data: homeTeam } = useQuery<TeamData>({
+    queryKey: [`/api/teams/${matchData?.homeTeamId}`],
+    enabled: !!matchData?.homeTeamId
+  });
+
+  const { data: awayTeam } = useQuery<TeamData>({
+    queryKey: [`/api/teams/${matchData?.awayTeamId}`],
+    enabled: !!matchData?.awayTeamId
+  });
+
+  // Extract live state from match data
   useEffect(() => {
-    if (liveMatches && matchId) {
-      const currentMatch = liveMatches.find(match => match.id === matchId);
-      if (currentMatch && !liveState) {
-        // Convert the live match data to LiveMatchState format
-        const initialState: LiveMatchState = {
-          matchId: currentMatch.id,
-          homeTeamId: currentMatch.homeTeam.id,
-          awayTeamId: currentMatch.awayTeam.id,
-          status: 'live',
-          gameTime: currentMatch.gameTime || 0,
-          maxTime: currentMatch.maxGameTime || 2400,
-          currentHalf: 1,
-          startTime: Date.now(),
-          lastUpdate: Date.now(),
-          homeScore: currentMatch.homeScore || 0,
-          awayScore: currentMatch.awayScore || 0,
-          activeFieldPlayers: { 
-            home: { 
-              passer: undefined, 
-              runners: [], 
-              blockers: [], 
-              wildcard: undefined 
-            }, 
-            away: { 
-              passer: undefined, 
-              runners: [], 
-              blockers: [], 
-              wildcard: undefined 
-            } 
+    if (matchData && !liveState) {
+      const simLog = matchData.simulationLog;
+      const initialState: LiveMatchState = {
+        matchId: matchData.id,
+        homeTeamId: matchData.homeTeamId,
+        awayTeamId: matchData.awayTeamId,
+        status: simLog?.isRunning ? 'live' : 'paused',
+        gameTime: simLog?.gameTime || 0,
+        maxTime: simLog?.maxTime || 2400,
+        currentHalf: simLog?.currentHalf || 1,
+        startTime: Date.now(),
+        lastUpdate: Date.now(),
+        homeScore: simLog?.homeScore || matchData.homeScore || 0,
+        awayScore: simLog?.awayScore || matchData.awayScore || 0,
+        activeFieldPlayers: {
+          home: {
+            passer: undefined,
+            runners: [],
+            blockers: [],
+            wildcard: undefined
           },
-          facilityLevels: {
-            capacity: 5000,
-            concessions: 1,
-            parking: 1,
-            vipSuites: 1,
-            merchandising: 1,
-            lightingScreens: 1,
-            security: 1
-          },
-          attendance: 0,
-          perTickRevenue: [],
-          gameEvents: [],
-          playerStats: new Map(),
-          teamStats: new Map(),
-          matchTick: 0,
-          simulationSpeed: 1
-        };
-        setLiveState(initialState);
-        console.log('✅ Initial live state loaded for match', matchId);
+          away: {
+            passer: undefined,
+            runners: [],
+            blockers: [],
+            wildcard: undefined
+          }
+        },
+        facilityLevels: {
+          capacity: 8000,
+          concessions: 2,
+          parking: 2,
+          vipSuites: 1,
+          merchandising: 2,
+          lightingScreens: 2,
+          security: 1
+        },
+        attendance: 6500,
+        perTickRevenue: [],
+        gameEvents: [],
+        playerStats: new Map(),
+        teamStats: new Map(),
+        matchTick: 0,
+        simulationSpeed: 1
+      };
+      setLiveState(initialState);
+      
+      // Load game events as commentary
+      if (simLog?.gameEvents) {
+        const formattedEvents = simLog.gameEvents.map((event, index) => ({
+          id: `event_${index}`,
+          timestamp: event.time,
+          tick: event.time,
+          type: event.type.toUpperCase(),
+          description: event.description,
+          priority: { priority: 2, label: 'Standard', speedMultiplier: 1, visualsRequired: false },
+          position: { x: 300, y: 200 }
+        }));
+        setEvents(formattedEvents.reverse().slice(0, 20)); // Show latest 20 events
       }
     }
-  }, [liveMatches, matchId, liveState]);
+  }, [matchData, liveState]);
 
+  // Live time update effect
   useEffect(() => {
-    // Connect to the WebSocket and join the match room
+    if (liveState?.status === 'live') {
+      const interval = setInterval(() => {
+        setLiveState(prev => {
+          if (!prev) return prev;
+          const newTime = prev.gameTime + 1;
+          return {
+            ...prev,
+            gameTime: newTime >= prev.maxTime ? prev.maxTime : newTime,
+            lastUpdate: Date.now()
+          };
+        });
+      }, 1000); // Update every second
+      
+      return () => clearInterval(interval);
+    }
+  }, [liveState?.status]);
+
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    if (!matchId || !userId) return;
+
+    // Initialize WebSocket connection
     webSocketManager.connect(userId);
     webSocketManager.joinMatch(matchId);
 
@@ -128,11 +201,17 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
     }
   }, [events]);
 
+  const displayHomeTeam = homeTeam?.name || homeTeamName || "Home Team";
+  const displayAwayTeam = awayTeam?.name || awayTeamName || "Away Team";
+
   if (!liveState) {
     return (
-      <Card>
+      <Card className="bg-gray-900 text-gray-200 border-gray-700">
         <CardContent className="p-6">
-          <p>Connecting to live match...</p>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
+            <p className="text-lg">Loading live match data...</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -186,14 +265,26 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
 
       <Card className="bg-gray-900 text-gray-200 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-center text-2xl">
-            {homeTeamName} vs {awayTeamName}
+          <CardTitle className="text-center text-2xl font-bold">
+            <span className="text-blue-400">{displayHomeTeam}</span>
+            <span className="text-gray-400 mx-4">vs</span>
+            <span className="text-red-400">{displayAwayTeam}</span>
           </CardTitle>
-          <div className="text-center text-4xl font-bold">
-            {liveState.homeScore} - {liveState.awayScore}
-          </div>
-          <div className="text-center text-lg">
-            {formatGameTime(liveState.gameTime)} | Half: {liveState.currentHalf}
+          <div className="text-center">
+            <div className="text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-red-400 bg-clip-text text-transparent">
+              {liveState.homeScore} - {liveState.awayScore}
+            </div>
+            <div className="text-xl mt-2 space-x-4">
+              <span className={`${liveState.status === 'live' ? 'text-green-400 animate-pulse' : 'text-yellow-400'}`}>
+                ⏱️ {formatGameTime(liveState.gameTime)}
+              </span>
+              <span className="text-gray-400">|</span>
+              <span className="text-cyan-400">Half: {liveState.currentHalf}</span>
+              <span className="text-gray-400">|</span>
+              <span className={`${liveState.status === 'live' ? 'text-green-400' : 'text-red-400'}`}>
+                {liveState.status === 'live' ? '🔴 LIVE' : '⏸️ PAUSED'}
+              </span>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="grid grid-cols-3 gap-4">
@@ -201,19 +292,21 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
           <div className="col-span-2">
             <Card className="bg-gray-800 border-gray-700 h-full">
               <CardHeader>
-                <CardTitle>Field View</CardTitle>
+                <CardTitle className="text-green-400">🏟️ Field View</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="bg-gray-900 p-4 rounded-lg">
-                  <pre className="text-sm whitespace-pre-wrap leading-relaxed">
+                  <pre className="text-sm whitespace-pre-wrap leading-relaxed text-green-300">
                     {`
 ┌─────────────────────────────────────────────────────┐
 │ 🏟️ STADIUM LEVEL ${liveState.facilityLevels.capacity > 10000 ? 3 : 2}                                   │
 ├─────────────────────────────────────────────────────┤
-│ HOME SCORE │               FIELD              │ AWAY SCORE │
-│ ${getPlayersOnField('home').slice(0, 2).map(p => renderStaminaIndicator(p.stamina)).join(' ')}      │ ${getPlayersOnField('home').slice(2, 5).map(p => renderStaminaIndicator(p.stamina)).join(' ')}         ${getPlayersOnField('away').slice(2, 5).map(p => renderStaminaIndicator(p.stamina)).join(' ')}    │    ${getPlayersOnField('away').slice(0, 2).map(p => renderStaminaIndicator(p.stamina)).join(' ')}  │
-│ ████████ │                                     │ ████████ │
-│          │ ${getPlayersOnField('home').slice(5).map(p => renderStaminaIndicator(p.stamina)).join(' ')}               ${getPlayersOnField('away').slice(5).map(p => renderStaminaIndicator(p.stamina)).join(' ')}        │          │
+│ ${displayHomeTeam.substring(0, 10).padEnd(10)} │               FIELD              │ ${displayAwayTeam.substring(0, 10).padStart(10)} │
+│ SCORE: ${liveState.homeScore.toString().padEnd(4)} │ ${getPlayersOnField('home').length} vs ${getPlayersOnField('away').length} players active     │ SCORE: ${liveState.awayScore.toString().padStart(4)} │
+│              │                                     │              │
+│              │ ⚽ MATCH IN PROGRESS ⚽              │              │
+│              │ Time: ${formatGameTime(liveState.gameTime).padStart(5)}/${formatGameTime(liveState.maxTime)}           │              │
+│              │                                     │              │
 └─────────────────────────────────────────────────────┘
                     `}
                   </pre>
@@ -223,37 +316,80 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
           </div>
 
           {/* Stadium Facilities */}
-          <div className="col-span-1">
+          <div>
             <Card className="bg-gray-800 border-gray-700 h-full">
               <CardHeader>
-                <CardTitle>Stadium Facilities</CardTitle>
+                <CardTitle className="text-purple-400">🏟️ Stadium Facilities</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p>Lighting:    {renderProgressBar(liveState.facilityLevels.lightingScreens)}</p>
-                <p>Concessions: {renderProgressBar(liveState.facilityLevels.concessions)}</p>
-                <p>VIP Suites:  {renderProgressBar(liveState.facilityLevels.vipSuites)}</p>
-                <p>Parking:     {renderProgressBar(liveState.facilityLevels.parking)}</p>
-                <p>Merchandise: {renderProgressBar(liveState.facilityLevels.merchandising)}</p>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-yellow-400">👥 Attendance:</span>
+                    <span className="text-white font-bold">{liveState.attendance.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-400">🏟️ Capacity:</span>
+                    <span className="text-white">{liveState.facilityLevels.capacity.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-cyan-400">💡 Lighting:</span>
+                    <span className="text-green-300">{renderProgressBar(liveState.facilityLevels.lightingScreens)} Level {liveState.facilityLevels.lightingScreens}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-orange-400">🍿 Concessions:</span>
+                    <span className="text-green-300">{renderProgressBar(liveState.facilityLevels.concessions)} Level {liveState.facilityLevels.concessions}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-pink-400">💎 VIP Suites:</span>
+                    <span className="text-green-300">{renderProgressBar(liveState.facilityLevels.vipSuites)} Level {liveState.facilityLevels.vipSuites}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-indigo-400">🅿️ Parking:</span>
+                    <span className="text-green-300">{renderProgressBar(liveState.facilityLevels.parking)} Level {liveState.facilityLevels.parking}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-red-400">🛍️ Merchandise:</span>
+                    <span className="text-green-300">{renderProgressBar(liveState.facilityLevels.merchandising)} Level {liveState.facilityLevels.merchandising}</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Commentary Log */}
+          {/* Live Commentary */}
           <div className="col-span-3">
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <CardTitle>Live Commentary</CardTitle>
+                <CardTitle className="text-green-400">🎙️ Live Commentary</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-64" ref={logRef}>
-                  <div className="space-y-2">
-                    {events.map(event => (
-                      <div key={event.id} className="p-2 rounded bg-gray-900">
-                        <span className="text-yellow-400">[{formatGameTime(event.timestamp)}]</span>
-                        <span className="ml-2">{event.description}</span>
-                        <Badge variant="outline" className="ml-2">{event.priority.label}</Badge>
+                <ScrollArea className="h-96">
+                  <div ref={logRef} className="space-y-2">
+                    {events.length > 0 ? (
+                      events.map((event, index) => (
+                        <div key={event.id || index} className="border-l-2 border-green-400 pl-4 py-2 bg-gray-900 rounded-r">
+                          <div className="flex items-center justify-between mb-1">
+                            <Badge variant="outline" className={`text-xs ${
+                              event.type === 'SCORE' ? 'border-red-400 text-red-400' :
+                              event.type === 'PASS' ? 'border-blue-400 text-blue-400' :
+                              event.type === 'RUN' ? 'border-green-400 text-green-400' :
+                              'border-gray-400 text-gray-400'
+                            }`}>
+                              {event.type}
+                            </Badge>
+                            <span className="text-xs text-gray-400">
+                              {formatGameTime(event.timestamp)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-200">{event.description}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-400 py-8">
+                        <p className="text-lg">🎯 Match Events Loading...</p>
+                        <p className="text-sm mt-2">Commentary will appear as the game progresses</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </ScrollArea>
               </CardContent>
