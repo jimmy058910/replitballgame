@@ -796,7 +796,7 @@ export default function ComprehensiveCompetitionCenter() {
         <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as 'live' | 'league' | 'tournaments' | 'exhibitions' | 'schedule')}>
           
           <div className="mb-4">
-            <TabsList className="grid w-full grid-cols-5 bg-gray-800 p-1 rounded-lg border border-gray-600">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-800 p-1 rounded-lg border border-gray-600">
               <TabsTrigger 
                 value="league" 
                 className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
@@ -828,13 +828,6 @@ export default function ComprehensiveCompetitionCenter() {
                   <span className="sm:hidden">Live</span>
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-1"></div>
                 </div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="schedule" 
-                className="text-xs font-semibold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-              >
-                <Calendar className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Schedule</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -1641,10 +1634,6 @@ export default function ComprehensiveCompetitionCenter() {
 
           </TabsContent>
 
-          {/* SCHEDULE TAB - COMPREHENSIVE ALL GAMES VIEW */}
-          <TabsContent value="schedule" className="space-y-4">
-            <ComprehensiveSchedule />
-          </TabsContent>
 
         </Tabs>
 
