@@ -1939,6 +1939,11 @@ export default function ComprehensiveCompetitionCenter() {
             <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
               <Info className="h-5 w-5 text-blue-400" />
               Tournament Details - {getDivisionName(team?.division || 8)} Division
+              {currentTournamentStatus?.displayTournamentId && (
+                <span className="text-sm text-gray-400 font-normal">
+                  (ID: {currentTournamentStatus.displayTournamentId})
+                </span>
+              )}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -1976,6 +1981,36 @@ export default function ComprehensiveCompetitionCenter() {
                     <p className="text-orange-400 text-xs mt-1">
                       Tournament will auto-fill with AI teams if not full
                     </p>
+                  </div>
+                )}
+                
+                {currentTournamentStatus.registeredTeams && currentTournamentStatus.registeredTeams.length > 0 && (
+                  <div className="bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-400" />
+                      Registered Teams ({currentTournamentStatus.registeredTeams.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {currentTournamentStatus.registeredTeams.map((team: any, index: number) => (
+                        <div key={team.teamId} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-300 flex items-center gap-2">
+                            <span className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                              {index + 1}
+                            </span>
+                            {team.teamName}
+                          </span>
+                          <span className="text-gray-500 text-xs">
+                            {new Date(team.registeredAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      ))}
+                      {currentTournamentStatus.registrationCount < currentTournamentStatus.maxTeams && (
+                        <div className="text-gray-500 text-sm italic mt-2 pt-2 border-t border-gray-700">
+                          {currentTournamentStatus.maxTeams - currentTournamentStatus.registrationCount} more teams needed
+                          {currentTournamentStatus.timerActive && " (AI teams will auto-fill)"}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 

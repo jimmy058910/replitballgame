@@ -73,7 +73,16 @@ router.get('/daily-division/status/:division', requireAuth, async (req: Request,
         status: 'REGISTRATION_OPEN'
       },
       include: {
-        entries: true
+        entries: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
       }
     });
 
@@ -137,16 +146,25 @@ router.get('/daily-division/status/:division', requireAuth, async (req: Request,
       console.log(`⏭️ [TOURNAMENT TIMER] Fallback conditions not met - Active: ${timerStatus.active}, Entries: ${tournament.entries.length}`);
     }
     
+    // Get registered team names
+    const registeredTeams = tournament.entries.map(entry => ({
+      teamId: entry.team.id,
+      teamName: entry.team.name,
+      registeredAt: entry.registeredAt
+    }));
+
     res.json({
       hasActiveTournament: true,
       tournamentId: tournament.id,
+      displayTournamentId: tournament.tournamentId, // Add readable tournament ID
       tournamentName: tournament.name,
       registrationOpen: true,
       registrationCount: tournament.entries.length,
       maxTeams: 8,
       timeRemaining: timerStatus.timeRemaining || null,
       timerActive: timerStatus.active,
-      registrationEndTime: tournament.registrationEndTime
+      registrationEndTime: tournament.registrationEndTime,
+      registeredTeams: registeredTeams // Add team names
     });
 
   } catch (error) {
