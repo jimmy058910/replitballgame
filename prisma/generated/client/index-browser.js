@@ -160,6 +160,7 @@ exports.Prisma.TeamScalarFieldEnum = {
   subdivision: 'subdivision',
   wins: 'wins',
   losses: 'losses',
+  draws: 'draws',
   points: 'points'
 };
 

@@ -7223,6 +7223,7 @@ export namespace Prisma {
     division: number | null
     wins: number | null
     losses: number | null
+    draws: number | null
     points: number | null
   }
 
@@ -7235,6 +7236,7 @@ export namespace Prisma {
     division: number | null
     wins: number | null
     losses: number | null
+    draws: number | null
     points: number | null
   }
 
@@ -7255,6 +7257,7 @@ export namespace Prisma {
     subdivision: string | null
     wins: number | null
     losses: number | null
+    draws: number | null
     points: number | null
   }
 
@@ -7275,6 +7278,7 @@ export namespace Prisma {
     subdivision: string | null
     wins: number | null
     losses: number | null
+    draws: number | null
     points: number | null
   }
 
@@ -7295,6 +7299,7 @@ export namespace Prisma {
     subdivision: number
     wins: number
     losses: number
+    draws: number
     points: number
     _all: number
   }
@@ -7309,6 +7314,7 @@ export namespace Prisma {
     division?: true
     wins?: true
     losses?: true
+    draws?: true
     points?: true
   }
 
@@ -7321,6 +7327,7 @@ export namespace Prisma {
     division?: true
     wins?: true
     losses?: true
+    draws?: true
     points?: true
   }
 
@@ -7341,6 +7348,7 @@ export namespace Prisma {
     subdivision?: true
     wins?: true
     losses?: true
+    draws?: true
     points?: true
   }
 
@@ -7361,6 +7369,7 @@ export namespace Prisma {
     subdivision?: true
     wins?: true
     losses?: true
+    draws?: true
     points?: true
   }
 
@@ -7381,6 +7390,7 @@ export namespace Prisma {
     subdivision?: true
     wins?: true
     losses?: true
+    draws?: true
     points?: true
     _all?: true
   }
@@ -7488,6 +7498,7 @@ export namespace Prisma {
     subdivision: string | null
     wins: number
     losses: number
+    draws: number
     points: number
     _count: TeamCountAggregateOutputType | null
     _avg: TeamAvgAggregateOutputType | null
@@ -7527,6 +7538,7 @@ export namespace Prisma {
     subdivision?: boolean
     wins?: boolean
     losses?: boolean
+    draws?: boolean
     points?: boolean
     user?: boolean | UserProfileDefaultArgs<ExtArgs>
     players?: boolean | Team$playersArgs<ExtArgs>
@@ -7566,6 +7578,7 @@ export namespace Prisma {
     subdivision?: boolean
     wins?: boolean
     losses?: boolean
+    draws?: boolean
     points?: boolean
     user?: boolean | UserProfileDefaultArgs<ExtArgs>
     league?: boolean | Team$leagueArgs<ExtArgs>
@@ -7588,6 +7601,7 @@ export namespace Prisma {
     subdivision?: boolean
     wins?: boolean
     losses?: boolean
+    draws?: boolean
     points?: boolean
     user?: boolean | UserProfileDefaultArgs<ExtArgs>
     league?: boolean | Team$leagueArgs<ExtArgs>
@@ -7610,10 +7624,11 @@ export namespace Prisma {
     subdivision?: boolean
     wins?: boolean
     losses?: boolean
+    draws?: boolean
     points?: boolean
   }
 
-  export type TeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userProfileId" | "name" | "logoUrl" | "isAI" | "createdAt" | "updatedAt" | "camaraderie" | "fanLoyalty" | "homeField" | "tacticalFocus" | "leagueId" | "division" | "subdivision" | "wins" | "losses" | "points", ExtArgs["result"]["team"]>
+  export type TeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userProfileId" | "name" | "logoUrl" | "isAI" | "createdAt" | "updatedAt" | "camaraderie" | "fanLoyalty" | "homeField" | "tacticalFocus" | "leagueId" | "division" | "subdivision" | "wins" | "losses" | "draws" | "points", ExtArgs["result"]["team"]>
   export type TeamInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserProfileDefaultArgs<ExtArgs>
     players?: boolean | Team$playersArgs<ExtArgs>
@@ -7683,6 +7698,7 @@ export namespace Prisma {
       subdivision: string | null
       wins: number
       losses: number
+      draws: number
       points: number
     }, ExtArgs["result"]["team"]>
     composites: {}
@@ -8141,6 +8157,7 @@ export namespace Prisma {
     readonly subdivision: FieldRef<"Team", 'String'>
     readonly wins: FieldRef<"Team", 'Int'>
     readonly losses: FieldRef<"Team", 'Int'>
+    readonly draws: FieldRef<"Team", 'Int'>
     readonly points: FieldRef<"Team", 'Int'>
   }
     
@@ -48831,6 +48848,7 @@ export namespace Prisma {
     subdivision: 'subdivision',
     wins: 'wins',
     losses: 'losses',
+    draws: 'draws',
     points: 'points'
   };
 
@@ -49939,6 +49957,7 @@ export namespace Prisma {
     subdivision?: StringNullableFilter<"Team"> | string | null
     wins?: IntFilter<"Team"> | number
     losses?: IntFilter<"Team"> | number
+    draws?: IntFilter<"Team"> | number
     points?: IntFilter<"Team"> | number
     user?: XOR<UserProfileScalarRelationFilter, UserProfileWhereInput>
     players?: PlayerListRelationFilter
@@ -49977,6 +49996,7 @@ export namespace Prisma {
     subdivision?: SortOrderInput | SortOrder
     wins?: SortOrder
     losses?: SortOrder
+    draws?: SortOrder
     points?: SortOrder
     user?: UserProfileOrderByWithRelationInput
     players?: PlayerOrderByRelationAggregateInput
@@ -50018,6 +50038,7 @@ export namespace Prisma {
     subdivision?: StringNullableFilter<"Team"> | string | null
     wins?: IntFilter<"Team"> | number
     losses?: IntFilter<"Team"> | number
+    draws?: IntFilter<"Team"> | number
     points?: IntFilter<"Team"> | number
     user?: XOR<UserProfileScalarRelationFilter, UserProfileWhereInput>
     players?: PlayerListRelationFilter
@@ -50056,6 +50077,7 @@ export namespace Prisma {
     subdivision?: SortOrderInput | SortOrder
     wins?: SortOrder
     losses?: SortOrder
+    draws?: SortOrder
     points?: SortOrder
     _count?: TeamCountOrderByAggregateInput
     _avg?: TeamAvgOrderByAggregateInput
@@ -50084,6 +50106,7 @@ export namespace Prisma {
     subdivision?: StringNullableWithAggregatesFilter<"Team"> | string | null
     wins?: IntWithAggregatesFilter<"Team"> | number
     losses?: IntWithAggregatesFilter<"Team"> | number
+    draws?: IntWithAggregatesFilter<"Team"> | number
     points?: IntWithAggregatesFilter<"Team"> | number
   }
 
@@ -52960,6 +52983,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -52998,6 +53022,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -53031,6 +53056,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -53069,6 +53095,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -53105,6 +53132,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
   }
 
@@ -53122,6 +53150,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
   }
 
@@ -53142,6 +53171,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
   }
 
@@ -56415,6 +56445,7 @@ export namespace Prisma {
     subdivision?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
+    draws?: SortOrder
     points?: SortOrder
   }
 
@@ -56427,6 +56458,7 @@ export namespace Prisma {
     division?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
+    draws?: SortOrder
     points?: SortOrder
   }
 
@@ -56447,6 +56479,7 @@ export namespace Prisma {
     subdivision?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
+    draws?: SortOrder
     points?: SortOrder
   }
 
@@ -56467,6 +56500,7 @@ export namespace Prisma {
     subdivision?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
+    draws?: SortOrder
     points?: SortOrder
   }
 
@@ -56479,6 +56513,7 @@ export namespace Prisma {
     division?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
+    draws?: SortOrder
     points?: SortOrder
   }
 
@@ -62001,6 +62036,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -62037,6 +62073,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -62125,6 +62162,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -62161,6 +62199,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -63494,6 +63533,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -63531,6 +63571,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -63777,6 +63818,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -63814,6 +63856,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -64838,6 +64881,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -64875,6 +64919,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -64945,6 +64990,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -64982,6 +65028,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -65042,6 +65089,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -65079,6 +65127,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -65127,6 +65176,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -65164,6 +65214,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -65196,6 +65247,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -65233,6 +65285,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -65281,6 +65334,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -65318,6 +65372,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -65519,6 +65574,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -65556,6 +65612,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -65642,6 +65699,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -65679,6 +65737,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -65755,6 +65814,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -65792,6 +65852,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -65964,6 +66025,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -66001,6 +66063,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -66255,6 +66318,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -66292,6 +66356,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -66329,6 +66394,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -66366,6 +66432,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -66566,6 +66633,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -66603,6 +66671,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -66646,6 +66715,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -66683,6 +66753,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -66799,6 +66870,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -66836,6 +66908,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -66942,6 +67015,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -66979,6 +67053,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -67063,6 +67138,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -67100,6 +67176,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -67206,6 +67283,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -67243,6 +67321,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -67453,6 +67532,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -67490,6 +67570,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -67538,6 +67619,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -67575,6 +67657,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -67607,6 +67690,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -67643,6 +67727,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -67815,6 +67900,7 @@ export namespace Prisma {
     subdivision?: StringNullableFilter<"Team"> | string | null
     wins?: IntFilter<"Team"> | number
     losses?: IntFilter<"Team"> | number
+    draws?: IntFilter<"Team"> | number
     points?: IntFilter<"Team"> | number
   }
 
@@ -67988,6 +68074,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -68025,6 +68112,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -68062,6 +68150,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -68099,6 +68188,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -68217,6 +68307,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -68254,6 +68345,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -68297,6 +68389,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -68334,6 +68427,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -68512,6 +68606,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -68549,6 +68644,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -68597,6 +68693,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -68634,6 +68731,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -68666,6 +68764,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -68703,6 +68802,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -68864,6 +68964,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -68901,6 +69002,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -69561,6 +69663,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
@@ -69598,6 +69701,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
@@ -69694,6 +69798,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -69731,6 +69836,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -70908,6 +71014,7 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
+    draws?: number
     points?: number
   }
 
@@ -70956,6 +71063,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
@@ -70992,6 +71100,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
@@ -71027,6 +71136,7 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
   }
 

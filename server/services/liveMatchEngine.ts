@@ -16,9 +16,11 @@ import {
 } from '../../shared/types/LiveMatchState';
 import { webSocketManager } from '../websocket/webSocketManager.js';
 import { getPrismaClient } from '../database.js';
+import { NewMatchEngine } from './newMatchEngine.js';
 
 class LiveMatchEngineService implements LiveMatchEngine {
   private activeMatches = new Map<string, LiveMatchState>();
+  private activeEngines = new Map<string, NewMatchEngine>();
   private matchIntervals = new Map<string, NodeJS.Timeout>();
   private simulationSpeed = 1.0; // Default 1x speed
 
@@ -108,6 +110,10 @@ class LiveMatchEngineService implements LiveMatchEngine {
       // Store active match
       this.activeMatches.set(matchId, liveState);
 
+      // Create and store new simulation engine instance
+      const engine = new NewMatchEngine(match.homeTeam, match.awayTeam, matchId);
+      this.activeEngines.set(matchId, engine);
+
       // Start simulation loop
       this.startSimulationLoop(matchId);
 
@@ -120,7 +126,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
       // Generate opening event
       this.generateEvent(liveState, MATCH_EVENT_TYPES.SCRUM, 'Match begins with opening scrum!');
 
-      console.log(`Live match ${matchId} started successfully`);
+      console.log(`Live match ${matchId} started successfully with the new engine.`);
       return liveState;
 
     } catch (error) {
@@ -227,8 +233,9 @@ class LiveMatchEngineService implements LiveMatchEngine {
     this.generateEvent(liveState, MATCH_EVENT_TYPES.FINAL_WHISTLE, 
       `Final whistle! ${liveState.homeScore}-${liveState.awayScore}`);
 
-    // Remove from active matches
+    // Remove from active matches and engines
     this.activeMatches.delete(matchId);
+    this.activeEngines.delete(matchId);
 
     console.log(`Match ${matchId} stopped`);
   }
@@ -437,8 +444,33 @@ class LiveMatchEngineService implements LiveMatchEngine {
       return;
     }
 
-    // Generate random events
-    this.generateRandomEvents(liveState);
+    // Simulate a tick using the new engine
+    const engine = this.activeEngines.get(matchId);
+    if (engine) {
+        const event = engine.simulateTick();
+
+        // Update live state based on the new event
+        liveState.simulationSpeed = event.priority.speedMultiplier;
+
+        // The event description will be set by the new commentary service later.
+        // For now, we pass it through.
+
+        // Update scores and stats from the event payload
+        if (event.stats) {
+            const stats = event.stats as any;
+            if (stats.playerStats) {
+                stats.playerStats.forEach((pStat: any) => {
+                    const teamStats = liveState.playerStats.get(pStat.id);
+                    if (teamStats) {
+                        if (pStat.scores) liveState.homeScore += pStat.scores; // This is still not quite right
+                        // TODO: Update other stats
+                    }
+                });
+            }
+        }
+
+        this.broadcastEvent(matchId, event);
+    }
 
     // Update revenue
     this.updateRevenue(liveState);
@@ -453,45 +485,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
   }
 
   /**
-   * Generate random match events
-   */
-  private generateRandomEvents(liveState: LiveMatchState): void {
-    const eventChance = Math.random();
-    
-    if (eventChance < 0.05) { // 5% chance per tick
-      const eventTypes: string[] = [
-        MATCH_EVENT_TYPES.PASS_ATTEMPT,
-        MATCH_EVENT_TYPES.SCRUM,
-        MATCH_EVENT_TYPES.ROUTINE_PLAY,
-        MATCH_EVENT_TYPES.DEFENSIVE_STOP
-      ];
-      
-      // Rare chance for score
-      if (eventChance < 0.01) {
-        eventTypes.push(MATCH_EVENT_TYPES.SCORE);
-      }
-      
-      const eventType: string = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      
-      // Handle scoring
-      if (eventType === MATCH_EVENT_TYPES.SCORE) {
-        const isHomeScore = Math.random() < 0.5;
-        if (isHomeScore) {
-          liveState.homeScore++;
-        } else {
-          liveState.awayScore++;
-        }
-        
-        this.generateEvent(liveState, eventType, 
-          `SCORE! ${isHomeScore ? 'Home' : 'Away'} team scores! ${liveState.homeScore}-${liveState.awayScore}`);
-      } else {
-        this.generateEvent(liveState, eventType, this.getEventDescription(eventType));
-      }
-    }
-  }
-
-  /**
-   * Generate a match event
+   * Generate a match event (now a simplified wrapper around broadcastEvent)
    */
   private generateEvent(liveState: LiveMatchState, eventType: string, description: string): void {
     const event: MatchEvent = {
@@ -500,7 +494,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
       tick: liveState.matchTick,
       type: eventType,
       description,
-      priority: this.getEventPriority(eventType),
+      priority: this.getEventPriority(eventType), // Keep this for simple, non-engine events
       position: {
         x: Math.random() * 800,
         y: Math.random() * 400
@@ -511,52 +505,13 @@ class LiveMatchEngineService implements LiveMatchEngine {
   }
 
   /**
-   * Get event priority based on type
+   * Get event priority based on type for simple events
    */
   private getEventPriority(eventType: string): any {
-    // Critical events
     if ([MATCH_EVENT_TYPES.SCORE, MATCH_EVENT_TYPES.INJURY, MATCH_EVENT_TYPES.HALFTIME, MATCH_EVENT_TYPES.FINAL_WHISTLE].includes(eventType as any)) {
       return EVENT_PRIORITIES.CRITICAL;
     }
-    
-    // Important events
-    if ([MATCH_EVENT_TYPES.PASS_ATTEMPT, MATCH_EVENT_TYPES.SCRUM, MATCH_EVENT_TYPES.DEFENSIVE_STOP].includes(eventType as any)) {
-      return EVENT_PRIORITIES.IMPORTANT;
-    }
-    
-    // Standard events
     return EVENT_PRIORITIES.STANDARD;
-  }
-
-  /**
-   * Get event description
-   */
-  private getEventDescription(eventType: string): string {
-    const descriptions: Record<string, string[]> = {
-      [MATCH_EVENT_TYPES.PASS_ATTEMPT]: [
-        'A precise pass attempt down the field',
-        'Quick passing play develops',
-        'Long pass attempted across the dome'
-      ],
-      [MATCH_EVENT_TYPES.SCRUM]: [
-        'Players converge for a scrum',
-        'Intense scrum battle in the center',
-        'Scrum formation takes shape'
-      ],
-      [MATCH_EVENT_TYPES.ROUTINE_PLAY]: [
-        'Standard play development',
-        'Players position themselves',
-        'Routine movement across the field'
-      ],
-      [MATCH_EVENT_TYPES.DEFENSIVE_STOP]: [
-        'Solid defensive play',
-        'Defense holds strong',
-        'Defensive formation prevents advance'
-      ]
-    };
-    
-    const options = descriptions[eventType] || ['Match event occurs'];
-    return options[Math.floor(Math.random() * options.length)];
   }
 
   /**

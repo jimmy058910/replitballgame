@@ -111,14 +111,37 @@ export interface EventPriority {
 export interface PlayerMatchStats {
   playerId: string;
   minutesPlayed: number;
+
+  // Scoring
   scores: number;
-  assists: number;
-  tackles: number;
-  interceptions: number;
+
+  // Passing
   passAttempts: number;
   passCompletions: number;
+  passingYards: number;
+  perfectPasses: number;
+
+  // Rushing
+  rushingAttempts: number;
+  rushingYards: number;
+  breakawayRuns: number;
+
+  // Receiving
+  catches: number;
+  receivingYards: number;
+  drops: number;
+
+  // Defense
+  tackles: number;
+  knockdowns: number;
+  interceptions: number;
+
+  // Misc
+  fumblesLost: number;
+  clutchPlays: number;
   staminaUsed: number;
   injuries: number;
+  skillsUsed: number;
 }
 
 export interface TeamMatchStats {

@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { RealmRivalry2DMatchEngine } from '../components/RealmRivalry2DMatchEngine';
+import { TextBasedMatchViewer } from '../components/TextBasedMatchViewer';
 import { useAuth } from '../providers/AuthProvider';
 
 interface Match {
@@ -28,7 +28,7 @@ interface Match {
 
 export function LiveMatchTest() {
   const { user } = useAuth();
-  const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [liveMatchStarted, setLiveMatchStarted] = useState(false);
 
   // Fetch available matches for testing
@@ -48,9 +48,9 @@ export function LiveMatchTest() {
   // @ts-expect-error TS2488
   const availableMatches = [...(matches || []), ...(recentMatches || [])].slice(0, 10);
 
-  const startLiveMatch = async (matchId: string) => {
+  const startLiveMatch = async (match: Match) => {
     try {
-      const response = await fetch(`/api/live-matches/${matchId}/start`, {
+      const response = await fetch(`/api/live-matches/${match.id}/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ export function LiveMatchTest() {
       });
 
       if (response.ok) {
-        setSelectedMatch(matchId);
+        setSelectedMatch(match);
         setLiveMatchStarted(true);
         console.log('Live match started successfully');
       } else {
@@ -106,7 +106,7 @@ export function LiveMatchTest() {
 
       if (response.ok) {
         const demoData = await response.json();
-        setSelectedMatch(demoData.match.id);
+        setSelectedMatch(demoData.match);
         setLiveMatchStarted(true);
         console.log('Demo match created and started:', demoData.match.id);
       } else {
@@ -151,10 +151,11 @@ export function LiveMatchTest() {
             </Button>
           </div>
           
-          <RealmRivalry2DMatchEngine 
-            matchId={selectedMatch}
-            // @ts-expect-error TS2339
+          <TextBasedMatchViewer
+            matchId={selectedMatch.id}
             userId={user.id}
+            homeTeamName={selectedMatch.homeTeam?.name || 'Home Team'}
+            awayTeamName={selectedMatch.awayTeam?.name || 'Away Team'}
           />
         </div>
       </div>
@@ -244,7 +245,7 @@ export function LiveMatchTest() {
                         </p>
                       </div>
                       <Button 
-                        onClick={() => startLiveMatch(match.id)}
+                        onClick={() => startLiveMatch(match)}
                         disabled={match.status !== 'SCHEDULED'}
                         className="ml-4"
                       >
