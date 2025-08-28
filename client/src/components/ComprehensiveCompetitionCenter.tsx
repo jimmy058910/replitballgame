@@ -402,9 +402,19 @@ export default function ComprehensiveCompetitionCenter() {
     return () => clearInterval(timer);
   }, []);
 
+  // Calculate dynamic countdown based on registration end time
+  const calculateTimeRemaining = (registrationEndTime: string | null): number => {
+    if (!registrationEndTime) return 0;
+    const endTime = new Date(registrationEndTime).getTime();
+    const now = currentTime.getTime(); // Use the current time that updates every minute
+    return Math.max(0, endTime - now);
+  };
+
   // Format countdown timer for daily tournament auto-fill
-  const formatTournamentCountdown = (timeRemaining: number | null) => {
-    if (!timeRemaining || timeRemaining <= 0) {
+  const formatTournamentCountdown = (registrationEndTime: string | null) => {
+    const timeRemaining = calculateTimeRemaining(registrationEndTime);
+    
+    if (timeRemaining <= 0) {
       return "Starting soon...";
     }
     
@@ -1036,7 +1046,7 @@ export default function ComprehensiveCompetitionCenter() {
                         <Clock className="h-4 w-4 text-blue-400" />
                         <span className="text-gray-200">
                           {currentTournamentStatus?.hasActiveTournament && currentTournamentStatus?.timerActive
-                            ? formatTournamentCountdown(currentTournamentStatus.timeRemaining)
+                            ? formatTournamentCountdown(currentTournamentStatus.registrationEndTime)
                             : "Registration OPEN"
                           }
                         </span>
@@ -1961,7 +1971,7 @@ export default function ComprehensiveCompetitionCenter() {
                       Auto-Fill Timer
                     </h3>
                     <p className="text-orange-200 text-sm">
-                      {formatTournamentCountdown(currentTournamentStatus.timeRemaining)}
+                      {formatTournamentCountdown(currentTournamentStatus.registrationEndTime)}
                     </p>
                     <p className="text-orange-400 text-xs mt-1">
                       Tournament will auto-fill with AI teams if not full
