@@ -137,7 +137,56 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     enabled: !!teamId
   });
 
-  // Map the actual financial data to our expected format
+  // Calculate income/expense breakdowns from transaction data
+  const calculateTransactionBreakdowns = (transactions: any[]) => {
+    const income = {
+      exhibitionFees: 0,
+      tournamentRewards: 0,
+      seasonBonuses: 0,
+      storeTransactions: 0,
+      miscellaneous: 0
+    };
+    const expenses = {
+      facilityUpgrades: 0,
+      storePurchases: 0,
+      marketplaceFees: 0
+    };
+
+    transactions.forEach((t: any) => {
+      const amount = Math.abs(parseInt(t.creditsAmount || '0'));
+      const isIncome = parseInt(t.creditsAmount || '0') > 0;
+      
+      if (isIncome) {
+        // Categorize income based on transaction type and item type
+        if (t.transactionType === 'reward' && t.itemType === 'exhibition') {
+          income.exhibitionFees += amount;
+        } else if (t.transactionType === 'reward' && t.itemType === 'tournament') {
+          income.tournamentRewards += amount;
+        } else if (t.transactionType === 'reward' && (t.itemType === 'season' || t.itemName?.includes('bonus'))) {
+          income.seasonBonuses += amount;
+        } else if (t.transactionType === 'admin_grant') {
+          income.miscellaneous += amount;
+        } else {
+          income.miscellaneous += amount;
+        }
+      } else {
+        // Categorize expenses based on transaction type and item type
+        if (t.itemType === 'facility' || t.itemName?.includes('stadium') || t.itemName?.includes('upgrade')) {
+          expenses.facilityUpgrades += amount;
+        } else if (t.transactionType === 'purchase' && (t.itemType === 'equipment' || t.itemType === 'consumable')) {
+          expenses.storePurchases += amount;
+        } else if (t.itemType === 'marketplace' || t.itemName?.includes('fee')) {
+          expenses.marketplaceFees += amount;
+        }
+      }
+    });
+
+    return { income, expenses };
+  };
+
+  const transactionBreakdowns = calculateTransactionBreakdowns(rawTransactions);
+
+  // Map the actual financial data to our expected format with comprehensive data mapping
   const rawFinancialData = financialData as any;
   const financial: FinancialData = {
     credits: parseInt(rawFinancialData?.credits || '0'),
@@ -149,18 +198,18 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
       parking: rawFinancialData?.parking || 0,
       vipSuites: rawFinancialData?.vipSuites || 0,
       merchandising: rawFinancialData?.merchandising || 0,
-      exhibitionFees: 0,
-      tournamentRewards: 0,
-      seasonBonuses: 0,
-      storeTransactions: 0,
-      miscellaneous: 0
+      exhibitionFees: transactionBreakdowns.income.exhibitionFees,
+      tournamentRewards: transactionBreakdowns.income.tournamentRewards,
+      seasonBonuses: transactionBreakdowns.income.seasonBonuses,
+      storeTransactions: transactionBreakdowns.income.storeTransactions,
+      miscellaneous: transactionBreakdowns.income.miscellaneous
     },
     expenseBreakdown: {
       playerSalaries: rawFinancialData?.playerSalaries || 0,
       staffSalaries: rawFinancialData?.staffSalaries || 0,
-      facilityUpgrades: 0,
-      storePurchases: 0,
-      marketplaceFees: 0,
+      facilityUpgrades: transactionBreakdowns.expenses.facilityUpgrades,
+      storePurchases: transactionBreakdowns.expenses.storePurchases,
+      marketplaceFees: transactionBreakdowns.expenses.marketplaceFees,
       maintenanceCosts: rawFinancialData?.facilitiesMaintenanceCost || 0
     }
   };
@@ -361,6 +410,14 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
                   <span className="text-gray-300">Season Bonuses</span>
                   <span className="text-green-400 font-medium">{formatCurrency(financial.incomeStreams.seasonBonuses)}</span>
                 </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Store Transactions</span>
+                  <span className="text-green-400 font-medium">{formatCurrency(financial.incomeStreams.storeTransactions)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Miscellaneous</span>
+                  <span className="text-green-400 font-medium">{formatCurrency(financial.incomeStreams.miscellaneous)}</span>
+                </div>
               </CardContent>
             </Card>
 
@@ -373,6 +430,30 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Player Salaries</span>
+                  <span className="text-red-400 font-medium">{formatCurrency(financial.expenseBreakdown.playerSalaries)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Staff Salaries</span>
+                  <span className="text-red-400 font-medium">{formatCurrency(financial.expenseBreakdown.staffSalaries)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Facility Maintenance</span>
+                  <span className="text-red-400 font-medium">{formatCurrency(financial.expenseBreakdown.maintenanceCosts)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Store Purchases</span>
+                  <span className="text-red-400 font-medium">{formatCurrency(financial.expenseBreakdown.storePurchases)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Facility Upgrades</span>
+                  <span className="text-red-400 font-medium">{formatCurrency(financial.expenseBreakdown.facilityUpgrades)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">Marketplace Fees</span>
+                  <span className="text-red-400 font-medium">{formatCurrency(financial.expenseBreakdown.marketplaceFees)}</span>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Player Salaries</span>
                   <span className="text-red-400 font-medium">−{formatCurrency(financial.expenseBreakdown.playerSalaries)}</span>
