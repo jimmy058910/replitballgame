@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useQuery } from '@tanstack/react-query';
 import { webSocketManager } from '@/websocket/webSocketManager';
 import { LiveMatchState, MatchEvent } from '@/../../shared/types/LiveMatchState';
 
@@ -22,6 +23,47 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
   const [events, setEvents] = useState<MatchEvent[]>([]);
   const [criticalEvent, setCriticalEvent] = useState<MatchEvent | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
+
+  // Fetch initial live state for the specific match
+  const { data: liveMatches } = useQuery<any[]>({
+    queryKey: ['/api/matches/live'],
+    refetchInterval: 2000, // Check every 2 seconds
+    enabled: !!matchId
+  });
+
+  // Find the specific match and extract live state
+  useEffect(() => {
+    if (liveMatches && matchId) {
+      const currentMatch = liveMatches.find(match => match.id === matchId);
+      if (currentMatch && !liveState) {
+        // Convert the live match data to LiveMatchState format
+        const initialState: LiveMatchState = {
+          matchId: currentMatch.id,
+          homeTeamId: currentMatch.homeTeam.id,
+          awayTeamId: currentMatch.awayTeam.id,
+          status: 'live',
+          gameTime: currentMatch.gameTime || 0,
+          maxTime: currentMatch.maxGameTime || 2400,
+          currentHalf: 1,
+          startTime: Date.now(),
+          lastUpdate: Date.now(),
+          homeScore: currentMatch.homeScore || 0,
+          awayScore: currentMatch.awayScore || 0,
+          activeFieldPlayers: { home: {}, away: {} },
+          facilityLevels: {},
+          attendance: 0,
+          perTickRevenue: [],
+          gameEvents: [],
+          playerStats: {},
+          teamStats: {},
+          matchTick: 0,
+          simulationSpeed: 1
+        };
+        setLiveState(initialState);
+        console.log('✅ Initial live state loaded for match', matchId);
+      }
+    }
+  }, [liveMatches, matchId, liveState]);
 
   useEffect(() => {
     // Connect to the WebSocket and join the match room
