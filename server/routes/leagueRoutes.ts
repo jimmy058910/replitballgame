@@ -624,12 +624,16 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
         currentStreak = Math.min(draws, 3);
       }
       
-      // Get actual games played from our recalculated standings
-      const teamStats = teamStandings.get(team.id);
-      const actualGamesPlayed = teamStats ? teamStats.gamesPlayed : 0;
+      // FIXED: Calculate actual games played directly from completed matches
+      const teamMatches = completedMatches.filter((match: any) => 
+        match.homeTeamId === team.id || match.awayTeamId === team.id
+      );
+      const actualGamesPlayed = teamMatches.length;
       
       // CRITICAL: Ensure no team shows more than 6 games (the max that should be played through Day 12)
       const cappedGamesPlayed = Math.min(actualGamesPlayed, 6);
+      
+      console.log(`🎮 [STANDINGS DEBUG] Team ${team.name}: ${actualGamesPlayed} games found in completedMatches, capped at ${cappedGamesPlayed}`);
       
       if (actualGamesPlayed > 6) {
         console.log(`⚠️ [STANDINGS FIX] Team ${team.name} had ${actualGamesPlayed} games, capping at 6`);
