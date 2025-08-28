@@ -416,6 +416,41 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     refetchInterval: basicMatchData?.status === 'COMPLETED' ? 0 : 5000
   });
 
+  // Initialize liveState from API data when available
+  useEffect(() => {
+    if (basicMatchData?.simulationLog && !liveState) {
+      const simLog = basicMatchData.simulationLog;
+      
+      // Initialize live state from simulation log
+      const initialState: LiveMatchState = {
+        matchId: matchId,
+        homeTeamId: simLog.homeTeamId || basicMatchData.homeTeamId,
+        awayTeamId: simLog.awayTeamId || basicMatchData.awayTeamId,
+        startTime: simLog.startTime ? new Date(simLog.startTime) : new Date(),
+        gameTime: simLog.gameTime || 0,
+        maxTime: simLog.maxTime || 1800,
+        currentHalf: (simLog.currentHalf || 1) as 1 | 2,
+        homeScore: simLog.homeScore || 0,
+        awayScore: simLog.awayScore || 0,
+        status: simLog.status === 'live' ? 'live' : 'paused',
+        gameEvents: simLog.gameEvents || [],
+        lastUpdateTime: new Date(),
+        playerStats: simLog.playerStats || {},
+        teamStats: simLog.teamStats || {},
+        possessingTeamId: null,
+        possessionStartTime: simLog.gameTime || 0
+      };
+      
+      console.log('🎮 [LIVE MATCH] Initializing liveState from API data:', initialState);
+      setLiveState(initialState);
+      
+      // Set events from simulation log
+      if (simLog.gameEvents) {
+        setEvents(simLog.gameEvents.slice().reverse()); // Most recent first
+      }
+    }
+  }, [basicMatchData, matchId, liveState]);
+
   // WebSocket connection
   useEffect(() => {
     if (!matchId || !userId) return;

@@ -12,6 +12,7 @@ import HelpManual from "@/pages/HelpManual";
 import { WebSocketTestPage } from "@/components/WebSocketTestPage";
 import { LiveMatchTest } from "@/pages/LiveMatchTest";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import LiveMatchPage from "@/components/LiveMatchPage";
 
 // React imports
 import { lazy, Suspense } from "react";
@@ -102,11 +103,11 @@ function Router() {
           {/* Legacy routes - maintain for backwards compatibility */}
           <Route path="/world" component={LazyWorld} />
           
-          {/* Live Match System */}
-          <Route path="/live-match/:matchId" component={LazyLiveMatch} />
+          {/* Live Match System - Direct import to avoid lazy loading issues */}
+          <Route path="/live-match/:matchId" component={LiveMatchPage} />
           {/* Legacy match routes redirect to live-match for backwards compatibility */}
-          <Route path="/text-match/:matchId" component={LazyLiveMatch} />
-          <Route path="/match/:matchId" component={LazyLiveMatch} />
+          <Route path="/text-match/:matchId" component={LiveMatchPage} />
+          <Route path="/match/:matchId" component={LiveMatchPage} />
           
 
           
@@ -117,6 +118,9 @@ function Router() {
           <Route path="/tournament-status" component={LazyTournamentStatus} />
         </>
       )}
+      
+      {/* Public routes accessible without authentication for testing */}
+      <Route path="/test-live-match/:matchId" component={LiveMatchPage} />
       <Route component={NotFound} />
     </Switch>
   );
