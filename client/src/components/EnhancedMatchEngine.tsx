@@ -550,9 +550,8 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
 
   // For completed matches, we don't need live state - show results if we have enhanced data
   // @ts-expect-error TS2339
-  const isCompleted = basicMatchData?.status === 'COMPLETED';
+  const isCompleted = basicMatchData?.status === 'COMPLETED' || basicMatchData?.simulated === true;
   const hasBasicData = !!basicMatchData;
-  const shouldShowResults = hasBasicData && (liveState || (isCompleted && enhancedMatchData));
   
   // Show loading only when we don't have basic match data yet
   if (matchLoading || !hasBasicData) {
@@ -568,43 +567,31 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     );
   }
   
-  // If we have basic data but no live state yet (for live matches), show match with basic info
-  if (!isCompleted && !liveState) {
+  // If we have basic data but no live state yet, initialize one
+  if (!liveState) {
     // Initialize a basic live state from API data to show something immediately
     const basicLiveState: LiveMatchState = {
       matchId: matchId,
       homeTeamId: basicMatchData.homeTeamId,
       awayTeamId: basicMatchData.awayTeamId,
       startTime: new Date(basicMatchData.gameDate),
-      gameTime: 0,
+      gameTime: basicMatchData.simulationLog?.gameTime || (isCompleted ? 1800 : 0),
       maxTime: 1800,
-      currentHalf: 1,
+      currentHalf: basicMatchData.simulationLog?.currentHalf || (isCompleted ? 2 : 1),
       homeScore: basicMatchData.homeScore || 0,
       awayScore: basicMatchData.awayScore || 0,
-      status: 'live',
+      status: isCompleted ? 'completed' : 'live',
       gameEvents: basicMatchData.simulationLog?.gameEvents || [],
       lastUpdateTime: new Date(),
-      playerStats: {},
-      teamStats: {},
+      playerStats: basicMatchData.simulationLog?.playerStats || {},
+      teamStats: basicMatchData.simulationLog?.teamStats || {},
       possessingTeamId: null,
-      possessionStartTime: 0
+      possessionStartTime: basicMatchData.simulationLog?.gameTime || 0
     };
     setLiveState(basicLiveState);
   }
 
-  // If it's a completed match but we don't have enhanced data yet, show loading
-  if (isCompleted && !enhancedMatchData) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="text-center space-y-4">
-            <Activity className="w-8 h-8 mx-auto animate-spin" />
-            <p>Loading match results...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // No longer block completed matches on enhanced data - show basic results
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
