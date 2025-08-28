@@ -458,33 +458,17 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     console.log(`✅ Found ${teamsInDivision.length} teams in Division ${division}`);
     console.log(`✅ Returning standings for ${teamsInDivision.length} teams: [${teamsInDivision.map(t => `'${t.name}'`).join(', ')}]`);
 
-    // COMPREHENSIVE FIX: Get all league matches with scores (completed games) 
-    // BUT ONLY from Days 7-12 (the 6 days that should have been played)
+    // COMPREHENSIVE FIX: Get ALL completed league matches (no date filtering)
+    // Since we need to count all games played by each team
     const prisma = await getPrismaClient();
     
-    // Get current season to calculate valid date range
-    const currentSeason = await seasonStorage.getCurrentSeason();
-    const seasonStartDate = currentSeason?.startDate ? new Date(currentSeason.startDate) : new Date("2025-08-16T15:40:19.081Z");
-    
-    // Calculate date ranges for Days 7-12 (the 6 game days that should be completed)
-    const day7Date = new Date(seasonStartDate);
-    day7Date.setDate(seasonStartDate.getDate() + 6); // Day 7 is 6 days after start
-    
-    const day12Date = new Date(seasonStartDate);
-    day12Date.setDate(seasonStartDate.getDate() + 11); // Day 12 is 11 days after start
-    day12Date.setHours(23, 59, 59, 999); // End of Day 12
-    
-    console.log(`🔧 [STANDINGS FIX] Filtering games from Day 7 (${day7Date.toDateString()}) to Day 12 (${day12Date.toDateString()})`);
+    console.log(`🔧 [STANDINGS FIX] Getting all completed league matches for Division 8 Alpha teams`);
     
     const completedMatches = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
         homeScore: { not: null }, // Games with actual scores
         awayScore: { not: null },
-        gameDate: {
-          gte: day7Date,
-          lte: day12Date
-        },
         OR: [
           { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
           { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
@@ -493,7 +477,15 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       orderBy: { gameDate: 'asc' }
     });
     
-    console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores in Days 7-12`);
+    console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores`);
+    
+    // DEBUG: Log each team's game count
+    teamsInDivision.forEach((team: any) => {
+      const teamMatches = completedMatches.filter((match: any) => 
+        match.homeTeamId === team.id || match.awayTeamId === team.id
+      );
+      console.log(`🎮 [TEAM DEBUG] ${team.name}: ${teamMatches.length} games found`);
+    });
     
     // CRITICAL FIX: Reset all team standings and recalculate from scratch based on actual games
     console.log('🔄 [STANDINGS FIX] Resetting all Division 8 Alpha team standings...');
@@ -630,13 +622,19 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       );
       const actualGamesPlayed = teamMatches.length;
       
-      // CRITICAL: Ensure no team shows more than 6 games (the max that should be played through Day 12)
-      const cappedGamesPlayed = Math.min(actualGamesPlayed, 6);
+      // CRITICAL: Every team should have exactly 6 games after Day 6 completion
+      if (actualGamesPlayed !== 6) {
+        console.log(`⚠️ [STANDINGS ISSUE] Team ${team.name} has ${actualGamesPlayed} games, should be 6!`);
+        console.log(`🔍 [DEBUG] ${team.name} games:`, teamMatches.map(m => `Game ${m.id} on ${m.gameDate}`));
+      }
       
-      console.log(`🎮 [STANDINGS DEBUG] Team ${team.name}: ${actualGamesPlayed} games found in completedMatches, capped at ${cappedGamesPlayed}`);
+      const cappedGamesPlayed = actualGamesPlayed; // Use actual count, no capping
       
-      if (actualGamesPlayed > 6) {
-        console.log(`⚠️ [STANDINGS FIX] Team ${team.name} had ${actualGamesPlayed} games, capping at 6`);
+      console.log(`🎮 [STANDINGS DEBUG] Team ${team.name}: ${actualGamesPlayed} games found`);
+      
+      // Force debug for teams with wrong count
+      if (actualGamesPlayed !== 6) {
+        console.log(`⚠️ [FORCE DEBUG] ${team.name} missing games - details:`, teamMatches.map(m => `${m.id}:${new Date(m.gameDate).toDateString()}`));
       }
       
       
