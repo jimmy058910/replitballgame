@@ -392,15 +392,19 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     cacheTime: 0 // Don't cache for live matches
   });
 
-  // Enhanced data queries
+  // Extract team data from basicMatchData
+  const homeTeamId = basicMatchData?.homeTeamId;
+  const awayTeamId = basicMatchData?.awayTeamId;
+
+  // Enhanced data queries using team IDs from match data
   const { data: homeTeamPlayers } = useQuery({
-    queryKey: [`/api/teams/${team1?.id}/players`],
-    enabled: !!team1?.id
+    queryKey: [`/api/teams/${homeTeamId}/players`],
+    enabled: !!homeTeamId
   });
 
   const { data: awayTeamPlayers } = useQuery({
-    queryKey: [`/api/teams/${team2?.id}/players`],
-    enabled: !!team2?.id
+    queryKey: [`/api/teams/${awayTeamId}/players`],
+    enabled: !!awayTeamId
   });
 
   const { data: stadiumData } = useQuery({
@@ -547,9 +551,11 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
   // For completed matches, we don't need live state - show results if we have enhanced data
   // @ts-expect-error TS2339
   const isCompleted = basicMatchData?.status === 'COMPLETED';
-  const shouldShowResults = liveState || (isCompleted && enhancedMatchData);
+  const hasBasicData = !!basicMatchData;
+  const shouldShowResults = hasBasicData && (liveState || (isCompleted && enhancedMatchData));
   
-  if (matchLoading || (!shouldShowResults && !isCompleted)) {
+  // Show loading only when we don't have basic match data yet
+  if (matchLoading || !hasBasicData) {
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardContent className="flex items-center justify-center h-64">
@@ -560,6 +566,30 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
         </CardContent>
       </Card>
     );
+  }
+  
+  // If we have basic data but no live state yet (for live matches), show match with basic info
+  if (!isCompleted && !liveState) {
+    // Initialize a basic live state from API data to show something immediately
+    const basicLiveState: LiveMatchState = {
+      matchId: matchId,
+      homeTeamId: basicMatchData.homeTeamId,
+      awayTeamId: basicMatchData.awayTeamId,
+      startTime: new Date(basicMatchData.gameDate),
+      gameTime: 0,
+      maxTime: 1800,
+      currentHalf: 1,
+      homeScore: basicMatchData.homeScore || 0,
+      awayScore: basicMatchData.awayScore || 0,
+      status: 'live',
+      gameEvents: basicMatchData.simulationLog?.gameEvents || [],
+      lastUpdateTime: new Date(),
+      playerStats: {},
+      teamStats: {},
+      possessingTeamId: null,
+      possessionStartTime: 0
+    };
+    setLiveState(basicLiveState);
   }
 
   // If it's a completed match but we don't have enhanced data yet, show loading
@@ -602,7 +632,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
                 <div className="text-center">
                   {/*
                    // @ts-expect-error TS2339 */}
-                  <div className="font-bold text-lg">{team1?.name || enhancedMatchData?.homeTeam?.name}</div>
+                  <div className="font-bold text-lg">{basicMatchData?.homeTeam?.name || enhancedMatchData?.homeTeam?.name || 'Home Team'}</div>
                   <div className="text-3xl font-bold text-blue-600">
                     {/*
                      // @ts-expect-error TS2339 */}
@@ -640,7 +670,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
                 <div className="text-center">
                   {/*
                    // @ts-expect-error TS2339 */}
-                  <div className="font-bold text-lg">{team2?.name || enhancedMatchData?.awayTeam?.name}</div>
+                  <div className="font-bold text-lg">{basicMatchData?.awayTeam?.name || enhancedMatchData?.awayTeam?.name || 'Away Team'}</div>
                   <div className="text-3xl font-bold text-red-600">
                     {/*
                      // @ts-expect-error TS2339 */}
@@ -695,8 +725,8 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
       <Card>
         <CardContent className="p-4">
           <FieldVisualization
-            homeTeam={team1}
-            awayTeam={team2}
+            homeTeam={{ id: homeTeamId, name: basicMatchData?.homeTeam?.name || 'Home Team' }}
+            awayTeam={{ id: awayTeamId, name: basicMatchData?.awayTeam?.name || 'Away Team' }}
             homePlayers={(homeTeamPlayers as EnhancedPlayer[]) || []}
             awayPlayers={(awayTeamPlayers as EnhancedPlayer[]) || []}
             liveState={liveState!}
@@ -738,8 +768,8 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
             
             <TabsContent value="stats" className="mt-4">
               <LiveStatsTab
-                homeTeam={team1}
-                awayTeam={team2}
+                homeTeam={{ id: homeTeamId, name: basicMatchData?.homeTeam?.name || 'Home Team' }}
+                awayTeam={{ id: awayTeamId, name: basicMatchData?.awayTeam?.name || 'Away Team' }}
                 liveState={liveState!}
                 enhancedStats={enhancedMatchData}
               />
@@ -757,7 +787,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
                 <h3 className="font-semibold text-sm">Active Players</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-xs font-semibold mb-2 text-blue-600">{team1?.name}</h4>
+                    <h4 className="text-xs font-semibold mb-2 text-blue-600">{basicMatchData?.homeTeam?.name || 'Home Team'}</h4>
                     <div className="space-y-1">
                       {(homeTeamPlayers as any[])?.filter((p: any) => p.isActive)?.slice(0, 6)?.map((player: any) => (
                         <div key={player.id} className="flex justify-between text-xs p-1 bg-blue-50 rounded">
@@ -769,7 +799,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
                   </div>
                   
                   <div>
-                    <h4 className="text-xs font-semibold mb-2 text-red-600">{team2?.name}</h4>
+                    <h4 className="text-xs font-semibold mb-2 text-red-600">{basicMatchData?.awayTeam?.name || 'Away Team'}</h4>
                     <div className="space-y-1">
                       {(awayTeamPlayers as any[])?.filter((p: any) => p.isActive)?.slice(0, 6)?.map((player: any) => (
                         <div key={player.id} className="flex justify-between text-xs p-1 bg-red-50 rounded">
@@ -791,11 +821,11 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
         matchId={matchId}
         gameData={{
           homeTeam: { 
-            name: team1?.name, 
+            name: basicMatchData?.homeTeam?.name || 'Home Team', 
             players: homeTeamPlayers 
           },
           awayTeam: { 
-            name: team2?.name, 
+            name: basicMatchData?.awayTeam?.name || 'Away Team', 
             players: awayTeamPlayers 
           }
         }}
