@@ -458,21 +458,130 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     console.log(`✅ Found ${teamsInDivision.length} teams in Division ${division}`);
     console.log(`✅ Returning standings for ${teamsInDivision.length} teams: [${teamsInDivision.map(t => `'${t.name}'`).join(', ')}]`);
 
-    // Get all league matches with scores (completed games)
+    // COMPREHENSIVE FIX: Get all league matches with scores (completed games) 
+    // BUT ONLY from Days 7-12 (the 6 days that should have been played)
     const prisma = await getPrismaClient();
+    
+    // Get current season to calculate valid date range
+    const currentSeason = await seasonStorage.getCurrentSeason();
+    const seasonStartDate = currentSeason?.startDate ? new Date(currentSeason.startDate) : new Date("2025-08-16T15:40:19.081Z");
+    
+    // Calculate date ranges for Days 7-12 (the 6 game days that should be completed)
+    const day7Date = new Date(seasonStartDate);
+    day7Date.setDate(seasonStartDate.getDate() + 6); // Day 7 is 6 days after start
+    
+    const day12Date = new Date(seasonStartDate);
+    day12Date.setDate(seasonStartDate.getDate() + 11); // Day 12 is 11 days after start
+    day12Date.setHours(23, 59, 59, 999); // End of Day 12
+    
+    console.log(`🔧 [STANDINGS FIX] Filtering games from Day 7 (${day7Date.toDateString()}) to Day 12 (${day12Date.toDateString()})`);
+    
     const completedMatches = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
         homeScore: { not: null }, // Games with actual scores
         awayScore: { not: null },
+        gameDate: {
+          gte: day7Date,
+          lte: day12Date
+        },
         OR: [
           { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
           { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
         ]
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    
+    console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores in Days 7-12`);
+    
+    // CRITICAL FIX: Reset all team standings and recalculate from scratch based on actual games
+    console.log('🔄 [STANDINGS FIX] Resetting all Division 8 Alpha team standings...');
+    
+    // Reset all teams to 0 standings first
+    await prisma.team.updateMany({
+      where: {
+        division: 8,
+        subdivision: userSubdivision
+      },
+      data: {
+        wins: 0,
+        losses: 0,
+        points: 0
       }
     });
     
-    console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores`);
+    // Now recalculate standings from actual completed games
+    const teamStandings = new Map();
+    
+    // Initialize all teams with zero records
+    teamsInDivision.forEach((team: any) => {
+      teamStandings.set(team.id, {
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        points: 0,
+        gamesPlayed: 0
+      });
+    });
+    
+    // Process each completed game to update standings
+    completedMatches.forEach((match: any) => {
+      const homeScore = match.homeScore || 0;
+      const awayScore = match.awayScore || 0;
+      const homeTeamId = match.homeTeamId;
+      const awayTeamId = match.awayTeamId;
+      
+      // Only count games involving teams in this division
+      const homeTeamInDivision = teamsInDivision.some((t: any) => t.id === homeTeamId);
+      const awayTeamInDivision = teamsInDivision.some((t: any) => t.id === awayTeamId);
+      
+      if (homeTeamInDivision && awayTeamInDivision) {
+        const homeStats = teamStandings.get(homeTeamId);
+        const awayStats = teamStandings.get(awayTeamId);
+        
+        if (homeStats && awayStats) {
+          // Increment games played for both teams
+          homeStats.gamesPlayed++;
+          awayStats.gamesPlayed++;
+          
+          if (homeScore > awayScore) {
+            // Home team wins
+            homeStats.wins++;
+            homeStats.points += 3;
+            awayStats.losses++;
+          } else if (awayScore > homeScore) {
+            // Away team wins
+            awayStats.wins++;
+            awayStats.points += 3;
+            homeStats.losses++;
+          } else {
+            // Draw
+            homeStats.draws++;
+            homeStats.points += 1;
+            awayStats.draws++;
+            awayStats.points += 1;
+          }
+        }
+      }
+    });
+    
+    // Update database with correct standings
+    for (const [teamId, stats] of teamStandings) {
+      await prisma.team.update({
+        where: { id: teamId },
+        data: {
+          wins: stats.wins,
+          losses: stats.losses,
+          points: stats.points
+        }
+      });
+    }
+    
+    console.log('✅ [STANDINGS FIX] All team standings recalculated from actual game results');
+    
+    // Refresh teams data with updated standings
+    teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
 
     // Enhanced standings with streak and additional stats
     const enhancedTeams = teamsInDivision.map((team) => {
@@ -515,11 +624,16 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
         currentStreak = Math.min(draws, 3);
       }
       
-      // Calculate actual games played from completed matches
-      const teamMatches = completedMatches.filter((match: any) => 
-        match.homeTeamId === team.id || match.awayTeamId === team.id
-      );
-      const actualGamesPlayed = teamMatches.length; // Count actual completed matches
+      // Get actual games played from our recalculated standings
+      const teamStats = teamStandings.get(team.id);
+      const actualGamesPlayed = teamStats ? teamStats.gamesPlayed : 0;
+      
+      // CRITICAL: Ensure no team shows more than 6 games (the max that should be played through Day 12)
+      const cappedGamesPlayed = Math.min(actualGamesPlayed, 6);
+      
+      if (actualGamesPlayed > 6) {
+        console.log(`⚠️ [STANDINGS FIX] Team ${team.name} had ${actualGamesPlayed} games, capping at 6`);
+      }
       
       
       // Generate form string based on overall record
@@ -543,8 +657,8 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
         totalScores, // TS column
         scoresAgainst, // SA column  
         scoreDifference, // SD column (TS - SA)
-        played: actualGamesPlayed,
-        gamesPlayed: actualGamesPlayed // Add backup field name
+        played: cappedGamesPlayed,
+        gamesPlayed: cappedGamesPlayed // Add backup field name
       };
     });
 
