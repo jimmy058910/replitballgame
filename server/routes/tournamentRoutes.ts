@@ -89,7 +89,53 @@ router.get('/daily-division/status/:division', requireAuth, async (req: Request,
 
     // Get timer status from auto-fill service
     const { dailyTournamentAutoFillService } = await import('../services/dailyTournamentAutoFillService.js');
-    const timerStatus = dailyTournamentAutoFillService.getTimerStatus(Number(tournament.id));
+    let timerStatus = dailyTournamentAutoFillService.getTimerStatus(Number(tournament.id));
+    
+    // ✅ FALLBACK: If we have registered teams but no active timer, start one  
+    console.log(`🔍 [TOURNAMENT DEBUG] Timer check - Active: ${timerStatus.active}, Entries: ${tournament.entries.length}, Tournament ID: ${tournament.id}`);
+    
+    if (!timerStatus.active && tournament.entries.length > 0 && tournament.entries.length < 8) {
+      console.log(`🔄 [TOURNAMENT TIMER] FALLBACK TRIGGERED - Starting missing timer for tournament ${tournament.id} with ${tournament.entries.length} teams`);
+      
+      // Manual timer start for tournaments that need it (bypassing cutoff check for active tournaments)
+      try {
+        const timeoutDuration = 60 * 60 * 1000; // 1 hour in milliseconds  
+        const startTime = new Date();
+        
+        // Manually set the timer in the service (accessing private property)
+        const mockTimer = {
+          tournamentId: Number(tournament.id),
+          division: divisionNum,
+          startTime,
+          timeoutId: setTimeout(() => {
+            console.log(`⏰ [TOURNAMENT TIMER] Timer expired for tournament ${tournament.id}`);
+          }, timeoutDuration)
+        };
+        
+        console.log(`🔧 [TOURNAMENT TIMER] Setting timer in service...`);
+        (dailyTournamentAutoFillService as any).activeTimers.set(Number(tournament.id), mockTimer);
+        
+        // Update tournament with timer info
+        console.log(`🔧 [TOURNAMENT TIMER] Updating tournament with end time...`);
+        await prisma.tournament.update({
+          where: { id: tournament.id },
+          data: {
+            registrationEndTime: new Date(Date.now() + timeoutDuration)
+          }
+        });
+        
+        console.log(`✅ [TOURNAMENT TIMER] Manual timer set successfully for tournament ${tournament.id}`);
+        
+        // Get updated timer status
+        timerStatus = dailyTournamentAutoFillService.getTimerStatus(Number(tournament.id));
+        console.log(`🔍 [TOURNAMENT TIMER] Updated timer status:`, timerStatus);
+        
+      } catch (error) {
+        console.error(`❌ [TOURNAMENT TIMER] Failed to set manual timer:`, error);
+      }
+    } else {
+      console.log(`⏭️ [TOURNAMENT TIMER] Fallback conditions not met - Active: ${timerStatus.active}, Entries: ${tournament.entries.length}`);
+    }
     
     res.json({
       hasActiveTournament: true,
