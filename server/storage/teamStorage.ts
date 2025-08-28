@@ -217,25 +217,7 @@ export class TeamStorage {
       
       const team = await prisma.team.findFirst({
         where: { userProfileId: userProfile.id },
-        select: {
-          id: true,
-          userProfileId: true,
-          name: true,
-          logoUrl: true,
-          isAI: true,
-          createdAt: true,
-          updatedAt: true,
-          camaraderie: true,
-          fanLoyalty: true,
-          homeField: true,
-          tacticalFocus: true,
-          leagueId: true,
-          division: true,
-          subdivision: true,
-          wins: true,
-          losses: true,
-          // draws: true, // Temporarily commented out due to schema mismatch
-          points: true,
+        include: {
           finances: true,
           stadium: true,
           players: {
