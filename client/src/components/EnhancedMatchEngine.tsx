@@ -420,9 +420,9 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
     refetchInterval: basicMatchData?.status === 'COMPLETED' ? 0 : 5000
   });
 
-  // Initialize liveState from API data when available
+  // Initialize liveState from API data when available - but only once per match
   useEffect(() => {
-    if (basicMatchData?.simulationLog && !liveState) {
+    if (basicMatchData?.simulationLog && !liveState && matchId) {
       const simLog = basicMatchData.simulationLog;
       
       // Initialize live state from simulation log
@@ -434,9 +434,9 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
         gameTime: simLog.gameTime || 0,
         maxTime: simLog.maxTime || 1800,
         currentHalf: (simLog.currentHalf || 1) as 1 | 2,
-        homeScore: simLog.homeScore || 0,
-        awayScore: simLog.awayScore || 0,
-        status: simLog.status === 'live' ? 'live' : 'paused',
+        homeScore: simLog.homeScore || basicMatchData.homeScore || 0,
+        awayScore: simLog.awayScore || basicMatchData.awayScore || 0,
+        status: simLog.status === 'live' ? 'live' : (simLog.status === 'completed' ? 'completed' : 'paused'),
         gameEvents: simLog.gameEvents || [],
         lastUpdateTime: new Date(),
         playerStats: simLog.playerStats || {},
@@ -453,7 +453,7 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
         setEvents(simLog.gameEvents.slice().reverse()); // Most recent first
       }
     }
-  }, [basicMatchData, matchId, liveState]);
+  }, [basicMatchData?.simulationLog, matchId]); // Remove liveState from deps to prevent loop
 
   // WebSocket connection
   useEffect(() => {
@@ -553,42 +553,20 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
   const isCompleted = basicMatchData?.status === 'COMPLETED' || basicMatchData?.simulated === true;
   const hasBasicData = !!basicMatchData;
   
-  // Show loading only when we don't have basic match data yet
-  if (matchLoading || !hasBasicData) {
+  // Show loading when we don't have basic match data OR when we have basic data but no liveState yet
+  if (matchLoading || !hasBasicData || !liveState) {
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center space-y-4">
             <Activity className="w-8 h-8 mx-auto animate-spin" />
-            <p>Loading match simulation...</p>
+            <p>
+              {!hasBasicData ? "Loading match data..." : "Initializing match simulation..."}
+            </p>
           </div>
         </CardContent>
       </Card>
     );
-  }
-  
-  // If we have basic data but no live state yet, initialize one
-  if (!liveState) {
-    // Initialize a basic live state from API data to show something immediately
-    const basicLiveState: LiveMatchState = {
-      matchId: matchId,
-      homeTeamId: basicMatchData.homeTeamId,
-      awayTeamId: basicMatchData.awayTeamId,
-      startTime: new Date(basicMatchData.gameDate),
-      gameTime: basicMatchData.simulationLog?.gameTime || (isCompleted ? 1800 : 0),
-      maxTime: 1800,
-      currentHalf: basicMatchData.simulationLog?.currentHalf || (isCompleted ? 2 : 1),
-      homeScore: basicMatchData.homeScore || 0,
-      awayScore: basicMatchData.awayScore || 0,
-      status: isCompleted ? 'completed' : 'live',
-      gameEvents: basicMatchData.simulationLog?.gameEvents || [],
-      lastUpdateTime: new Date(),
-      playerStats: basicMatchData.simulationLog?.playerStats || {},
-      teamStats: basicMatchData.simulationLog?.teamStats || {},
-      possessingTeamId: null,
-      possessionStartTime: basicMatchData.simulationLog?.gameTime || 0
-    };
-    setLiveState(basicLiveState);
   }
 
   // No longer block completed matches on enhanced data - show basic results
