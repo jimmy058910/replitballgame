@@ -137,24 +137,13 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
     }
   }, [matchData, liveState]);
 
-  // Live time update effect
-  useEffect(() => {
-    if (liveState?.status === 'live') {
-      const interval = setInterval(() => {
-        setLiveState(prev => {
-          if (!prev) return prev;
-          const newTime = prev.gameTime + 1;
-          return {
-            ...prev,
-            gameTime: newTime >= prev.maxTime ? prev.maxTime : newTime,
-            lastUpdate: Date.now()
-          };
-        });
-      }, 1000); // Update every second
-      
-      return () => clearInterval(interval);
-    }
-  }, [liveState?.status]);
+  // REMOVED: Manual clock advancement - this bypassed the intelligent speed system!
+  // The backend simulation engine handles timing based on event priorities:
+  // - CRITICAL events (scores, injuries): 1x real-time
+  // - IMPORTANT events (key plays): 2x speed  
+  // - STANDARD events (routine): 8x speed
+  // - DOWNTIME events (boring): 8x speed
+  // Frontend should only display the game time from WebSocket updates, not advance it manually.
 
   // WebSocket connection for real-time updates
   useEffect(() => {
