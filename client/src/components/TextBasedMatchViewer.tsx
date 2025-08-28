@@ -49,13 +49,34 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
           lastUpdate: Date.now(),
           homeScore: currentMatch.homeScore || 0,
           awayScore: currentMatch.awayScore || 0,
-          activeFieldPlayers: { home: {}, away: {} },
-          facilityLevels: {},
+          activeFieldPlayers: { 
+            home: { 
+              passer: undefined, 
+              runners: [], 
+              blockers: [], 
+              wildcard: undefined 
+            }, 
+            away: { 
+              passer: undefined, 
+              runners: [], 
+              blockers: [], 
+              wildcard: undefined 
+            } 
+          },
+          facilityLevels: {
+            capacity: 5000,
+            concessions: 1,
+            parking: 1,
+            vipSuites: 1,
+            merchandising: 1,
+            lightingScreens: 1,
+            security: 1
+          },
           attendance: 0,
           perTickRevenue: [],
           gameEvents: [],
-          playerStats: {},
-          teamStats: {},
+          playerStats: new Map(),
+          teamStats: new Map(),
           matchTick: 0,
           simulationSpeed: 1
         };
