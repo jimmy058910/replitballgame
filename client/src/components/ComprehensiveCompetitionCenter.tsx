@@ -356,9 +356,16 @@ export default function ComprehensiveCompetitionCenter() {
 
   // Query for current tournament status (for Live Tournament UI)
   const { data: currentTournamentStatus, isLoading: isCurrentTournamentLoading } = useQuery<any>({
-    queryKey: ["/api/new-tournaments/oakland-cougars-tournament"],
-    enabled: !!team?.id,
+    queryKey: [`/api/tournaments/daily-division/status/${team?.division || 8}`],
+    enabled: !!team?.division,
     refetchInterval: 60000, // Refresh every minute for live updates
+  });
+
+  // Query for tournament bracket data when user is registered
+  const { data: tournamentBracket } = useQuery<any>({
+    queryKey: [`/api/tournament-status/${currentTournamentStatus?.tournamentId}/matches`],
+    enabled: !!currentTournamentStatus?.tournamentId && currentTournamentStatus?.hasActiveTournament,
+    refetchInterval: 30000, // Update every 30 seconds for live bracket updates
   });
 
   // Check if Mid-Season Cup registration deadline has passed (Day 7 at 1PM EDT)
@@ -382,6 +389,10 @@ export default function ComprehensiveCompetitionCenter() {
   // State for real-time countdown updates
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Tournament modal states
+  const [isBracketModalOpen, setIsBracketModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   // Update time every minute for countdown
   useEffect(() => {
     const timer = setInterval(() => {
@@ -390,6 +401,31 @@ export default function ComprehensiveCompetitionCenter() {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Format countdown timer for daily tournament auto-fill
+  const formatTournamentCountdown = (timeRemaining: number | null) => {
+    if (!timeRemaining || timeRemaining <= 0) {
+      return "Starting soon...";
+    }
+    
+    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m until auto-fill`;
+    } else {
+      return `${minutes}m until auto-fill`;
+    }
+  };
+
+  // Handle tournament button actions
+  const handleBracketView = () => {
+    setIsBracketModalOpen(true);
+  };
+
+  const handleDetailsView = () => {
+    setIsDetailsModalOpen(true);
+  };
 
   // Dynamic Mid-Season Cup countdown function
   const getMidSeasonCountdown = () => {
@@ -966,13 +1002,13 @@ export default function ComprehensiveCompetitionCenter() {
                 
                 {/* DAILY DIVISION TOURNAMENT */}
                 <Card className={`${
-                  currentTournamentStatus?.registered 
+                  currentTournamentStatus?.hasActiveTournament && (currentTournamentStatus?.registrationCount > 0)
                     ? "bg-gradient-to-r from-red-900 via-orange-800 to-yellow-800 border-2 border-red-400/50" 
                     : "bg-gradient-to-r from-green-800 via-green-700 to-emerald-800 border-2 border-green-400"
                 } shadow-2xl`}>
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
-                      {currentTournamentStatus?.registered ? (
+                      {currentTournamentStatus?.hasActiveTournament && (currentTournamentStatus?.registrationCount > 0) ? (
                         <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
                       ) : (
                         <div className="w-3 h-3 bg-green-400 rounded-full"></div>
@@ -980,7 +1016,7 @@ export default function ComprehensiveCompetitionCenter() {
                       <Trophy className="h-6 w-6 text-white" />
                       <div className="flex-1">
                         <h3 className="text-lg font-bold text-white">
-                          {currentTournamentStatus?.registered ? "🔴 Daily Divisional Tournament" : "🎯 Daily Divisional Tournament"}
+                          {currentTournamentStatus?.hasActiveTournament && (currentTournamentStatus?.registrationCount > 0) ? "🔴 Daily Divisional Tournament" : "🎯 Daily Divisional Tournament"}
                         </h3>
                         <p className="text-sm text-gray-200">{getDivisionName(team?.division || 8)} Division</p>
                       </div>
@@ -988,21 +1024,27 @@ export default function ComprehensiveCompetitionCenter() {
                     
                     <div className="space-y-3 mb-4">
                       <div className="flex items-center gap-2">
-                        <Zap className="h-4 w-4 text-orange-400" />
+                        <Users className="h-4 w-4 text-orange-400" />
                         <span className="text-white font-semibold">
-                          {currentTournamentStatus?.registered ? "Oakland vs TBD" : "Oakland Cougars"}
+                          {currentTournamentStatus?.hasActiveTournament 
+                            ? `${currentTournamentStatus.registrationCount || 0}/${currentTournamentStatus.maxTeams || 8} Teams Registered`
+                            : "Oakland Cougars"
+                          }
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-blue-400" />
                         <span className="text-gray-200">
-                          {currentTournamentStatus?.registered ? "Schedule generating..." : "Registration OPEN"}
+                          {currentTournamentStatus?.hasActiveTournament && currentTournamentStatus?.timerActive
+                            ? formatTournamentCountdown(currentTournamentStatus.timeRemaining)
+                            : "Registration OPEN"
+                          }
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Trophy className="h-4 w-4 text-yellow-400" />
                         <span className="text-gray-200">
-                          {currentTournamentStatus?.registered ? "Round 1" : "1 Free Entry/Day + Tournament Entry Items"}
+                          {currentTournamentStatus?.hasActiveTournament ? "Tournament Active" : "1 Free Entry/Day + Tournament Entry Items"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1012,18 +1054,19 @@ export default function ComprehensiveCompetitionCenter() {
                     </div>
                     
                     <div className="grid grid-cols-2 gap-2">
-                      {currentTournamentStatus?.registered ? (
+                      {currentTournamentStatus?.hasActiveTournament && (currentTournamentStatus?.registrationCount > 0) ? (
                         <>
                           <Button 
+                            onClick={handleBracketView}
                             className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
-                            disabled
+                            disabled={!currentTournamentStatus?.tournamentId}
                           >
                             📊 Bracket
                           </Button>
                           <Button 
+                            onClick={handleDetailsView}
                             variant="outline" 
                             className="border-orange-400 text-orange-300 hover:bg-orange-900/20 font-bold py-2 rounded-lg"
-                            disabled
                           >
                             ⚡ Details
                           </Button>
@@ -1834,6 +1877,128 @@ export default function ComprehensiveCompetitionCenter() {
         </Dialog>
 
       </div>
+
+      {/* Tournament Bracket Modal */}
+      <Dialog open={isBracketModalOpen} onOpenChange={setIsBracketModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-gray-900 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-400" />
+              Tournament Bracket - {getDivisionName(team?.division || 8)} Division
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {tournamentBracket ? (
+              <div className="text-center">
+                <div className="bg-gray-800 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Tournament Matches</h3>
+                  {tournamentBracket.matches && tournamentBracket.matches.length > 0 ? (
+                    <div className="space-y-3">
+                      {tournamentBracket.matches.map((match: any, index: number) => (
+                        <div key={match.id || index} className="bg-gray-700 rounded-lg p-4 flex justify-between items-center">
+                          <div className="text-white">
+                            <span className="font-semibold">{match.homeTeam?.name || 'TBD'}</span>
+                            <span className="mx-2 text-gray-400">vs</span>
+                            <span className="font-semibold">{match.awayTeam?.name || 'TBD'}</span>
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            Round {match.round || 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400">Bracket will be generated when tournament starts</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin h-8 w-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-400">Loading bracket data...</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Tournament Details Modal */}
+      <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-gray-900 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+              <Info className="h-5 w-5 text-blue-400" />
+              Tournament Details - {getDivisionName(team?.division || 8)} Division
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {currentTournamentStatus ? (
+              <div className="space-y-4">
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Registration Status</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Teams Registered:</span>
+                      <span className="text-white font-semibold">
+                        {currentTournamentStatus.registrationCount || 0}/{currentTournamentStatus.maxTeams || 8}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Registration:</span>
+                      <span className={`font-semibold ${
+                        currentTournamentStatus.registrationOpen ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {currentTournamentStatus.registrationOpen ? 'OPEN' : 'CLOSED'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {currentTournamentStatus.timerActive && (
+                  <div className="bg-orange-900/30 border border-orange-500/30 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-orange-300 mb-2 flex items-center gap-2">
+                      <Timer className="h-4 w-4" />
+                      Auto-Fill Timer
+                    </h3>
+                    <p className="text-orange-200 text-sm">
+                      {formatTournamentCountdown(currentTournamentStatus.timeRemaining)}
+                    </p>
+                    <p className="text-orange-400 text-xs mt-1">
+                      Tournament will auto-fill with AI teams if not full
+                    </p>
+                  </div>
+                )}
+                
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Prize Pool</h3>
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Champion:</span>
+                      <span className="text-green-400 font-semibold">
+                        {getDailyTournamentRewards(team?.division || 8).champion.toLocaleString()}₡
+                        {getDailyTournamentRewards(team?.division || 8).championGems && 
+                          ` + ${getDailyTournamentRewards(team?.division || 8).championGems}💎`
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Runner-up:</span>
+                      <span className="text-blue-400 font-semibold">
+                        {Math.floor(getDailyTournamentRewards(team?.division || 8).champion * 0.6).toLocaleString()}₡
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin h-8 w-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-400">Loading tournament details...</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
