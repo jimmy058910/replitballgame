@@ -225,6 +225,17 @@ export class SeasonTimingAutomationService {
       const executionTime = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
       logInfo(`🚀 [DAILY PROGRESSION] Starting at ${executionTime} EDT`);
       
+      // CRITICAL: Tournament registration cutoff at 1:00AM EDT (2 hours before daily progression)
+      // This runs at 3:00AM EDT, so we need to enforce the 1:00AM cutoff for tournaments
+      try {
+        logInfo('🏆 [TOURNAMENT CUTOFF] Enforcing 1:00AM EDT tournament registration cutoff');
+        const { dailyTournamentAutoFillService } = await import('./dailyTournamentAutoFillService.js');
+        await dailyTournamentAutoFillService.cleanupExpiredRegistrations();
+        logInfo('✅ [TOURNAMENT CUTOFF] Tournament registration cleanup completed');
+      } catch (error) {
+        console.error('❌ [TOURNAMENT CUTOFF] Tournament cleanup failed:', error);
+      }
+      
       // Get current season to determine if we're at end of season
       const currentSeason = await storage.seasons.getCurrentSeason();
       if (!currentSeason) {

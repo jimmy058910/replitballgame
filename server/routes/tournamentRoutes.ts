@@ -54,6 +54,61 @@ router.post('/daily-division/register', requireAuth, async (req: Request, res: R
   }
 });
 
+// Get Daily Division Tournament status and timer info
+router.get('/daily-division/status/:division', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { division } = req.params;
+    const divisionNum = parseInt(division);
+    
+    if (!divisionNum || divisionNum < 1 || divisionNum > 8) {
+      return res.status(400).json({ message: "Invalid division" });
+    }
+
+    const prisma = await getPrismaClient();
+    
+    // Find active tournament for this division
+    const tournament = await prisma.tournament.findFirst({
+      where: {
+        division: divisionNum,
+        status: 'REGISTRATION_OPEN'
+      },
+      include: {
+        entries: true
+      }
+    });
+
+    if (!tournament) {
+      return res.json({
+        hasActiveTournament: false,
+        registrationOpen: true,
+        registrationCount: 0,
+        maxTeams: 8,
+        timeRemaining: null
+      });
+    }
+
+    // Get timer status from auto-fill service
+    const { dailyTournamentAutoFillService } = await import('../services/dailyTournamentAutoFillService.js');
+    const timerStatus = dailyTournamentAutoFillService.getTimerStatus(Number(tournament.id));
+    
+    res.json({
+      hasActiveTournament: true,
+      tournamentId: tournament.id,
+      tournamentName: tournament.name,
+      registrationOpen: true,
+      registrationCount: tournament.entries.length,
+      maxTeams: 8,
+      timeRemaining: timerStatus.timeRemaining || null,
+      timerActive: timerStatus.active,
+      registrationEndTime: tournament.registrationEndTime
+    });
+
+  } catch (error) {
+    console.error('Tournament status error:', error);
+    res.status(500).json({ message: "Failed to get tournament status" });
+  }
+});
+
 router.get('/history', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();

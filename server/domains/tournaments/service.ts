@@ -73,6 +73,14 @@ export class TournamentDomainService {
         }
       });
 
+      // CRITICAL INTEGRATION: Trigger auto-fill monitoring
+      try {
+        const { dailyTournamentAutoFillService } = await import('../../services/dailyTournamentAutoFillService.js');
+        await dailyTournamentAutoFillService.onTeamRegistered(Number(tournament.id), request.division);
+      } catch (error) {
+        Logger.logError('Auto-fill monitoring failed', error as Error, { tournamentId: String(tournament.id) });
+      }
+
       Logger.logInfo('Tournament registration successful', {
         teamId,
         tournamentId: String(tournament.id),
