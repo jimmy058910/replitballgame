@@ -386,10 +386,10 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
 
   // Basic match data query - always enabled with fresh data for live matches
   const { data: basicMatchData, isLoading: matchLoading } = useQuery({
-    queryKey: [`/api/matches/${matchId}`, Date.now()], // Force fresh data
+    queryKey: [`/api/matches/${matchId}`], // ✅ Fixed: Stable queryKey
     enabled: !!matchId,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0 // Don't cache for live matches
+    refetchInterval: 5000 // Refetch every 5 seconds for live updates
   });
 
   // Extract team data from basicMatchData
@@ -422,12 +422,6 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
 
   // Initialize liveState from API data when available - but only once per match
   useEffect(() => {
-    console.log('🎮 [DEBUG] useEffect triggered:', {
-      hasSimulationLog: !!basicMatchData?.simulationLog,
-      hasLiveState: !!liveState,
-      matchId
-    });
-    
     if (basicMatchData && !liveState && matchId) {
       const simLog = basicMatchData.simulationLog;
       
@@ -559,19 +553,8 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
   const isCompleted = basicMatchData?.status === 'COMPLETED' || basicMatchData?.simulated === true;
   const hasBasicData = !!basicMatchData;
   
-  // Debug logging to see what's happening
-  console.log('🎮 [DEBUG] EnhancedMatchEngine state:', {
-    matchLoading,
-    hasBasicData,
-    liveState: !!liveState,
-    matchId,
-    basicMatchDataExists: !!basicMatchData,
-    simulationLogExists: !!basicMatchData?.simulationLog
-  });
-
   // Show loading when we don't have basic match data OR when we have basic data but no liveState yet
   if (matchLoading || !hasBasicData || !liveState) {
-    console.log('🎮 [DEBUG] Showing loading state:', { matchLoading, hasBasicData, liveState: !!liveState });
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardContent className="flex items-center justify-center h-64">

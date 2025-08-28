@@ -16,16 +16,7 @@ export default function LiveMatchPage() {
   // Auto-login for test routes that don't require authentication
   useEffect(() => {
     const isTestRoute = location.includes('/test-live-match');
-    console.log('🧪 [DEBUG] LiveMatchPage state:', {
-      isTestRoute,
-      hasUser: !!user,
-      isLoading,
-      location,
-      userId: user?.userId || user?.id
-    });
-    
     if (isTestRoute && !user && !isLoading) {
-      console.log('🧪 Auto-login for test route triggered');
       login().catch(console.error);
     }
   }, [location, user, isLoading, login]);
