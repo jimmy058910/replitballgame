@@ -10,6 +10,7 @@ const router = Router();
 // Get active tournament status for a team
 router.get('/active', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
 
@@ -472,7 +473,8 @@ router.post('/:id/force-start', requireAuth, async (req: any, res) => {
     });
 
     // Update tournament status to IN_PROGRESS
-    await prisma.tournament.update({
+    const prismaUpdate = await getPrismaClient();
+    await prismaUpdate.tournament.update({
       where: { id: tournament.id },
       data: {
         status: 'IN_PROGRESS',
@@ -504,6 +506,7 @@ router.post('/:id/force-start', requireAuth, async (req: any, res) => {
 // Get tournament matches
 router.get('/:id/matches', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const tournamentId = req.params.id;
     
     // Get tournament first to get the database ID
@@ -524,6 +527,8 @@ router.get('/:id/matches', requireAuth, async (req: any, res) => {
     const matches = await prisma.game.findMany({
       where: { tournamentId: tournament.id },
       include: {
+        homeTeam: { select: { id: true, name: true } },
+        awayTeam: { select: { id: true, name: true } },
         tournament: true
       },
       orderBy: [
