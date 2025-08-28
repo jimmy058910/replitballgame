@@ -422,38 +422,44 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
 
   // Initialize liveState from API data when available - but only once per match
   useEffect(() => {
-    if (basicMatchData?.simulationLog && !liveState && matchId) {
+    console.log('🎮 [DEBUG] useEffect triggered:', {
+      hasSimulationLog: !!basicMatchData?.simulationLog,
+      hasLiveState: !!liveState,
+      matchId
+    });
+    
+    if (basicMatchData && !liveState && matchId) {
       const simLog = basicMatchData.simulationLog;
       
-      // Initialize live state from simulation log
+      // Initialize live state from simulation log (or basic match data if no simLog)
       const initialState: LiveMatchState = {
         matchId: matchId,
-        homeTeamId: simLog.homeTeamId || basicMatchData.homeTeamId,
-        awayTeamId: simLog.awayTeamId || basicMatchData.awayTeamId,
-        startTime: simLog.startTime ? new Date(simLog.startTime) : new Date(),
-        gameTime: simLog.gameTime || 0,
-        maxTime: simLog.maxTime || 1800,
-        currentHalf: (simLog.currentHalf || 1) as 1 | 2,
-        homeScore: simLog.homeScore || basicMatchData.homeScore || 0,
-        awayScore: simLog.awayScore || basicMatchData.awayScore || 0,
-        status: simLog.status === 'live' ? 'live' : (simLog.status === 'completed' ? 'completed' : 'paused'),
-        gameEvents: simLog.gameEvents || [],
+        homeTeamId: simLog?.homeTeamId || basicMatchData.homeTeamId,
+        awayTeamId: simLog?.awayTeamId || basicMatchData.awayTeamId,
+        startTime: simLog?.startTime ? new Date(simLog.startTime) : new Date(basicMatchData.gameDate),
+        gameTime: simLog?.gameTime || 0,
+        maxTime: simLog?.maxTime || 1800,
+        currentHalf: (simLog?.currentHalf || 1) as 1 | 2,
+        homeScore: simLog?.homeScore || basicMatchData.homeScore || 0,
+        awayScore: simLog?.awayScore || basicMatchData.awayScore || 0,
+        status: simLog?.status === 'live' ? 'live' : (simLog?.status === 'completed' ? 'completed' : 'paused'),
+        gameEvents: simLog?.gameEvents || [],
         lastUpdateTime: new Date(),
-        playerStats: simLog.playerStats || {},
-        teamStats: simLog.teamStats || {},
+        playerStats: simLog?.playerStats || {},
+        teamStats: simLog?.teamStats || {},
         possessingTeamId: null,
-        possessionStartTime: simLog.gameTime || 0
+        possessionStartTime: simLog?.gameTime || 0
       };
       
       console.log('🎮 [LIVE MATCH] Initializing liveState from API data:', initialState);
       setLiveState(initialState);
       
       // Set events from simulation log
-      if (simLog.gameEvents) {
+      if (simLog?.gameEvents) {
         setEvents(simLog.gameEvents.slice().reverse()); // Most recent first
       }
     }
-  }, [basicMatchData?.simulationLog, matchId]); // Remove liveState from deps to prevent loop
+  }, [basicMatchData, matchId]); // Include full basicMatchData instead of just simulationLog
 
   // WebSocket connection
   useEffect(() => {
@@ -553,8 +559,19 @@ export const EnhancedMatchEngine: React.FC<MatchEngineProps> = ({
   const isCompleted = basicMatchData?.status === 'COMPLETED' || basicMatchData?.simulated === true;
   const hasBasicData = !!basicMatchData;
   
+  // Debug logging to see what's happening
+  console.log('🎮 [DEBUG] EnhancedMatchEngine state:', {
+    matchLoading,
+    hasBasicData,
+    liveState: !!liveState,
+    matchId,
+    basicMatchDataExists: !!basicMatchData,
+    simulationLogExists: !!basicMatchData?.simulationLog
+  });
+
   // Show loading when we don't have basic match data OR when we have basic data but no liveState yet
   if (matchLoading || !hasBasicData || !liveState) {
+    console.log('🎮 [DEBUG] Showing loading state:', { matchLoading, hasBasicData, liveState: !!liveState });
     return (
       <Card className="w-full max-w-4xl mx-auto">
         <CardContent className="flex items-center justify-center h-64">
