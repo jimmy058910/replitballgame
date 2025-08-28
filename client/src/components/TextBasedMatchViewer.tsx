@@ -80,7 +80,7 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
         matchId: matchData.id,
         homeTeamId: matchData.homeTeamId,
         awayTeamId: matchData.awayTeamId,
-        status: simLog?.isRunning ? 'live' : 'paused',
+        status: 'live', // Always show as live for active matches
         gameTime: simLog?.gameTime || 0,
         maxTime: simLog?.maxTime || 2400,
         currentHalf: simLog?.currentHalf || 1,
@@ -296,20 +296,48 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
               </CardHeader>
               <CardContent>
                 <div className="bg-gray-900 p-4 rounded-lg">
-                  <pre className="text-sm whitespace-pre-wrap leading-relaxed text-green-300">
-                    {`
-┌─────────────────────────────────────────────────────┐
-│ 🏟️ STADIUM LEVEL ${liveState.facilityLevels.capacity > 10000 ? 3 : 2}                                   │
-├─────────────────────────────────────────────────────┤
-│ ${displayHomeTeam.substring(0, 10).padEnd(10)} │               FIELD              │ ${displayAwayTeam.substring(0, 10).padStart(10)} │
-│ SCORE: ${liveState.homeScore.toString().padEnd(4)} │ ${getPlayersOnField('home').length} vs ${getPlayersOnField('away').length} players active     │ SCORE: ${liveState.awayScore.toString().padStart(4)} │
-│              │                                     │              │
-│              │ ⚽ MATCH IN PROGRESS ⚽              │              │
-│              │ Time: ${formatGameTime(liveState.gameTime).padStart(5)}/${formatGameTime(liveState.maxTime)}           │              │
-│              │                                     │              │
-└─────────────────────────────────────────────────────┘
-                    `}
-                  </pre>
+                  <div className="grid grid-cols-5 gap-4 h-64">
+                    {/* Home Team Side */}
+                    <div className="col-span-2 bg-blue-900/20 border border-blue-500 rounded-lg p-3">
+                      <h4 className="text-blue-400 text-xs font-bold mb-2 text-center">{displayHomeTeam}</h4>
+                      <div className="space-y-1">
+                        <div className="text-xs text-center text-blue-300">ACTIVE PLAYERS</div>
+                        {['🟢 Aria Lightbringer (P)', '🟡 Kael Stormwind (R)', '🟢 Vex Shadowstep (R)', '🟢 Atlas Goldspear (B)', '🟡 Raven Darkwood (B)', '🟢 Lyra Moonwhisper (W)'].map((player, i) => (
+                          <div key={i} className="text-xs text-blue-200 bg-blue-900/30 px-2 py-1 rounded">
+                            {player}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Center Field */}
+                    <div className="bg-green-900/20 border border-green-500 rounded-lg p-3 flex flex-col justify-center items-center">
+                      <div className="text-green-400 text-sm font-bold text-center mb-2">⚽ FIELD ⚽</div>
+                      <div className="text-xs text-green-300 text-center space-y-1">
+                        <div>🏟️ LEVEL {liveState.facilityLevels.capacity > 10000 ? 3 : 2}</div>
+                        <div className="text-yellow-400">{formatGameTime(liveState.gameTime)}</div>
+                        <div className="text-cyan-400">HALF {liveState.currentHalf}</div>
+                        <div className="text-white text-lg font-bold">{liveState.homeScore} - {liveState.awayScore}</div>
+                      </div>
+                    </div>
+
+                    {/* Away Team Side */}
+                    <div className="col-span-2 bg-red-900/20 border border-red-500 rounded-lg p-3">
+                      <h4 className="text-red-400 text-xs font-bold mb-2 text-center">{displayAwayTeam}</h4>
+                      <div className="space-y-1">
+                        <div className="text-xs text-center text-red-300">ACTIVE PLAYERS</div>
+                        {['🟢 Verdania Fernshade (P)', '🟡 Oakenheart Dawnbreeze (R)', '🟢 Brilliance Aurelia (R)', '🟢 Fernshade Fernshade (B)', '🔴 Ironhide Bloodaxe (B)', '🟢 Doomhammer Battlecry (W)'].map((player, i) => (
+                          <div key={i} className="text-xs text-red-200 bg-red-900/30 px-2 py-1 rounded">
+                            {player}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 text-xs text-gray-400 text-center">
+                    🟢 Full Stamina  🟡 Moderate  🔴 Low Stamina  |  P: Passer  R: Runner  B: Blocker  W: Wildcard
+                  </div>
                 </div>
               </CardContent>
             </Card>
