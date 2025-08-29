@@ -56,13 +56,35 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
   const logRef = useRef<HTMLDivElement>(null);
 
   // Fetch LIVE match data from live engine
-  const { data: liveMatchData, refetch } = useQuery<{success: boolean, liveState: LiveMatchState}>({
+  const { data: liveMatchData, refetch, error: queryError, isError, isLoading } = useQuery<{success: boolean, liveState: LiveMatchState}>({
     queryKey: [`/api/live-matches/${matchId}/live-state`],
     enabled: !!matchId,
     refetchInterval: 1000, // Poll every 1 second for more responsive updates
     staleTime: 0, // Always consider data stale to force fresh requests
     cacheTime: 0, // Don't cache results
+    retry: false, // Don't retry failed requests
   });
+
+  // Force log to screen for debugging
+  console.log('🔍 [QUERY DEBUG] React Query state:', {
+    isLoading,
+    isError,
+    queryError: queryError?.message,
+    hasData: !!liveMatchData,
+    dataSuccess: liveMatchData?.success,
+    apiUrl: `/api/live-matches/${matchId}/live-state`,
+    matchId,
+    rawData: liveMatchData
+  });
+
+  // Debug display for screen visibility
+  const debugInfo = `Query Debug: ${JSON.stringify({
+    isLoading,
+    isError,
+    hasData: !!liveMatchData,
+    success: liveMatchData?.success,
+    matchId
+  })}`;
   
   // Also fetch static match data for team info
   const { data: matchData } = useQuery<GameData>({
@@ -96,7 +118,11 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
       // Update events from live engine
       if (liveMatchData.liveState.gameEvents && liveMatchData.liveState.gameEvents.length > 0) {
         console.log('🔍 [DEBUG] Setting events:', liveMatchData.liveState.gameEvents.length);
-        setEvents([...liveMatchData.liveState.gameEvents].reverse().slice(0, 20));
+        const processedEvents = [...liveMatchData.liveState.gameEvents].reverse().slice(0, 20);
+        console.log('🔍 [DEBUG] Processed events:', processedEvents);
+        setEvents(processedEvents);
+      } else {
+        console.log('🔍 [DEBUG] NO EVENTS in live data:', liveMatchData.liveState.gameEvents);
       }
     } else if (matchData && !liveState) {
       // Fallback to static data if live engine not available
@@ -423,6 +449,10 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
               <CardContent>
                 <ScrollArea className="h-96">
                   <div ref={logRef} className="space-y-2">
+                    <div className="mb-4 p-2 bg-yellow-900/50 text-yellow-200 text-xs rounded">
+                      {debugInfo}
+                    </div>
+                    
                     {events.length > 0 ? (
                       events.map((event, index) => (
                         <div key={event.id || index} className="border-l-2 border-green-400 pl-4 py-2 bg-gray-900 rounded-r">
@@ -445,7 +475,8 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
                     ) : (
                       <div className="text-center text-gray-400 py-8">
                         <p className="text-lg">🎯 Match Events Loading...</p>
-                        <p className="text-sm mt-2">Commentary will appear as the game progresses</p>
+                        <p className="text-sm mt-2">Events: {events.length}, LiveData: {liveMatchData?.success ? 'YES' : 'NO'}</p>
+                        <p className="text-xs text-red-400">API: {JSON.stringify(liveMatchData || 'none')}</p>
                       </div>
                     )}
                   </div>
