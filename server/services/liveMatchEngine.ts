@@ -485,9 +485,9 @@ class LiveMatchEngineService implements LiveMatchEngine {
         this.broadcastEvent(matchId, event);
         
         // CRITICAL FIX: Also broadcast to raw WebSocket manager
-        const { serverWebSocketManager } = await import('../websocket/webSocketManager.js');
-        if (serverWebSocketManager) {
-          serverWebSocketManager.broadcastToMatch(matchId, 'matchEvent', event);
+        const { webSocketManager: rawWSManager } = await import('../websocket/webSocketManager.js');
+        if (rawWSManager) {
+          rawWSManager.broadcastToMatch(matchId, 'matchEvent', event);
         }
     }
 
@@ -502,9 +502,9 @@ class LiveMatchEngineService implements LiveMatchEngine {
       webSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
       
       // CRITICAL FIX: Also broadcast to the raw WebSocket manager that frontend connects to
-      const { serverWebSocketManager } = await import('../websocket/webSocketManager.js');
-      if (serverWebSocketManager) {
-        serverWebSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
+      const { webSocketManager: rawWSManager } = await import('../websocket/webSocketManager.js');
+      if (rawWSManager) {
+        rawWSManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
       }
     }
   }

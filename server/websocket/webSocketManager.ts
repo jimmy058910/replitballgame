@@ -426,8 +426,5 @@ export class ServerWebSocketManager {
   }
 }
 
-// Export singleton instance
-export const serverWebSocketManager = new ServerWebSocketManager();
-
-// Create singleton instance
+// Create singleton instance  
 export const webSocketManager = new ServerWebSocketManager();
