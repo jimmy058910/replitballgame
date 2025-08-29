@@ -91,7 +91,7 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players, sho
             <div className="text-blue-400 text-sm font-bold">TEAM POWER</div>
             <div className="text-white text-3xl font-black">{teamPower}</div>
             <div className="text-blue-200 text-sm">
-              {team?.wins || 0}W - 0D - {team?.losses || 0}L
+              {team?.wins || 0}W - {team?.draws || 0}D - {team?.losses || 0}L
             </div>
           </div>
         </div>
