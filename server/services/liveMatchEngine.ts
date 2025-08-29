@@ -432,10 +432,18 @@ class LiveMatchEngineService implements LiveMatchEngine {
     const liveState = this.activeMatches.get(matchId);
     if (!liveState || liveState.status !== 'live') return;
 
+    // COMPREHENSIVE FIX: Ensure matchTick is never null before incrementing
+    if (liveState.matchTick === null || liveState.matchTick === undefined) {
+      console.warn(`⚠️ CRITICAL: matchTick was null/undefined for match ${matchId}, resetting to 0`);
+      liveState.matchTick = 0;
+    }
+    
     // Advance game time
     liveState.gameTime += 1;
     liveState.matchTick += 1;
     liveState.lastUpdate = Date.now();
+    
+    console.log(`🔍 [DEBUG] Match ${matchId} - gameTime: ${liveState.gameTime}, matchTick: ${liveState.matchTick}`);
 
     // Check for halftime
     if (liveState.gameTime === 1200 && liveState.currentHalf === 1) { // 20 minutes
@@ -481,14 +489,8 @@ class LiveMatchEngineService implements LiveMatchEngine {
             }
         }
 
-        // Broadcast event to BOTH WebSocket systems  
+        // Broadcast event (simplified to one WebSocket system)
         this.broadcastEvent(matchId, event);
-        
-        // CRITICAL FIX: Also broadcast to raw WebSocket manager
-        const { webSocketManager: rawWSManager } = await import('../websocket/webSocketManager.js');
-        if (rawWSManager) {
-          rawWSManager.broadcastToMatch(matchId, 'matchEvent', event);
-        }
     }
 
     // Update revenue
@@ -497,15 +499,16 @@ class LiveMatchEngineService implements LiveMatchEngine {
     // Update player positions
     this.updatePlayerPositions(liveState);
 
-    // Broadcast state update every 5 ticks to BOTH WebSocket systems
+    // COMPREHENSIVE FIX: Ensure matchTick is never null and broadcast properly
+    if (liveState.matchTick === null || liveState.matchTick === undefined) {
+      console.warn(`⚠️ CRITICAL: matchTick was null/undefined for match ${matchId}, resetting to 0`);
+      liveState.matchTick = 0;
+    }
+    
+    // Broadcast state update every 5 ticks (simplified to one WebSocket system)
     if (liveState.matchTick % 5 === 0) {
+      console.log(`🔍 [DEBUG] Broadcasting matchUpdate for match ${matchId}, tick ${liveState.matchTick}, time ${liveState.gameTime}`);
       webSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
-      
-      // CRITICAL FIX: Also broadcast to the raw WebSocket manager that frontend connects to
-      const { webSocketManager: rawWSManager } = await import('../websocket/webSocketManager.js');
-      if (rawWSManager) {
-        rawWSManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
-      }
     }
   }
 
