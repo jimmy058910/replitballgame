@@ -55,7 +55,14 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
   const [criticalEvent, setCriticalEvent] = useState<MatchEvent | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
-  // Fetch match data directly
+  // Fetch LIVE match data from live engine
+  const { data: liveMatchData } = useQuery({
+    queryKey: [`/api/live-matches/${matchId}/live-state`],
+    enabled: !!matchId,
+    refetchInterval: 2000, // Poll every 2 seconds for live updates
+  });
+  
+  // Also fetch static match data for team info
   const { data: matchData } = useQuery<GameData>({
     queryKey: [`/api/matches/${matchId}`],
     enabled: !!matchId
@@ -72,16 +79,25 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
     enabled: !!matchData?.awayTeamId
   });
 
-  // Extract live state from match data
+  // Extract live state from LIVE engine data
   useEffect(() => {
-    if (matchData && !liveState) {
+    if (liveMatchData?.success && liveMatchData.liveState) {
+      console.log('🔍 [DEBUG] LIVE match data received:', liveMatchData.liveState);
+      setLiveState(liveMatchData.liveState);
+      
+      // Update events from live engine
+      if (liveMatchData.liveState.gameEvents) {
+        setEvents([...liveMatchData.liveState.gameEvents].reverse().slice(0, 20));
+      }
+    } else if (matchData && !liveState) {
+      // Fallback to static data if live engine not available
       const simLog = matchData.simulationLog;
-      console.log('🔍 [DEBUG] Match data received:', { matchData, simLog });
+      console.log('🔍 [DEBUG] Fallback to static match data:', { matchData, simLog });
       const initialState: LiveMatchState = {
         matchId: matchData.id,
         homeTeamId: matchData.homeTeamId,
         awayTeamId: matchData.awayTeamId,
-        status: 'live', // Always show as live for active matches
+        status: 'preparing', // Show as preparing until live engine starts
         gameTime: simLog?.gameTime || 0,
         maxTime: simLog?.maxTime || 2400,
         currentHalf: simLog?.currentHalf || 1,
@@ -136,7 +152,7 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
         setEvents(formattedEvents.reverse().slice(0, 20)); // Show latest 20 events
       }
     }
-  }, [matchData, liveState]);
+  }, [liveMatchData, matchData, liveState]);
 
   // REMOVED: Manual clock advancement - this bypassed the intelligent speed system!
   // The backend simulation engine handles timing based on event priorities:
