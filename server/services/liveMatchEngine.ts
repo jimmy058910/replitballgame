@@ -424,43 +424,87 @@ class LiveMatchEngineService implements LiveMatchEngine {
    */
   private startSimulationLoop(matchId: string): void {
     const liveState = this.activeMatches.get(matchId);
-    const speed = liveState?.simulationSpeed || this.simulationSpeed;
+    if (!liveState) return;
     
-    const interval = setInterval(async () => {
-      await this.simulateTick(matchId);
-    }, 1000 / speed); // Adjust based on simulation speed
-
-    this.matchIntervals.set(matchId, interval);
+    console.log(`🚀 Starting dynamic event-driven simulation for match ${matchId}`);
+    
+    // Start with initial event scheduling
+    this.scheduleNextEvent(matchId);
   }
 
   /**
-   * Simulate one tick of the match
+   * Schedule the next event based on current simulation speed (dynamic pacing)
+   */
+  private scheduleNextEvent(matchId: string): void {
+    const liveState = this.activeMatches.get(matchId);
+    if (!liveState || liveState.status !== 'live') return;
+    
+    // Base interval: events happen every 1-3 seconds in real time
+    const baseInterval = 1000 + (Math.random() * 2000); // 1-3 seconds
+    const speedMultiplier = liveState.simulationSpeed || 1.0;
+    
+    // Dynamic timing: faster simulation = shorter wait times
+    const actualInterval = baseInterval / speedMultiplier;
+    
+    console.log(`⏰ Next event in ${(actualInterval/1000).toFixed(1)}s (speed: ${speedMultiplier}x) for match ${matchId}`);
+    
+    const timeout = setTimeout(async () => {
+      await this.simulateTick(matchId);
+      // Schedule the next event after this one completes
+      this.scheduleNextEvent(matchId);
+    }, actualInterval);
+
+    this.matchIntervals.set(matchId, timeout);
+  }
+
+  /**
+   * Generate next event with dynamic pacing (replaces old tick system)
    */
   private async simulateTick(matchId: string): Promise<void> {
     const liveState = this.activeMatches.get(matchId);
     if (!liveState || liveState.status !== 'live') return;
 
-    // COMPREHENSIVE FIX: Ensure matchTick is never null before incrementing
-    if (liveState.matchTick === null || liveState.matchTick === undefined) {
-      console.warn(`⚠️ CRITICAL: matchTick was null/undefined for match ${matchId}, resetting to 0`);
-      liveState.matchTick = 0;
+    // Generate event using the new match engine
+    const engine = this.activeEngines.get(matchId);
+    if (!engine) {
+      console.warn(`⚠️ No engine found for match ${matchId}`);
+      return;
+    }
+
+    // Generate the next event
+    const event = engine.simulateTick();
+    
+    // **CRITICAL: Dynamic pacing based on event priority**
+    const eventPriority = event.priority;
+    liveState.simulationSpeed = eventPriority.speedMultiplier;
+    
+    // Advance game time based on event significance
+    let timeAdvancement: number;
+    switch (eventPriority.priority) {
+      case 1: // CRITICAL - scores, injuries (slow dramatic moments)
+        timeAdvancement = 2 + Math.random() * 3; // 2-5 seconds
+        break;
+      case 2: // IMPORTANT - breakaways, big plays  
+        timeAdvancement = 5 + Math.random() * 10; // 5-15 seconds
+        break;
+      case 3: // STANDARD - normal play
+        timeAdvancement = 15 + Math.random() * 30; // 15-45 seconds
+        break;
+      case 4: // DOWNTIME - quiet moments
+        timeAdvancement = 30 + Math.random() * 60; // 30-90 seconds (fast through boring)
+        break;
+      default:
+        timeAdvancement = 10;
     }
     
-    // Advance game time
-    liveState.gameTime += 1;
-    liveState.matchTick += 1;
+    liveState.gameTime += Math.floor(timeAdvancement);
+    liveState.matchTick = (liveState.matchTick || 0) + 1;
     liveState.lastUpdate = Date.now();
     
-    // COMPREHENSIVE FIX: Save corrected state to database every 10 ticks to prevent corruption
-    if (liveState.matchTick % 10 === 0) {
-      console.log(`💾 [DEBUG] Saving corrected state for match ${matchId} - gameTime: ${liveState.gameTime}, matchTick: ${liveState.matchTick}`);
-      this.saveStateToDatabase(matchId, liveState);
-    }
-    
-    console.log(`🔍 [DEBUG] Match ${matchId} - gameTime: ${liveState.gameTime}, matchTick: ${liveState.matchTick}`);
+    console.log(`⚡ [${eventPriority.label.toUpperCase()}] ${event.description} | Time: ${Math.floor(liveState.gameTime/60)}:${(liveState.gameTime%60).toString().padStart(2,'0')} | Speed: ${eventPriority.speedMultiplier}x`);
 
     // Check for halftime
-    if (liveState.gameTime === 1200 && liveState.currentHalf === 1) { // 20 minutes
+    if (liveState.gameTime >= 1200 && liveState.currentHalf === 1) { // 20 minutes
       liveState.status = 'halftime';
       this.generateEvent(liveState, MATCH_EVENT_TYPES.HALFTIME, 'Halftime break');
       
@@ -478,33 +522,29 @@ class LiveMatchEngineService implements LiveMatchEngine {
       return;
     }
 
-    // Simulate a tick using the new engine
-    const engine = this.activeEngines.get(matchId);
-    if (engine) {
-        const event = engine.simulateTick();
+    // Update scores from event if it was a scoring event
+    if (event.type === MATCH_EVENT_TYPES.SCORE) {
+      // Determine which team scored based on event context
+      // For now, randomly assign to demonstrate scoring
+      if (Math.random() > 0.5) {
+        liveState.homeScore += 1;
+      } else {
+        liveState.awayScore += 1;
+      }
+    }
 
-        // Update live state based on the new event
-        liveState.simulationSpeed = event.priority.speedMultiplier;
+    // Broadcast the event with dynamic pacing info
+    this.broadcastEvent(matchId, event);
+    
+    // Save state periodically
+    if (liveState.matchTick % 5 === 0) {
+      this.saveStateToDatabase(matchId, liveState);
+    }
 
-        // The event description will be set by the new commentary service later.
-        // For now, we pass it through.
-
-        // Update scores and stats from the event payload
-        if (event.stats) {
-            const stats = event.stats as any;
-            if (stats.playerStats) {
-                stats.playerStats.forEach((pStat: any) => {
-                    const teamStats = liveState.playerStats.get(pStat.id);
-                    if (teamStats) {
-                        if (pStat.scores) liveState.homeScore += pStat.scores; // This is still not quite right
-                        // TODO: Update other stats
-                    }
-                });
-            }
-        }
-
-        // Broadcast event (simplified to one WebSocket system)
-        this.broadcastEvent(matchId, event);
+    // Broadcast state update every few events for real-time updates
+    if (liveState.matchTick % 3 === 0) {
+      console.log(`🔄 Broadcasting live update: ${Math.floor(liveState.gameTime/60)}:${(liveState.gameTime%60).toString().padStart(2,'0')} | ${liveState.homeScore}-${liveState.awayScore}`);
+      webSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
     }
 
     // Update revenue
