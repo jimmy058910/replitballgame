@@ -206,6 +206,12 @@ class LiveMatchEngineService implements LiveMatchEngine {
       const { getPrismaClient } = await import('../database.js');
       const prisma = await getPrismaClient();
       
+      // COMPREHENSIVE FIX: Ensure matchTick is saved correctly in final state
+      if (liveState.matchTick === null || liveState.matchTick === undefined) {
+        console.warn(`⚠️ CRITICAL: Final save had null matchTick for match ${matchId}, setting to gameTime`);
+        liveState.matchTick = liveState.gameTime;
+      }
+      
       await prisma.game.update({
         where: { id: parseInt(matchId) },
         data: {
@@ -213,6 +219,8 @@ class LiveMatchEngineService implements LiveMatchEngine {
           homeScore: liveState.homeScore,
           awayScore: liveState.awayScore,
           simulationLog: JSON.stringify({
+            gameTime: liveState.gameTime,
+            matchTick: liveState.matchTick,
             events: liveState.gameEvents?.slice(-20) || [],
             finalScores: { home: liveState.homeScore, away: liveState.awayScore },
             matchCompleted: true,
@@ -443,6 +451,12 @@ class LiveMatchEngineService implements LiveMatchEngine {
     liveState.matchTick += 1;
     liveState.lastUpdate = Date.now();
     
+    // COMPREHENSIVE FIX: Save corrected state to database every 10 ticks to prevent corruption
+    if (liveState.matchTick % 10 === 0) {
+      console.log(`💾 [DEBUG] Saving corrected state for match ${matchId} - gameTime: ${liveState.gameTime}, matchTick: ${liveState.matchTick}`);
+      this.saveStateToDatabase(matchId, liveState);
+    }
+    
     console.log(`🔍 [DEBUG] Match ${matchId} - gameTime: ${liveState.gameTime}, matchTick: ${liveState.matchTick}`);
 
     // Check for halftime
@@ -509,6 +523,33 @@ class LiveMatchEngineService implements LiveMatchEngine {
     if (liveState.matchTick % 5 === 0) {
       console.log(`🔍 [DEBUG] Broadcasting matchUpdate for match ${matchId}, tick ${liveState.matchTick}, time ${liveState.gameTime}`);
       webSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
+    }
+  }
+
+  /**
+   * Save live state to database with corrected matchTick
+   */
+  private async saveStateToDatabase(matchId: string, liveState: LiveMatchState): Promise<void> {
+    try {
+      const prisma = await getPrismaClient();
+      await prisma.game.update({
+        where: { id: parseInt(matchId) },
+        data: {
+          homeScore: liveState.homeScore,
+          awayScore: liveState.awayScore,
+          simulationLog: JSON.stringify({
+            gameTime: liveState.gameTime,
+            matchTick: liveState.matchTick,
+            homeScore: liveState.homeScore,
+            awayScore: liveState.awayScore,
+            status: liveState.status,
+            gameEvents: liveState.gameEvents?.slice(-50) || [],
+            lastUpdate: Date.now()
+          })
+        }
+      });
+    } catch (error) {
+      console.error(`❌ Failed to save state for match ${matchId}:`, error);
     }
   }
 

@@ -810,8 +810,16 @@ class MatchStateManager {
         where: { id: matchIdNum }
       });
       if (match && match.status === 'IN_PROGRESS') {
-        // Restart the match state from database
-        return await this.restartMatchFromDatabase(matchIdStr);
+        // CRITICAL FIX: Check if liveMatchEngine is handling this match first
+        const { liveMatchEngine } = await import('./liveMatchEngine.js');
+        const engineState = liveMatchEngine.getMatchState(matchIdStr);
+        if (engineState) {
+          console.log(`🔄 [MATCHSTATE] Using liveMatchEngine state for match ${matchId} (gameTime: ${engineState.gameTime})`);
+          return engineState;
+        }
+        
+        console.log(`⚠️ [MATCHSTATE] Legacy system avoided restart for match ${matchId} - preventing database conflict`);
+        return null; // Don't restart - let liveMatchEngine handle it
       }
       return null;
     }
