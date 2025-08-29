@@ -459,8 +459,8 @@ class LiveMatchEngineService implements LiveMatchEngine {
         return;
       }
       
-      if (liveState.status !== 'live') {
-        console.error(`❌ ERROR: Match ${matchId} status is '${liveState.status}', not 'live' - stopping scheduling`);
+      if (liveState.status !== 'live' && liveState.status !== 'halftime') {
+        console.error(`❌ ERROR: Match ${matchId} status is '${liveState.status}', not 'live' or 'halftime' - stopping scheduling`);
         return;
       }
       
@@ -510,7 +510,7 @@ class LiveMatchEngineService implements LiveMatchEngine {
    */
   private async simulateTick(matchId: string): Promise<void> {
     const liveState = this.activeMatches.get(matchId);
-    if (!liveState || liveState.status !== 'live') return;
+    if (!liveState || (liveState.status !== 'live' && liveState.status !== 'halftime')) return;
 
     // Generate event using the new match engine
     const engine = this.activeEngines.get(matchId);
@@ -553,15 +553,10 @@ class LiveMatchEngineService implements LiveMatchEngine {
 
     // Check for halftime
     if (liveState.gameTime >= 1200 && liveState.currentHalf === 1) { // 20 minutes
-      liveState.status = 'halftime';
+      liveState.currentHalf = 2;
       this.generateEvent(liveState, MATCH_EVENT_TYPES.HALFTIME, 'Halftime break');
-      
-      // Resume after halftime
-      setTimeout(() => {
-        liveState.currentHalf = 2;
-        liveState.status = 'live';
-        this.generateEvent(liveState, MATCH_EVENT_TYPES.SCRUM, 'Second half begins!');
-      }, 5000); // 5 second halftime
+      this.generateEvent(liveState, MATCH_EVENT_TYPES.SCRUM, 'Second half begins!');
+      console.log(`🔄 [HALFTIME FIX] Seamlessly transitioned to second half for match ${matchId}`);
     }
 
     // Check for match end
