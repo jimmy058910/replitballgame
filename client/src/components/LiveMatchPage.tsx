@@ -51,8 +51,6 @@ export default function LiveMatchPage() {
     <TextBasedMatchViewer 
       matchId={matchId}
       userId={userId}
-      homeTeamName="Home Team"
-      awayTeamName="Away Team"
     />
   );
 }

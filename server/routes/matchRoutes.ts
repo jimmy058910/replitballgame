@@ -185,7 +185,7 @@ router.get('/live', requireAuth, async (req: Request, res: Response, next: NextF
 
 
 
-router.get('/:matchId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:matchId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { matchId } = req.params;
     console.log(`=== GET /api/matches/${matchId} ===`);

@@ -1864,6 +1864,30 @@ router.get('/transactions', requireAuth, asyncHandler(async (req: Request, res: 
   }
 }));
 
+// Get team by ID (for live match viewer)
+router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.id);
+  
+  if (isNaN(teamId)) {
+    return res.status(400).json({ message: "Invalid team ID" });
+  }
+  
+  const team = await storage.teams.getTeamById(teamId);
+  
+  if (!team) {
+    return res.status(404).json({ message: "Team not found" });
+  }
+  
+  // Return basic team info for live match viewer
+  res.json({
+    id: team.id,
+    name: team.name,
+    logoUrl: team.logoUrl,
+    division: team.division,
+    subdivision: team.subdivision
+  });
+}));
+
 console.log('🔍 [teamRoutes.ts] Router configured with routes, exporting...');
 console.log('🔍 [teamRoutes.ts] Router stack length:', router.stack.length);
 

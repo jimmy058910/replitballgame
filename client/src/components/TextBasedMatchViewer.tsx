@@ -76,6 +76,7 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
   useEffect(() => {
     if (matchData && !liveState) {
       const simLog = matchData.simulationLog;
+      console.log('🔍 [DEBUG] Match data received:', { matchData, simLog });
       const initialState: LiveMatchState = {
         matchId: matchData.id,
         homeTeamId: matchData.homeTeamId,
@@ -147,18 +148,23 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
 
   // WebSocket connection for real-time updates
   useEffect(() => {
-    if (!matchId || !userId) return;
+    if (!matchId) return;
+    
+    // Use fallback userId for public match viewing
+    const effectiveUserId = userId || `guest-${Date.now()}`;
 
     // Initialize WebSocket connection
-    webSocketManager.connect(userId);
+    webSocketManager.connect(effectiveUserId);
     webSocketManager.joinMatch(matchId);
 
     // Set up callbacks
     const callbacks = {
       onMatchUpdate: (data: LiveMatchState) => {
+        console.log('🔍 [DEBUG] WebSocket match update received:', data);
         setLiveState(data);
       },
       onMatchEvent: (event: MatchEvent) => {
+        console.log('🔍 [DEBUG] WebSocket event received:', event);
         setEvents(prevEvents => [event, ...prevEvents.slice(0, 49)]);
         if (event.priority.label === 'Critical') {
           setCriticalEvent(event);
@@ -166,7 +172,7 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
         }
       },
       onConnectionStatus: (connected: boolean) => {
-        console.log('WebSocket connection status:', connected);
+        console.log('🔍 [DEBUG] WebSocket connection status:', connected);
       }
     };
 

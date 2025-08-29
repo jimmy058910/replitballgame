@@ -59,6 +59,12 @@ function Router() {
     <Switch>
       {/* Help manual accessible to everyone */}
       <Route path="/help" component={HelpManual} />
+      
+      {/* Live Match System - Make public for easy access */}
+      <Route path="/live-match/:matchId" component={LiveMatchPage} />
+      <Route path="/text-match/:matchId" component={LiveMatchPage} />
+      <Route path="/match/:matchId" component={LiveMatchPage} />
+      <Route path="/test-live-match/:matchId" component={LiveMatchPage} />
       {isLoading ? (
         /* Show loading state while checking authentication */
         <Route path="/" component={() => (
@@ -103,12 +109,6 @@ function Router() {
           {/* Legacy routes - maintain for backwards compatibility */}
           <Route path="/world" component={LazyWorld} />
           
-          {/* Live Match System - Direct import to avoid lazy loading issues */}
-          <Route path="/live-match/:matchId" component={LiveMatchPage} />
-          {/* Legacy match routes redirect to live-match for backwards compatibility */}
-          <Route path="/text-match/:matchId" component={LiveMatchPage} />
-          <Route path="/match/:matchId" component={LiveMatchPage} />
-          
 
           
           {/* System Management */}
@@ -120,7 +120,6 @@ function Router() {
       )}
       
       {/* Public routes accessible without authentication for testing */}
-      <Route path="/test-live-match/:matchId" component={LiveMatchPage} />
       <Route component={NotFound} />
     </Switch>
   );
