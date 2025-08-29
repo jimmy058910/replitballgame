@@ -475,12 +475,25 @@ class LiveMatchEngineService implements LiveMatchEngine {
       
       const timeout = setTimeout(async () => {
         try {
-          console.log(`🎯 [DEBUG] Executing scheduled event for match ${matchId}`);
+          console.log(`🎯 [DEBUG] *** TIMEOUT FIRED *** Executing scheduled event for match ${matchId}`);
+          
+          // Double-check match still exists and is live
+          const currentState = this.activeMatches.get(matchId);
+          if (!currentState || currentState.status !== 'live') {
+            console.error(`❌ Match ${matchId} no longer live during timeout execution (status: ${currentState?.status})`);
+            return;
+          }
+          
           await this.simulateTick(matchId);
+          
           // Schedule the next event after this one completes
+          console.log(`🔄 [DEBUG] Scheduling next event after successful tick for match ${matchId}`);
           this.scheduleNextEvent(matchId);
+          
         } catch (error) {
           console.error(`❌ ERROR in scheduled simulateTick for match ${matchId}:`, error);
+          // Try to reschedule even if there was an error
+          setTimeout(() => this.scheduleNextEvent(matchId), 2000);
         }
       }, actualInterval);
 
