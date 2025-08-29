@@ -56,10 +56,12 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
   const logRef = useRef<HTMLDivElement>(null);
 
   // Fetch LIVE match data from live engine
-  const { data: liveMatchData } = useQuery<{success: boolean, liveState: LiveMatchState}>({
+  const { data: liveMatchData, refetch } = useQuery<{success: boolean, liveState: LiveMatchState}>({
     queryKey: [`/api/live-matches/${matchId}/live-state`],
     enabled: !!matchId,
-    refetchInterval: 2000, // Poll every 2 seconds for live updates
+    refetchInterval: 1000, // Poll every 1 second for more responsive updates
+    staleTime: 0, // Always consider data stale to force fresh requests
+    cacheTime: 0, // Don't cache results
   });
   
   // Also fetch static match data for team info
@@ -81,12 +83,19 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
 
   // Extract live state from LIVE engine data
   useEffect(() => {
+    console.log('🔍 [DEBUG] useEffect triggered - liveMatchData:', liveMatchData);
+    
     if (liveMatchData?.success && liveMatchData.liveState) {
-      console.log('🔍 [DEBUG] LIVE match data received:', liveMatchData.liveState);
+      console.log('🔍 [DEBUG] LIVE match data received:', {
+        status: liveMatchData.liveState.status,
+        gameTime: liveMatchData.liveState.gameTime,
+        eventsCount: liveMatchData.liveState.gameEvents?.length || 0
+      });
       setLiveState(liveMatchData.liveState);
       
       // Update events from live engine
-      if (liveMatchData.liveState.gameEvents) {
+      if (liveMatchData.liveState.gameEvents && liveMatchData.liveState.gameEvents.length > 0) {
+        console.log('🔍 [DEBUG] Setting events:', liveMatchData.liveState.gameEvents.length);
         setEvents([...liveMatchData.liveState.gameEvents].reverse().slice(0, 20));
       }
     } else if (matchData && !liveState) {
