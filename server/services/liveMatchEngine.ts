@@ -481,7 +481,14 @@ class LiveMatchEngineService implements LiveMatchEngine {
             }
         }
 
+        // Broadcast event to BOTH WebSocket systems  
         this.broadcastEvent(matchId, event);
+        
+        // CRITICAL FIX: Also broadcast to raw WebSocket manager
+        const { serverWebSocketManager } = await import('../websocket/webSocketManager.js');
+        if (serverWebSocketManager) {
+          serverWebSocketManager.broadcastToMatch(matchId, 'matchEvent', event);
+        }
     }
 
     // Update revenue
@@ -490,9 +497,15 @@ class LiveMatchEngineService implements LiveMatchEngine {
     // Update player positions
     this.updatePlayerPositions(liveState);
 
-    // Broadcast state update every 5 ticks
+    // Broadcast state update every 5 ticks to BOTH WebSocket systems
     if (liveState.matchTick % 5 === 0) {
       webSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
+      
+      // CRITICAL FIX: Also broadcast to the raw WebSocket manager that frontend connects to
+      const { serverWebSocketManager } = await import('../websocket/webSocketManager.js');
+      if (serverWebSocketManager) {
+        serverWebSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
+      }
     }
   }
 
