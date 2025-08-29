@@ -153,9 +153,11 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
     // Use fallback userId for public match viewing
     const effectiveUserId = userId || `guest-${Date.now()}`;
 
-    // Initialize WebSocket connection
+    // Initialize WebSocket connection  
     webSocketManager.connect(effectiveUserId);
-    webSocketManager.joinMatch(matchId);
+    
+    // CRITICAL FIX: Don't join match immediately - wait for connection to be ready
+    // The joinMatch call will happen in onConnectionStatus callback when connected = true
 
     // Set up callbacks
     const callbacks = {
@@ -173,6 +175,14 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
       },
       onConnectionStatus: (connected: boolean) => {
         console.log('🔍 [DEBUG] WebSocket connection status:', connected);
+        
+        // CRITICAL FIX: Join match only when WebSocket is fully connected
+        if (connected) {
+          console.log('🔍 [DEBUG] WebSocket connected! Now joining match:', matchId);
+          webSocketManager.joinMatch(matchId).catch(error => {
+            console.error('🔍 [DEBUG] Failed to join match:', error);
+          });
+        }
       }
     };
 
