@@ -72,6 +72,8 @@ import resetRoutes from "./resetRoutes.js";
 import lateRegistrationRoutes from "./lateRegistrationRoutes.js";
 import correctStandingsRoutes from "./correctStandingsRoutes.js";
 import manualStandingsComplete from "./manualStandingsComplete.js";
+import cleanupTournamentRoutes from "./cleanupTournamentRoutes.js";
+import simpleCleanupRoutes from "./simpleCleanupRoutes.js";
 
 
 // This function will be called by server/index.ts to set up all routes.
@@ -232,6 +234,8 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/cache-test", quickCacheTest); // Cache testing and demonstration
   app.use("/api/correct-standings", correctStandingsRoutes); // Fix standings based on actual game results
   app.use("/api/manual-standings", manualStandingsComplete); // Complete comprehensive standings fix
+  app.use("/api/tournament-cleanup", cleanupTournamentRoutes); // Emergency cleanup for stuck tournament registrations
+  app.use("/api/simple-cleanup", simpleCleanupRoutes); // Simple cleanup using working Prisma patterns
 
   // Add missing /api/me endpoint that frontend expects (redirect to auth/user)
   app.get("/api/me", (req, res) => {
