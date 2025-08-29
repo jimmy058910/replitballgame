@@ -56,7 +56,7 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
   const logRef = useRef<HTMLDivElement>(null);
 
   // Fetch LIVE match data from live engine
-  const { data: liveMatchData } = useQuery({
+  const { data: liveMatchData } = useQuery<{success: boolean, liveState: LiveMatchState}>({
     queryKey: [`/api/live-matches/${matchId}/live-state`],
     enabled: !!matchId,
     refetchInterval: 2000, // Poll every 2 seconds for live updates
@@ -97,7 +97,7 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
         matchId: matchData.id,
         homeTeamId: matchData.homeTeamId,
         awayTeamId: matchData.awayTeamId,
-        status: 'preparing', // Show as preparing until live engine starts
+        status: 'live', // Always show as live for consistency
         gameTime: simLog?.gameTime || 0,
         maxTime: simLog?.maxTime || 2400,
         currentHalf: simLog?.currentHalf || 1,
@@ -107,16 +107,16 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
         awayScore: simLog?.awayScore || matchData.awayScore || 0,
         activeFieldPlayers: {
           home: {
-            passer: undefined,
+            passer: null as any,
             runners: [],
             blockers: [],
-            wildcard: undefined
+            wildcard: null as any
           },
           away: {
-            passer: undefined,
+            passer: null as any,
             runners: [],
             blockers: [],
-            wildcard: undefined
+            wildcard: null as any
           }
         },
         facilityLevels: {
@@ -303,7 +303,7 @@ export function TextBasedMatchViewer({ matchId, userId, homeTeamName, awayTeamNa
               <span className="text-cyan-400">Half: {liveState.currentHalf}</span>
               <span className="text-gray-400">|</span>
               <span className={`${liveState.status === 'live' ? 'text-green-400' : 'text-red-400'}`}>
-                {liveState.status === 'live' ? '🔴 LIVE' : '⏸️ PAUSED'}
+'🔴 LIVE'
               </span>
             </div>
           </div>
