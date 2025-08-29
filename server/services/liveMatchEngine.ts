@@ -114,11 +114,11 @@ class LiveMatchEngineService implements LiveMatchEngine {
       const engine = new NewMatchEngine(match.homeTeam, match.awayTeam, matchId);
       this.activeEngines.set(matchId, engine);
 
-      // Start simulation loop
-      this.startSimulationLoop(matchId);
-
-      // Set match status to live
+      // Set match status to live BEFORE starting simulation
       liveState.status = 'live';
+
+      // Start simulation loop (now that status is 'live')
+      this.startSimulationLoop(matchId);
 
       // Broadcast initial state
       webSocketManager.broadcastToMatch(matchId, 'matchUpdate', liveState);
@@ -423,38 +423,73 @@ class LiveMatchEngineService implements LiveMatchEngine {
    * Start simulation loop for a match
    */
   private startSimulationLoop(matchId: string): void {
-    const liveState = this.activeMatches.get(matchId);
-    if (!liveState) return;
-    
-    console.log(`🚀 Starting dynamic event-driven simulation for match ${matchId}`);
-    
-    // Start with initial event scheduling
-    this.scheduleNextEvent(matchId);
+    try {
+      console.log(`🔧 [DEBUG] startSimulationLoop called for match ${matchId}`);
+      
+      const liveState = this.activeMatches.get(matchId);
+      console.log(`🔧 [DEBUG] liveState in startSimulationLoop: ${!!liveState}`);
+      
+      if (!liveState) {
+        console.error(`❌ ERROR: No liveState found for match ${matchId} in startSimulationLoop`);
+        return;
+      }
+      
+      console.log(`🚀 Starting dynamic event-driven simulation for match ${matchId}`);
+      
+      // Start with initial event scheduling
+      this.scheduleNextEvent(matchId);
+      
+    } catch (error) {
+      console.error(`❌ CRITICAL ERROR in startSimulationLoop for match ${matchId}:`, error);
+    }
   }
 
   /**
    * Schedule the next event based on current simulation speed (dynamic pacing)
    */
   private scheduleNextEvent(matchId: string): void {
-    const liveState = this.activeMatches.get(matchId);
-    if (!liveState || liveState.status !== 'live') return;
-    
-    // Base interval: events happen every 1-3 seconds in real time
-    const baseInterval = 1000 + (Math.random() * 2000); // 1-3 seconds
-    const speedMultiplier = liveState.simulationSpeed || 1.0;
-    
-    // Dynamic timing: faster simulation = shorter wait times
-    const actualInterval = baseInterval / speedMultiplier;
-    
-    console.log(`⏰ Next event in ${(actualInterval/1000).toFixed(1)}s (speed: ${speedMultiplier}x) for match ${matchId}`);
-    
-    const timeout = setTimeout(async () => {
-      await this.simulateTick(matchId);
-      // Schedule the next event after this one completes
-      this.scheduleNextEvent(matchId);
-    }, actualInterval);
+    try {
+      console.log(`🔧 [DEBUG] scheduleNextEvent called for match ${matchId}`);
+      
+      const liveState = this.activeMatches.get(matchId);
+      console.log(`🔧 [DEBUG] liveState exists: ${!!liveState}, status: ${liveState?.status}`);
+      
+      if (!liveState) {
+        console.error(`❌ ERROR: No liveState found for match ${matchId} in scheduleNextEvent`);
+        return;
+      }
+      
+      if (liveState.status !== 'live') {
+        console.error(`❌ ERROR: Match ${matchId} status is '${liveState.status}', not 'live' - stopping scheduling`);
+        return;
+      }
+      
+      // Base interval: events happen every 1-3 seconds in real time
+      const baseInterval = 1000 + (Math.random() * 2000); // 1-3 seconds
+      const speedMultiplier = liveState.simulationSpeed || 1.0;
+      
+      // Dynamic timing: faster simulation = shorter wait times
+      const actualInterval = baseInterval / speedMultiplier;
+      
+      console.log(`⏰ Next event in ${(actualInterval/1000).toFixed(1)}s (speed: ${speedMultiplier}x) for match ${matchId}`);
+      
+      const timeout = setTimeout(async () => {
+        try {
+          console.log(`🎯 [DEBUG] Executing scheduled event for match ${matchId}`);
+          await this.simulateTick(matchId);
+          // Schedule the next event after this one completes
+          this.scheduleNextEvent(matchId);
+        } catch (error) {
+          console.error(`❌ ERROR in scheduled simulateTick for match ${matchId}:`, error);
+        }
+      }, actualInterval);
 
-    this.matchIntervals.set(matchId, timeout);
+      this.matchIntervals.set(matchId, timeout);
+      console.log(`✅ [DEBUG] Event scheduled successfully for match ${matchId}, timeout stored`);
+      
+    } catch (error) {
+      console.error(`❌ CRITICAL ERROR in scheduleNextEvent for match ${matchId}:`, error);
+    }
   }
 
   /**
