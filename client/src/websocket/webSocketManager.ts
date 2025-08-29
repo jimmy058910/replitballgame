@@ -149,43 +149,50 @@ class WebSocketManager {
   private handleMessage(event: MessageEvent) {
     try {
       const message = JSON.parse(event.data);
+      console.log('🔍 [DEBUG] WebSocket message received:', message);
       
       switch (message.type) {
         case 'matchUpdate':
+          console.log('🔍 [DEBUG] Processing match update:', message.data);
           if (this.callbacks?.onMatchUpdate) {
             this.callbacks.onMatchUpdate(message.data);
           }
           break;
           
         case 'matchEvent':
+          console.log('🔍 [DEBUG] Processing match event:', message.data);
           if (this.callbacks?.onMatchEvent) {
             this.callbacks.onMatchEvent(message.data);
           }
           break;
           
         case 'error':
-          console.error('Server error:', message.error);
+          console.error('🔍 [DEBUG] Server error:', message.error);
           this.callbacks?.onError?.(message.error);
           break;
           
         case 'pong':
-          // Heartbeat response
+          console.log('🔍 [DEBUG] Heartbeat pong received');
+          break;
+          
+        case 'connected':
+          console.log('🔍 [DEBUG] WebSocket connection confirmed');
           break;
           
         case 'authenticated':
-          console.log('WebSocket authenticated successfully');
+          console.log('🔍 [DEBUG] WebSocket authenticated successfully');
           break;
           
         case 'joinedMatch':
-          console.log('Joined match:', message.matchId);
+          console.log('🔍 [DEBUG] Joined match successfully:', message.matchId);
           this.currentMatchId = message.matchId;
           break;
           
         default:
-          console.warn('Unknown message type:', message.type);
+          console.warn('🔍 [DEBUG] Unknown message type:', message.type, message);
       }
     } catch (error) {
-      console.error('Error parsing WebSocket message:', error);
+      console.error('🔍 [DEBUG] Error parsing WebSocket message:', error);
     }
   }
 
@@ -205,9 +212,11 @@ class WebSocketManager {
    */
   async joinMatch(matchId: string): Promise<void> {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      console.error('🔍 [DEBUG] Cannot join match - WebSocket not connected. ReadyState:', this.socket?.readyState);
       throw new Error('WebSocket not connected');
     }
 
+    console.log('🔍 [DEBUG] Joining match:', matchId);
     this.send({
       type: 'joinMatch',
       matchId: matchId
