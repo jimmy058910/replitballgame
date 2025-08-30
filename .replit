@@ -4,7 +4,6 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["jq", "dig", "google-cloud-sdk", "postgresql", "google-cloud-sql-proxy"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -12,56 +11,20 @@ build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
 
 [[ports]]
-localPort = 3000
-externalPort = 8081
-
-[[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 5433
-externalPort = 8008
-
-[[ports]]
-localPort = 8080
-externalPort = 8080
-
-[[ports]]
-localPort = 9005
-externalPort = 8000
 
 [[ports]]
 localPort = 34103
 externalPort = 3000
 
 [[ports]]
-localPort = 35083
-externalPort = 5173
-
-[[ports]]
-localPort = 37145
-externalPort = 5000
-
-[[ports]]
-localPort = 37161
-externalPort = 4200
-
-[[ports]]
 localPort = 37271
 externalPort = 3002
 
 [[ports]]
-localPort = 37581
-externalPort = 3003
-
-[[ports]]
-localPort = 40089
-externalPort = 6000
-
-[[ports]]
-localPort = 46325
-externalPort = 6800
+localPort = 41293
+externalPort = 3001
 
 [workflows]
 runButton = "Project"
@@ -83,10 +46,3 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
-
-[agent]
-<<<<<<< HEAD
-integrations = ["javascript_database==1.0.0", "javascript_websocket==1.0.0"]
-=======
-integrations = ["javascript_websocket==1.0.0", "javascript_database==1.0.0"]
->>>>>>> feature/quick-match-simulation
