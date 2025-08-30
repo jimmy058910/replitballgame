@@ -4,6 +4,7 @@ import { storage } from '../storage/index.js';
 // playerStorage imported via storage index
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { simulateEnhancedMatch as fullMatchSimulation } from '../services/matchSimulation.js';
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections  
 // import { matchStateManager } from '../services/matchStateManager.js';
 import { getPrismaClient } from "../database.js";
@@ -1166,6 +1167,83 @@ router.get('/:matchId/sync', requireAuth, async (req: Request, res: Response, ne
     }
   } catch (error) {
     console.error('Error syncing match state:', error);
+    next(error);
+  }
+});
+
+// Quick simulation route for development/testing
+router.post('/:id/quick-simulate', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const prisma = await getPrismaClient();
+    
+    // Verify match exists
+    const match = await prisma.game.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    if (match.status === 'COMPLETED') {
+      return res.status(400).json({ message: "Match is already completed" });
+    }
+
+    // Run quick simulation
+    const result = await QuickMatchSimulation.simulateMatch(id);
+
+    // Update match status and score in database
+    await prisma.game.update({
+      where: { id: parseInt(id) },
+      data: {
+        status: 'COMPLETED',
+        homeScore: result.finalScore.home,
+        awayScore: result.finalScore.away
+      }
+    });
+
+    // Update team standings if this is a league match
+    if (match.matchType === 'LEAGUE') {
+      const homeTeamUpdate = {
+        gamesPlayed: { increment: 1 },
+        ...(result.winner === 'home' 
+          ? { wins: { increment: 1 }, points: { increment: 3 } }
+          : result.winner === 'draw' 
+          ? { draws: { increment: 1 }, points: { increment: 1 } }
+          : { losses: { increment: 1 } })
+      };
+
+      const awayTeamUpdate = {
+        gamesPlayed: { increment: 1 },
+        ...(result.winner === 'away' 
+          ? { wins: { increment: 1 }, points: { increment: 3 } }
+          : result.winner === 'draw' 
+          ? { draws: { increment: 1 }, points: { increment: 1 } }
+          : { losses: { increment: 1 } })
+      };
+
+      await prisma.team.update({
+        where: { id: match.homeTeamId },
+        data: homeTeamUpdate
+      });
+
+      await prisma.team.update({
+        where: { id: match.awayTeamId },
+        data: awayTeamUpdate
+      });
+    }
+
+    // Return the comprehensive simulation result
+    res.json({
+      message: "Match simulated successfully",
+      simulation: result,
+      matchStatus: "COMPLETED",
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in quick simulation:', error);
     next(error);
   }
 });

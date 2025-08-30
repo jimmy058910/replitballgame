@@ -85,4 +85,8 @@ args = "npm run dev"
 waitForPort = 5000
 
 [agent]
+<<<<<<< HEAD
 integrations = ["javascript_database==1.0.0", "javascript_websocket==1.0.0"]
+=======
+integrations = ["javascript_websocket==1.0.0", "javascript_database==1.0.0"]
+>>>>>>> feature/quick-match-simulation
