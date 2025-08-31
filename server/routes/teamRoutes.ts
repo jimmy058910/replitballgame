@@ -2427,4 +2427,34 @@ router.put('/:teamId/formation', requireAuth, asyncHandler(async (req: Request, 
   });
 }));
 
+// ========================================
+// TEAM PLAYERS ROUTE (CRITICAL MISSING ENDPOINT)
+// ========================================
+
+// Get team players - Required for tactics page
+router.get('/:teamId/players', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId, 10);
+  const userId = req.user?.claims?.sub;
+
+  console.log(`🔍 [ROUTE DEBUG] Handling GET /api/teams/${teamId}/players`);
+
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.unauthorized("Access denied to this team");
+  }
+
+  // Get players for this team (contracted players only)
+  const players = await storage.players.getPlayersByTeamId(teamId);
+  
+  console.log(`✅ [TEAM PLAYERS] Found ${players.length} players for team ${team.name}`);
+  
+  // Return players in the expected format for tactics component
+  res.json(players);
+}));
+
 export default router;

@@ -524,20 +524,22 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
   // Debug logging for API responses
   console.log('🔍 TapToAssignTactics API Debug:', { 
     teamId,
-    rawPlayersLength: rawPlayers?.length || 0,
-    taxiSquadLength: taxiSquadPlayers?.length || 0,
+    rawPlayersLength: Array.isArray(rawPlayers) ? rawPlayers.length : 0,
+    taxiSquadLength: Array.isArray(taxiSquadPlayers) ? taxiSquadPlayers.length : 0,
+    rawPlayersType: typeof rawPlayers,
+    taxiSquadType: typeof taxiSquadPlayers,
     playersError,
     taxiError,
     isLoading
   });
 
-  const taxiSquadIds = (taxiSquadPlayers as Player[]).map(p => p.id);
+  const taxiSquadIds = Array.isArray(taxiSquadPlayers) ? (taxiSquadPlayers as Player[]).map(p => p.id) : [];
 
-  const players = (rawPlayers as Player[]).filter(p => {
+  const players = Array.isArray(rawPlayers) ? (rawPlayers as Player[]).filter(p => {
     return !taxiSquadIds.includes(p.id) && // Exclude taxi squad players
            p.injuryStatus !== 'SEVERE_INJURY' && // Exclude severely injured
            p.dailyStaminaLevel > 0; // Exclude completely exhausted
-  });
+  }) : [];
 
   // Get ALL assigned players - starters AND substitutes to prevent duplicates
   const getAllAssignedPlayerIds = () => {
