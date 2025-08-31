@@ -252,8 +252,30 @@ export function generateDailyGameTimes(day: number): Date[] {
   ];
   
   // Handle league days 6-14 (regular season days)
-  const dayIndex = (day - 6) % startVariations.length; // Start from Day 6
-  const { hour, minute } = startVariations[dayIndex];
+  // For days outside 6-14 range, use default scheduling
+  let dayIndex: number;
+  if (day < 6) {
+    // For days 1-5, use first variation
+    dayIndex = 0;
+  } else if (day > 14) {
+    // For days 15+, use last variation
+    dayIndex = startVariations.length - 1;
+  } else {
+    // For days 6-14, use normal cycling
+    dayIndex = (day - 6) % startVariations.length;
+  }
+  
+  const startVariation = startVariations[dayIndex];
+  let hour: number, minute: number;
+  
+  if (!startVariation) {
+    // Fallback to default time if something goes wrong
+    hour = 18;
+    minute = 0; // 6:00 PM default
+  } else {
+    hour = startVariation.hour;
+    minute = startVariation.minute;
+  }
   
   const gameTimes: Date[] = [];
   

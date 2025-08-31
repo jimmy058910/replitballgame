@@ -496,4 +496,54 @@ router.get('/current-cycle', asyncHandler(async (req: Request, res: Response) =>
   });
 }));
 
+// Emergency API to populate current season with teams and leagues
+router.post('/emergency-populate-current-season', requireAuth, async (req, res) => {
+  try {
+    console.log('🚨 Emergency population of current season requested...');
+    
+    const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService.js');
+    const seasonTimingService = SeasonTimingAutomationService.getInstance();
+    
+    // Force execute the finalization that should have happened on Day 1
+    await (seasonTimingService as any).finalizeDivisions();
+    
+    // Check current season and skip schedule generation if we're on Day 15 (playoff day)
+    const currentSeason = await storage.seasons.getCurrentSeason();
+    if (currentSeason) {
+      let scheduleResult = { matchesGenerated: 0, leaguesProcessed: [] };
+      
+      if (currentSeason.currentDay < 15) {
+        // Only generate schedules if we're before playoff day
+        scheduleResult = await SeasonalFlowService.generateSeasonSchedule(currentSeason.seasonNumber);
+      } else {
+        console.log('⚠️ Skipping schedule generation - already on playoff day (Day 15)');
+      }
+      
+      res.json({
+        success: true,
+        message: 'Emergency season population completed',
+        data: {
+          matchesGenerated: scheduleResult.matchesGenerated,
+          leaguesProcessed: scheduleResult.leaguesProcessed?.length || 0,
+          seasonNumber: currentSeason.seasonNumber,
+          currentDay: currentSeason.currentDay,
+          note: currentSeason.currentDay >= 15 ? 'Schedule generation skipped - already on playoff day' : 'Schedule generated successfully'
+        }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'No current season found'
+      });
+    }
+    
+  } catch (error: any) {
+    console.error('Error during emergency season population:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to populate season'
+    });
+  }
+});
+
 export default router;

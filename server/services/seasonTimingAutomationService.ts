@@ -736,12 +736,141 @@ export class SeasonTimingAutomationService {
     try {
       logInfo('Finalizing divisions with AI teams...');
       
-      // Implementation would fill empty division slots with AI teams
-      // This ensures all divisions have the required team counts
+      const prisma = await getPrismaClient();
+      const currentSeason = await storage.seasons.getCurrentSeason();
       
-      logInfo('Division finalization completed');
+      if (!currentSeason) {
+        console.error('No current season found for division finalization');
+        return;
+      }
+      
+      // Get or create leagues for all divisions
+      for (let division = 1; division <= 8; division++) {
+        await this.ensureLeagueExistsForDivision(division, currentSeason.id);
+        await this.ensureTeamsExistForDivision(division);
+      }
+      
+      logInfo('Division finalization completed - all divisions populated with AI teams');
     } catch (error) {
       console.error('Error finalizing divisions:', (error as Error).message);
+    }
+  }
+
+  /**
+   * Ensure league exists for division
+   */
+  private async ensureLeagueExistsForDivision(division: number, seasonId: string): Promise<void> {
+    try {
+      const prisma = await getPrismaClient();
+      
+      const existingLeague = await prisma.league.findFirst({
+        where: {
+          division: division,
+          seasonId: seasonId
+        }
+      });
+      
+      if (!existingLeague) {
+        await prisma.league.create({
+          data: {
+            division: division,
+            name: `Division ${division}`,
+            seasonId: seasonId
+          }
+        });
+        logInfo(`Created league for Division ${division}`);
+      }
+    } catch (error) {
+      console.error(`Error ensuring league for Division ${division}:`, (error as Error).message);
+    }
+  }
+
+  /**
+   * Ensure 8 teams exist for division
+   */
+  private async ensureTeamsExistForDivision(division: number): Promise<void> {
+    try {
+      // Check current team count for division
+      const existingTeams = await storage.teams.getTeamsByDivision(division);
+      const teamsNeeded = 8 - existingTeams.length;
+      
+      if (teamsNeeded > 0) {
+        logInfo(`Division ${division} needs ${teamsNeeded} more teams, creating AI teams...`);
+        await this.createAITeamsForDivision(division, teamsNeeded);
+      } else {
+        logInfo(`Division ${division} already has ${existingTeams.length} teams`);
+      }
+    } catch (error) {
+      console.error(`Error ensuring teams for Division ${division}:`, (error as Error).message);
+    }
+  }
+
+  /**
+   * Create AI teams for a specific division
+   */
+  private async createAITeamsForDivision(division: number, count: number = 8): Promise<void> {
+    try {
+      const { gameConfig } = await import('../../shared/gameConfig.js');
+      const { generateRandomName, generateRandomPlayer } = await import('../../shared/names.js');
+      
+      const aiTeamNames = gameConfig.aiTeamNames;
+      const races = ["Human", "Sylvan", "Gryll", "Lumina", "Umbra"];
+      
+      for (let i = 0; i < count; i++) {
+        const teamName = aiTeamNames[i % aiTeamNames.length] || `Division ${division} Team ${i + 1}`;
+        
+        // Create AI user
+        const aiUser = await storage.users.upsertUser({
+          userId: `ai_user_div${division}_team${i}_${Date.now()}`,
+          email: `ai_div${division}_team${i}_${Date.now()}@realmrivalry.ai`,
+          firstName: "AI",
+          lastName: "Coach",
+          profileImageUrl: null
+        });
+        
+        if (!aiUser) {
+          console.log(`❌ Failed to create AI user for division ${division}, team ${i}`);
+          continue;
+        }
+        
+        // Create team
+        const team = await storage.teams.createTeam({
+          name: teamName,
+          userId: aiUser.userId,
+          division: division,
+          subdivision: "main"
+        });
+        
+        // Create 12 players with proper position distribution
+        const requiredPositions = [
+          "Passer", "Passer", // 2 passers
+          "Runner", "Runner", "Runner", // 3 runners  
+          "Blocker", "Blocker", "Blocker", // 3 blockers
+          "Passer", "Runner", "Blocker", "Runner" // 4 additional
+        ];
+        
+        for (let j = 0; j < 12; j++) {
+          const playerRace = races[Math.floor(Math.random() * races.length)];
+          const { firstName, lastName } = generateRandomName(playerRace.toLowerCase());
+          const position = requiredPositions[j];
+          
+          const playerData = generateRandomPlayer(
+            `${firstName} ${lastName}`,
+            playerRace.toLowerCase(),
+            team.id,
+            position
+          );
+          
+          await storage.players.createPlayer({
+            ...playerData,
+            teamId: team.id,
+          } as any);
+        }
+        
+        logInfo(`Created AI team "${teamName}" for Division ${division} with 12 players`);
+      }
+    } catch (error) {
+      console.error(`Error creating AI teams for Division ${division}:`, (error as Error).message);
     }
   }
 
