@@ -911,9 +911,9 @@ export class SeasonalFlowService {
         if (division === 1) {
           // Division 1: 8-team single elimination tournament
           // Quarterfinals: 1v8, 2v7, 3v6, 4v5
-          const day15Base = new Date(currentSeason.startDate.getTime() + 14 * 24 * 60 * 60 * 1000); // Day 15
-          const playoffTime1 = new Date(day15Base.getFullYear(), day15Base.getMonth(), day15Base.getDate(), 5, 0, 0); // 1:00 AM EDT (5:00 UTC)
-          const playoffTime2 = new Date(day15Base.getFullYear(), day15Base.getMonth(), day15Base.getDate(), 5, 15, 0); // 1:15 AM EDT (5:15 UTC)
+          // Create specific date for Day 15 playoff matches: Aug 31, 2025 at 1:00 AM and 1:15 AM EDT
+          const playoffTime1 = new Date('2025-08-31T05:00:00.000Z'); // 1:00 AM EDT (5:00 UTC)
+          const playoffTime2 = new Date('2025-08-31T05:15:00.000Z'); // 1:15 AM EDT (5:15 UTC)
           
           playoffMatches = [
             {
@@ -952,9 +952,9 @@ export class SeasonalFlowService {
         } else {
           // Divisions 2-8: 4-team single elimination tournament
           // Semifinals: 1v4, 2v3
-          const day15Base = new Date(currentSeason.startDate.getTime() + 14 * 24 * 60 * 60 * 1000); // Day 15
-          const playoffTime1 = new Date(day15Base.getFullYear(), day15Base.getMonth(), day15Base.getDate(), 5, 0, 0); // 1:00 AM EDT (5:00 UTC)
-          const playoffTime2 = new Date(day15Base.getFullYear(), day15Base.getMonth(), day15Base.getDate(), 5, 15, 0); // 1:15 AM EDT (5:15 UTC)
+          // Create specific date for Day 15 playoff matches: Aug 31, 2025 at 1:00 AM and 1:15 AM EDT
+          const playoffTime1 = new Date('2025-08-31T05:00:00.000Z'); // 1:00 AM EDT (5:00 UTC)
+          const playoffTime2 = new Date('2025-08-31T05:15:00.000Z'); // 1:15 AM EDT (5:15 UTC)
           
           playoffMatches = [
             {
