@@ -143,9 +143,20 @@ export class SeasonalFlowService {
     }>;
   }> {
     const prisma = await getPrismaClient();
-    const seasonId = `season-${season}-2025`;
+    
+    // Get the actual season ID from database instead of hardcoded format
+    const currentSeason = await prisma.season.findFirst({
+      where: { seasonNumber: season },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      logError(`No season found for season number ${season}`);
+      return { schedulesCreated: 0, matchesGenerated: 0, leaguesProcessed: [] };
+    }
+    
     const allLeagues = await prisma.league.findMany({
-      where: { seasonId: seasonId }
+      where: { seasonId: currentSeason.id }
     });
     
     let totalMatches = 0;
@@ -776,7 +787,7 @@ export class SeasonalFlowService {
   static async getTeamsWithStats(leagueId: string, season: number): Promise<any[]> {
     // This would need to aggregate match data for each team
     // For now, return basic team data - can be enhanced with actual match statistics
-    const prisma = await getPrisma();
+    const prisma = await getPrismaClient();
     const league = await prisma.league.findUnique({
       where: { id: parseInt(leagueId, 10) }
     });
@@ -865,8 +876,19 @@ export class SeasonalFlowService {
     }>;
     totalPlayoffMatches: number;
   }> {
+    // Get the actual season ID from database instead of hardcoded format
+    const currentSeason = await prisma.season.findFirst({
+      where: { seasonNumber: season },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      logError(`No season found for season number ${season}`);
+      return { bracketsByLeague: [], totalPlayoffMatches: 0 };
+    }
+    
     const allLeagues = await prisma.league.findMany({
-      where: { seasonId: `season-${season}-2025` }
+      where: { seasonId: currentSeason.id }
     });
     
     const bracketsByLeague = [];
