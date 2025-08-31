@@ -210,7 +210,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     console.log('✅ [registerAllRoutes] Admin routes registered successfully');
   } catch (adminImportError: any) {
     console.error('❌ [registerAllRoutes] Failed to import admin routes:', adminImportError.message);
-    console.error('❌ [registerAllRoutes] Error stack:', error.stack);
+    console.error('❌ [registerAllRoutes] Error stack:', adminImportError.stack);
   }
   app.use("/api/tournament-status", tournamentStatusRoutes); // Covers late signup system for shortened Division 8 seasons
   app.use("/api/tournament-fix", tournamentFixRoutes); // Emergency tournament fix endpoints

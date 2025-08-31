@@ -3,6 +3,7 @@
  */
 import { Router, Request, Response } from 'express';
 import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
+import { MatchStatusFixer } from '../utils/matchStatusFixer.js';
 // No auth import needed for now - will use simple endpoint
 
 const router = Router();
@@ -139,6 +140,126 @@ router.post('/force-complete-day-6-games', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Error force completing Day 6 games:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Fix stuck LIVE games
+router.post('/fix-stuck-games', async (req: Request, res: Response) => {
+  try {
+    console.log('🔧 [ADMIN] Fix stuck games requested...');
+    
+    const result = await MatchStatusFixer.fixStuckLiveGames();
+    
+    res.json({
+      success: true,
+      message: `Fixed ${result.fixed} stuck games`,
+      fixedGames: result.games,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Fix stuck games failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Check stuck LIVE games (read-only)
+router.get('/stuck-games', async (req: Request, res: Response) => {
+  try {
+    const stuckGames = await MatchStatusFixer.getStuckLiveGames();
+    
+    res.json({
+      success: true,
+      count: stuckGames.length,
+      games: stuckGames.map(game => ({
+        id: game.id,
+        homeTeam: game.homeTeam.name,
+        awayTeam: game.awayTeam.name,
+        createdAt: game.createdAt,
+        status: game.status
+      })),
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Check stuck games failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Check tournament status
+router.get('/tournament/:id', async (req: Request, res: Response) => {
+  try {
+    const tournamentId = parseInt(req.params.id);
+    
+    const tournament = await MatchStatusFixer.getTournamentStatus(tournamentId);
+    
+    if (!tournament) {
+      return res.status(404).json({
+        success: false,
+        error: `Tournament ${tournamentId} not found`
+      });
+    }
+    
+    res.json({
+      success: true,
+      tournament: {
+        id: tournament.id,
+        name: tournament.name,
+        status: tournament.status,
+        entries: tournament.entries.map(entry => ({
+          teamName: entry.team.name,
+          isAI: entry.team.isAI
+        })),
+        entryCount: tournament._count.entries,
+        startTime: tournament.startTime,
+        endTime: tournament.endTime
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Check tournament failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// List recent tournaments
+router.get('/tournaments', async (req: Request, res: Response) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    
+    const tournaments = await MatchStatusFixer.getRecentTournaments(limit);
+    
+    res.json({
+      success: true,
+      count: tournaments.length,
+      tournaments: tournaments.map(t => ({
+        id: t.id,
+        name: t.name,
+        status: t.status,
+        entryCount: t._count.entries,
+        division: t.division,
+        createdAt: t.createdAt
+      })),
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] List tournaments failed:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
