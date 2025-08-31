@@ -30,7 +30,55 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
       return;
     }
     
-    // Get user's team using existing storage
+    const prisma = await getPrismaClient();
+    
+    // For development: Show all completed tournaments
+    // In production, this would be filtered by user's team
+    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+      console.log('🔍 [TOURNAMENT HISTORY] Development mode: showing all completed tournaments');
+      
+      const completedTournaments = await prisma.tournament.findMany({
+        where: { status: 'COMPLETED' },
+        include: {
+          entries: {
+            include: {
+              team: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+      
+      console.log(`Found ${completedTournaments.length} completed tournaments`);
+      
+      const history = completedTournaments.map((tournament: any) => ({
+        id: tournament.id,
+        tournamentId: tournament.tournamentId,
+        name: tournament.name,
+        type: tournament.type,
+        status: tournament.status,
+        division: tournament.division,
+        seasonDay: tournament.seasonDay,
+        entryFeeCredits: tournament.entryFeeCredits ? tournament.entryFeeCredits.toString() : null,
+        entryFeeGems: tournament.entryFeeGems,
+        prizePoolJson: tournament.prizePoolJson,
+        registrationEndTime: tournament.registrationEndTime,
+        startTime: tournament.startTime,
+        endTime: tournament.endTime,
+        createdAt: tournament.createdAt,
+        participants: tournament.entries.map((entry: any) => ({
+          teamId: entry.teamId,
+          teamName: entry.team.name,
+          finalRank: entry.finalRank,
+          registeredAt: entry.registeredAt
+        }))
+      }));
+      
+      res.json(history);
+      return;
+    }
+    
+    // Production logic: Get user's team and their tournament history
     const userProfile = await storage.users.getUser(userId);
     const team = userProfile ? await storage.teams.getTeamByUserId(userId) : null;
     
@@ -39,7 +87,7 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
       return;
     }
     
-    // Get tournament entries for the team using Prisma directly
+    // Get tournament entries for the team using Prisma directly  
     const tournamentEntries = await prisma.tournamentEntry.findMany({
       where: { teamId: team.id },
       include: { 

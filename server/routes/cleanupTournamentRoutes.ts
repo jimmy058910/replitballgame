@@ -136,7 +136,7 @@ router.get('/registration-status', requireAuth, async (req: Request, res: Respon
     const activeTournaments = await prisma.tournament.findMany({
       where: {
         division: team.division,
-        status: { in: ['REGISTRATION_OPEN', 'IN_PROGRESS', 'ACTIVE'] }
+        status: { in: ['REGISTRATION_OPEN', 'IN_PROGRESS'] }
       }
     });
     
@@ -218,27 +218,41 @@ router.post('/force-complete/:tournamentId', requireAuth, async (req: any, res: 
     console.log(`🏆 [FORCE COMPLETE] Winner: Team ${winnerId}, Runner-up: Team ${runnerUpId}`);
     
     // Award winner credits (5000₡ for winner, 2500₡ for runner-up)
-    const winnerFinances = await prisma.teamFinances.findFirst({
-      where: { teamId: winnerId }
-    });
-    const runnerUpFinances = await prisma.teamFinances.findFirst({
-      where: { teamId: runnerUpId }
-    });
+    let winnerCreditsAwarded = false;
+    let runnerUpCreditsAwarded = false;
     
-    if (winnerFinances) {
-      await prisma.teamFinances.update({
-        where: { id: winnerFinances.id },
-        data: { credits: { increment: 5000 } }
+    try {
+      const winnerFinances = await prisma.teamFinances.findFirst({
+        where: { teamId: winnerId }
       });
-      console.log(`💰 [FORCE COMPLETE] Winner awarded 5000₡`);
+      
+      if (winnerFinances) {
+        await prisma.teamFinances.update({
+          where: { id: winnerFinances.id },
+          data: { credits: { increment: 5000 } }
+        });
+        winnerCreditsAwarded = true;
+        console.log(`💰 [FORCE COMPLETE] Winner awarded 5000₡`);
+      }
+    } catch (error) {
+      console.error(`❌ [FORCE COMPLETE] Failed to award winner credits:`, error);
     }
     
-    if (runnerUpFinances) {
-      await prisma.teamFinances.update({
-        where: { id: runnerUpFinances.id },
-        data: { credits: { increment: 2500 } }
+    try {
+      const runnerUpFinances = await prisma.teamFinances.findFirst({
+        where: { teamId: runnerUpId }
       });
-      console.log(`💰 [FORCE COMPLETE] Runner-up awarded 2500₡`);
+      
+      if (runnerUpFinances) {
+        await prisma.teamFinances.update({
+          where: { id: runnerUpFinances.id },
+          data: { credits: { increment: 2500 } }
+        });
+        runnerUpCreditsAwarded = true;
+        console.log(`💰 [FORCE COMPLETE] Runner-up awarded 2500₡`);
+      }
+    } catch (error) {
+      console.error(`❌ [FORCE COMPLETE] Failed to award runner-up credits:`, error);
     }
     
     // Update tournament status to COMPLETED
@@ -255,8 +269,8 @@ router.post('/force-complete/:tournamentId', requireAuth, async (req: any, res: 
       winner: winnerId,
       runnerUp: runnerUpId,
       rewards: {
-        winner: "5000₡",
-        runnerUp: "2500₡"
+        winner: winnerCreditsAwarded ? "5000₡" : "0₡ (failed)",
+        runnerUp: runnerUpCreditsAwarded ? "2500₡" : "0₡ (failed)"
       },
       status: "COMPLETED"
     });
