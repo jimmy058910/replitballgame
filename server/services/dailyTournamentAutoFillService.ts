@@ -130,7 +130,7 @@ class DailyTournamentAutoFillService {
   /**
    * Execute auto-fill with AI teams after timer expires
    */
-  private async executeAutoFill(tournamentId: number, division: number): Promise<void> {
+  async executeAutoFill(tournamentId: number, division: number): Promise<void> {
     try {
       console.log(`🤖 [TOURNAMENT AUTO-FILL] Timer expired - executing auto-fill for tournament ${tournamentId}`);
 
@@ -463,6 +463,30 @@ class DailyTournamentAutoFillService {
     } catch (error) {
       console.error(`❌ [TOURNAMENT AUTO-FILL] Error getting timer status:`, error);
       return { active: false };
+    }
+  }
+  /**
+   * Manual trigger for auto-fill (for testing)
+   */
+  async manualTriggerAutoFill(tournamentId: number): Promise<void> {
+    try {
+      console.log(`🧪 [MANUAL TRIGGER] Forcing auto-fill for tournament ${tournamentId}`);
+      
+      const prisma = await getPrismaClient();
+      const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId }
+      });
+      
+      if (!tournament) {
+        throw new Error(`Tournament ${tournamentId} not found`);
+      }
+      
+      await this.executeAutoFill(tournamentId, tournament.division || 8);
+      console.log(`✅ [MANUAL TRIGGER] Auto-fill completed for tournament ${tournamentId}`);
+      
+    } catch (error) {
+      console.error(`❌ [MANUAL TRIGGER] Auto-fill failed:`, error);
+      throw error;
     }
   }
 }

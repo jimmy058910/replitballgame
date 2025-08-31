@@ -114,7 +114,7 @@ export class UnifiedTournamentAutomation {
             // Start next round with delay
             setTimeout(() => {
               this.startTournamentRound(tournamentId, nextRound);
-            }, 30000); // 30 second delay between rounds
+            }, 120000); // 2 minute delay between rounds
           }
         }
       }
