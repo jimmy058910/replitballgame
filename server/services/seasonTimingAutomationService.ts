@@ -9,6 +9,7 @@ import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 import { QuickMatchSimulation } from './quickMatchSimulation.js';
+import { dailyTournamentAutoFillService } from './dailyTournamentAutoFillService.js';
 
 // Prisma client will be accessed via await getPrismaClient() in each method
 
@@ -52,6 +53,15 @@ export class SeasonTimingAutomationService {
 
     this.isRunning = true;
     logInfo('Starting season timing automation system...');
+
+    // Recover active tournament timers from database on startup
+    try {
+      console.log('🔄 [STARTUP] Recovering tournament auto-fill timers...');
+      await dailyTournamentAutoFillService.recoverActiveTimers();
+      console.log('✅ [STARTUP] Tournament timer recovery completed');
+    } catch (error) {
+      console.error('⚠️ [STARTUP] Tournament timer recovery failed:', error);
+    }
 
     // ENHANCED: Smart missed progression detection with safeguards
     // Prevents schedule generation issues while allowing safe day advancement

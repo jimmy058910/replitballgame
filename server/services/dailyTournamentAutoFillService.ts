@@ -34,6 +34,7 @@ interface TournamentTimer {
 
 class DailyTournamentAutoFillService {
   private activeTimers = new Map<number, TournamentTimer>();
+  private initialized = false;
 
   /**
    * Check if we're past registration cutoff (1:00AM EDT)
@@ -56,6 +57,9 @@ class DailyTournamentAutoFillService {
   async onTeamRegistered(tournamentId: number, division: number): Promise<void> {
     try {
       console.log(`🏆 [TOURNAMENT AUTO-FILL] Team registered for tournament ${tournamentId}, division ${division}`);
+
+      // Ensure recovery has been run
+      await this.recoverActiveTimers();
 
       // Check if registration is still allowed
       if (this.isPastRegistrationCutoff()) {
@@ -193,12 +197,12 @@ class DailyTournamentAutoFillService {
           isAI: true,
           camaraderie: Math.floor(Math.random() * 30) + 70, // 70-100
           fanLoyalty: Math.floor(Math.random() * 30) + 70,
-          homeField: 'BALANCED',
-          tacticalFocus: 'BALANCED',
+          homeField: 'BALANCED' as any,
+          tacticalFocus: 'BALANCED' as any,
           wins: 0,
           losses: 0,
           points: 0
-        }
+        } as any
       });
 
       // Create team finances
@@ -271,7 +275,7 @@ class DailyTournamentAutoFillService {
           injuryStatus: 'HEALTHY',
           injuryRecoveryPointsNeeded: 0,
           injuryRecoveryPointsCurrent: 0,
-          dailyItemsUsed: [],
+          dailyItemsUsed: [] as any,
           careerInjuries: 0,
           isOnMarket: false,
           isRetired: false,
@@ -343,21 +347,123 @@ class DailyTournamentAutoFillService {
   }
 
   /**
-   * Get timer status for a tournament
+   * Recover active timers from database on server startup
    */
-  getTimerStatus(tournamentId: number): { active: boolean; timeRemaining?: number; registrationCount?: number } {
-    const timer = this.activeTimers.get(tournamentId);
+  async recoverActiveTimers(): Promise<void> {
+    if (this.initialized) return;
     
-    if (!timer) {
+    try {
+      console.log(`🔄 [TOURNAMENT AUTO-FILL] Recovering active timers from database...`);
+      
+      const prisma = await getPrismaClient();
+      
+      // Find tournaments with pending auto-fill timers
+      const pendingTournaments = await prisma.tournament.findMany({
+        where: {
+          status: 'REGISTRATION_OPEN' as any,
+          registrationEndTime: {
+            not: null
+          }
+        },
+        include: {
+          _count: {
+            select: {
+              entries: true
+            }
+          }
+        }
+      });
+      
+      for (const tournament of pendingTournaments) {
+        const now = new Date();
+        const registrationEnd = tournament.registrationEndTime;
+        
+        if (!registrationEnd) continue;
+        
+        const entryCount = (tournament as any)._count.entries;
+        
+        // Check if tournament should have auto-filled already
+        if (now >= registrationEnd) {
+          console.log(`⚠️ [TOURNAMENT AUTO-FILL] Tournament ${tournament.id} timer expired during server downtime - executing auto-fill now`);
+          await this.executeAutoFill(tournament.id, tournament.division || 8);
+        } else if (entryCount > 0 && entryCount < TOURNAMENT_SIZE) {
+          // Timer is still active - restart it
+          const timeRemaining = registrationEnd.getTime() - now.getTime();
+          
+          if (timeRemaining > 0) {
+            console.log(`🔄 [TOURNAMENT AUTO-FILL] Restarting timer for tournament ${tournament.id} - ${Math.round(timeRemaining / 60000)} minutes remaining`);
+            await this.restartTimer(tournament.id, tournament.division || 8, timeRemaining);
+          }
+        }
+      }
+      
+      this.initialized = true;
+      console.log(`✅ [TOURNAMENT AUTO-FILL] Timer recovery completed`);
+      
+    } catch (error) {
+      console.error(`❌ [TOURNAMENT AUTO-FILL] Error recovering timers:`, error);
+    }
+  }
+  
+  /**
+   * Restart a timer with specific duration
+   */
+  private async restartTimer(tournamentId: number, division: number, durationMs: number): Promise<void> {
+    const timeoutId = setTimeout(async () => {
+      await this.executeAutoFill(tournamentId, division);
+    }, durationMs);
+
+    this.activeTimers.set(tournamentId, {
+      tournamentId,
+      division,
+      startTime: new Date(Date.now() - (AUTO_FILL_TIMER_HOURS * 60 * 60 * 1000 - durationMs)),
+      timeoutId
+    });
+  }
+
+  /**
+   * Get timer status for a tournament (database-based)
+   */
+  async getTimerStatus(tournamentId: number): Promise<{ active: boolean; timeRemaining?: number; registrationCount?: number }> {
+    try {
+      const prisma = await getPrismaClient();
+      
+      const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId },
+        include: {
+          _count: {
+            select: {
+              entries: true
+            }
+          }
+        }
+      });
+      
+      if (!tournament || (tournament.status as string) !== 'REGISTRATION_OPEN' || !tournament.registrationEndTime) {
+        return { active: false };
+      }
+      
+      const now = new Date();
+      const registrationEnd = tournament.registrationEndTime;
+      const timeRemaining = Math.max(0, registrationEnd.getTime() - now.getTime());
+      const registrationCount = (tournament as any)._count.entries;
+      
+      // If timer has expired, execute auto-fill
+      if (timeRemaining === 0 && registrationCount < TOURNAMENT_SIZE) {
+        console.log(`⏰ [TOURNAMENT AUTO-FILL] Timer expired for tournament ${tournamentId} - executing auto-fill`);
+        setTimeout(() => this.executeAutoFill(tournamentId, tournament.division || 8), 100);
+      }
+      
+      return {
+        active: timeRemaining > 0 && registrationCount < TOURNAMENT_SIZE,
+        timeRemaining,
+        registrationCount
+      };
+      
+    } catch (error) {
+      console.error(`❌ [TOURNAMENT AUTO-FILL] Error getting timer status:`, error);
       return { active: false };
     }
-
-    const timeRemaining = Math.max(0, (timer.startTime.getTime() + (AUTO_FILL_TIMER_HOURS * 60 * 60 * 1000)) - Date.now());
-    
-    return {
-      active: true,
-      timeRemaining,
-    };
   }
 }
 
