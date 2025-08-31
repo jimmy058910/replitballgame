@@ -4,6 +4,7 @@ import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
 import { asyncHandler } from '../services/errorService.js';
 import { storage } from '../storage/index.js';
+import { prisma } from '../database.js';
 
 const router = Router();
 
@@ -170,6 +171,38 @@ router.get('/standings/:leagueId', requireAuth, async (req, res) => {
  * POST /api/seasonal-flow/playoffs/generate
  * Generate playoff brackets for Day 15
  */
+router.delete('/playoffs/cleanup', requireAuth, async (req, res) => {
+  try {
+    // Delete playoff games that are NOT on the correct Day 15 times (1:00 AM and 1:15 AM EDT)
+    const deletedGames = await prisma.game.deleteMany({
+      where: {
+        matchType: 'PLAYOFF',
+        AND: [
+          {
+            gameDate: {
+              not: new Date('2025-08-31T05:00:00.000Z') // Not 1:00 AM EDT
+            }
+          },
+          {
+            gameDate: {
+              not: new Date('2025-08-31T05:15:00.000Z') // Not 1:15 AM EDT
+            }
+          }
+        ]
+      }
+    });
+    
+    res.json({ 
+      success: true, 
+      deletedCount: deletedGames.count,
+      message: `Deleted ${deletedGames.count} incorrect playoff games`
+    });
+  } catch (error) {
+    console.error('Error cleaning up playoff games:', error);
+    res.status(500).json({ error: 'Failed to clean up playoff games' });
+  }
+});
+
 router.post('/playoffs/generate', requireAuth, async (req, res) => {
   try {
     const { season } = req.body;
