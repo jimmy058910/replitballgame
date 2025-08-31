@@ -1937,33 +1937,55 @@ export default function ComprehensiveCompetitionCenter() {
                     Division: {tournamentBracket.tournament?.division || 'N/A'}
                   </div>
                   {tournamentBracket.hasMatches && tournamentBracket.matches && tournamentBracket.matches.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-6">
                       <p className="text-green-400 text-sm mb-4">✅ Tournament bracket is ready! {tournamentBracket.matches.length} matches generated</p>
-                      {tournamentBracket.matches.map((match: any, index: number) => (
-                        <div key={match.id || index} className="bg-gray-700 rounded-lg p-4">
-                          <div className="flex justify-between items-center">
-                            <div className="text-white">
-                              <span className="font-semibold">{match.homeTeam?.name || 'TBD'}</span>
-                              <span className="mx-2 text-gray-400">vs</span>
-                              <span className="font-semibold">{match.awayTeam?.name || 'TBD'}</span>
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              Round {match.round || 1}
+                      
+                      {/* Group matches by round for full bracket view */}
+                      {[1, 2, 3].map(round => {
+                        const roundMatches = tournamentBracket.matches.filter((match: any) => match.round === round);
+                        if (roundMatches.length === 0) return null;
+                        
+                        const roundName = round === 1 ? 'Quarterfinals' : round === 2 ? 'Semifinals' : 'Finals';
+                        
+                        return (
+                          <div key={round} className="bg-gray-800/50 rounded-lg p-4">
+                            <h4 className="text-lg font-bold text-yellow-400 mb-3 text-center">
+                              {roundName} (Round {round})
+                            </h4>
+                            <div className="space-y-3">
+                              {roundMatches.map((match: any, index: number) => (
+                                <div key={match.id || index} className="bg-gray-700 rounded-lg p-4">
+                                  <div className="flex justify-between items-center">
+                                    <div className="text-white">
+                                      <span className="font-semibold">{match.homeTeam?.name || 'TBD'}</span>
+                                      <span className="mx-2 text-gray-400">vs</span>
+                                      <span className="font-semibold">{match.awayTeam?.name || 'TBD'}</span>
+                                    </div>
+                                    <div className="text-sm text-gray-400">
+                                      Game {match.id}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-2">
+                                    {match.status === 'COMPLETED' && match.homeScore !== null && match.awayScore !== null ? (
+                                      <span className="text-green-400 font-bold">
+                                        FINAL: {match.homeScore}-{match.awayScore}
+                                      </span>
+                                    ) : match.status === 'SCHEDULED' ? (
+                                      <span className="text-blue-400">
+                                        {formatTournamentMatchTime(match.gameDate, match.status)}
+                                      </span>
+                                    ) : (
+                                      <span className="text-orange-400">
+                                        {match.status}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-2">
-                            {match.status === 'COMPLETED' && match.homeScore !== null && match.awayScore !== null ? (
-                              <span className="text-green-400 font-bold">
-                                FINAL: {match.homeScore}-{match.awayScore} | Game ID: {match.id}
-                              </span>
-                            ) : (
-                              <span>
-                                {formatTournamentMatchTime(match.gameDate, match.status)} | Game ID: {match.id}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="space-y-3">
