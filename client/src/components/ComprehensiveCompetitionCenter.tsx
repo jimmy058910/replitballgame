@@ -377,7 +377,7 @@ export default function ComprehensiveCompetitionCenter() {
 
   // Query for tournament bracket data when user is registered
   const { data: tournamentBracket } = useQuery<any>({
-    queryKey: [`/api/tournament-status/${currentTournamentStatus?.tournamentId}/matches`],
+    queryKey: [`/api/tournaments/${currentTournamentStatus?.tournamentId}/matches`],
     enabled: !!currentTournamentStatus?.tournamentId && currentTournamentStatus?.hasActiveTournament,
     refetchInterval: 30000, // Update every 30 seconds for live bracket updates
   });
@@ -1904,24 +1904,42 @@ export default function ComprehensiveCompetitionCenter() {
             {tournamentBracket ? (
               <div className="text-center">
                 <div className="bg-gray-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Tournament Matches</h3>
-                  {tournamentBracket.matches && tournamentBracket.matches.length > 0 ? (
+                  <h3 className="text-lg font-semibold text-white mb-4">
+                    {tournamentBracket.tournament?.name || 'Tournament Matches'}
+                  </h3>
+                  <div className="text-sm text-gray-400 mb-4">
+                    Status: {tournamentBracket.tournament?.status || 'Unknown'} | 
+                    Division: {tournamentBracket.tournament?.division || 'N/A'}
+                  </div>
+                  {tournamentBracket.hasMatches && tournamentBracket.matches && tournamentBracket.matches.length > 0 ? (
                     <div className="space-y-3">
+                      <p className="text-green-400 text-sm mb-4">✅ Tournament bracket is ready! {tournamentBracket.matches.length} matches generated</p>
                       {tournamentBracket.matches.map((match: any, index: number) => (
-                        <div key={match.id || index} className="bg-gray-700 rounded-lg p-4 flex justify-between items-center">
-                          <div className="text-white">
-                            <span className="font-semibold">{match.homeTeam?.name || 'TBD'}</span>
-                            <span className="mx-2 text-gray-400">vs</span>
-                            <span className="font-semibold">{match.awayTeam?.name || 'TBD'}</span>
+                        <div key={match.id || index} className="bg-gray-700 rounded-lg p-4">
+                          <div className="flex justify-between items-center">
+                            <div className="text-white">
+                              <span className="font-semibold">{match.homeTeam?.name || 'TBD'}</span>
+                              <span className="mx-2 text-gray-400">vs</span>
+                              <span className="font-semibold">{match.awayTeam?.name || 'TBD'}</span>
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              Round {match.round || 1}
+                            </div>
                           </div>
-                          <div className="text-sm text-gray-400">
-                            Round {match.round || 1}
+                          <div className="text-xs text-gray-500 mt-2">
+                            Status: {match.status} | Game ID: {match.id}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-400">Bracket will be generated when tournament starts</p>
+                    <div className="space-y-3">
+                      <p className="text-yellow-400 text-sm">⏳ Bracket will be generated when tournament starts</p>
+                      <div className="text-xs text-gray-500">
+                        Debug: hasMatches={String(tournamentBracket.hasMatches)}, 
+                        matches.length={tournamentBracket.matches?.length || 0}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
