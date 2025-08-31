@@ -89,6 +89,13 @@ Preferred communication style: Simple, everyday language.
 - ✅ **End-to-End Success**: Full deployment pipeline working with health checks and database integration
 - ✅ **Performance Gains**: Significantly faster builds with layer reuse and optimized build context
 
+**PLAYOFF SYSTEM CRITICAL FIX (August 2025)**: Applied comprehensive troubleshooting methodology to resolve duplicate playoff game scheduling:
+- **Issue**: Playoff semifinals appearing on Day 14, Day 15, AND Day 16 due to hardcoded date calculation errors
+- **Root Cause Analysis**: Date calculation using hardcoded "2025-07-27" instead of proper season.startDate + 15 days
+- **Comprehensive Solution**: Fixed date calculation logic + created targeted cleanup API endpoint + deleted 28 incorrect duplicate games
+- **Result**: Playoff semifinals now correctly scheduled ONLY on Day 15 at exact specified times (1:00 AM and 1:15 AM EDT)
+- **Zero Technical Debt**: Implemented proper season-based date calculation rather than temporary workarounds
+
 # System Architecture
 
 ## Hybrid Cloud Deployment Model
