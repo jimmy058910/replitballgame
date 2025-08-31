@@ -950,10 +950,10 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
       
       const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
       
-      // Get all games involving teams in this subdivision
+      // Get all games involving teams in this subdivision (both league games and playoff matches)
       const existingGames = await prisma.game.findMany({
         where: {
-          matchType: 'LEAGUE',
+          matchType: { in: ['LEAGUE', 'PLAYOFF'] },
           OR: [
             { homeTeamId: { in: subdivisionTeamIds } },
             { awayTeamId: { in: subdivisionTeamIds } }
@@ -1021,8 +1021,8 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     // Get all matches for the user's division and subdivision
     const divisionMatches = await matchStorage.getMatchesByDivision(userTeam.division as any);
     
-    // ✅ CRITICAL FIX: Filter out exhibition games - only show league games
-    const leagueMatches = divisionMatches.filter((match: any) => match.matchType === 'LEAGUE');
+    // ✅ INCLUDE PLAYOFF MATCHES: Show both league games and playoff matches
+    const leagueMatches = divisionMatches.filter((match: any) => match.matchType === 'LEAGUE' || match.matchType === 'PLAYOFF');
     
     // Get all teams in the user's subdivision
     const prisma = await getPrismaClient();

@@ -27,12 +27,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (import.meta.env.DEV) {
       console.log('🔧 Development mode - bypassing Firebase auth');
       
+      // Store development token in localStorage for API requests
+      const devToken = 'dev-token-123';
+      localStorage.setItem('firebase_token', devToken);
+      console.log('✅ Development token stored in localStorage');
+      
       // Create a mock user for development
       const mockUser = {
         uid: 'dev-user-123',
         email: 'developer@realmrivalry.com',
         displayName: 'Developer',
-        getIdToken: async () => 'dev-token-123'
+        getIdToken: async () => devToken
       } as any;
       
       setUser(mockUser);
