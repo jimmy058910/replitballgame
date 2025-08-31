@@ -91,8 +91,8 @@ router.get('/candidates', requireAuth, async (req: Request, res: Response, next:
   }
 });
 
-// Conduct tryout (with seasonal restrictions)
-router.post('/:teamId/conduct', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+// Conduct tryout (with seasonal restrictions) - matches frontend call pattern
+router.post('/:teamId/tryouts', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { teamId } = req.params;
     const { type, selectedPlayers } = req.body;

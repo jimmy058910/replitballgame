@@ -2193,4 +2193,119 @@ router.post('/:teamId/staff/add-missing-scout', requireAuth, asyncHandler(async 
   }
 }));
 
+// ===== RECRUITING SYSTEM ENDPOINTS =====
+
+// Host tryouts (recruiting system)
+router.post('/:teamId/tryouts', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { teamId } = req.params;
+    const { type } = req.body;
+    const userId = req.user?.claims?.sub;
+
+    // Get team
+    let team;
+    if (teamId === "my") {
+      team = await storage.teams.getTeamByUserId(userId);
+    } else {
+      team = await storage.teams.getTeamById(parseInt(teamId));
+      // Verify ownership
+      const userTeam = await storage.teams.getTeamByUserId(userId);
+      if (!userTeam || userTeam.id !== team?.id) {
+        return res.status(403).json({ error: "You don't own this team" });
+      }
+    }
+    
+    if (!team) {
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    // Check costs and affordability
+    const costs = { basic: 25000, advanced: 75000 };
+    const cost = costs[type as keyof typeof costs];
+
+    if (!cost) {
+      return res.status(400).json({ error: "Invalid tryout type. Use 'basic' or 'advanced'" });
+    }
+
+    const teamFinances = await storage.teamFinances.getTeamFinances(team.id);
+    const currentCredits = Number(teamFinances?.credits || 0);
+
+    if (currentCredits < cost) {
+      return res.status(400).json({ 
+        error: `Insufficient credits. Required: ${cost}₡, Available: ${currentCredits}₡` 
+      });
+    }
+
+    // Generate candidates based on type
+    const candidateCount = type === 'advanced' ? 5 : 3;
+    const candidates = [];
+    
+    const races = ['HUMAN', 'SYLVAN', 'GRYLL', 'LUMINA', 'UMBRA'];
+    const firstNames = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Avery', 'Quinn', 'Sage', 'River'];
+    const lastNames = ['Storm', 'Stone', 'Swift', 'Bright', 'Strong', 'Bold', 'True', 'Fair', 'Wild', 'Free'];
+    
+    for (let i = 0; i < candidateCount; i++) {
+      const race = races[Math.floor(Math.random() * races.length)];
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      
+      // Base stats (6-20 range for prospects)
+      const statBonus = type === 'advanced' ? 4 : 0; // Advanced gets better prospects
+      const baseStats = {
+        speed: Math.floor(Math.random() * 10) + 8 + statBonus,
+        power: Math.floor(Math.random() * 10) + 8 + statBonus,
+        throwing: Math.floor(Math.random() * 10) + 8 + statBonus,
+        catching: Math.floor(Math.random() * 10) + 8 + statBonus,
+        kicking: Math.floor(Math.random() * 10) + 8 + statBonus,
+        leadership: Math.floor(Math.random() * 10) + 8 + statBonus,
+        agility: Math.floor(Math.random() * 10) + 8 + statBonus,
+      };
+      
+      // Generate potential (better for advanced)
+      const potentialMin = type === 'advanced' ? 2.0 : 1.5;
+      const potentialMax = type === 'advanced' ? 4.0 : 3.0;
+      const potentialRating = Math.random() * (potentialMax - potentialMin) + potentialMin;
+      
+      // Calculate market value
+      const avgStat = Object.values(baseStats).reduce((a, b) => a + b, 0) / 7;
+      const marketValue = Math.floor(1000 + (avgStat * 50) + (potentialRating * 500) + (Math.random() * 500));
+      
+      const candidate = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: `${firstName} ${lastName}`,
+        firstName,
+        lastName,
+        race,
+        age: Math.floor(Math.random() * 5) + 18, // 18-22 years old
+        ...baseStats,
+        potentialRating,
+        marketValue,
+        potential: potentialRating >= 3.5 ? "High" : potentialRating >= 2.5 ? "Medium" : "Low",
+        overallPotentialStars: Math.round(potentialRating),
+        catching: baseStats.catching,
+        kicking: baseStats.kicking
+      };
+      
+      candidates.push(candidate);
+    }
+
+    // Deduct credits
+    await storage.teamFinances.updateTeamFinances(team.id, {
+      credits: currentCredits - cost
+    });
+
+    return res.json({
+      success: true,
+      candidates,
+      type,
+      creditsSpent: cost,
+      remainingCredits: currentCredits - cost
+    });
+
+  } catch (error) {
+    console.error("Error hosting tryouts:", error);
+    throw error;
+  }
+}));
+
 export default router;
