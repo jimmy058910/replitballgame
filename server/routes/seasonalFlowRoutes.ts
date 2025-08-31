@@ -512,11 +512,11 @@ router.post('/emergency-populate-current-season', requireAuth, async (req, res) 
     if (currentSeason) {
       let scheduleResult = { matchesGenerated: 0, leaguesProcessed: [] };
       
-      if (currentSeason.currentDay < 15) {
-        // Only generate schedules if we're before playoff day
+      if (currentSeason.currentDay < 14) {
+        // Only generate schedules if we're before playoff brackets are generated
         scheduleResult = await SeasonalFlowService.generateSeasonSchedule(currentSeason.seasonNumber);
       } else {
-        console.log('⚠️ Skipping schedule generation - already on playoff day (Day 15)');
+        console.log('⚠️ Skipping schedule generation - playoff brackets already generated (Day 14+)');
       }
       
       res.json({
@@ -527,7 +527,7 @@ router.post('/emergency-populate-current-season', requireAuth, async (req, res) 
           leaguesProcessed: scheduleResult.leaguesProcessed?.length || 0,
           seasonNumber: currentSeason.seasonNumber,
           currentDay: currentSeason.currentDay,
-          note: currentSeason.currentDay >= 15 ? 'Schedule generation skipped - already on playoff day' : 'Schedule generated successfully'
+          note: currentSeason.currentDay >= 14 ? 'Schedule generation skipped - playoff brackets already generated' : 'Schedule generated successfully'
         }
       });
     } else {

@@ -12,7 +12,7 @@ const prisma = await getPrismaClient();
  * 
  * Manages the complete 17-day competitive cycle:
  * - Days 1-14: Regular Season with scheduling and standings
- * - Day 15: Playoffs with single elimination tournaments
+ * - Day 14 (Midnight): Playoff brackets generated | Day 15: Playoffs with tournament matches
  * - Days 16-17: Off-season with promotion/relegation and league rebalancing
  * 
  * Features:
@@ -68,7 +68,7 @@ export class SeasonalFlowService {
     SEASON_START_TIME: { hour: 15, minute: 0 }, // 3:00 PM EST - Division finalization
     SIMULATION_WINDOW: { start: 16, end: 22 }, // 4:00 PM - 10:00 PM EST
     MID_SEASON_CUP_DAY: 7, // Day 7 - Mid-Season Cup
-    DIVISION_TOURNAMENT_DAY: 15, // Day 15 - Division tournaments
+    DIVISION_TOURNAMENT_DAY: 14, // Day 14 Midnight - Division tournament brackets generated
     NEW_SEASON_RESET_TIME: { hour: 3, minute: 0 }, // 3:00 AM EST - Day 17 reset
   };
 

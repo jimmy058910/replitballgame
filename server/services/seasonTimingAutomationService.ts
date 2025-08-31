@@ -20,7 +20,7 @@ import { dailyTournamentAutoFillService } from './dailyTournamentAutoFillService
  * - Daily 3:00 AM EST: Player progression, aging, injury recovery, daily resets
  * - Day 1 3:00 PM EST: Division finalization, schedule creation, full season simulation
  * - Day 7: Mid-Season Cup tournaments
- * - Day 15: Division tournaments  
+ * - Day 14 Midnight: Division tournaments (brackets generated early for team preparation)  
  * - Day 17 3:00 AM EST: Season rollover with promotion/relegation
  * - Daily 4:00 PM - 10:00 PM EST: Regular season match simulation window
  */
@@ -347,8 +347,8 @@ export class SeasonTimingAutomationService {
         await this.executeDailyLateSignupProcessing(currentDayInCycle);
       }
       
-      // Check for Day 15 Division tournaments
-      if (currentDayInCycle === 15 && estTime.getHours() === 15 && estTime.getMinutes() === 0) {
+      // Check for Day 14 midnight Division tournaments (early bracket generation)
+      if (currentDayInCycle === 14 && estTime.getHours() === 0 && estTime.getMinutes() === 0) {
         await this.executeDivisionTournaments(seasonNumber);
       }
       
@@ -516,7 +516,8 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * Execute Division tournaments (Day 15)
+   * Execute Division tournaments (Day 14 Midnight)
+   * Generates playoff brackets early so teams can see and prepare for tournaments
    */
   private async executeDivisionTournaments(seasonNumber: number): Promise<void> {
     try {
