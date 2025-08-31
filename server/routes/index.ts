@@ -50,7 +50,6 @@ import lateSignupRoutes from "./lateSignupRoutes.js";
 import tournamentStatusRoutes from "./tournamentStatusRoutes.js";
 import tournamentFixRoutes from "./tournamentFixRoutes.js";
 import tournamentHistoryRoutes from "./tournamentHistoryRoutes.js";
-import demoRoutes from "./demoRoutes.js";
 import ndaRoutes from "./ndaRoutes.js";
 import worldRoutes from "./worldRoutes.js";
 import leagueMatchesRoutes from "./leagueMatchesRoutes.js";
@@ -63,7 +62,6 @@ import careerHighlightsRoutes from "./careerHighlightsRoutes.js";
 import referralRoutes from "./referralRoutes.js";
 import criticalAlertsRoutes from "./criticalAlertsRoutes.js";
 import enhancedMatchRoutes from "./enhancedMatchRoutes.js";
-import liveMatchRoutes from "./liveMatchRoutes.js";
 import testRoutes from "./testRoutes.js";
 import cacheRoutes from "./cacheRoutes.js";
 import quickCacheTest from "./quickCacheTest.js";
@@ -146,7 +144,6 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/team-trends", teamTrendsRoutes); // Enhanced team trends for product-led growth data storytelling (moved from /api/teams to avoid conflict)
   app.use("/api/matches", matchRoutes);
   app.use("/api/enhanced-matches", enhancedMatchRoutes); // Enhanced match engine API endpoints
-  app.use("/api/live-matches", liveMatchRoutes); // Live match engine with WebSocket support
   app.use("/api/team-matches", leagueMatchesRoutes); // League matches for team recent matches display
   app.use("/api/marketplace", marketplaceRoutes);
   // Add marketplace stats alias
@@ -218,7 +215,6 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/tournament-status", tournamentStatusRoutes); // Covers late signup system for shortened Division 8 seasons
   app.use("/api/tournament-fix", tournamentFixRoutes); // Emergency tournament fix endpoints
   app.use("/api/tournament-history", tournamentHistoryRoutes); // Tournament history for completed tournaments
-  app.use("/api/demo", demoRoutes); // Demo endpoints using real match simulation
   app.use("/api/nda", ndaRoutes); // NDA acceptance endpoints for pre-alpha testing
   app.use("/api/referrals", referralRoutes); // User referral system and tracking
   app.use("/api/data-viz", dataVisualizationRoutes); // Phase 3 Product-Led Growth Framework data visualization

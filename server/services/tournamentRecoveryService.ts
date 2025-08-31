@@ -2,6 +2,7 @@ import { getPrismaClient } from "../database.js";
 // import { logInfo } from "../logging"; // Commented out for production
 const logInfo = (message: string) => console.log(`[INFO] ${message}`);
 import { tournamentFlowService } from "./tournamentFlowService.js";
+import { QuickMatchSimulation } from './quickMatchSimulation.js';
 
 /**
  * Emergency tournament recovery service
@@ -65,7 +66,7 @@ export class TournamentRecoveryService {
    */
   private async startMatchesInRound(tournamentId: number, round: number): Promise<void> {
     try {
-      const { matchStateManager } = await import('./matchStateManager');
+      const prisma = await getPrismaClient();
       
       // Get matches for this round
       const matches = await prisma.game.findMany({
@@ -87,9 +88,20 @@ export class TournamentRecoveryService {
             }
           });
           
-          // Start live simulation
-          await matchStateManager.startLiveMatch(match.id.toString());
-          logInfo(`Started live simulation for tournament ${tournamentId} round ${round} match ${match.id}`);
+          // Use instant simulation
+          const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+          
+          // Update match status and score immediately
+          await prisma.game.update({
+            where: { id: match.id },
+            data: {
+              status: 'COMPLETED',
+              homeScore: simulationResult.finalScore.home,
+              awayScore: simulationResult.finalScore.away
+            }
+          });
+          
+          logInfo(`Completed instant simulation for tournament ${tournamentId} round ${round} match ${match.id} - Score: ${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`);
           
         } catch (error) {
           console.error(`Error starting match ${match.id}:`, error);

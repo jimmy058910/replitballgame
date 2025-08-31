@@ -103,6 +103,7 @@ class WebSocketService {
             return;
           }
 
+          const prisma = await getPrismaClient();
           const match = await Promise.race([
             prisma.game.findUnique({
               where: { id: parseInt(data.matchId) },
@@ -166,8 +167,8 @@ class WebSocketService {
           logger.info(`🔍 BEFORE getLiveMatchState call for match ${data.matchId}`);
           try {
             // Dynamic import to prevent startup database connections
-            const { matchStateManager } = await import('./matchStateManager');
-            const liveState = matchStateManager.getLiveMatchState(data.matchId);
+            // Live match state not available with instant simulation
+            const liveState = null;
             logger.info(`🔍 AFTER getLiveMatchState call - result: ${liveState ? 'FOUND' : 'NOT FOUND'}`);
             if (liveState) {
               logger.info(`🔍 Live state details - GameTime: ${liveState.gameTime}, Score: ${liveState.homeScore}-${liveState.awayScore}`);
@@ -218,6 +219,7 @@ class WebSocketService {
           }
 
           // Verify user owns one of the teams in the match
+          const prisma = await getPrismaClient();
           const match = await prisma.game.findUnique({
             where: { id: parseInt(data.matchId) }
           });
@@ -265,15 +267,13 @@ class WebSocketService {
               break;
             
             case 'pause_match':
-              const { matchStateManager: pauseManager } = await import('./matchStateManager');
-              pauseManager.pauseMatch(data.matchId);
-              this.broadcastToMatch(data.matchId, 'match_paused', { matchId: data.matchId });
+              // Pause functionality removed - matches now complete instantly
+              socket.emit('error', { message: 'Pause functionality not available with instant simulation' });
               break;
             
             case 'resume_match':
-              const { matchStateManager: resumeManager } = await import('./matchStateManager');
-              resumeManager.resumeMatch(data.matchId);
-              this.broadcastToMatch(data.matchId, 'match_resumed', { matchId: data.matchId });
+              // Resume functionality removed - matches now complete instantly
+              socket.emit('error', { message: 'Resume functionality not available with instant simulation' });
               break;
             
             default:

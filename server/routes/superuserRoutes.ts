@@ -5,6 +5,7 @@ import { getPrismaClient } from "../database.js";
 import { generateRandomPlayer as generatePlayerForTeam } from '../services/leagueService.js';
 import { RBACService, Permission, UserRole } from '../services/rbacService.js';
 import { ErrorCreators, asyncHandler, logInfo, logError } from '../services/errorService.js';
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
 
@@ -506,10 +507,22 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
 
   for (const match of scheduledMatches) {
     if (match.matchType === 'LEAGUE' || match.leagueId) {
-      // Start match using WebSocket system with dynamic import
+      // Start match using instant simulation
       const startPromise = (async () => {
-        const { matchStateManager } = await import('../services/matchStateManager');
-        return matchStateManager.startLiveMatch(match.id.toString(), false);
+        const prisma = await getPrismaClient();
+        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        
+        // Update match status and score immediately
+        await prisma.game.update({
+          where: { id: match.id },
+          data: {
+            status: 'COMPLETED',
+            homeScore: simulationResult.finalScore.home,
+            awayScore: simulationResult.finalScore.away
+          }
+        });
+        
+        return match.id;
       })()
         .then(() => {
           logInfo("League game started via WebSocket", { matchId: match.id, homeTeamId: match.homeTeamId, awayTeamId: match.awayTeamId });
@@ -557,12 +570,12 @@ router.post('/test-exhibition-rewards', RBACService.requirePermission(Permission
   });
 
   try {
-    const { matchStateManager } = await import('../services/matchStateManager');
-    await matchStateManager.awardExhibitionRewards(homeTeamId, awayTeamId, homeScore, awayScore);
+    // Exhibition rewards are now handled by QuickMatchSimulation automatically
+    // This endpoint is no longer needed but we'll return a success message for compatibility
     res.json({ 
       success: true,
-      message: `Exhibition rewards processed for teams ${homeTeamId} and ${awayTeamId}`,
-      data: { homeScore, awayScore }
+      message: `Exhibition rewards are now processed automatically during match simulation`,
+      data: { homeScore, awayScore, note: "Rewards processing moved to instant simulation" }
     });
   } catch (error: any) {
     res.status(500).json({ 

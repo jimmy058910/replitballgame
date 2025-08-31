@@ -3,7 +3,6 @@ import { matchStorage } from '../storage/matchStorage.js';
 import { storage } from '../storage/index.js';
 // playerStorage imported via storage index
 import { requireAuth } from "../middleware/firebaseAuth.js";
-import { simulateEnhancedMatch as fullMatchSimulation } from '../services/matchSimulation.js';
 import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections  
 // import { matchStateManager } from '../services/matchStateManager.js';
@@ -885,41 +884,19 @@ router.post('/:id/simulate', requireAuth, async (req: Request, res: Response, ne
         return res.status(400).json({ message: "One or both teams do not have enough players to simulate." });
     }
 
-    const result = await fullMatchSimulation(homeTeamPlayers as any, awayTeamPlayers as any, homeTeam.id.toString(), awayTeam.id.toString());
+    // Use QuickMatchSimulation instead of old simulation
+    const result = await QuickMatchSimulation.simulateMatch(id);
 
-    // Check if this is a league match - if so, use proper completion flow that includes standings updates
-    if (match.matchType === 'LEAGUE') {
-      console.log(`🏆 LEAGUE MATCH COMPLETION: ${match.id} - Using proper standings update flow`);
-      const { matchStateManager } = await import('../services/matchStateManager');
-      
-      // First update the match with simulation results
-      await matchStorage.updateMatch(parseInt(id), {
-        homeScore: result.homeScore, 
-        awayScore: result.awayScore,
-        status: "COMPLETED",
-        simulationLog: result.gameData as any,
-        completedAt: new Date(),
-      });
-      
-      // Then trigger the proper completion flow with standings updates
-      await matchStateManager.updateTeamRecords(
-        match.homeTeamId, 
-        match.awayTeamId, 
-        result.homeScore, 
-        result.awayScore
-      );
-      
-      console.log(`✅ LEAGUE STANDINGS UPDATED: Match ${match.id} - Home: ${result.homeScore}, Away: ${result.awayScore}`);
-    } else {
-      // Non-league matches (exhibition, tournament) - direct update is fine
-      await matchStorage.updateMatch(parseInt(id), {
-        homeScore: result.homeScore, 
-        awayScore: result.awayScore,
-        status: "COMPLETED",
-        simulationLog: result.gameData as any,
-        completedAt: new Date(),
-      });
-    }
+    // Update match with final results
+    await matchStorage.updateMatch(parseInt(id), {
+      homeScore: result.finalScore.home, 
+      awayScore: result.finalScore.away,
+      status: "COMPLETED",
+      simulationLog: result.stats as any,
+      completedAt: new Date(),
+    });
+    
+    console.log(`✅ MATCH COMPLETED: ${match.id} - Score: ${result.finalScore.home}-${result.finalScore.away}`);
     
     res.json(result);
   } catch (error) {

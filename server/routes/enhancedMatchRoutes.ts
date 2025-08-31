@@ -193,19 +193,15 @@ router.post('/matches/:matchId/control', async (req, res) => {
     const { matchId } = req.params;
     const { action } = req.body;
 
-    // Import matchStateManager dynamically to avoid circular imports
-    const { matchStateManager } = await import('../services/matchStateManager');
-    
+    // Match control actions not available with instant simulation
     switch (action) {
       case 'pause':
-        await matchStateManager.pauseMatchAsync(matchId);
-        break;
       case 'resume':
-        await matchStateManager.resumeMatchAsync(matchId);
-        break;
       case 'restart':
-        await matchStateManager.restartMatch(matchId);
-        break;
+        return res.status(400).json({ 
+          message: 'Match control actions not available with instant simulation',
+          note: 'Matches now complete instantly when started'
+        });
       default:
         return res.status(400).json({ message: 'Invalid action' });
     }
@@ -226,9 +222,11 @@ router.post('/matches/:matchId/speed', async (req, res) => {
       return res.status(400).json({ message: 'Invalid speed range' });
     }
 
-    // Import matchStateManager dynamically
-    const { matchStateManager } = await import('../services/matchStateManager');
-    await matchStateManager.setMatchSpeed(matchId, speed);
+    // Match speed control not available with instant simulation
+    return res.status(400).json({ 
+      message: 'Match speed control not available with instant simulation',
+      note: 'Matches now complete instantly when started'
+    });
 
     res.json({ success: true, speed });
   } catch (error) {

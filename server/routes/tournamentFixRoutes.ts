@@ -2,6 +2,7 @@ import { Router } from "express";
 import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { tournamentFlowService } from '../services/tournamentFlowService.js';
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
 
@@ -28,14 +29,25 @@ router.post('/start-tournament-matches/:tournamentId', requireAuth, async (req, 
     
     console.log(`Found ${matches.length} IN_PROGRESS matches for tournament ${tournamentId}`);
     
-    // Start live simulation for each match
+    // Start instant simulation for each match
+    const prisma = await getPrismaClient();
     for (const match of matches) {
       try {
-        const { matchStateManager } = await import('../services/matchStateManager');
-        await matchStateManager.startLiveMatch(match.id.toString());
-        console.log(`Started live simulation for match ${match.id}`);
+        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        
+        // Update match status and score immediately
+        await prisma.game.update({
+          where: { id: match.id },
+          data: {
+            status: 'COMPLETED',
+            homeScore: simulationResult.finalScore.home,
+            awayScore: simulationResult.finalScore.away
+          }
+        });
+        
+        console.log(`Completed instant simulation for match ${match.id} - Score: ${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`);
       } catch (error: any) {
-        console.error(`Error starting match ${match.id}:`, error);
+        console.error(`Error simulating match ${match.id}:`, error);
       }
     }
     

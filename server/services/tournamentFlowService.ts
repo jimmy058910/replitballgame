@@ -1,4 +1,5 @@
 import { getPrismaClient } from "../database.js";
+import { QuickMatchSimulation } from './quickMatchSimulation.js';
 
 // Initialize Prisma client
 const prisma = await getPrismaClient();
@@ -70,8 +71,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
         return;
       }
 
-      // Start live simulation for all matches in the round
-      const { matchStateManager } = await import('./matchStateManager');
+      // Start instant simulation for all matches in the round
       const matchPromises = matches.map(async (match: any) => {
         try {
           // Set match status to IN_PROGRESS
@@ -83,9 +83,20 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
             }
           });
 
-          // Start live simulation
-          await matchStateManager.startLiveMatch(match.id.toString());
-          logInfo(`Started live simulation for tournament ${tournamentId} round ${roundNumber} match ${match.id}`);
+          // Use instant simulation
+          const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+          
+          // Update match status and score immediately
+          await prisma.game.update({
+            where: { id: match.id },
+            data: {
+              status: 'COMPLETED',
+              homeScore: simulationResult.finalScore.home,
+              awayScore: simulationResult.finalScore.away
+            }
+          });
+          
+          logInfo(`Completed instant simulation for tournament ${tournamentId} round ${roundNumber} match ${match.id} - Score: ${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`);
           
           return match.id;
         } catch (error) {
