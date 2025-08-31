@@ -451,7 +451,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-sm">
-                          ₡{contract.salary.toLocaleString()}/season
+                          {contract.salary.toLocaleString()}₡/season
                         </div>
                         <div className="text-xs text-gray-600 dark:text-gray-400">
                           {contract.length} year{contract.length !== 1 ? 's' : ''}
@@ -465,7 +465,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
                         Total Contract Value
                       </span>
                       <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
-                        ₡{contractsData.contracts.reduce((sum, c) => sum + c.salary, 0).toLocaleString()}/season
+                        {contractsData.contracts.reduce((sum, c) => sum + c.salary, 0).toLocaleString()}₡/season
                       </span>
                     </div>
                   </div>

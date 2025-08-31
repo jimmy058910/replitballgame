@@ -233,7 +233,7 @@ function PlayerDetailModal({
 
             {/* Contract Summary Line */}
             <div className="text-center text-sm text-gray-400 mb-4">
-              Contract: ₡{(Number(player.contract?.salary) || 0).toLocaleString()}/season - {player.contract?.length || 1} yrs remaining
+              Contract: {(Number(player.contract?.salary) || 0).toLocaleString()}₡/season - {player.contract?.length || 1} yrs remaining
             </div>
 
             {/* 2. Core Stats Strip */}

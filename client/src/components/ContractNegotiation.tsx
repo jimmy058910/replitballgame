@@ -193,7 +193,7 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
             <p className="text-sm text-gray-500">{player.race} • Age {player.age}</p>
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline">
-                Current Salary: {(contractCalc as any)?.currentSalary ? `₡${(contractCalc as any).currentSalary.toLocaleString()}` : 'Loading...'}/season
+                Current Salary: {(contractCalc as any)?.currentSalary ? `${(contractCalc as any).currentSalary.toLocaleString()}₡` : 'Loading...'}/season
               </Badge>
               {/*
                // @ts-expect-error TS2339 */}

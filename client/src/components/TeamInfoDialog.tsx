@@ -419,11 +419,11 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                   <CardContent className="p-4 space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Total Salary Expenditure:</span>
-                      <span className="text-white font-semibold">₡{salaries.totalSalaries.toLocaleString()}/season</span>
+                      <span className="text-white font-semibold">{salaries.totalSalaries.toLocaleString()}₡/season</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Average Salary/Player:</span>
-                      <span className="text-white">₡{players?.length ? Math.round(salaries.totalPlayerSalaries / players.length).toLocaleString() : 0}</span>
+                      <span className="text-white">{players?.length ? Math.round(salaries.totalPlayerSalaries / players.length).toLocaleString() : 0}₡</span>
                     </div>
                   </CardContent>
                 </Card>

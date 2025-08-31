@@ -301,7 +301,7 @@ export default function UnifiedPlayerCard({
             {player.contractSalary && player.contractLength && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Contract:</span>
-                <span className="text-white">₡{player.contractSalary.toLocaleString()}/season, {player.contractLength} years</span>
+                <span className="text-white">{player.contractSalary.toLocaleString()}₡/season, {player.contractLength} years</span>
               </div>
             )}
 

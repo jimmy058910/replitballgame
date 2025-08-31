@@ -167,7 +167,7 @@ export function RevenueCalculationsModal({ isOpen, onClose, stadium, team }: Rev
                   <p className="text-gray-300 text-sm mb-2">{calculations.atmosphereBonus.formula}</p>
                   <p className="text-gray-400 text-sm">{calculations.atmosphereBonus.example}</p>
                   <Badge className={calculations.atmosphereBonus.result > 0 ? "bg-yellow-600 text-white mt-2" : "bg-gray-600 text-white mt-2"}>
-                    ₡{calculations.atmosphereBonus.result.toLocaleString()}
+                    {calculations.atmosphereBonus.result.toLocaleString()}₡
                   </Badge>
                 </div>
               </div>
@@ -187,13 +187,13 @@ export function RevenueCalculationsModal({ isOpen, onClose, stadium, team }: Rev
                 <div className="text-center">
                   <h4 className="text-white font-semibold mb-2">Per Home Game</h4>
                   <div className="text-3xl font-bold text-green-400">
-                    ₡{totalPerGame.toLocaleString()}
+                    {totalPerGame.toLocaleString()}₡
                   </div>
                 </div>
                 <div className="text-center">
                   <h4 className="text-white font-semibold mb-2">Full Season (8 games)</h4>
                   <div className="text-3xl font-bold text-blue-400">
-                    ₡{seasonTotal.toLocaleString()}
+                    {seasonTotal.toLocaleString()}₡
                   </div>
                 </div>
               </div>
@@ -219,11 +219,11 @@ export function RevenueCalculationsModal({ isOpen, onClose, stadium, team }: Rev
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Concessions Level +1</span>
-                  <span className="text-green-400">+₡{(sampleAttendance * 8).toLocaleString()} per game</span>
+                  <span className="text-green-400">+{(sampleAttendance * 8).toLocaleString()}₡ per game</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">Parking Level +1</span>
-                  <span className="text-green-400">+₡{(Math.round(sampleAttendance * 0.3) * 10).toLocaleString()} per game</span>
+                  <span className="text-green-400">+{(Math.round(sampleAttendance * 0.3) * 10).toLocaleString()}₡ per game</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">VIP Suites Level +1</span>

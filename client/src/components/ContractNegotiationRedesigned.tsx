@@ -413,7 +413,7 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
                     and run until end of Season {(contractInfo?.nextContractStartsSeason || 0) + offerYears - 1}
                   </div>
                   <div className="text-sm text-gray-300 mt-2">
-                    Total Value: ₡{(offerSalary * offerYears + (calculation?.signingBonus || 0)).toLocaleString()} 
+                    Total Value: {(offerSalary * offerYears + (calculation?.signingBonus || 0)).toLocaleString()}₡ 
                     over {offerYears} seasons
                   </div>
                 </div>
@@ -432,7 +432,7 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
                       <div key={index} className="p-3 bg-gray-700 rounded-lg">
                         <div className="flex justify-between items-center">
                           <span className="text-white">
-                            ₡{offer.salary.toLocaleString()} for {offer.years} seasons
+                            {offer.salary.toLocaleString()}₡ for {offer.years} seasons
                           </span>
                           <Badge variant="destructive">Rejected</Badge>
                         </div>

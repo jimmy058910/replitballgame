@@ -859,7 +859,7 @@ export default function MobileRosterHQ() {
                   {staffData?.totalStaffCost && (
                     <div className="text-right">
                       <div className="text-sm text-orange-300">Total Cost</div>
-                      <div className="font-bold text-lg">₡{staffData.totalStaffCost.toLocaleString()}/season</div>
+                      <div className="font-bold text-lg">{staffData.totalStaffCost.toLocaleString()}₡/season</div>
                     </div>
                   )}
                 </CardTitle>
