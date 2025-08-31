@@ -1078,8 +1078,8 @@ router.post('/start-live-match', requireAuth, async (req: any, res) => {
     const { matchId } = req.body;
     const userId = req.user.claims.sub;
     
-    // Check if user is admin
-    if (userId !== "44010914") {
+    // Check if user is admin or development environment
+    if (userId !== "44010914" && process.env.NODE_ENV !== 'development') {
       return res.status(403).json({ message: "Access denied. Admin privileges required." });
     }
 
@@ -1105,6 +1105,112 @@ router.post('/start-live-match', requireAuth, async (req: any, res) => {
     
   } catch (error) {
     console.error("Error starting live match:", error);
+    res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Development endpoint to trigger tournament advancement
+router.post('/dev-advance-tournament/:tournamentId', requireAuth, async (req: any, res) => {
+  try {
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({ message: "Development endpoint only" });
+    }
+
+    const { tournamentId } = req.params;
+    
+    // Import tournament flow service
+    const { tournamentFlowService } = await import('../services/tournamentFlowService');
+    
+    // Manually trigger round advancement check for round 1 (quarterfinals)
+    await (tournamentFlowService as any).checkAndAdvanceRound(parseInt(tournamentId), 1);
+    
+    res.json({ 
+      success: true, 
+      message: `Tournament ${tournamentId} advancement check completed`
+    });
+    
+  } catch (error) {
+    console.error("Error advancing tournament:", error);
+    res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Development endpoint to start all tournament matches
+router.post('/dev-start-tournament/:tournamentId', requireAuth, async (req: any, res) => {
+  try {
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({ message: "Development endpoint only" });
+    }
+
+    const { tournamentId } = req.params;
+    const prisma = await getPrismaClient();
+    
+    // Get all SCHEDULED matches for this tournament
+    const matches = await prisma.game.findMany({
+      where: { 
+        tournamentId: parseInt(tournamentId),
+        status: 'SCHEDULED'
+      }
+    });
+
+    if (matches.length === 0) {
+      return res.json({ 
+        success: true, 
+        message: "No scheduled matches found",
+        matchesProcessed: 0
+      });
+    }
+
+    // Process each match with instant simulation
+    const results = [];
+    for (const match of matches) {
+      try {
+        // Run instant simulation
+        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        
+        // Update match status and score immediately
+        await prisma.game.update({
+          where: { id: match.id },
+          data: {
+            status: 'COMPLETED',
+            homeScore: simulationResult.finalScore.home,
+            awayScore: simulationResult.finalScore.away,
+            simulated: true
+          }
+        });
+        
+        // Trigger tournament advancement if this is a tournament match
+        if (match.tournamentId) {
+          const { tournamentFlowService } = await import('../services/tournamentFlowService.js');
+          await tournamentFlowService.handleMatchCompletion(match.id);
+        }
+        
+        results.push({
+          matchId: match.id,
+          success: true,
+          score: `${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`
+        });
+        
+        console.log(`✅ Match ${match.id} completed: ${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`);
+      } catch (error) {
+        console.error(`❌ Match ${match.id} failed:`, error);
+        results.push({
+          matchId: match.id,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Tournament ${tournamentId} matches processed`,
+      matchesProcessed: results.length,
+      results: results
+    });
+    
+  } catch (error) {
+    console.error("Error starting tournament matches:", error);
     res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });

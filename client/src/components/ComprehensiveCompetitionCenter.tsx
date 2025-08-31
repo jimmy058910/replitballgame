@@ -1952,7 +1952,15 @@ export default function ComprehensiveCompetitionCenter() {
                             </div>
                           </div>
                           <div className="text-xs text-gray-500 mt-2">
-                            {formatTournamentMatchTime(match.gameDate, match.status)} | Game ID: {match.id}
+                            {match.status === 'COMPLETED' && match.homeScore !== null && match.awayScore !== null ? (
+                              <span className="text-green-400 font-bold">
+                                FINAL: {match.homeScore}-{match.awayScore} | Game ID: {match.id}
+                              </span>
+                            ) : (
+                              <span>
+                                {formatTournamentMatchTime(match.gameDate, match.status)} | Game ID: {match.id}
+                              </span>
+                            )}
                           </div>
                         </div>
                       ))}
