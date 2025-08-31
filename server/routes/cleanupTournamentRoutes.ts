@@ -169,4 +169,104 @@ router.get('/registration-status', requireAuth, async (req: Request, res: Respon
   }
 });
 
+// Force complete tournament with rewards distribution
+router.post('/force-complete/:tournamentId', requireAuth, async (req: any, res: any) => {
+  const tournamentId = parseInt(req.params.tournamentId);
+  const prisma = await getPrismaClient();
+  
+  try {
+    console.log(`🏆 [FORCE COMPLETE] Starting tournament ${tournamentId} completion...`);
+    
+    // Check all matches are completed
+    const allMatches = await prisma.game.findMany({
+      where: { tournamentId: tournamentId }
+    });
+    
+    const completedMatches = allMatches.filter(match => match.status === 'COMPLETED');
+    console.log(`📊 [FORCE COMPLETE] Matches: ${completedMatches.length}/${allMatches.length} completed`);
+    
+    if (completedMatches.length !== allMatches.length) {
+      return res.status(400).json({ 
+        error: 'Tournament not ready for completion',
+        details: `${completedMatches.length}/${allMatches.length} matches completed`
+      });
+    }
+    
+    // Get finals match to determine winner
+    const finalsMatch = await prisma.game.findFirst({
+      where: {
+        tournamentId: tournamentId,
+        round: 3,
+        status: 'COMPLETED'
+      }
+    });
+    
+    if (!finalsMatch) {
+      return res.status(400).json({ error: 'Finals match not found or not completed' });
+    }
+    
+    console.log(`🏆 [FORCE COMPLETE] Finals: ${finalsMatch.homeScore} - ${finalsMatch.awayScore}`);
+    
+    // Determine winner
+    const winnerId = (finalsMatch.homeScore || 0) > (finalsMatch.awayScore || 0) 
+      ? finalsMatch.homeTeamId 
+      : finalsMatch.awayTeamId;
+    const runnerUpId = winnerId === finalsMatch.homeTeamId 
+      ? finalsMatch.awayTeamId 
+      : finalsMatch.homeTeamId;
+    
+    console.log(`🏆 [FORCE COMPLETE] Winner: Team ${winnerId}, Runner-up: Team ${runnerUpId}`);
+    
+    // Award winner credits (5000₡ for winner, 2500₡ for runner-up)
+    const winnerFinances = await prisma.teamFinances.findFirst({
+      where: { teamId: winnerId }
+    });
+    const runnerUpFinances = await prisma.teamFinances.findFirst({
+      where: { teamId: runnerUpId }
+    });
+    
+    if (winnerFinances) {
+      await prisma.teamFinances.update({
+        where: { id: winnerFinances.id },
+        data: { credits: { increment: 5000 } }
+      });
+      console.log(`💰 [FORCE COMPLETE] Winner awarded 5000₡`);
+    }
+    
+    if (runnerUpFinances) {
+      await prisma.teamFinances.update({
+        where: { id: runnerUpFinances.id },
+        data: { credits: { increment: 2500 } }
+      });
+      console.log(`💰 [FORCE COMPLETE] Runner-up awarded 2500₡`);
+    }
+    
+    // Update tournament status to COMPLETED
+    await prisma.tournament.update({
+      where: { id: tournamentId },
+      data: { status: 'COMPLETED' }
+    });
+    
+    console.log(`✅ [FORCE COMPLETE] Tournament ${tournamentId} completed successfully!`);
+    
+    res.json({ 
+      success: true, 
+      message: `Tournament ${tournamentId} completed and rewards distributed`,
+      winner: winnerId,
+      runnerUp: runnerUpId,
+      rewards: {
+        winner: "5000₡",
+        runnerUp: "2500₡"
+      },
+      status: "COMPLETED"
+    });
+  } catch (error) {
+    console.error('Error force completing tournament:', error);
+    res.status(500).json({ 
+      error: 'Failed to complete tournament', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    });
+  }
+});
+
 export default router;

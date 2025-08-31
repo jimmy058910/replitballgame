@@ -1267,4 +1267,91 @@ router.post('/create-finals/:tournamentId', requireAuth, async (req: any, res: a
   }
 });
 
+// Manual tournament completion for development
+router.post('/dev-complete/:tournamentId', requireAuth, async (req: any, res: any) => {
+  const tournamentId = parseInt(req.params.tournamentId);
+  const prisma = await getPrismaClient();
+  
+  try {
+    // Check if all matches are completed
+    const allMatches = await prisma.game.findMany({
+      where: { tournamentId: tournamentId }
+    });
+    
+    const completedMatches = allMatches.filter(match => match.status === 'COMPLETED');
+    
+    if (completedMatches.length !== allMatches.length) {
+      return res.status(400).json({ 
+        error: 'Tournament not ready for completion',
+        details: `${completedMatches.length}/${allMatches.length} matches completed`
+      });
+    }
+    
+    // Get finals match to determine winner
+    const finalsMatch = await prisma.game.findFirst({
+      where: {
+        tournamentId: tournamentId,
+        round: 3,
+        status: 'COMPLETED'
+      }
+    });
+    
+    if (!finalsMatch) {
+      return res.status(400).json({ error: 'Finals match not found or not completed' });
+    }
+    
+    // Determine winner
+    const winnerId = (finalsMatch.homeScore || 0) > (finalsMatch.awayScore || 0) 
+      ? finalsMatch.homeTeamId 
+      : finalsMatch.awayTeamId;
+    const runnerUpId = winnerId === finalsMatch.homeTeamId 
+      ? finalsMatch.awayTeamId 
+      : finalsMatch.homeTeamId;
+    
+    // Award winner credits (5000₡ for winner, 2500₡ for runner-up)
+    const winnerFinances = await prisma.teamFinances.findFirst({
+      where: { teamId: winnerId }
+    });
+    const runnerUpFinances = await prisma.teamFinances.findFirst({
+      where: { teamId: runnerUpId }
+    });
+    
+    if (winnerFinances) {
+      await prisma.teamFinances.update({
+        where: { id: winnerFinances.id },
+        data: { credits: { increment: 5000 } }
+      });
+    }
+    
+    if (runnerUpFinances) {
+      await prisma.teamFinances.update({
+        where: { id: runnerUpFinances.id },
+        data: { credits: { increment: 2500 } }
+      });
+    }
+    
+    // Update tournament status to COMPLETED
+    await prisma.tournament.update({
+      where: { id: tournamentId },
+      data: { status: 'COMPLETED' }
+    });
+    
+    console.log(`✅ Tournament ${tournamentId} completed - Winner: ${winnerId}, Runner-up: ${runnerUpId}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Tournament ${tournamentId} completed successfully`,
+      winner: winnerId,
+      runnerUp: runnerUpId,
+      details: "5000₡ awarded to winner, 2500₡ to runner-up, status updated to COMPLETED"
+    });
+  } catch (error) {
+    console.error('Error completing tournament:', error);
+    res.status(500).json({ 
+      error: 'Failed to complete tournament', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    });
+  }
+});
+
 export default router;
