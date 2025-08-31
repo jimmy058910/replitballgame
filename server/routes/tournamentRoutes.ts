@@ -98,7 +98,7 @@ router.get('/daily-division/status/:division', requireAuth, async (req: Request,
 
     // Get timer status from auto-fill service
     const { dailyTournamentAutoFillService } = await import('../services/dailyTournamentAutoFillService.js');
-    let timerStatus = dailyTournamentAutoFillService.getTimerStatus(Number(tournament.id));
+    let timerStatus = await dailyTournamentAutoFillService.getTimerStatus(Number(tournament.id));
     
     // ✅ FALLBACK: If we have registered teams but no active timer, start one  
     console.log(`🔍 [TOURNAMENT DEBUG] Timer check - Active: ${timerStatus.active}, Entries: ${tournament.entries.length}, Tournament ID: ${tournament.id}`);
@@ -113,7 +113,7 @@ router.get('/daily-division/status/:division', requireAuth, async (req: Request,
         console.log(`🔄 [TOURNAMENT TIMER] RESTORING EXISTING TIMER - Tournament ${tournament.id} already has valid end time`);
         
         try {
-          const existingEndTime = new Date(tournament.registrationEndTime);
+          const existingEndTime = new Date(tournament.registrationEndTime!);
           const remainingTime = existingEndTime.getTime() - Date.now();
           
           if (remainingTime > 0) {
@@ -173,7 +173,7 @@ router.get('/daily-division/status/:division', requireAuth, async (req: Request,
       }
       
       // Get updated timer status
-      timerStatus = dailyTournamentAutoFillService.getTimerStatus(Number(tournament.id));
+      timerStatus = await dailyTournamentAutoFillService.getTimerStatus(Number(tournament.id));
       console.log(`🔍 [TOURNAMENT TIMER] Updated timer status:`, timerStatus);
       
     } else {
