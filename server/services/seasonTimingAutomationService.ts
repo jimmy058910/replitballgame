@@ -8,6 +8,7 @@ import { tournamentService } from './tournamentService.js';
 import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
+import { QuickMatchSimulation } from './quickMatchSimulation.js';
 
 // Prisma client will be accessed via await getPrismaClient() in each method
 
@@ -840,10 +841,20 @@ export class SeasonTimingAutomationService {
                   }
                 });
                 
-                // Initialize match state in the match state manager (live simulation)
-                const { matchStateManager } = await import('./matchStateManager');
-                await matchStateManager.startLiveMatch(match.id.toString(), false);
-                logInfo(`Started league match ${match.id} for ${subdivision} on Day ${currentDayInCycle}`);
+                // Use instant simulation instead of live match
+                const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+                
+                // Update match status and score immediately
+                await prisma.game.update({
+                  where: { id: match.id },
+                  data: {
+                    status: 'COMPLETED',
+                    homeScore: simulationResult.finalScore.home,
+                    awayScore: simulationResult.finalScore.away
+                  }
+                });
+                
+                logInfo(`Completed league match ${match.id} for ${subdivision} on Day ${currentDayInCycle} - Score: ${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`);
               } catch (error) {
                 console.error(`Error starting match ${match.id}:`, error);
               }
@@ -979,9 +990,18 @@ export class SeasonTimingAutomationService {
               }
             });
 
-            // Start live simulation
-            const { matchStateManager } = await import('./matchStateManager');
-            await matchStateManager.startLiveMatch(match.id.toString(), false);
+            // Use instant simulation
+            const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+            
+            // Update match status and score immediately
+            await prisma.game.update({
+              where: { id: match.id },
+              data: {
+                status: 'COMPLETED',
+                homeScore: simulationResult.finalScore.home,
+                awayScore: simulationResult.finalScore.away
+              }
+            });
           }
           
           logInfo(`Mid-Season Cup tournament ${tournament.id} started with ${firstRoundMatches.length} first round matches`);
@@ -1031,10 +1051,20 @@ export class SeasonTimingAutomationService {
               }
             });
             
-            // Initialize match state in the match state manager
-            const { matchStateManager } = await import('./matchStateManager');
-            await matchStateManager.startLiveMatch(match.id.toString(), false);
-            logInfo(`🔥 CATCH UP: Started missed match ${match.id} (was ${minutesPastDue} minutes past due)`);
+            // Use instant simulation for catch-up
+            const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+            
+            // Update match status and score immediately
+            await prisma.game.update({
+              where: { id: match.id },
+              data: {
+                status: 'COMPLETED',
+                homeScore: simulationResult.finalScore.home,
+                awayScore: simulationResult.finalScore.away
+              }
+            });
+            
+            logInfo(`🔥 CATCH UP: Completed missed match ${match.id} (was ${minutesPastDue} minutes past due) - Score: ${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`);
           } catch (error) {
             console.error(`Error starting missed match ${match.id}:`, error);
           }
@@ -1605,13 +1635,23 @@ export class SeasonTimingAutomationService {
           }
         });
         
-        // Initialize match state in the match state manager
+        // Use instant simulation for tournament matches
         try {
-          const { matchStateManager } = await import('./matchStateManager');
-          await matchStateManager.startLiveMatch(match.id.toString());
-          logInfo(`Started tournament match ${match.id} for round ${round}`);
+          const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+          
+          // Update match status and score immediately
+          await prisma.game.update({
+            where: { id: match.id },
+            data: {
+              status: 'COMPLETED',
+              homeScore: simulationResult.finalScore.home,
+              awayScore: simulationResult.finalScore.away
+            }
+          });
+          
+          logInfo(`Completed tournament match ${match.id} for round ${round} - Score: ${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`);
         } catch (error) {
-          console.error(`Error initializing match state for match ${match.id}:`, error);
+          console.error(`Error simulating tournament match ${match.id}:`, error);
         }
       }
       

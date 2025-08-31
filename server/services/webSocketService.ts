@@ -244,9 +244,24 @@ class WebSocketService {
           // Process match commands
           switch (data.command) {
             case 'start_match':
-              const { matchStateManager: startManager } = await import('./matchStateManager');
-              await startManager.startLiveMatch(data.matchId, data.params?.isExhibition || false);
-              this.broadcastToMatch(data.matchId, 'match_started', { matchId: data.matchId });
+              // Use instant simulation instead of live match
+              const { QuickMatchSimulation } = await import('./quickMatchSimulation');
+              const simulationResult = await QuickMatchSimulation.simulateMatch(data.matchId);
+              
+              // Update match with final results
+              await prisma.game.update({
+                where: { id: parseInt(data.matchId) },
+                data: {
+                  status: 'COMPLETED',
+                  homeScore: simulationResult.finalScore.home,
+                  awayScore: simulationResult.finalScore.away
+                }
+              });
+              
+              this.broadcastToMatch(data.matchId, 'match_completed', { 
+                matchId: data.matchId,
+                finalScore: simulationResult.finalScore
+              });
               break;
             
             case 'pause_match':

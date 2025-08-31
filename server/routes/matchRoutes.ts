@@ -315,22 +315,29 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
     const { matchId } = req.params;
     console.log(`Manual match start requested for match ${matchId}`);
     
-    const { matchStateManager } = await import('../services/matchStateManager');
-    const result = await matchStateManager.startLiveMatch(matchId);
+    // Use instant simulation instead of live match
+    const { QuickMatchSimulation } = await import('../services/quickMatchSimulation');
+    const simulationResult = await QuickMatchSimulation.simulateMatch(matchId);
+    
+    // Update match status and score
+    const prisma = await getPrismaClient();
+    await prisma.game.update({
+      where: { id: parseInt(matchId) },
+      data: {
+        status: 'COMPLETED',
+        homeScore: simulationResult.finalScore.home,
+        awayScore: simulationResult.finalScore.away
+      }
+    });
     
     res.json({ 
       success: true, 
-      message: `Match ${matchId} started successfully`,
-      matchState: {
-        matchId: result.matchId,
-        status: result.status,
-        homeScore: result.homeScore,
-        awayScore: result.awayScore,
-        gameTime: result.gameTime
-      }
+      message: `Match ${matchId} completed via instant simulation`,
+      finalScore: simulationResult.finalScore,
+      simulationSummary: simulationResult.stats
     });
   } catch (error) {
-    console.error(`Error starting match ${req.params.matchId}:`, error);
+    console.error(`Error simulating match ${req.params.matchId}:`, error);
     res.status(500).json({ 
       success: false, 
       error: (error as any).message
@@ -1134,14 +1141,25 @@ router.post('/exhibition/instant', requireAuth, async (req: any, res: Response, 
       matchType: 'EXHIBITION'
     });
     
-    // Start live match simulation
-    const { matchStateManager } = await import('../services/matchStateManager');
-    await matchStateManager.startLiveMatch(newMatch.id.toString(), true);
+    // Use instant simulation instead of live match
+    const { QuickMatchSimulation } = await import('../services/quickMatchSimulation');
+    const simulationResult = await QuickMatchSimulation.simulateMatch(newMatch.id.toString());
+    
+    // Update match with final results
+    await prisma.game.update({
+      where: { id: newMatch.id },
+      data: {
+        status: 'COMPLETED',
+        homeScore: simulationResult.finalScore.home,
+        awayScore: simulationResult.finalScore.away
+      }
+    });
     
     res.json({ 
-      message: "Exhibition match created successfully",
+      message: "Exhibition match completed successfully",
       matchId: newMatch.id,
-      match: newMatch
+      finalScore: simulationResult.finalScore,
+      simulationSummary: simulationResult.stats
     });
   } catch (error) {
     console.error("Error creating exhibition match:", error);

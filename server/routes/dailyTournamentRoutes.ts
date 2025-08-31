@@ -2,6 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 import moment from "moment-timezone";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
@@ -153,14 +154,23 @@ router.post("/instant-match", requireAuth, async (req: any, res: Response, next:
       data: matchData
     });
 
-    // Start live match using WebSocket system with dynamic import
+    // Use instant simulation instead of live match
     try {
-      const { matchStateManager } = await import('../services/matchStateManager');
-      await matchStateManager.startLiveMatch(newMatch.id.toString(), false);
-      console.log("Tournament match started via WebSocket", { matchId: newMatch.id, homeTeamId: newMatch.homeTeamId, awayTeamId: newMatch.awayTeamId });
+      const simulationResult = await QuickMatchSimulation.simulateMatch(newMatch.id.toString());
+      
+      // Update match status and score immediately
+      await prisma.game.update({
+        where: { id: newMatch.id },
+        data: {
+          status: 'COMPLETED',
+          homeScore: simulationResult.finalScore.home,
+          awayScore: simulationResult.finalScore.away
+        }
+      });
+      console.log("Tournament match completed via instant simulation", { matchId: newMatch.id, homeScore: simulationResult.finalScore.home, awayScore: simulationResult.finalScore.away });
     } catch (error) {
-      console.error("Failed to start tournament match", { matchId: newMatch.id, error: error instanceof Error ? error.message : String(error) }); // Fix unknown error type
-      // Continue with response even if WebSocket start fails
+      console.error("Failed to simulate tournament match", { matchId: newMatch.id, error: error instanceof Error ? error.message : String(error) });
+      // Continue with response even if simulation fails
     }
 
     // Use tournament entry item if no free games remaining
@@ -268,14 +278,23 @@ router.post("/challenge-opponent", requireAuth, async (req: any, res: Response, 
       data: matchData
     });
 
-    // Start live match using WebSocket system with dynamic import
+    // Use instant simulation instead of live match
     try {
-      const { matchStateManager } = await import('../services/matchStateManager');
-      await matchStateManager.startLiveMatch(newMatch.id.toString(), false);
-      console.log("Tournament match started via WebSocket", { matchId: newMatch.id, homeTeamId: newMatch.homeTeamId, awayTeamId: newMatch.awayTeamId });
+      const simulationResult = await QuickMatchSimulation.simulateMatch(newMatch.id.toString());
+      
+      // Update match status and score immediately
+      await prisma.game.update({
+        where: { id: newMatch.id },
+        data: {
+          status: 'COMPLETED',
+          homeScore: simulationResult.finalScore.home,
+          awayScore: simulationResult.finalScore.away
+        }
+      });
+      console.log("Tournament match completed via instant simulation", { matchId: newMatch.id, homeScore: simulationResult.finalScore.home, awayScore: simulationResult.finalScore.away });
     } catch (error: any) {
-      console.error("Failed to start tournament match", { matchId: newMatch.id, error: error.message });
-      // Continue with response even if WebSocket start fails
+      console.error("Failed to simulate tournament match", { matchId: newMatch.id, error: error.message });
+      // Continue with response even if simulation fails
     }
 
     // Use tournament entry item if no free games remaining

@@ -6,6 +6,7 @@ import { exhibitionGameStorage } from '../storage/exhibitionGameStorage.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 import { z } from "zod";
 // Using string literals for match types
 import { getPrismaClient } from "../database.js";
@@ -359,8 +360,19 @@ router.post('/instant', requireAuth, async (req: any, res: Response, next: NextF
       gameDate: new Date(),
     });
 
-    const { matchStateManager } = await import('../services/matchStateManager');
-    const liveMatchState = await matchStateManager.startLiveMatch(match.id.toString(), true);
+    // Use instant simulation instead of live match
+    const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+    
+    // Update match status and score immediately
+    const updatePrisma = await getPrismaClient();
+    await updatePrisma.game.update({
+      where: { id: match.id },
+      data: {
+        status: 'COMPLETED',
+        homeScore: simulationResult.finalScore.home,
+        awayScore: simulationResult.finalScore.away
+      }
+    });
 
     // No need to create duplicate exhibition record - the match already exists in Game table
 
@@ -368,11 +380,12 @@ router.post('/instant', requireAuth, async (req: any, res: Response, next: NextF
     
     res.status(201).json({
       matchId: match.id,
-      message: `Exhibition match against ${bestOpponent.name} started!`,
+      message: `Exhibition match against ${bestOpponent.name} completed!`,
       opponentType: isUserTeam ? 'user' : 'ai',
       opponentName: bestOpponent.name,
       isHome: false, // Always away for exhibition games
-      liveState: liveMatchState
+      simulation: simulationResult,
+      finalScore: simulationResult.finalScore
     });
   } catch (error) {
     console.error("Error finding exhibition match:", error);
@@ -468,28 +481,37 @@ router.post('/challenge', requireAuth, async (req: any, res: Response, next: Nex
     const randomOpponent = opponents[Math.floor(Math.random() * opponents.length)];
     const isHome = Math.random() < 0.5;
     
-    // Clean up any existing live matches for this user's team to prevent multiple matches
-    const { matchStateManager } = await import('../services/matchStateManager');
-    console.log(`🧹 Cleaning up any existing live matches for team ${userTeam.id}`);
-    await matchStateManager.cleanupTeamMatches(userTeam.id);
-
+    // Create and immediately simulate exhibition match
     const match = await matchStorage.createMatch({
       homeTeamId: isHome ? userTeam.id : randomOpponent.id,
       awayTeamId: isHome ? randomOpponent.id : userTeam.id,
       matchType: "EXHIBITION",
       gameDate: new Date(),
     });
-
-    const liveMatchState = await matchStateManager.startLiveMatch(match.id.toString(), true);
+    
+    // Use instant simulation instead of live match
+    const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+    
+    // Update match status and score immediately
+    const updatePrisma = await getPrismaClient();
+    await updatePrisma.game.update({
+      where: { id: match.id },
+      data: {
+        status: 'COMPLETED',
+        homeScore: simulationResult.finalScore.home,
+        awayScore: simulationResult.finalScore.away
+      }
+    });
     
     // No need to create duplicate exhibition record - the match already exists in Game table
 
     res.status(201).json({
       matchId: match.id,
-      message: `Exhibition match against ${randomOpponent.name} started!`,
+      message: `Exhibition match against ${randomOpponent.name} completed!`,
       opponentName: randomOpponent.name,
       isHome,
-      liveState: liveMatchState
+      simulation: simulationResult,
+      finalScore: simulationResult.finalScore
     });
   } catch (error) {
     console.error("Error creating exhibition challenge:", error);
@@ -644,27 +666,38 @@ router.post('/instant-match', requireAuth, async (req: any, res: Response, next:
       gameDate: new Date(),
     });
 
-    // Start the live match immediately - if this fails, clean up the created match
-    let liveMatchState;
+    // Use instant simulation instead of live match
+    let simulationResult;
     try {
-      const { matchStateManager } = await import('../services/matchStateManager');
-      liveMatchState = await matchStateManager.startLiveMatch(match.id.toString(), true);
+      simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+      
+      // Update match status and score immediately
+      const instantPrisma = await getPrismaClient();
+      await instantPrisma.game.update({
+        where: { id: match.id },
+        data: {
+          status: 'COMPLETED',
+          homeScore: simulationResult.finalScore.home,
+          awayScore: simulationResult.finalScore.away
+        }
+      });
     } catch (error) {
-      console.error(`Failed to start exhibition match ${match.id}, cleaning up:`, error);
+      console.error(`Failed to simulate exhibition match ${match.id}, cleaning up:`, error);
       // Clean up the failed match to prevent SCHEDULED exhibitions
       const cleanupPrisma = await getPrismaClient();
       await cleanupPrisma.game.delete({ where: { id: match.id } });
-      throw new Error("Failed to start exhibition match. Please try again.");
+      throw new Error("Failed to simulate exhibition match. Please try again.");
     }
 
     // No need to create duplicate exhibition record - the match already exists in Game table
 
     res.status(201).json({
       matchId: match.id,
-      message: `Exhibition match against ${bestOpponent.name} started!`,
+      message: `Exhibition match against ${bestOpponent.name} completed!`,
       opponentName: bestOpponent.name,
       isHome: false, // Always away for exhibition games
-      liveState: liveMatchState
+      simulation: simulationResult,
+      finalScore: simulationResult.finalScore
     });
   } catch (error) {
     console.error("Error creating instant exhibition match:", error);
@@ -721,27 +754,38 @@ router.post('/challenge-opponent', requireAuth, async (req: any, res: Response, 
       gameDate: new Date(),
     });
 
-    // Start the live match immediately - if this fails, clean up the created match
-    let liveMatchState;
+    // Use instant simulation instead of live match
+    let simulationResult;
     try {
-      const { matchStateManager } = await import('../services/matchStateManager');
-      liveMatchState = await matchStateManager.startLiveMatch(match.id.toString(), true);
+      simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+      
+      // Update match status and score immediately
+      const challengePrisma = await getPrismaClient();
+      await challengePrisma.game.update({
+        where: { id: match.id },
+        data: {
+          status: 'COMPLETED',
+          homeScore: simulationResult.finalScore.home,
+          awayScore: simulationResult.finalScore.away
+        }
+      });
     } catch (error) {
-      console.error(`Failed to start exhibition match ${match.id}, cleaning up:`, error);
+      console.error(`Failed to simulate exhibition match ${match.id}, cleaning up:`, error);
       // Clean up the failed match to prevent SCHEDULED exhibitions
       const cleanupPrisma = await getPrismaClient();
       await cleanupPrisma.game.delete({ where: { id: match.id } });
-      throw new Error("Failed to start exhibition match. Please try again.");
+      throw new Error("Failed to simulate exhibition match. Please try again.");
     }
 
     // No need to create duplicate exhibition record - the match already exists in Game table
 
     res.status(201).json({
       matchId: match.id,
-      message: `Exhibition match against ${opponentTeam.name} started! Game is now live.`,
+      message: `Exhibition match against ${opponentTeam.name} completed!`,
       opponentName: opponentTeam.name,
       isHome: false, // Always away for exhibition games
-      liveState: liveMatchState
+      simulation: simulationResult,
+      finalScore: simulationResult.finalScore
     });
   } catch (error) {
     console.error("Error creating exhibition challenge:", error);

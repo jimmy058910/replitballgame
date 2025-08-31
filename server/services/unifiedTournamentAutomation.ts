@@ -1,4 +1,5 @@
 import { getPrismaClient } from "../database.js";
+import { QuickMatchSimulation } from './quickMatchSimulation.js';
 // Using any types for Prisma enums to avoid import issues
 
 /**
@@ -14,6 +15,7 @@ export class UnifiedTournamentAutomation {
     console.log(`Starting tournament ${tournamentId} round ${roundNumber}...`);
     
     try {
+      const prisma = await getPrismaClient();
       // Get matches for this round
       const matches = await prisma.game.findMany({
         where: { 
@@ -28,8 +30,7 @@ export class UnifiedTournamentAutomation {
         return;
       }
 
-      // Start live simulation for all matches
-      const { matchStateManager } = await import('./matchStateManager');
+      // Use instant simulation for all matches
       const startPromises = matches.map(async (match: any) => {
         try {
           // Update match status to IN_PROGRESS
@@ -41,13 +42,24 @@ export class UnifiedTournamentAutomation {
             }
           });
 
-          // Start live simulation
-          await matchStateManager.startLiveMatch(match.id.toString());
-          console.log(`Started live simulation for tournament match ${match.id}`);
+          // Use instant simulation
+          const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+          
+          // Update match status and score immediately
+          await prisma.game.update({
+            where: { id: match.id },
+            data: {
+              status: 'COMPLETED',
+              homeScore: simulationResult.finalScore.home,
+              awayScore: simulationResult.finalScore.away
+            }
+          });
+          
+          console.log(`Completed instant simulation for match ${match.id} - Score: ${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`);
           
           return match.id;
         } catch (error) {
-          console.error(`Error starting match ${match.id}:`, error);
+          console.error(`Error simulating match ${match.id}:`, error);
           return null;
         }
       });

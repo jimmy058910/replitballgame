@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 
 const router = Router();
 
@@ -590,8 +591,7 @@ router.post('/:id/matches/simulate-round', requireAuth, async (req: any, res) =>
       }
     });
 
-    // Start live simulation for all matches in the round
-    const { matchStateManager } = await import('../services/matchStateManager');
+    // Use instant simulation for all matches in the round
     const matchPromises = matches.map(async (match: any) => {
       try {
         // Set match status to IN_PROGRESS
@@ -603,13 +603,24 @@ router.post('/:id/matches/simulate-round', requireAuth, async (req: any, res) =>
           }
         });
 
-        // Start live simulation
-        await matchStateManager.startLiveMatch(match.id.toString());
-        console.log(`Started live simulation for tournament match ${match.id}`);
+        // Run instant simulation
+        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        
+        // Update match status and score immediately
+        await prisma.game.update({
+          where: { id: match.id },
+          data: {
+            status: 'COMPLETED',
+            homeScore: simulationResult.finalScore.home,
+            awayScore: simulationResult.finalScore.away
+          }
+        });
+        
+        console.log(`Completed instant simulation for tournament match ${match.id}`);
         
         return match.id;
       } catch (error) {
-        console.error(`Error starting live simulation for match ${match.id}:`, error);
+        console.error(`Error simulating tournament match ${match.id}:`, error);
         return null;
       }
     });
@@ -666,17 +677,27 @@ router.post('/:id/matches/manual-start', requireAuth, async (req: any, res) => {
 
     console.log(`Found ${matches.length} IN_PROGRESS matches for tournament ${tournamentId} round ${roundNumber}`);
 
-    // Start live simulation for all matches in the round
-    const { matchStateManager } = await import('../services/matchStateManager');
+    // Use instant simulation for all matches in the round
     const matchPromises = matches.map(async (match: any) => {
       try {
-        // Start live simulation directly
-        await matchStateManager.startLiveMatch(match.id.toString());
-        console.log(`Started live simulation for tournament match ${match.id}`);
+        // Run instant simulation directly
+        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        
+        // Update match status and score immediately
+        await prisma.game.update({
+          where: { id: match.id },
+          data: {
+            status: 'COMPLETED',
+            homeScore: simulationResult.finalScore.home,
+            awayScore: simulationResult.finalScore.away
+          }
+        });
+        
+        console.log(`Completed instant simulation for tournament match ${match.id}`);
         
         return match.id;
       } catch (error) {
-        console.error(`Error starting live simulation for match ${match.id}:`, error);
+        console.error(`Error simulating tournament match ${match.id}:`, error);
         return null;
       }
     });
@@ -904,8 +925,7 @@ router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) 
       return res.status(404).json({ message: "No schedulable matches found for this round" });
     }
 
-    // Start live simulation for each match
-    const { matchStateManager } = await import('../services/matchStateManager');
+    // Use instant simulation for each match
     const matchPromises = matches.map(async (match: any) => {
       try {
         // Set match status to IN_PROGRESS
@@ -917,13 +937,24 @@ router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) 
           }
         });
 
-        // Start live simulation
-        await matchStateManager.startLiveMatch(match.id.toString());
-        console.log(`Started live simulation for tournament match ${match.id}`);
+        // Run instant simulation
+        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        
+        // Update match status and score immediately
+        await prisma.game.update({
+          where: { id: match.id },
+          data: {
+            status: 'COMPLETED',
+            homeScore: simulationResult.finalScore.home,
+            awayScore: simulationResult.finalScore.away
+          }
+        });
+        
+        console.log(`Completed instant simulation for tournament match ${match.id}`);
         
         return match.id;
       } catch (error) {
-        console.error(`Error starting live simulation for match ${match.id}:`, error);
+        console.error(`Error simulating tournament match ${match.id}:`, error);
         return null;
       }
     });
@@ -1052,15 +1083,24 @@ router.post('/start-live-match', requireAuth, async (req: any, res) => {
       return res.status(403).json({ message: "Access denied. Admin privileges required." });
     }
 
-    // Import the match state manager
-    const { matchStateManager } = await import('../services/matchStateManager');
+    // Run instant simulation
+    const simulationResult = await QuickMatchSimulation.simulateMatch(matchId.toString());
     
-    // Start the live match
-    await matchStateManager.startLiveMatch(matchId.toString());
+    // Update match status and score immediately
+    const prisma = await getPrismaClient();
+    await prisma.game.update({
+      where: { id: parseInt(matchId) },
+      data: {
+        status: 'COMPLETED',
+        homeScore: simulationResult.finalScore.home,
+        awayScore: simulationResult.finalScore.away
+      }
+    });
     
     res.json({ 
       success: true, 
-      message: `Live simulation started for match ${matchId}` 
+      message: `Match ${matchId} completed via instant simulation`,
+      finalScore: simulationResult.finalScore
     });
     
   } catch (error) {
