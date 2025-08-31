@@ -364,7 +364,7 @@ export default function ComprehensiveCompetitionCenter() {
 
   // Query for tournament history
   const { data: tournamentHistory = [], isLoading: isHistoryLoading } = useQuery<any>({
-    queryKey: ["/api/new-tournaments/history"],
+    queryKey: ["/api/tournament-history"],
     enabled: !!team?.id,
   });
 
@@ -1341,54 +1341,75 @@ export default function ComprehensiveCompetitionCenter() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="text-center mb-6">
-                          <h4 className="text-lg font-bold text-white mb-2">Your Tournament Performance</h4>
-                          <div className="flex justify-center gap-4 text-sm">
-                            <div className="bg-yellow-900/30 px-3 py-1 rounded-lg">
-                              <span className="text-yellow-400 font-semibold">Championships: {tournamentHistory.filter((e: any) => e.finalRank === 1).length}</span>
-                            </div>
-                            <div className="bg-blue-900/30 px-3 py-1 rounded-lg">
-                              <span className="text-blue-400 font-semibold">Top 3: {tournamentHistory.filter((e: any) => e.finalRank && e.finalRank <= 3).length}</span>
-                            </div>
-                          </div>
-                        </div>
                         
-                        {tournamentHistory.map((entry: any, index: number) => (
-                          <div key={entry.id || index} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${
-                                  entry.finalRank === 1 ? 'bg-yellow-600/20' :
-                                  entry.finalRank <= 3 ? 'bg-blue-600/20' :
-                                  'bg-gray-600/20'
-                                }`}>
-                                  {entry.finalRank === 1 ? <Medal className="h-5 w-5 text-yellow-400" /> : <Trophy className="h-5 w-5 text-blue-400" />}
+                        {tournamentHistory.map((tournament: any, index: number) => {
+                          // Find user's participation in this tournament
+                          const userParticipation = tournament.participants?.find((p: any) => p.teamId === Number(team?.id));
+                          const finalRank = userParticipation?.finalRank;
+                          
+                          // Calculate rewards based on division and final ranking
+                          const getDivisionRewards = (division: number, rank: number) => {
+                            const rewardTable: Record<number, { champion: number; runnerUp: number; championGems?: number }> = {
+                              2: { champion: 16000, runnerUp: 6000, championGems: 8 },
+                              3: { champion: 12000, runnerUp: 4500, championGems: 5 },
+                              4: { champion: 9000, runnerUp: 3000, championGems: 3 },
+                              5: { champion: 6000, runnerUp: 2000 },
+                              6: { champion: 4000, runnerUp: 1500 },
+                              7: { champion: 2500, runnerUp: 1000 },
+                              8: { champion: 1500, runnerUp: 500 }
+                            };
+                            const rewards = rewardTable[division] || rewardTable[8];
+                            if (rank === 1) {
+                              return { credits: rewards.champion, gems: rewards.championGems || 0 };
+                            } else if (rank === 2) {
+                              return { credits: rewards.runnerUp, gems: 0 };
+                            }
+                            return { credits: 0, gems: 0 };
+                          };
+                          
+                          const rewards = getDivisionRewards(tournament.division, finalRank);
+                          
+                          return (
+                            <div key={tournament.id || index} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-2 rounded-lg ${
+                                    finalRank === 1 ? 'bg-yellow-600/20' :
+                                    finalRank <= 3 ? 'bg-blue-600/20' :
+                                    'bg-gray-600/20'
+                                  }`}>
+                                    {finalRank === 1 ? <Medal className="h-5 w-5 text-yellow-400" /> : <Trophy className="h-5 w-5 text-blue-400" />}
+                                  </div>
+                                  <div>
+                                    <h5 className="font-bold text-white">Daily Divisional Tournament</h5>
+                                    <p className="text-sm text-gray-400">
+                                      {getDivisionName(tournament.division)} Division
+                                    </p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <h5 className="font-bold text-white">{entry.tournament?.name || 'Tournament'}</h5>
-                                  <p className="text-sm text-gray-400 capitalize">
-                                    {entry.tournament?.type?.replace('_', ' ').toLowerCase() || 'Unknown Type'} • Division {entry.tournament?.division || 'Unknown'}
-                                  </p>
+                                <div className="text-right">
+                                  <Badge className={`${
+                                    finalRank === 1 ? 'bg-yellow-600 text-yellow-100' :
+                                    finalRank <= 3 ? 'bg-blue-600 text-blue-100' :
+                                    'bg-gray-600 text-gray-100'
+                                  }`}>
+                                    {finalRank === 1 ? '🏆 Champion' : finalRank ? `#${finalRank}` : 'Participated'}
+                                  </Badge>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <Badge className={`${
-                                  entry.finalRank === 1 ? 'bg-yellow-600 text-yellow-100' :
-                                  entry.finalRank <= 3 ? 'bg-blue-600 text-blue-100' :
-                                  'bg-gray-600 text-gray-100'
-                                }`}>
-                                  {entry.finalRank === 1 ? '🏆 Champion' : entry.finalRank ? `#${entry.finalRank}` : 'Participated'}
-                                </Badge>
+                              <div className="flex items-center justify-between text-sm text-gray-400">
+                                <span>{tournament.endTime ? new Date(tournament.endTime).toLocaleDateString() : 'Date Unknown'}</span>
+                                {(rewards.credits > 0 || rewards.gems > 0) && (
+                                  <span className="text-yellow-400 font-semibold">
+                                    {rewards.credits > 0 && `${rewards.credits.toLocaleString()}₡`}
+                                    {rewards.credits > 0 && rewards.gems > 0 && ' + '}
+                                    {rewards.gems > 0 && `${rewards.gems}💎`}
+                                  </span>
+                                )}
                               </div>
                             </div>
-                            <div className="flex items-center justify-between text-sm text-gray-400">
-                              <span>{entry.registeredAt ? new Date(entry.registeredAt).toLocaleDateString() : 'Date Unknown'}</span>
-                              {entry.finalRank === 1 && (
-                                <span className="text-yellow-400 font-semibold">🏅 Victory!</span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>
