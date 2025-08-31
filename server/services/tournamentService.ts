@@ -581,24 +581,26 @@ export class TournamentService {
 
     // Check entry requirements
     if (tournament.id) {
-      // Daily Division Tournament - requires Tournament Entry item
-      const entryItems = await prisma.tournamentEntry.findMany({
+      // Daily Division Tournament - check if already registered
+      const existingEntry = await prisma.tournamentEntry.findFirst({
         where: {
           teamId: teamId,
           tournamentId: tournament.id
         }
       });
 
-      if (entryItems.length === 0) {
-        throw new Error("No Tournament Entry items available");
-      }
-
-      // Entry already exists for this tournament
-      const entryItem = entryItems[0];
-      if (entryItem) {
-        // Already registered for this tournament
+      if (existingEntry) {
         throw new Error("Team is already registered for this tournament");
       }
+
+      // Create tournament entry for Daily Division Tournament (free entry)
+      await prisma.tournamentEntry.create({
+        data: {
+          tournamentId: tournament.id,
+          teamId: teamId,
+          registeredAt: new Date()
+        }
+      });
 
       // Log Daily Division Tournament entry
       const teamWithUser = await prisma.team.findUnique({
@@ -613,6 +615,24 @@ export class TournamentService {
           0
         );
       }
+
+      // Check if tournament is now full and start countdown if needed
+      const entriesCount = await prisma.tournamentEntry.count({
+        where: { tournamentId: tournament.id }
+      });
+
+      if (entriesCount >= 8) {
+        // Tournament is full, start 10-minute countdown
+        try {
+          const { tournamentFlowService } = await import('./tournamentFlowService');
+          tournamentFlowService.startTournamentCountdown(tournament.id);
+          console.log(`Tournament ${tournament.id} is full - started 10-minute countdown`);
+        } catch (error) {
+          console.error(`Error starting tournament countdown for tournament ${tournament.id}:`, error);
+        }
+      }
+
+      return; // Exit early for Daily Division Tournament
     } else {
       // Mid-Season Cup - requires credits, gems, or both
       const entryFeeCredits = tournament.entryFeeCredits || 0;
@@ -667,7 +687,7 @@ export class TournamentService {
       }
     }
 
-    // Check if team is already registered
+    // Check if team is already registered (Mid-Season Cup)
     const existingEntry = await prisma.tournamentEntry.findFirst({
       where: {
         tournamentId,
@@ -679,7 +699,7 @@ export class TournamentService {
       throw new Error("You are already registered for this tournament");
     }
 
-    // Create tournament entry
+    // Create tournament entry (Mid-Season Cup)
     await prisma.tournamentEntry.create({
       data: {
         tournamentId,

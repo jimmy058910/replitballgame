@@ -236,4 +236,90 @@ router.post('/claim-all', requireAuth, async (req: any, res: Response) => {
   }
 });
 
+// Fix missing playoff rewards for Division 8 championship
+router.post('/fix-playoff-rewards/:division', requireAuth, async (req: any, res: Response) => {
+  try {
+    const division = parseInt(req.params.division);
+    if (![8].includes(division)) {
+      return res.status(400).json({ message: "Playoff reward fix only available for Division 8" });
+    }
+
+    // Create a League Championship tournament for the missing playoff
+    const existingChampionship = await prisma.tournament.findFirst({
+      where: {
+        division: division,
+        type: "MID_SEASON_CLASSIC"
+      }
+    });
+
+    let championshipTournament;
+    if (!existingChampionship) {
+      // Create the missing League Championship tournament
+      championshipTournament = await prisma.tournament.create({
+        data: {
+          name: `Division ${division} Championship`,
+          tournamentId: `div-${division}-championship-${Date.now()}`,
+          type: "MID_SEASON_CLASSIC",
+          division: division,
+          status: "COMPLETED",
+          startTime: new Date("2025-08-30T05:00:00Z"), // Day 15
+          registrationEndTime: new Date("2025-08-30T04:59:59Z"),
+          endTime: new Date("2025-08-30T06:00:00Z"),
+          entryFeeCredits: 0,
+          entryFeeGems: 0,
+          prizePoolJson: JSON.stringify({
+            champion: { credits: 1500, gems: 0 },
+            runnerUp: { credits: 500, gems: 0 }
+          }),
+          seasonDay: 15
+        }
+      });
+    } else {
+      championshipTournament = existingChampionship;
+    }
+
+    // Create tournament entries for playoff teams with proper finalRank
+    const playoffResults = [
+      { teamId: 4, finalRank: 1 },  // Oakland Cougars - Champion
+      { teamId: 15, finalRank: 2 }, // Fire Hawks 261 - Runner-up  
+      { teamId: 17, finalRank: 3 }  // Iron Wolves 858 - 3rd place
+    ];
+
+    let entriesCreated = 0;
+    for (const result of playoffResults) {
+      // Check if entry already exists
+      const existingEntry = await prisma.tournamentEntry.findFirst({
+        where: {
+          tournamentId: championshipTournament.id,
+          teamId: result.teamId
+        }
+      });
+
+      if (!existingEntry) {
+        await prisma.tournamentEntry.create({
+          data: {
+            tournamentId: championshipTournament.id,
+            teamId: result.teamId,
+            registeredAt: new Date("2025-08-30T04:00:00Z"),
+            finalRank: result.finalRank,
+            rewardsClaimed: false
+          }
+        });
+        entriesCreated++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Fixed playoff rewards for Division ${division}`,
+      tournamentId: championshipTournament.id,
+      entriesCreated: entriesCreated
+    });
+
+  } catch (error) {
+    console.error("Error fixing playoff rewards:", error);
+    res.status(500).json({ message: "Failed to fix playoff rewards" });
+  }
+});
+
 export default router;
