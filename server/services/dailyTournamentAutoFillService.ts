@@ -149,10 +149,10 @@ class DailyTournamentAutoFillService {
         return;
       }
 
-      console.log(`🔧 [TOURNAMENT AUTO-FILL] Creating ${slotsToFill} AI teams for division ${division}`);
+      console.log(`🔧 [TOURNAMENT AUTO-FILL] Need ${slotsToFill} more teams for division ${division}`);
 
-      // Generate AI teams for this tournament
-      const aiTeams = await this.generateAITeams(slotsToFill, division);
+      // First try to use existing AI teams, then create new ones if needed
+      const aiTeams = await this.getAvailableAITeams(slotsToFill, division, tournamentId);
       
       // Register AI teams
       for (const team of aiTeams) {
@@ -180,7 +180,48 @@ class DailyTournamentAutoFillService {
   }
 
   /**
-   * Generate AI teams for tournament fill
+   * Get available AI teams (existing first, then create new ones if needed)
+   */
+  private async getAvailableAITeams(count: number, division: number, tournamentId: number): Promise<any[]> {
+    const prisma = await getPrismaClient();
+    
+    // First, find existing AI teams not already in this tournament
+    const alreadyRegistered = await prisma.tournamentEntry.findMany({
+      where: { tournamentId },
+      select: { teamId: true }
+    });
+    const registeredTeamIds = alreadyRegistered.map(entry => entry.teamId);
+    
+    console.log(`🔍 [AI TEAM SEARCH] Looking for existing AI teams not in tournament ${tournamentId}`);
+    
+    const existingAITeams = await prisma.team.findMany({
+      where: {
+        isAI: true,
+        division: division,
+        id: {
+          notIn: registeredTeamIds
+        }
+      },
+      orderBy: { createdAt: 'asc' } // Use oldest teams first for consistency
+    });
+    
+    console.log(`🤖 [AI TEAM SEARCH] Found ${existingAITeams.length} existing AI teams available for division ${division}`);
+    
+    const availableExisting = existingAITeams.slice(0, count);
+    const stillNeeded = count - availableExisting.length;
+    
+    if (stillNeeded > 0) {
+      console.log(`🔧 [AI TEAM SEARCH] Need to create ${stillNeeded} additional AI teams`);
+      const newTeams = await this.generateAITeams(stillNeeded, division);
+      return [...availableExisting, ...newTeams];
+    } else {
+      console.log(`✅ [AI TEAM SEARCH] Using ${availableExisting.length} existing AI teams`);
+      return availableExisting;
+    }
+  }
+
+  /**
+   * Generate NEW AI teams for tournament fill (only when needed)
    */
   private async generateAITeams(count: number, division: number): Promise<any[]> {
     const prisma = await getPrismaClient();
@@ -189,7 +230,7 @@ class DailyTournamentAutoFillService {
     for (let i = 0; i < count; i++) {
       const teamName = TOURNAMENT_AI_TEAMS[i % TOURNAMENT_AI_TEAMS.length] + ` ${Math.floor(Math.random() * 900) + 100}`;
       
-      // Create AI team
+      // Create AI team with AI user
       const team = await prisma.team.create({
         data: {
           name: teamName,
@@ -197,11 +238,19 @@ class DailyTournamentAutoFillService {
           isAI: true,
           camaraderie: Math.floor(Math.random() * 30) + 70, // 70-100
           fanLoyalty: Math.floor(Math.random() * 30) + 70,
-          homeField: 'BALANCED' as any,
+          homeField: 'STANDARD' as any,
           tacticalFocus: 'BALANCED' as any,
           wins: 0,
           losses: 0,
-          points: 0
+          points: 0,
+          user: {
+            create: {
+              userId: `ai-tournament-${Date.now()}-${i}`,
+              email: `ai-${teamName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}@realmrivalry.ai`,
+              firstName: `AI Manager`,
+              lastName: `${i + 1}`
+            }
+          }
         } as any
       });
 
@@ -243,7 +292,7 @@ class DailyTournamentAutoFillService {
    */
   private async generateAIPlayers(teamId: number): Promise<void> {
     const prisma = await getPrismaClient();
-    const races = ['human', 'sylvan', 'gryll', 'lumina', 'umbra'];
+    const races = ['HUMAN', 'SYLVAN', 'GRYLL', 'LUMINA', 'UMBRA'];
     const positions = ['PASSER', 'RUNNER', 'BLOCKER'];
 
     // Generate 12 players per team
@@ -275,7 +324,7 @@ class DailyTournamentAutoFillService {
           injuryStatus: 'HEALTHY',
           injuryRecoveryPointsNeeded: 0,
           injuryRecoveryPointsCurrent: 0,
-          dailyItemsUsed: [] as any,
+          dailyItemsUsed: 0,
           careerInjuries: 0,
           isOnMarket: false,
           isRetired: false,
