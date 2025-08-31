@@ -579,4 +579,71 @@ router.post('/emergency-populate-current-season', requireAuth, async (req, res) 
   }
 });
 
+// Emergency playoff finals creation endpoint
+router.post('/playoffs/create-finals', requireAuth, async (req, res) => {
+  try {
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Create Finals: Oakland Cougars (4) vs Fire Hawks 261 (11) - 1:30 AM EDT
+    const finalsMatch = await prisma.game.create({
+      data: {
+        leagueId: 8,
+        homeTeamId: 4,
+        awayTeamId: 11,
+        homeScore: 0,
+        awayScore: 0,
+        gameDate: new Date('2025-08-31T05:30:00.000Z'),
+        simulated: false,
+        matchType: 'PLAYOFF',
+        status: 'SCHEDULED'
+      }
+    });
+    
+    // Create 3rd Place: Iron Wolves 858 (6) vs Fire Hawks 509 (14) - 1:45 AM EDT
+    const thirdPlaceMatch = await prisma.game.create({
+      data: {
+        leagueId: 8,
+        homeTeamId: 6,
+        awayTeamId: 14,
+        homeScore: 0,
+        awayScore: 0,
+        gameDate: new Date('2025-08-31T05:45:00.000Z'),
+        simulated: false,
+        matchType: 'PLAYOFF',
+        status: 'SCHEDULED'
+      }
+    });
+    
+    res.json({
+      success: true,
+      message: 'Playoff finals and 3rd place matches created successfully',
+      matches: [
+        {
+          id: finalsMatch.id,
+          type: 'Finals',
+          homeTeamId: finalsMatch.homeTeamId,
+          awayTeamId: finalsMatch.awayTeamId,
+          gameDate: finalsMatch.gameDate
+        },
+        {
+          id: thirdPlaceMatch.id,
+          type: '3rd Place',
+          homeTeamId: thirdPlaceMatch.homeTeamId,
+          awayTeamId: thirdPlaceMatch.awayTeamId,
+          gameDate: thirdPlaceMatch.gameDate
+        }
+      ]
+    });
+    
+  } catch (error) {
+    console.error('Error creating playoff finals:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create playoff finals',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
