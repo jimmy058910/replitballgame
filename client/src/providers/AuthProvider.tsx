@@ -23,6 +23,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('🔥 Setting up Firebase authentication system...');
     
+    // Development bypass - auto-login for development
+    if (import.meta.env.DEV) {
+      console.log('🔧 Development mode - bypassing Firebase auth');
+      
+      // Create a mock user for development
+      const mockUser = {
+        uid: 'dev-user-123',
+        email: 'developer@realmrivalry.com',
+        displayName: 'Developer',
+        getIdToken: async () => 'dev-token-123'
+      } as any;
+      
+      setUser(mockUser);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+    
     // Set up Firebase auth state listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('🔥 Firebase Auth state changed:', user ? `authenticated: ${user.email}` : 'not authenticated');

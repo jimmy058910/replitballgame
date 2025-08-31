@@ -4,6 +4,7 @@
 import { Router, Request, Response } from 'express';
 import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
 import { MatchStatusFixer } from '../utils/matchStatusFixer.js';
+import { TournamentBracketGenerator } from '../utils/tournamentBracketGenerator.js';
 // No auth import needed for now - will use simple endpoint
 
 const router = Router();
@@ -260,6 +261,35 @@ router.get('/tournaments', async (req: Request, res: Response) => {
     
   } catch (error) {
     console.error('❌ [ADMIN] List tournaments failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Generate tournament bracket for a tournament with 8 teams
+router.post('/tournament/:id/generate-bracket', async (req: Request, res: Response) => {
+  try {
+    const tournamentId = parseInt(req.params.id);
+    console.log(`🏆 [ADMIN] Generating bracket for tournament ${tournamentId}...`);
+    
+    if (tournamentId === 2) {
+      // Special case for Tournament 2 - use manual creation
+      const { createTournamentGames } = await import('../utils/manualGameCreator.js');
+      await createTournamentGames();
+    } else {
+      await TournamentBracketGenerator.generateInitialBracket(tournamentId);
+    }
+    
+    res.json({
+      success: true,
+      message: `Successfully generated bracket for tournament ${tournamentId}`,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Tournament bracket generation failed:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

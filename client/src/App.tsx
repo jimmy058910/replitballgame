@@ -95,6 +95,7 @@ function Router() {
           )} />
 
           <Route path="/competition" component={CompetitionCenter} />
+          <Route path="/competitions" component={CompetitionCenter} />
           <Route path="/market" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gray-900 animate-pulse" />}>
               <LazyMarketDistrict />
