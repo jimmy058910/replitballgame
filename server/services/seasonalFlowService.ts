@@ -911,12 +911,16 @@ export class SeasonalFlowService {
         if (division === 1) {
           // Division 1: 8-team single elimination tournament
           // Quarterfinals: 1v8, 2v7, 3v6, 4v5
+          const day15Base = new Date(currentSeason.startDate.getTime() + 14 * 24 * 60 * 60 * 1000); // Day 15
+          const playoffTime1 = new Date(day15Base.getFullYear(), day15Base.getMonth(), day15Base.getDate(), 5, 0, 0); // 1:00 AM EDT (5:00 UTC)
+          const playoffTime2 = new Date(day15Base.getFullYear(), day15Base.getMonth(), day15Base.getDate(), 5, 15, 0); // 1:15 AM EDT (5:15 UTC)
+          
           playoffMatches = [
             {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[0].team.id, // Seed 1
               awayTeamId: playoffTeams[7].team.id, // Seed 8
-              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
+              gameDate: playoffTime1,
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             },
@@ -924,7 +928,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[1].team.id, // Seed 2
               awayTeamId: playoffTeams[6].team.id, // Seed 7
-              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
+              gameDate: playoffTime1,
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             },
@@ -932,7 +936,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[2].team.id, // Seed 3
               awayTeamId: playoffTeams[5].team.id, // Seed 6
-              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
+              gameDate: playoffTime2,
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             },
@@ -940,7 +944,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[3].team.id, // Seed 4
               awayTeamId: playoffTeams[4].team.id, // Seed 5
-              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
+              gameDate: playoffTime2,
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             }
@@ -948,12 +952,16 @@ export class SeasonalFlowService {
         } else {
           // Divisions 2-8: 4-team single elimination tournament
           // Semifinals: 1v4, 2v3
+          const day15Base = new Date(currentSeason.startDate.getTime() + 14 * 24 * 60 * 60 * 1000); // Day 15
+          const playoffTime1 = new Date(day15Base.getFullYear(), day15Base.getMonth(), day15Base.getDate(), 5, 0, 0); // 1:00 AM EDT (5:00 UTC)
+          const playoffTime2 = new Date(day15Base.getFullYear(), day15Base.getMonth(), day15Base.getDate(), 5, 15, 0); // 1:15 AM EDT (5:15 UTC)
+          
           playoffMatches = [
             {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[0].team.id, // Seed 1
               awayTeamId: playoffTeams[3].team.id, // Seed 4
-              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
+              gameDate: playoffTime1, // 1:00 AM EDT
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             },
@@ -961,7 +969,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[1].team.id, // Seed 2
               awayTeamId: playoffTeams[2].team.id, // Seed 3
-              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
+              gameDate: playoffTime2, // 1:15 AM EDT
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             }
