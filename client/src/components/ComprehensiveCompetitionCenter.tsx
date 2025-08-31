@@ -671,6 +671,31 @@ export default function ComprehensiveCompetitionCenter() {
     });
   };
 
+  const formatTournamentMatchTime = (dateString: string, status: string) => {
+    if (status === 'COMPLETED') return 'COMPLETED';
+    if (status === 'IN_PROGRESS') return 'LIVE';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = date.getTime() - now.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+    
+    if (diffMs <= 0) return 'Starting Now!';
+    if (diffMinutes < 60) {
+      if (diffMinutes <= 0) return `${diffSeconds}s`;
+      return `${diffMinutes}m ${diffSeconds}s`;
+    }
+    
+    // Show exact server time for longer waits
+    return `Starts at ${date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/New_York',
+      hour12: true
+    })} EDT`;
+  };
+
   if (!team) {
     return (
       <div className="min-h-screen bg-gray-900 text-white p-6">
@@ -1927,7 +1952,7 @@ export default function ComprehensiveCompetitionCenter() {
                             </div>
                           </div>
                           <div className="text-xs text-gray-500 mt-2">
-                            Status: {match.status} | Game ID: {match.id}
+                            {formatTournamentMatchTime(match.gameDate, match.status)} | Game ID: {match.id}
                           </div>
                         </div>
                       ))}
