@@ -83,7 +83,8 @@ export class TournamentStorage {
       // Convert string status to proper enum value
       switch (status) {
         case 'open':
-          whereClause.status = 'REGISTRATION_OPEN';
+          // Include both registration open and in-progress tournaments for display
+          whereClause.status = { in: ['REGISTRATION_OPEN', 'IN_PROGRESS'] };
           break;
         case 'closed':
           whereClause.status = 'REGISTRATION_CLOSED';

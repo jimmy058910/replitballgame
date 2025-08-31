@@ -70,7 +70,7 @@ router.get('/daily-division/status/:division', requireAuth, async (req: Request,
     const tournament = await prisma.tournament.findFirst({
       where: {
         division: divisionNum,
-        status: 'REGISTRATION_OPEN'
+        status: { in: ['REGISTRATION_OPEN', 'IN_PROGRESS'] }
       },
       include: {
         entries: {

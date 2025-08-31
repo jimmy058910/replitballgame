@@ -93,12 +93,26 @@ type Tournament = {
   id: string;
   name: string;
   type: string;
-  status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED';
+  status: 'UPCOMING' | 'ACTIVE' | 'COMPLETED' | 'REGISTRATION_OPEN' | 'IN_PROGRESS';
   entryFeeCredits?: number;
   entryFeeGems?: number;
   prizePool?: any;
   registrationEndTime?: string;
   startTime?: string;
+};
+
+// Helper function to map backend status to frontend status
+const mapTournamentStatus = (backendStatus: string): 'UPCOMING' | 'ACTIVE' | 'COMPLETED' => {
+  switch (backendStatus) {
+    case 'REGISTRATION_OPEN':
+      return 'UPCOMING';
+    case 'IN_PROGRESS':
+      return 'ACTIVE';
+    case 'COMPLETED':
+      return 'COMPLETED';
+    default:
+      return 'UPCOMING';
+  }
 };
 
 type Exhibition = {
@@ -333,8 +347,8 @@ export default function ComprehensiveCompetitionCenter() {
 
 
   const { data: tournaments } = useQuery<Tournament[]>({
-    queryKey: [`/api/tournaments/available/${team?.division}`],
-    enabled: !!team?.division,
+    queryKey: ['/api/tournaments/available'],
+    enabled: !!team?.division && isAuthenticated,
   });
 
   // Tournament-specific queries
