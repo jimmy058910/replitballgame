@@ -1695,4 +1695,52 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
   }
 });
 
+// Utility endpoint to create contracts for players without contracts
+router.post('/fix-team-contracts/:teamId', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { teamId } = req.params;
+    
+    // Get team info
+    const team = await storage.teams.getTeamById(Number(teamId));
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+    
+    // Get all players on this team who don't have contracts
+    const prisma = await getPrismaClient();
+    const playersWithoutContracts = await prisma.player.findMany({
+      where: {
+        teamId: Number(teamId),
+        contract: null,
+        isOnMarket: false,
+        isRetired: false
+      }
+    });
+    
+    if (playersWithoutContracts.length === 0) {
+      return res.status(400).json({ message: "All players already have contracts" });
+    }
+    
+    // Create contracts for all players without contracts
+    let contractsCreated = 0;
+    for (const player of playersWithoutContracts) {
+      await storage.contracts.createPlayerContract({
+        playerId: player.id,
+        salary: 50000, // Standard playoff contract
+        length: 1, // 1 year contract
+        signingBonus: 10000
+      });
+      contractsCreated++;
+    }
+    
+    res.json({ 
+      message: `Created ${contractsCreated} contracts for team ${team.name}`,
+      contractsCreated 
+    });
+  } catch (error) {
+    console.error("Error creating team contracts:", error);
+    next(error);
+  }
+});
+
 export default router;

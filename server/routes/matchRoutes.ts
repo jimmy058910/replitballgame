@@ -893,7 +893,6 @@ router.post('/:id/simulate', requireAuth, async (req: Request, res: Response, ne
       awayScore: result.finalScore.away,
       status: "COMPLETED",
       simulationLog: result.stats as any,
-      completedAt: new Date(),
     });
     
     console.log(`✅ MATCH COMPLETED: ${match.id} - Score: ${result.finalScore.home}-${result.finalScore.away}`);
