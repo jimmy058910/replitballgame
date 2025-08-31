@@ -54,6 +54,15 @@ function getCamaraderieInfo(camaraderie: number): { color: string; status: strin
   return { color: "text-red-500", status: "Terrible", emoji: "😞", bgColor: "bg-red-500/20 border-red-500" };
 }
 
+// Helper function to get appropriate status description based on camaraderie score
+function getStatusDescription(camaraderie: number): string {
+  if (camaraderie >= 80) return "Team spirit is excellent and players are highly motivated.";
+  if (camaraderie >= 60) return "Team spirit is strong and players work well together.";
+  if (camaraderie >= 40) return "Team spirit is average with room for improvement.";
+  if (camaraderie >= 20) return "Team spirit is poor and affecting performance.";
+  return "Team spirit is suffering badly and needs immediate attention.";
+}
+
 // Radial gauge component
 function RadialGauge({ value, maxValue = 100, size = 200 }: { value: number; maxValue?: number; size?: number }) {
   const percentage = (value / maxValue) * 100;
@@ -190,7 +199,7 @@ export default function CamaraderieManagement({ teamId }: { teamId: string }) {
                 <span className="text-2xl">{emoji}</span>
                 <div>
                   <h3 className="text-lg font-bold text-white">Team Camaraderie: {teamCamaraderie}</h3>
-                  <p className="text-gray-300">{status} – Team spirit is suffering badly.</p>
+                  <p className="text-gray-300">{status} – {getStatusDescription(teamCamaraderie)}</p>
                 </div>
               </div>
             </div>

@@ -2308,4 +2308,123 @@ router.post('/:teamId/tryouts', requireAuth, asyncHandler(async (req: Request, r
   }
 }));
 
+// ========================================
+// FORMATION MANAGEMENT ROUTES (CRITICAL FIX)
+// ========================================
+
+// Get team formation
+router.get('/:teamId/formation', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId, 10);
+  const userId = req.user?.claims?.sub;
+
+  console.log(`🔍 [ROUTE DEBUG] Handling GET /api/teams/${teamId}/formation`);
+
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.unauthorized("Access denied to this team");
+  }
+
+  // Get players for this team
+  const players = await storage.players.getPlayersByTeamId(teamId);
+  
+  // Get formation from strategy table
+  const prisma = await getPrismaClient();
+  const strategy = await prisma.strategy.findFirst({
+    where: { teamId: teamId }
+  });
+
+  const formationData = strategy?.formationJson || null;
+  
+  let starters: any[] = [];
+  let substitutes: any[] = [];
+
+  if (formationData) {
+    // Map starters with full player data
+    starters = formationData.starters.map((s: any) => {
+      const player = players.find((p: any) => p.id === s.id || p.id === parseInt(s.id));
+      return player ? { ...player, rosterPosition: s.rosterPosition } : null;
+    }).filter(Boolean);
+
+    // Map substitutes with full player data
+    substitutes = formationData.substitutes.map((s: any) => {
+      const player = players.find((p: any) => p.id === s.id || p.id === parseInt(s.id));
+      return player ? { ...player, rosterPosition: s.rosterPosition } : null;
+    }).filter(Boolean);
+  }
+
+  res.json({
+    starters,
+    substitutes,
+    formation_data: formationData
+  });
+}));
+
+// Update team formation
+router.put('/:teamId/formation', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId, 10);
+  const userId = req.user?.claims?.sub;
+
+  console.log(`🔍 [ROUTE DEBUG] Handling PUT /api/teams/${teamId}/formation`);
+
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.unauthorized("Access denied to this team");
+  }
+
+  const { starters, substitutes, formationData } = req.body;
+
+  // Validate starters and substitutes are arrays
+  if (!Array.isArray(starters) || !Array.isArray(substitutes)) {
+    throw ErrorCreators.badRequest("Starters and substitutes must be arrays");
+  }
+
+  console.log('🔍 Formation update payload:', {
+    startersCount: starters.length,
+    substitutesCount: substitutes.length,
+    hasFormationData: !!formationData
+  });
+
+  // Create formation object
+  const formation = {
+    starters: starters.map((s: any, index: number) => ({
+      id: s.id,
+      rosterPosition: index + 1
+    })),
+    substitutes: substitutes.map((s: any, index: number) => ({
+      id: s.id,
+      rosterPosition: starters.length + index + 1
+    })),
+    formationData: formationData || { formation: "2-2-1-1-wildcard" }
+  };
+
+  // Save to strategy table
+  const prisma = await getPrismaClient();
+  await prisma.strategy.upsert({
+    where: { teamId: teamId },
+    update: { formationJson: formation },
+    create: {
+      teamId: teamId,
+      formationJson: formation
+    }
+  });
+
+  console.log('✅ Formation saved successfully');
+
+  res.json({
+    success: true,
+    message: "Formation updated successfully",
+    formation
+  });
+}));
+
 export default router;
