@@ -993,9 +993,9 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
           schedule[dayNumber] = [];
         }
         
-        // FIXED: Properly detect completed games by scores, not just status
-        const isCompleted = game.homeScore !== null && game.awayScore !== null;
-        const gameStatus = isCompleted ? 'COMPLETED' : (game.status || 'SCHEDULED');
+        // FIXED: Properly detect completed games by simulation status or actual game status
+        const isCompleted = game.simulated === true || game.status === 'COMPLETED';
+        const gameStatus = isCompleted ? 'COMPLETED' : 'SCHEDULED';
         
         // FIXED: Don't show games with null scores as completed
         const displayHomeScore = game.homeScore || 0;
