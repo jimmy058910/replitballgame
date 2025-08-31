@@ -88,11 +88,6 @@ function Router() {
               <LazyDashboard />
             </Suspense>
           )} />
-          <Route path="/teams/my" component={() => (
-            <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 animate-pulse" />}>
-              <LazyTeam />
-            </Suspense>
-          )} />
           <Route path="/roster-hq" component={() => (
             <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/30 animate-pulse flex items-center justify-center"><div className="text-white text-xl">Loading Roster HQ...</div></div>}>
               <LazyRosterHQ />

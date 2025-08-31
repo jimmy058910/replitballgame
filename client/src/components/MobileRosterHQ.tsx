@@ -36,6 +36,7 @@ import PlayerDetailModal from './PlayerDetailModal';
 import CamaraderieManagement from './CamaraderieManagement';
 import StadiumFinancialHub from './StadiumFinancialHub';
 import TapToAssignTactics from './TapToAssignTactics';
+import TryoutSystem from './TryoutSystem';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest, queryClient } from '../lib/queryClient';
 
@@ -792,6 +793,19 @@ export default function MobileRosterHQ() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Tryout System - Player Recruitment */}
+                <Card className="bg-gradient-to-r from-green-800 to-green-900 border-2 border-green-400">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-white">
+                      <UserPlus className="w-6 h-6 mr-3 text-green-400" />
+                      🎯 PLAYER RECRUITMENT
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <TryoutSystem teamId={team?.id || ''} />
+                  </CardContent>
+                </Card>
 
                 {/* No Results Message */}
                 {rosterView !== 'all' && filteredMainRoster.length === 0 && filteredTaxiSquad.length === 0 && (
