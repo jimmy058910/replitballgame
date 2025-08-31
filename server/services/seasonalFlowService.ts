@@ -1424,72 +1424,107 @@ export class SeasonalFlowService {
   }
 
   /**
-   * Execute complete season rollover
+   * Execute playoffs completion and offseason start (Day 15→16 transition)
+   */
+  static async executePlayoffsToOffseasonTransition(currentSeason: number): Promise<{
+    awardsDistributed: boolean;
+    prizesDistributed: boolean;
+    totalAwards: number;
+    totalPrizeMoney: number;
+    summary: {
+      totalAwards: number;
+      totalPrizeMoney: number;
+    };
+  }> {
+    logInfo(`Starting Day 15→16 transition: Playoffs complete, distributing awards and prizes for Season ${currentSeason}`);
+    
+    // 1. Calculate and distribute end-of-season awards (moved from Day 17→1)
+    const awardsResult = await this.distributeEndOfSeasonAwards(currentSeason);
+    
+    // 2. Distribute prize money based on final standings (moved from Day 17→1)
+    const prizesResult = await this.distributePrizeMoney(currentSeason);
+    
+    logInfo(`Day 15→16 transition completed`, {
+      awardsDistributed: awardsResult.awardsDistributed,
+      prizesDistributed: prizesResult.prizesDistributed,
+      totalAwards: awardsResult.totalAwards,
+      totalPrizeMoney: prizesResult.totalPrizeMoney
+    });
+    
+    return {
+      awardsDistributed: awardsResult.awardsDistributed,
+      prizesDistributed: prizesResult.prizesDistributed,
+      totalAwards: awardsResult.totalAwards,
+      totalPrizeMoney: prizesResult.totalPrizeMoney,
+      summary: {
+        totalAwards: awardsResult.totalAwards,
+        totalPrizeMoney: prizesResult.totalPrizeMoney
+      }
+    };
+  }
+
+  /**
+   * Execute complete season rollover (Day 17→1 transition)
+   * NOTE: Awards and prize distribution moved to Day 15→16 transition
    */
   static async executeSeasonRollover(currentSeason: number): Promise<{
     newSeason: number;
     scheduleGenerated: boolean;
     promotionRelegationCompleted: boolean;
     leaguesRebalanced: boolean;
-    awardsDistributed: boolean;
-    prizesDistributed: boolean;
     aiTeamsRemoved: boolean;
     summary: {
       totalMatches: number;
       totalPromotions: number;
       totalRelegations: number;
       leaguesCreated: number;
-      totalAwards: number;
-      totalPrizeMoney: number;
       totalAITeamsDeleted: number;
       totalAIPlayersDeleted: number;
     };
   }> {
     const newSeason = currentSeason + 1;
+    logInfo(`Starting Day 17→1 transition: Season rollover for Season ${currentSeason} → ${newSeason}`);
     
-    // 1. Calculate and distribute end-of-season awards
-    const awardsResult = await this.distributeEndOfSeasonAwards(currentSeason);
-    
-    // 2. Distribute prize money based on final standings
-    const prizesResult = await this.distributePrizeMoney(currentSeason);
-    
-    // 3. Clean up AI teams before promotion/relegation
+    // 1. Clean up AI teams before promotion/relegation
     const aiCleanupResult = await this.cleanupAITeams();
     
-    // 4. Process final promotion/relegation (now with AI teams removed)
+    // 2. Process final promotion/relegation (now with AI teams removed)
     const promotionResult = await this.processPromotionRelegation(currentSeason);
     
-    // 5. Rebalance leagues for new season
+    // 3. Rebalance leagues for new season
     const rebalanceResult = await this.rebalanceLeagues(currentSeason);
     
-    // 6. Reset team statistics for new season
+    // 4. Reset team statistics for new season
     await prisma.team.updateMany({
       data: {
         wins: 0,
         losses: 0,
-
         points: 0
       }
     });
     
-    // 7. Generate schedule for new season
+    // 5. Generate schedule for new season
     const scheduleResult = await this.generateSeasonSchedule(newSeason);
+    
+    logInfo(`Day 17→1 transition completed`, {
+      newSeason,
+      scheduleGenerated: scheduleResult.matchesGenerated > 0,
+      promotionRelegationCompleted: true,
+      leaguesRebalanced: rebalanceResult.leaguesRebalanced > 0,
+      aiTeamsRemoved: aiCleanupResult.aiTeamsRemoved
+    });
     
     return {
       newSeason,
       scheduleGenerated: scheduleResult.matchesGenerated > 0,
       promotionRelegationCompleted: true,
       leaguesRebalanced: rebalanceResult.leaguesRebalanced > 0,
-      awardsDistributed: awardsResult.awardsDistributed,
-      prizesDistributed: prizesResult.prizesDistributed,
       aiTeamsRemoved: aiCleanupResult.aiTeamsRemoved,
       summary: {
         totalMatches: scheduleResult.matchesGenerated,
         totalPromotions: promotionResult.promotions.length,
         totalRelegations: promotionResult.relegations.length,
         leaguesCreated: rebalanceResult.newLeaguesCreated,
-        totalAwards: awardsResult.totalAwards,
-        totalPrizeMoney: prizesResult.totalPrizeMoney,
         totalAITeamsDeleted: aiCleanupResult.totalAITeamsDeleted,
         totalAIPlayersDeleted: aiCleanupResult.totalAIPlayersDeleted
       }

@@ -352,6 +352,11 @@ export class SeasonTimingAutomationService {
         await this.executeDivisionTournaments(seasonNumber);
       }
       
+      // Check for Day 15→16 transition: Playoffs complete, distribute awards and prizes (3:00 AM EST)
+      if (currentDayInCycle === 16 && estTime.getHours() === 3 && estTime.getMinutes() === 0) {
+        await this.executePlayoffsToOffseasonTransition(seasonNumber);
+      }
+      
       // Check for Day 17 season rollover at 3:00 AM EST
       if (currentDayInCycle === 17 && estTime.getHours() === 3 && estTime.getMinutes() === 0) {
         await this.executeSeasonRollover(seasonNumber);
@@ -537,20 +542,47 @@ export class SeasonTimingAutomationService {
   }
 
   /**
+   * Execute playoffs to offseason transition (Day 16, 3:00 AM EST)
+   * Distributes end-of-season awards and prize money when playoffs complete
+   */
+  private async executePlayoffsToOffseasonTransition(seasonNumber: number): Promise<void> {
+    try {
+      logInfo(`Executing playoffs to offseason transition for Season ${seasonNumber}...`);
+      
+      const transitionResult = await SeasonalFlowService.executePlayoffsToOffseasonTransition(seasonNumber);
+      
+      logInfo(`Playoffs to offseason transition completed successfully`, {
+        season: seasonNumber,
+        awardsDistributed: transitionResult.awardsDistributed,
+        prizesDistributed: transitionResult.prizesDistributed,
+        totalAwards: transitionResult.totalAwards,
+        totalPrizeMoney: transitionResult.totalPrizeMoney,
+        summary: transitionResult.summary
+      });
+      
+    } catch (error) {
+      console.error('Error during playoffs to offseason transition:', (error as Error).message, 'Season:', seasonNumber);
+    }
+  }
+
+  /**
    * Execute season rollover (Day 17, 3:00 AM EST)
+   * NOTE: Awards and prize distribution moved to Day 15→16 transition
    */
   private async executeSeasonRollover(seasonNumber: number): Promise<void> {
     try {
       logInfo(`Starting season rollover from Season ${seasonNumber}...`);
       
-      // Execute complete season rollover
+      // Execute complete season rollover (awards/prizes now handled in Day 15→16)
       const rolloverResult = await SeasonalFlowService.executeSeasonRollover(seasonNumber);
       
       logInfo(`Season rollover completed successfully`, {
         newSeason: rolloverResult.newSeason,
         totalMatches: rolloverResult.summary.totalMatches,
         totalPromotions: rolloverResult.summary.totalPromotions,
-        totalRelegations: rolloverResult.summary.totalRelegations
+        totalRelegations: rolloverResult.summary.totalRelegations,
+        aiTeamsRemoved: rolloverResult.aiTeamsRemoved,
+        leaguesRebalanced: rolloverResult.leaguesRebalanced
       });
       
     } catch (error) {
