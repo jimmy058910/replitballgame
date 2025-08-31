@@ -972,9 +972,22 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
       const schedule: any = {};
       const startDate = currentSeason.startDate || new Date('2025-08-16');
       
-      existingGames.forEach(game => {
+      // Remove duplicates by creating a Set of unique game IDs
+      const uniqueGames = existingGames.filter((game, index, arr) => 
+        arr.findIndex(g => g.id === game.id) === index
+      );
+
+      console.log(`🔧 [DEDUP] Removed ${existingGames.length - uniqueGames.length} duplicate games`);
+
+      uniqueGames.forEach(game => {
         const daysSinceStart = Math.floor((game.gameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
         const dayNumber = daysSinceStart + 1;
+        
+        // Skip games with invalid day calculations (before season start or too far future)
+        if (dayNumber < 1 || dayNumber > 20) {
+          console.log(`⚠️ [SKIP] Game ${game.id} on invalid day ${dayNumber} (${game.gameDate.toDateString()}), match type: ${game.matchType}`);
+          return;
+        }
         
         if (!schedule[dayNumber]) {
           schedule[dayNumber] = [];

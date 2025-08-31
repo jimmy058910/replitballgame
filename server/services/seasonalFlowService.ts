@@ -916,7 +916,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[0].team.id, // Seed 1
               awayTeamId: playoffTeams[7].team.id, // Seed 8
-              gameDate: new Date("2025-07-27"), // Day 15 playoff date
+              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             },
@@ -924,7 +924,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[1].team.id, // Seed 2
               awayTeamId: playoffTeams[6].team.id, // Seed 7
-              gameDate: new Date("2025-07-27"), // Day 15 playoff date
+              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             },
@@ -932,7 +932,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[2].team.id, // Seed 3
               awayTeamId: playoffTeams[5].team.id, // Seed 6
-              gameDate: new Date("2025-07-27"), // Day 15 playoff date
+              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             },
@@ -940,7 +940,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[3].team.id, // Seed 4
               awayTeamId: playoffTeams[4].team.id, // Seed 5
-              gameDate: new Date("2025-07-27"), // Day 15 playoff date
+              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             }
@@ -953,7 +953,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[0].team.id, // Seed 1
               awayTeamId: playoffTeams[3].team.id, // Seed 4
-              gameDate: new Date("2025-07-27"), // Day 15 playoff date
+              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             },
@@ -961,7 +961,7 @@ export class SeasonalFlowService {
               leagueId: parseInt(league.id.toString()),
               homeTeamId: playoffTeams[1].team.id, // Seed 2
               awayTeamId: playoffTeams[2].team.id, // Seed 3
-              gameDate: new Date("2025-07-27"), // Day 15 playoff date
+              gameDate: new Date(currentSeason.startDate.getTime() + 15 * 24 * 60 * 60 * 1000), // Day 16 playoff date
               status: 'SCHEDULED' as const,
               matchType: 'PLAYOFF' as const
             }
