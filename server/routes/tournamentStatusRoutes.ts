@@ -263,17 +263,17 @@ router.get('/:id/status', requireAuth, async (req: any, res) => {
     const userTeamEntry = tournament.entries.find((entry: any) => entry.teamId.toString() === team.id.toString());
     const userTeamRegistered = !!userTeamEntry;
 
-    // Calculate time until start (10 minutes after full)
+    // Calculate time until start (2 minutes after full - development)
     const now = new Date();
     let timeUntilStart = 0;
     let timeUntilStartText = "Starting soon";
     
     if (isFull && tournament.status === 'REGISTRATION_OPEN') {
-      // Tournament is full but hasn't started yet - calculate 10 minute countdown
+      // Tournament is full but hasn't started yet - calculate 2 minute countdown (development)
       const lastEntryTime = tournament.entries.length > 0 
         ? Math.max(...tournament.entries.map((e: any) => new Date(e.registeredAt).getTime())) 
         : now.getTime();
-      const startTime = new Date(lastEntryTime + 10 * 60 * 1000); // 10 minutes after last entry
+      const startTime = new Date(lastEntryTime + 2 * 60 * 1000); // 2 minutes after last entry (development)
       timeUntilStart = Math.max(0, startTime.getTime() - now.getTime());
       
       if (timeUntilStart > 0) {

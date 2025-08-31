@@ -28,7 +28,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
   }
 
   /**
-   * Start 10-minute countdown when tournament is full
+   * Start 2-minute countdown when tournament is full (development)
    */
   startTournamentCountdown(tournamentId: number): void {
     const timerKey = `tournament_${tournamentId}`;
@@ -38,7 +38,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       clearTimeout(this.tournamentTimers.get(timerKey)!);
     }
 
-    // Start 10-minute countdown
+    // Start 2-minute countdown (development)
     const timer = setTimeout(async () => {
       try {
         await this.startTournamentRound(tournamentId, 1); // Start quarterfinals
@@ -46,10 +46,10 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
       } catch (error) {
         console.error(`Error starting tournament ${tournamentId}:`, error);
       }
-    }, 10 * 60 * 1000); // 10 minutes
+    }, 2 * 60 * 1000); // 2 minutes (development)
 
     this.tournamentTimers.set(timerKey, timer);
-    logInfo(`Tournament ${tournamentId} countdown started - 10 minutes until start`);
+    logInfo(`Tournament ${tournamentId} countdown started - 2 minutes until start (development)`);
   }
 
   /**
