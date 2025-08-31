@@ -1941,7 +1941,7 @@ export default function ComprehensiveCompetitionCenter() {
                       <p className="text-green-400 text-sm mb-4">✅ Tournament bracket is ready! {tournamentBracket.matches.length} matches generated</p>
                       
                       {/* Group matches by round for full bracket view */}
-                      {[1, 2, 3].map(round => {
+                      {[3, 2, 1].map(round => {
                         const roundMatches = tournamentBracket.matches.filter((match: any) => match.round === round);
                         if (roundMatches.length === 0) return null;
                         

@@ -1215,4 +1215,37 @@ router.post('/dev-start-tournament/:tournamentId', requireAuth, async (req: any,
   }
 });
 
+// Manual finals creation for development
+router.post('/dev-create-finals/:tournamentId', requireAuth, async (req: any, res: any) => {
+  const tournamentId = parseInt(req.params.tournamentId);
+  const prisma = await getPrismaClient();
+  
+  try {
+    // Create finals match: Oakland Cougars (4) vs Thunder Bolts 684 (26)
+    const finalsMatch = await prisma.game.create({
+      data: {
+        tournamentId: tournamentId,
+        homeTeamId: 4, // Oakland Cougars
+        awayTeamId: 26, // Thunder Bolts 684
+        homeScore: 0,
+        awayScore: 0,
+        status: 'SCHEDULED',
+        round: 3,
+        gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+        matchType: 'TOURNAMENT_DAILY',
+        simulated: false
+      }
+    });
+    
+    res.json({ 
+      success: true, 
+      message: `Finals created for tournament ${tournamentId}`,
+      matchId: finalsMatch.id
+    });
+  } catch (error) {
+    console.error('Error creating finals:', error);
+    res.status(500).json({ error: 'Failed to create finals' });
+  }
+});
+
 export default router;
