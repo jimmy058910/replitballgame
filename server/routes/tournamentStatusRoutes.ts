@@ -1216,11 +1216,27 @@ router.post('/dev-start-tournament/:tournamentId', requireAuth, async (req: any,
 });
 
 // Manual finals creation for development
-router.post('/dev-create-finals/:tournamentId', requireAuth, async (req: any, res: any) => {
+router.post('/create-finals/:tournamentId', requireAuth, async (req: any, res: any) => {
   const tournamentId = parseInt(req.params.tournamentId);
   const prisma = await getPrismaClient();
   
   try {
+    // Check if finals already exist
+    const existingFinals = await prisma.game.findFirst({
+      where: {
+        tournamentId: tournamentId,
+        round: 3
+      }
+    });
+    
+    if (existingFinals) {
+      return res.json({ 
+        success: true, 
+        message: `Finals already exist for tournament ${tournamentId}`,
+        matchId: existingFinals.id
+      });
+    }
+    
     // Create finals match: Oakland Cougars (4) vs Thunder Bolts 684 (26)
     const finalsMatch = await prisma.game.create({
       data: {
@@ -1231,20 +1247,23 @@ router.post('/dev-create-finals/:tournamentId', requireAuth, async (req: any, re
         awayScore: 0,
         status: 'SCHEDULED',
         round: 3,
-        gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+        gameDate: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes from now
         matchType: 'TOURNAMENT_DAILY',
         simulated: false
       }
     });
     
+    console.log(`✅ Finals created: Match ${finalsMatch.id} - Oakland Cougars vs Thunder Bolts 684`);
+    
     res.json({ 
       success: true, 
       message: `Finals created for tournament ${tournamentId}`,
-      matchId: finalsMatch.id
+      matchId: finalsMatch.id,
+      teams: "Oakland Cougars vs Thunder Bolts 684"
     });
   } catch (error) {
     console.error('Error creating finals:', error);
-    res.status(500).json({ error: 'Failed to create finals' });
+    res.status(500).json({ error: 'Failed to create finals', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
