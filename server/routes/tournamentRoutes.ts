@@ -485,8 +485,7 @@ router.get('/:division/bracket', requireAuth, async (req: Request, res: Response
       return res.status(400).json({ message: "Invalid division number." });
     }
 
-    // TODO: Fetch actual teams for a *specific* tournament, not just any team in division
-    // This would involve getting teams that *entered* a specific tournament.
+    // Get teams in this division
     const teamsInDivision = await storage.teams.getTeamsByDivision(division);
 
     if (teamsInDivision.length < 4) {
@@ -510,6 +509,76 @@ router.get('/:division/bracket', requireAuth, async (req: Request, res: Response
     res.json(bracket);
   } catch (error) {
     console.error("Error generating tournament bracket:", error);
+    next(error);
+  }
+});
+
+// Get bracket for a specific tournament (showing actual tournament games)
+router.get('/:tournamentId/matches', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tournamentId = parseInt(req.params.tournamentId);
+    if (isNaN(tournamentId)) {
+      return res.status(400).json({ message: "Invalid tournament ID." });
+    }
+
+    // Get tournament details using Prisma directly
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: tournamentId }
+    });
+    
+    if (!tournament) {
+      return res.status(404).json({ message: 'Tournament not found' });
+    }
+
+    // Get tournament matches/games
+    const games = await prisma.game.findMany({
+      where: { tournamentId: tournamentId },
+      orderBy: [{ round: 'asc' }, { id: 'asc' }]
+    });
+    
+    // Get team names for the games
+    const teamIds = new Set<number>();
+    games.forEach((game: any) => {
+      teamIds.add(game.homeTeamId);
+      teamIds.add(game.awayTeamId);
+    });
+    
+    const teams = await prisma.team.findMany({
+      where: { id: { in: Array.from(teamIds) } },
+      select: { id: true, name: true }
+    });
+    
+    const teamMap = new Map(teams.map((team: any) => [team.id, team]));
+
+    // Format matches with team names
+    const matches = games.map((game: any) => ({
+      id: game.id,
+      round: game.round,
+      homeTeam: teamMap.get(game.homeTeamId),
+      awayTeam: teamMap.get(game.awayTeamId),
+      homeScore: game.homeScore,
+      awayScore: game.awayScore,
+      status: game.status,
+      gameDate: game.gameDate
+    }));
+
+    const bracket = {
+      tournament: {
+        id: tournament.id,
+        name: tournament.name,
+        status: tournament.status,
+        division: tournament.division
+      },
+      matches: matches,
+      hasMatches: matches.length > 0
+    };
+
+    res.json(bracket);
+  } catch (error) {
+    console.error("Error fetching tournament matches:", error);
     next(error);
   }
 });
