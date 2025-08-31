@@ -1891,4 +1891,306 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
 console.log('🔍 [teamRoutes.ts] Router configured with routes, exporting...');
 console.log('🔍 [teamRoutes.ts] Router stack length:', router.stack.length);
 
+// Get staff members for a team
+router.get('/:teamId/staff', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  try {
+    let teamId = parseInt(req.params.teamId);
+
+    if (req.params.teamId === "my") {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.teams.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found for current user" });
+      }
+      teamId = team.id;
+    }
+
+    // Fetch staff with proper authentication check
+    const userId = req.user?.claims?.sub;
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    
+    if (!userTeam) {
+      throw ErrorCreators.unauthorized("Your team was not found");
+    }
+
+    // Only allow users to see their own team's staff for now
+    if (userTeam.id !== teamId) {
+      throw ErrorCreators.unauthorized("You can only view your own team's staff");
+    }
+
+    const staff = await storage.staff.getStaffByTeamId(teamId);
+    
+    // Get contracts for all staff members and calculate proper costs
+    const staffWithContracts = await Promise.all(
+      staff.map(async (member) => {
+        try {
+          const contracts = await storage.contracts.getActiveContractsByStaff(member.id);
+          const activeContract = contracts.length > 0 ? contracts[0] : null;
+          
+          return {
+            ...member,
+            contract: activeContract ? {
+              id: activeContract.id,
+              salary: Number(activeContract.salary),
+              duration: activeContract.length,
+              remainingYears: activeContract.length,
+              signedDate: activeContract.startDate,
+              expiryDate: activeContract.startDate
+            } : null
+          };
+        } catch (error) {
+          console.error(`Error fetching contract for staff member ${member.id}:`, error);
+          return {
+            ...member,
+            contract: null
+          };
+        }
+      })
+    );
+    
+    // Calculate total staff cost based on skills and position importance
+    const totalStaffCost = staffWithContracts.reduce((total, member) => {
+      if (member.contract && member.contract.salary) {
+        return total + member.contract.salary;
+      }
+      
+      // Skill-based calculation with position multipliers
+      let baseCost = 0;
+      
+      switch (member.type) {
+        case 'HEAD_COACH':
+          // Most important - motivation, development, tactics
+          baseCost = (member.motivation || 5) * 200 + (member.development || 5) * 200 + (member.tactics || 5) * 200;
+          break;
+        case 'PASSER_TRAINER':
+        case 'RUNNER_TRAINER': 
+        case 'BLOCKER_TRAINER':
+          // Training specialists - teaching is primary
+          baseCost = (member.teaching || 5) * 300 + (member.development || 5) * 100;
+          break;
+        case 'SCOUT':
+          // Scouting specialists - talent identification and assessment
+          baseCost = (member.talentIdentification || 5) * 250 + (member.potentialAssessment || 5) * 250;
+          break;
+        case 'RECOVERY_SPECIALIST':
+          // Medical specialist - physiology is primary
+          baseCost = (member.physiology || 5) * 400 + (member.development || 5) * 100;
+          break;
+        default:
+          // Generic calculation
+          const skillAverage = (
+            (member.motivation || 5) + (member.development || 5) + (member.teaching || 5) + 
+            (member.physiology || 5) + (member.talentIdentification || 5) + 
+            (member.potentialAssessment || 5) + (member.tactics || 5)
+          ) / 7;
+          baseCost = skillAverage * 150;
+      }
+      
+      // Apply level multiplier and minimum cost
+      const levelMultiplier = 1 + ((member.level || 1) - 1) * 0.5; // 50% increase per level
+      return total + Math.max(1000, Math.round(baseCost * levelMultiplier));
+    }, 0);
+    
+    return res.json({
+      staff: staffWithContracts,
+      totalStaffCost,
+      totalStaffMembers: staffWithContracts.length
+    });
+  } catch (error) {
+    console.error("Error fetching staff:", error);
+    throw error;
+  }
+}));
+
+// Debug endpoint to check staff count and types
+router.get('/:teamId/staff/debug', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  try {
+    let teamId = parseInt(req.params.teamId);
+
+    if (req.params.teamId === "my") {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.teams.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found for current user" });
+      }
+      teamId = team.id;
+    }
+
+    const staff = await storage.staff.getStaffByTeamId(teamId);
+    
+    // Group staff by type and count
+    const staffByType = staff.reduce((acc, member) => {
+      if (!acc[member.type]) {
+        acc[member.type] = [];
+      }
+      acc[member.type].push({
+        id: member.id,
+        name: member.name,
+        level: member.level,
+        age: member.age
+      });
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Count staff by type
+    const staffCounts = Object.keys(staffByType).reduce((acc, type) => {
+      acc[type] = staffByType[type].length;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return res.json({
+      teamId,
+      totalStaffMembers: staff.length,
+      staffCounts,
+      staffByType
+    });
+  } catch (error) {
+    console.error("Error debugging staff:", error);
+    throw error;
+  }
+}));
+
+// Clean up duplicate staff members (admin endpoint)
+router.post('/:teamId/staff/cleanup-duplicates', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  try {
+    let teamId = parseInt(req.params.teamId);
+
+    if (req.params.teamId === "my") {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.teams.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found for current user" });
+      }
+      teamId = team.id;
+    }
+
+    const staff = await storage.staff.getStaffByTeamId(teamId);
+    
+    // Group staff by type
+    const staffByType = staff.reduce((acc, member) => {
+      if (!acc[member.type]) {
+        acc[member.type] = [];
+      }
+      acc[member.type].push(member);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    let deletedCount = 0;
+    const keptStaff = [];
+
+    // For each staff type, keep the first one and delete the rest
+    for (const [type, members] of Object.entries(staffByType)) {
+      if (members.length > 1) {
+        // Keep the first member (oldest ID)
+        const toKeep = members.sort((a, b) => a.id - b.id)[0];
+        keptStaff.push(toKeep);
+        
+        // Delete the duplicates
+        const toDelete = members.slice(1);
+        for (const duplicate of toDelete) {
+          console.log(`🗑️ Deleting duplicate ${type}: ${duplicate.name} (ID: ${duplicate.id})`);
+          await storage.staff.deleteStaff(duplicate.id);
+          deletedCount++;
+        }
+      } else if (members.length === 1) {
+        // Only one of this type, keep it
+        keptStaff.push(members[0]);
+      }
+    }
+
+    // Special handling for SCOUT type - should have exactly 2 (Tony Scout and Emma Talent)
+    const scouts = staffByType['SCOUT'] || [];
+    if (scouts.length > 2) {
+      // Find one Tony Scout and one Emma Talent, delete the rest
+      const tonyScout = scouts.find(s => s.name === 'Tony Scout');
+      const emmaTalent = scouts.find(s => s.name === 'Emma Talent');
+      
+      if (tonyScout && emmaTalent) {
+        // Delete all other scouts
+        const toDeleteScouts = scouts.filter(s => s.id !== tonyScout.id && s.id !== emmaTalent.id);
+        for (const scout of toDeleteScouts) {
+          console.log(`🗑️ Deleting duplicate scout: ${scout.name} (ID: ${scout.id})`);
+          await storage.staff.deleteStaff(scout.id);
+          deletedCount++;
+        }
+      }
+    }
+
+    // Recalculate team staff salaries after cleanup
+    const { teamFinancesStorage } = await import('../storage/teamFinancesStorage.js');
+    await teamFinancesStorage.recalculateAndSaveStaffSalaries(teamId);
+
+    return res.json({
+      success: true,
+      message: `Cleaned up ${deletedCount} duplicate staff members`,
+      deletedCount,
+      remainingStaffCount: staff.length - deletedCount,
+      expectedStaffCount: 7
+    });
+  } catch (error) {
+    console.error("Error cleaning up duplicate staff:", error);
+    throw error;
+  }
+}));
+
+// Add missing Tony Scout (Head Scout) to complete 7-position roster
+router.post('/:teamId/staff/add-missing-scout', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  try {
+    let teamId = parseInt(req.params.teamId);
+
+    if (req.params.teamId === "my") {
+      const userId = req.user?.claims?.sub;
+      const team = await storage.teams.getTeamByUserId(userId);
+      if (!team) {
+        return res.status(404).json({ message: "Team not found for current user" });
+      }
+      teamId = team.id;
+    }
+
+    // Check if Tony Scout already exists
+    const existingStaff = await storage.staff.getStaffByTeamId(teamId);
+    const tonyScout = existingStaff.find(s => s.name === 'Tony Scout');
+    
+    if (tonyScout) {
+      return res.json({
+        success: false,
+        message: "Tony Scout already exists on this team",
+        existingStaffCount: existingStaff.length
+      });
+    }
+
+    // Add Tony Scout as Head Scout
+    const newTonyScout = {
+      teamId,
+      type: 'SCOUT' as const,
+      name: 'Tony Scout',
+      level: 1,
+      motivation: Math.floor(Math.random() * 5) + 4, // 4-8
+      development: Math.floor(Math.random() * 5) + 4, // 4-8
+      teaching: Math.floor(Math.random() * 5) + 4, // 4-8
+      physiology: Math.floor(Math.random() * 5) + 4, // 4-8
+      talentIdentification: Math.floor(Math.random() * 5) + 6, // 6-10 (primary skill)
+      potentialAssessment: Math.floor(Math.random() * 5) + 6, // 6-10 (primary skill)
+      tactics: Math.floor(Math.random() * 5) + 4, // 4-8
+      age: Math.floor(Math.random() * 20) + 35 // 35-54
+    };
+
+    const addedStaff = await storage.staff.createStaff(newTonyScout);
+    
+    // Recalculate team staff salaries after adding new staff
+    const { teamFinancesStorage } = await import('../storage/teamFinancesStorage.js');
+    await teamFinancesStorage.recalculateAndSaveStaffSalaries(teamId);
+
+    return res.json({
+      success: true,
+      message: "Tony Scout added as Head Scout",
+      addedStaff,
+      newStaffCount: existingStaff.length + 1
+    });
+  } catch (error) {
+    console.error("Error adding Tony Scout:", error);
+    throw error;
+  }
+}));
+
 export default router;
