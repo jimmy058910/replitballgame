@@ -146,10 +146,29 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                       >
                         <td className="py-2">
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                            position === 1 ? "bg-gold-400 text-black" : 
-                            position <= 2 ? "bg-green-500 text-white" :
-                            position >= standings.length - 1 ? "bg-red-500 text-white" :
-                            "bg-gray-600 text-white"
+                            (() => {
+                              // Dynamic promotion/relegation zones based on division rules
+                              if (position === 1) return "bg-gold-400 text-black"; // Champion
+                              
+                              // Promotion zones (green)
+                              if (division === 1) {
+                                // Division 1: No promotion (top division)
+                                if (position >= 11) return "bg-red-500 text-white"; // Relegation: 11th-16th place
+                              } else if (division === 2) {
+                                // Division 2: Top 2 promote, bottom 4 relegate (16-team subdivisions)
+                                if (position <= 2) return "bg-green-500 text-white"; // Promotion
+                                if (position >= 13) return "bg-red-500 text-white"; // Relegation: 13th-16th place
+                              } else if (division >= 3 && division <= 7) {
+                                // Divisions 3-7: Top teams promote, bottom 4 relegate (8-team subdivisions)
+                                if (position <= 2) return "bg-green-500 text-white"; // Promotion
+                                if (position >= 5) return "bg-red-500 text-white"; // Relegation: 5th-8th place
+                              } else if (division === 8) {
+                                // Division 8: Only promotion, NO relegation (bottom division)
+                                if (position <= 2) return "bg-green-500 text-white"; // Promotion only
+                              }
+                              
+                              return "bg-gray-600 text-white"; // Safe zone
+                            })()
                           }`}>
                             {position}
                           </div>
@@ -196,29 +215,54 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
           {rawStandings && rawStandings.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-700">
               <div className="text-xs text-gray-400 space-y-1">
-                {division > 1 && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span>Promotion to Division {division - 1}</span>
-                  </div>
-                )}
-                {division < 8 && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span>Relegation to Division {division + 1}</span>
-                  </div>
-                )}
+                {/* Dynamic promotion/relegation legend based on division rules */}
                 {division === 1 && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <span>Championship Division</span>
-                  </div>
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span>Championship Division (No promotion available)</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span>Relegation Zone: 11th-16th place → Division 2</span>
+                    </div>
+                  </>
+                )}
+                {division === 2 && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span>Promotion Zone: Top 2 → Division 1</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span>Relegation Zone: 13th-16th place → Division 3</span>
+                    </div>
+                  </>
+                )}
+                {division >= 3 && division <= 7 && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span>Promotion Zone: Top 2 → Division {division - 1}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span>Relegation Zone: 5th-8th place → Division {division + 1}</span>
+                    </div>
+                  </>
                 )}
                 {division === 8 && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span>Entry Division (No relegation)</span>
-                  </div>
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span>Promotion Zone: Top 2 → Division 7</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span>Entry Division (No relegation)</span>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -255,7 +299,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     return (
       <div className="text-center py-8 text-red-400">
         <p className="text-lg font-semibold mb-2">Standings Error</p>
-        <p className="text-sm">{error.message || "Unknown error"}</p>
+        <p className="text-sm">{(error as Error)?.message || "Unknown error"}</p>
       </div>
     );
   }
