@@ -59,7 +59,7 @@ class WebSocketManager {
     const wsUrl = `${protocol}//${window.location.host}`;
     
     this.socket = io(wsUrl, {
-      path: '/ws',
+      path: '/socket.io/',
       autoConnect: false,
       reconnection: true,
       reconnectionDelay: 1000,

@@ -2457,4 +2457,288 @@ router.get('/:teamId/players', requireAuth, asyncHandler(async (req: Request, re
   res.json(players);
 }));
 
+// ========================================
+// TAXI SQUAD MANAGEMENT ROUTES (CRITICAL MISSING ENDPOINTS)
+// ========================================
+
+// Get taxi squad players
+router.get('/:teamId/taxi-squad', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId, 10);
+  const userId = req.user?.claims?.sub;
+
+  console.log(`🔍 [ROUTE DEBUG] Handling GET /api/teams/${teamId}/taxi-squad`);
+
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.unauthorized("Access denied to this team");
+  }
+
+  // Get taxi squad players using storage method
+  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+
+  console.log(`✅ [TAXI SQUAD] Found ${taxiSquadPlayers.length} taxi squad players for team ${team.name}`);
+
+  res.json(taxiSquadPlayers);
+}));
+
+// Add candidates to taxi squad
+router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId, 10);
+  const userId = req.user?.claims?.sub;
+  const { candidates } = req.body;
+
+  console.log(`🔍 [ROUTE DEBUG] Handling POST /api/teams/${teamId}/taxi-squad/add-candidates`);
+
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.unauthorized("Access denied to this team");
+  }
+
+  if (!candidates || !Array.isArray(candidates)) {
+    throw ErrorCreators.badRequest("Candidates array is required");
+  }
+
+  // Check taxi squad capacity (max 3 players)
+  const currentTaxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  
+  // Also check total roster size (max 15 players total)
+  const prisma = await getPrismaClient();
+  const totalPlayers = await prisma.player.count({ where: { teamId: team.id } });
+  const maxTotalPlayers = 15;
+  
+  if (totalPlayers + candidates.length > maxTotalPlayers) {
+    throw ErrorCreators.badRequest(`Maximum roster size is ${maxTotalPlayers} players. You currently have ${totalPlayers} players.`);
+  }
+  
+  if (currentTaxiSquadPlayers.length + candidates.length > 3) {
+    throw ErrorCreators.badRequest(`Taxi squad full. Can only add ${3 - currentTaxiSquadPlayers.length} more players`);
+  }
+
+  const addedPlayers = [];
+  
+  // Helper function to determine player role
+  const getPlayerRole = (candidate: any) => {
+    const stats = {
+      throwing: candidate.throwing ?? 0,
+      speed: candidate.speed ?? 0,
+      power: candidate.power ?? 0,
+    };
+
+    if (stats.throwing >= Math.max(stats.speed, stats.power)) return "PASSER";
+    if (stats.speed >= stats.power) return "RUNNER";
+    return "BLOCKER";
+  };
+  
+  for (const candidate of candidates) {
+    // Determine role based on candidate attributes
+    const roleString = getPlayerRole(candidate);
+    
+    // Add taxi squad player directly using Prisma
+    const newPlayer = await prisma.player.create({
+      data: {
+        teamId: team.id,
+        firstName: candidate.firstName,
+        lastName: candidate.lastName,
+        race: candidate.race.toUpperCase() as any,
+        age: candidate.age,
+        role: roleString as any,
+        speed: candidate.speed,
+        power: candidate.power,
+        throwing: candidate.throwing,
+        catching: candidate.catching || 20,
+        kicking: candidate.kicking || 20,
+        staminaAttribute: candidate.stamina || candidate.staminaAttribute || 20,
+        leadership: candidate.leadership,
+        agility: candidate.agility,
+        potentialRating: parseFloat(candidate.potentialRating?.toString() || '2.0'),
+        dailyStaminaLevel: 100,
+        injuryStatus: "HEALTHY",
+        camaraderieScore: 75.0,
+        isOnMarket: false,
+      }
+    });
+
+    addedPlayers.push(newPlayer);
+  }
+
+  console.log(`✅ [TAXI SQUAD] Added ${addedPlayers.length} players to taxi squad for team ${team.name}`);
+
+  res.json({
+    success: true,
+    message: `${addedPlayers.length} players added to taxi squad`,
+    players: addedPlayers
+  });
+}));
+
+// Get seasonal data for team (tryout usage tracking)
+router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId, 10);
+  const userId = req.user?.claims?.sub;
+
+  console.log(`🔍 [ROUTE DEBUG] Handling GET /api/teams/${teamId}/seasonal-data`);
+
+  if (isNaN(teamId)) {
+    throw ErrorCreators.badRequest("Invalid team ID");
+  }
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.unauthorized("Access denied to this team");
+  }
+
+  // Check if there are any taxi squad players as indicator of tryouts used
+  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  const tryoutsUsed = taxiSquadPlayers.length > 0;
+
+  console.log(`✅ [SEASONAL DATA] Tryouts used: ${tryoutsUsed}, taxi squad count: ${taxiSquadPlayers.length}`);
+
+  res.json({
+    success: true,
+    data: {
+      tryoutsUsed: tryoutsUsed,
+      taxiSquadCount: taxiSquadPlayers.length,
+      seasonalData: {
+        tryoutDate: tryoutsUsed ? new Date().toISOString() : null,
+        currentSeasonDay: 1
+      }
+    }
+  });
+}));
+
+// Promote player from taxi squad to main roster
+router.post('/:teamId/taxi-squad/:playerId/promote', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId, 10);
+  const playerId = parseInt(req.params.playerId, 10);
+  const userId = req.user?.claims?.sub;
+
+  console.log(`🔍 [ROUTE DEBUG] Handling POST /api/teams/${teamId}/taxi-squad/${playerId}/promote`);
+
+  if (isNaN(teamId) || isNaN(playerId)) {
+    throw ErrorCreators.badRequest("Invalid team ID or player ID");
+  }
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.unauthorized("Access denied to this team");
+  }
+
+  // Check if player exists and is on taxi squad
+  const player = await storage.players.getPlayerById(playerId);
+  if (!player) {
+    throw ErrorCreators.notFound("Player not found");
+  }
+
+  if (player.teamId !== team.id) {
+    throw ErrorCreators.unauthorized("Player does not belong to your team");
+  }
+
+  // Get all players to check taxi squad status
+  const prisma = await getPrismaClient();
+  const allTeamPlayers = await prisma.player.findMany({
+    where: {
+      teamId: team.id,
+      isOnMarket: false
+    },
+    orderBy: { createdAt: 'asc' }
+  });
+
+  // Calculate roster position
+  const playerIndex = allTeamPlayers.findIndex((p: any) => p.id === playerId);
+  if (playerIndex === -1) {
+    throw ErrorCreators.notFound("Player not found in team roster");
+  }
+  
+  const rosterPosition = playerIndex + 1;
+  const isOnTaxiSquad = rosterPosition >= 13 && allTeamPlayers.length > 12;
+
+  if (!isOnTaxiSquad) {
+    throw ErrorCreators.badRequest("Player is not on taxi squad");
+  }
+
+  // Promote player using storage method
+  const promotedPlayer = await storage.players.promotePlayerFromTaxiSquad(playerId);
+
+  console.log(`✅ [TAXI SQUAD] Promoted player ${player.firstName} ${player.lastName} from taxi squad`);
+
+  res.json({
+    success: true,
+    message: "Player promoted from taxi squad with 3-year contract",
+    player: promotedPlayer
+  });
+}));
+
+// Release player from taxi squad
+router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  const teamId = parseInt(req.params.teamId, 10);
+  const playerId = parseInt(req.params.playerId, 10);
+  const userId = req.user?.claims?.sub;
+
+  console.log(`🔍 [ROUTE DEBUG] Handling DELETE /api/teams/${teamId}/taxi-squad/${playerId}`);
+
+  if (isNaN(teamId) || isNaN(playerId)) {
+    throw ErrorCreators.badRequest("Invalid team ID or player ID");
+  }
+
+  // Verify team ownership
+  const team = await storage.teams.getTeamByUserId(userId);
+  if (!team || team.id !== teamId) {
+    throw ErrorCreators.unauthorized("Access denied to this team");
+  }
+
+  // Check if player exists and is on taxi squad
+  const player = await storage.players.getPlayerById(playerId);
+  if (!player) {
+    throw ErrorCreators.notFound("Player not found");
+  }
+
+  if (player.teamId !== team.id) {
+    throw ErrorCreators.unauthorized("Player does not belong to your team");
+  }
+
+  // Get all players to check taxi squad status
+  const prisma = await getPrismaClient();
+  const allTeamPlayers = await prisma.player.findMany({
+    where: {
+      teamId: team.id,
+      isOnMarket: false
+    },
+    orderBy: { createdAt: 'asc' }
+  });
+
+  // Calculate roster position
+  const playerIndex = allTeamPlayers.findIndex((p: any) => p.id === playerId);
+  if (playerIndex === -1) {
+    throw ErrorCreators.notFound("Player not found in team roster");
+  }
+  
+  const rosterPosition = playerIndex + 1;
+  const isOnTaxiSquad = rosterPosition >= 13 && allTeamPlayers.length > 12;
+
+  if (!isOnTaxiSquad) {
+    throw ErrorCreators.badRequest("Player is not on taxi squad");
+  }
+
+  // Release player using storage method
+  const released = await storage.players.releasePlayerFromTaxiSquad(playerId);
+
+  console.log(`✅ [TAXI SQUAD] Released player ${player.firstName} ${player.lastName} from taxi squad`);
+
+  res.json({
+    success: true,
+    message: "Player released from taxi squad"
+  });
+}));
+
 export default router;
