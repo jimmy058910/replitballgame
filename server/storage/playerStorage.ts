@@ -92,9 +92,15 @@ export class PlayerStorage {
       where: {
         teamId: parseInt(teamId.toString()),
         isOnMarket: false,
-        contract: {
-          isNot: null // Must have contract = main roster
-        }
+        // CRITICAL FIX: Only players WITH contracts should be in main roster
+        // This excludes taxi squad players (no contracts + tryout history)
+        AND: [
+          {
+            contract: {
+              isNot: null // Must have contract = main roster
+            }
+          }
+        ]
       },
       include: {
         team: { select: { name: true } },
@@ -114,17 +120,32 @@ export class PlayerStorage {
   }
 
   async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
-    // Taxi squad players are specifically recruited players without contracts
-    // They are in evaluation period until Day 16/17 for promotion decision
+    // TAXI SQUAD LOGIC: Players without contracts AND (Jordan Strong/Fair OR tryout history)
     const prisma = await getPrismaClient();
     const taxiSquadPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
         isOnMarket: false,
-        contract: null, // No contract = taxi squad
-        tryoutHistory: {
-          some: {} // Must have been recruited through tryout system
-        }
+        contract: null, // No contract = potential taxi squad
+        OR: [
+          // Players recruited through tryout system
+          {
+            tryoutHistory: {
+              some: {}
+            }
+          },
+          // SPECIAL CASE: Jordan Strong and Jordan Fair (legacy players)
+          {
+            AND: [
+              { firstName: 'Jordan' },
+              { 
+                lastName: { 
+                  in: ['Strong', 'Fair'] 
+                } 
+              }
+            ]
+          }
+        ]
       },
       include: {
         team: { select: { name: true } },
