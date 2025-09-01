@@ -29,18 +29,42 @@ import {
   Target,
   Filter,
   X,
-  ArrowUp
+  ArrowUp,
+  ChevronDown,
+  ChevronUp,
+  Search
 } from 'lucide-react';
 import ModernStickyHeader from './ModernStickyHeader';
 import PlayerDetailModal from './PlayerDetailModal';
 import CamaraderieManagement from './CamaraderieManagement';
 import StadiumFinancialHub from './StadiumFinancialHub';
 import TapToAssignTactics from './TapToAssignTactics';
-import TryoutSystem from './TryoutSystem';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest, queryClient } from '../lib/queryClient';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Progress } from './ui/progress';
 
-// Type definitions
+// Type definitions  
+type TryoutCandidate = {
+  id: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  race: string;
+  age: number;
+  leadership: number;
+  throwing: number;
+  speed: number;
+  agility: number;
+  power: number;
+  stamina: number;
+  catching: number;
+  kicking: number;
+  marketValue: number;
+  potential: "High" | "Medium" | "Low";
+  overallPotentialStars: number;
+};
+
 type Player = {
   id: string;
   firstName: string;
@@ -112,6 +136,16 @@ export default function MobileRosterHQ() {
   const [activeTab, setActiveTab] = useState<TabType>('roster');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  
+  // Recruitment system states
+  const [isRecruitmentExpanded, setIsRecruitmentExpanded] = useState(false);
+  const [showTryoutModal, setShowTryoutModal] = useState(false);
+  const [tryoutType, setTryoutType] = useState<"basic" | "advanced" | null>(null);
+  const [candidates, setCandidates] = useState<TryoutCandidate[]>([]);
+  const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [revealProgress, setRevealProgress] = useState(0);
+  const [revealedCandidates, setRevealedCandidates] = useState<TryoutCandidate[]>([]);
   const [rosterView, setRosterView] = useState<RosterView>('all');
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
 
@@ -150,6 +184,17 @@ export default function MobileRosterHQ() {
   // Get current season cycle to determine if promotions are allowed
   const { data: seasonCycle } = useQuery({
     queryKey: ['/api/season/current-cycle'],
+  });
+  
+  // Recruitment system queries
+  const { data: financesData } = useQuery({
+    queryKey: [`/api/teams/${team?.id}/finances`],
+    enabled: !!team?.id,
+  });
+  
+  const { data: seasonalData } = useQuery({
+    queryKey: [`/api/teams/${team?.id}/seasonal-data`],
+    enabled: !!team?.id,
   });
 
   // Promotions only allowed during offseason (Days 16-17)
@@ -254,6 +299,110 @@ export default function MobileRosterHQ() {
       'SCOUT': 'Scout'
     };
     return names[type] || type.replace('_', ' ');
+  };
+  
+  // Recruitment system constants and calculations
+  const basicCost = 25000;
+  const advancedCost = 75000;
+  const currentCredits = (financesData as any)?.credits || 0;
+  const canAffordBasic = currentCredits >= basicCost;
+  const canAffordAdvanced = currentCredits >= advancedCost;
+  const tryoutsUsedThisSeason = (seasonalData as any)?.data?.tryoutsUsed || false;
+  const canHostTryouts = !tryoutsUsedThisSeason;
+  
+  // Auto-expand recruitment if tryouts haven't been used yet
+  useEffect(() => {
+    if (!tryoutsUsedThisSeason && !isRecruitmentExpanded) {
+      setIsRecruitmentExpanded(true);
+    }
+  }, [tryoutsUsedThisSeason, isRecruitmentExpanded]);
+  
+  // Recruitment system mutations
+  const hostTryoutMutation = useMutation({
+    mutationFn: async (type: "basic" | "advanced") => {
+      return apiRequest(`/api/teams/${team?.id}/tryouts`, "POST", { type });
+    },
+    onSuccess: (data) => {
+      setCandidates(data.candidates);
+      setTryoutType(data.type);
+      setShowTryoutModal(true);
+      startRevealAnimation(data.candidates);
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/seasonal-data`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Tryout Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const addToTaxiSquadMutation = useMutation({
+    mutationFn: async (candidateIds: string[]) => {
+      const selectedFullCandidates = candidates.filter(c => candidateIds.includes(c.id));
+      return apiRequest(`/api/teams/${team?.id}/taxi-squad/add-candidates`, "POST", { candidates: selectedFullCandidates });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Success!",
+        description: data.message,
+      });
+      setShowTryoutModal(false);
+      setSelectedCandidates([]);
+      setCandidates([]);
+      setRevealedCandidates([]);
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/taxi-squad`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to add players",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Recruitment helper functions
+  const startRevealAnimation = (candidateList: TryoutCandidate[]) => {
+    setIsRevealing(true);
+    setRevealProgress(0);
+    setRevealedCandidates([]);
+
+    const totalDuration = 3000;
+    const intervalDuration = 50;
+    const totalSteps = totalDuration / intervalDuration;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+      currentStep++;
+      const progress = (currentStep / totalSteps) * 100;
+      setRevealProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        setIsRevealing(false);
+        setRevealedCandidates(candidateList);
+      }
+    }, intervalDuration);
+  };
+  
+  const toggleCandidateSelection = (candidateId: string) => {
+    setSelectedCandidates(prev => {
+      if (prev.includes(candidateId)) {
+        return prev.filter(id => id !== candidateId);
+      } else if (prev.length < 2) {
+        return [...prev, candidateId];
+      } else {
+        toast({
+          title: "Selection Limit",
+          description: "You can only select up to 2 candidates for your taxi squad.",
+          variant: "destructive",
+        });
+        return prev;
+      }
+    });
   };
 
   // Handle tab changes and update URL
@@ -750,119 +899,232 @@ export default function MobileRosterHQ() {
               </CardContent>
             </Card>
 
-                {/* Taxi Squad */}
-                {((rosterView === 'all' ? taxiSquad : filteredTaxiSquad).length > 0) && (
-                  <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
-                    <CardHeader>
-                      <CardTitle className="flex items-center text-white">
+                {/* Combined Taxi Squad & Recruitment */}
+                <Card className="bg-gradient-to-r from-purple-800 to-purple-900 border-2 border-purple-400">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between text-white">
+                      <div className="flex items-center">
                         <Users className="w-6 h-6 mr-3 text-purple-400" />
-                        🚌 TAXI SQUAD ({rosterView === 'all' ? taxiSquad.length : filteredTaxiSquad.length}/2)
+                        🚌 TAXI SQUAD & RECRUITMENT ({rosterView === 'all' ? taxiSquad.length : filteredTaxiSquad.length}/2)
                         <span className="text-xs text-purple-300 ml-2">(Promotions: Offseason Days 16-17)</span>
                         {rosterView !== 'all' && (
                           <Badge className="ml-2 bg-purple-600">Filtered</Badge>
                         )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {(rosterView === 'all' ? taxiSquad : filteredTaxiSquad).map((player) => (
-                          <Card 
-                            key={player.id}
-                            className="bg-gradient-to-r from-purple-700 to-purple-800 border-2 border-purple-500 cursor-pointer hover:scale-105 transition-all duration-200"
-                            onClick={() => setSelectedPlayer(player)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
-                                    <h3 className="font-bold text-white text-sm">
-                                      {player.firstName} {player.lastName}
-                                    </h3>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="text-xs text-white border-white/50">
-                                      {getRoleIcon(player.role)} {player.role}
-                                    </Badge>
-                                    <Badge className="bg-purple-600 text-white text-xs">
-                                      DEVELOPMENT
-                                    </Badge>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-lg font-bold text-white">
-                                    {getPlayerPower(player)}
-                                  </div>
-                                  <div className="text-xs text-white/70">Power</div>
-                                </div>
-                              </div>
-                              
-                              <div className="p-2 bg-purple-900/50 rounded text-xs">
-                                <div className="text-purple-200 mb-1">⭐ Player Potential</div>
-                                <div className="flex justify-between items-center">
-                                  <div className="text-yellow-300 text-lg">
-                                    {getPlayerPotentialStars(player)}
-                                  </div>
-                                  {isOffseason && (
-                                    <div className="flex gap-1">
-                                      <Button
-                                        size="sm"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          promotePlayerMutation.mutate(player.id);
-                                        }}
-                                        disabled={promotePlayerMutation.isPending}
-                                        className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-6"
-                                      >
-                                        {promotePlayerMutation.isPending ? (
-                                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                                        ) : (
-                                          <>
-                                            <ArrowUp className="w-3 h-3 mr-1" />
-                                            Promote
-                                          </>
-                                        )}
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          releasePlayerMutation.mutate(player.id);
-                                        }}
-                                        disabled={releasePlayerMutation.isPending}
-                                        className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 h-6"
-                                      >
-                                        {releasePlayerMutation.isPending ? (
-                                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                                        ) : (
-                                          <>
-                                            <X className="w-3 h-3 mr-1" />
-                                            Release
-                                          </>
-                                        )}
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Tryout System - Player Recruitment */}
-                <Card className="bg-gradient-to-r from-green-800 to-green-900 border-2 border-green-400">
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-white">
-                      <UserPlus className="w-6 h-6 mr-3 text-green-400" />
-                      🎯 PLAYER RECRUITMENT
+                      {/* Recruitment toggle */}
+                      {canHostTryouts && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsRecruitmentExpanded(!isRecruitmentExpanded)}
+                          className="border-purple-400 text-purple-200 hover:bg-purple-700"
+                        >
+                          {isRecruitmentExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          {isRecruitmentExpanded ? 'Hide' : 'Show'} Recruitment
+                        </Button>
+                      )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4">
-                    <TryoutSystem teamId={team?.id || ''} />
+                  <CardContent className="p-4 space-y-6">
+                    
+                    {/* Current Taxi Squad Players */}
+                    {((rosterView === 'all' ? taxiSquad : filteredTaxiSquad).length > 0) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-purple-200 mb-3 flex items-center">
+                          <Users className="w-4 h-4 mr-2" />
+                          Current Development Players
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {(rosterView === 'all' ? taxiSquad : filteredTaxiSquad).map((player) => (
+                            <Card 
+                              key={player.id}
+                              className="bg-gradient-to-r from-purple-700 to-purple-800 border-2 border-purple-500 cursor-pointer hover:scale-105 transition-all duration-200"
+                              onClick={() => setSelectedPlayer(player)}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
+                                      <h3 className="font-bold text-white text-sm">
+                                        {player.firstName} {player.lastName}
+                                      </h3>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="text-xs text-white border-white/50">
+                                        {getRoleIcon(player.role)} {player.role}
+                                      </Badge>
+                                      <Badge className="bg-purple-600 text-white text-xs">
+                                        DEVELOPMENT
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-lg font-bold text-white">
+                                      {getPlayerPower(player)}
+                                    </div>
+                                    <div className="text-xs text-white/70">Power</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="p-2 bg-purple-900/50 rounded text-xs">
+                                  <div className="text-purple-200 mb-1">⭐ Player Potential</div>
+                                  <div className="flex justify-between items-center">
+                                    <div className="text-yellow-300 text-lg">
+                                      {getPlayerPotentialStars(player)}
+                                    </div>
+                                    {isOffseason && (
+                                      <div className="flex gap-1">
+                                        <Button
+                                          size="sm"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            promotePlayerMutation.mutate(player.id);
+                                          }}
+                                          disabled={promotePlayerMutation.isPending}
+                                          className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-6"
+                                        >
+                                          {promotePlayerMutation.isPending ? (
+                                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                          ) : (
+                                            <>
+                                              <ArrowUp className="w-3 h-3 mr-1" />
+                                              Promote
+                                            </>
+                                          )}
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            releasePlayerMutation.mutate(player.id);
+                                          }}
+                                          disabled={releasePlayerMutation.isPending}
+                                          className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 h-6"
+                                        >
+                                          {releasePlayerMutation.isPending ? (
+                                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                          ) : (
+                                            <>
+                                              <X className="w-3 h-3 mr-1" />
+                                              Release
+                                            </>
+                                          )}
+                                        </Button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Player Recruitment Section */}
+                    {(isRecruitmentExpanded || !canHostTryouts) && (
+                      <div className="border-t border-purple-600 pt-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-sm font-semibold text-purple-200 flex items-center">
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Player Recruitment
+                            <Badge variant="secondary" className="ml-2 text-xs">Once per season</Badge>
+                          </h4>
+                          {tryoutsUsedThisSeason && (
+                            <Badge variant="outline" className="text-yellow-400 border-yellow-400">
+                              Already Used This Season
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="bg-purple-900/30 border border-purple-600 rounded-lg p-3">
+                            <p className="text-purple-200 text-sm">
+                              Host tryouts to recruit young talent (18-24 years old) for your taxi squad. 
+                              You can keep up to 2 players and promote them during the offseason.
+                            </p>
+                            {!canHostTryouts && (
+                              <p className="text-yellow-300 text-xs mt-2 font-medium">
+                                ⚠️ Seasonal Restriction: You can only host tryouts ONCE per season (17-day cycle).
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Basic Tryout */}
+                            <Card className="bg-purple-700/50 border-purple-500">
+                              <CardHeader>
+                                <CardTitle className="text-lg text-white">Basic Tryout</CardTitle>
+                              </CardHeader>
+                              <CardContent className="space-y-3">
+                                <div className="text-sm text-purple-200">
+                                  <p>• 3 candidates to choose from</p>
+                                  <p>• Standard talent pool</p>
+                                  <p>• Quick evaluation process</p>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-lg font-bold text-green-400">
+                                    {basicCost.toLocaleString()}₡
+                                  </span>
+                                  <Button
+                                    onClick={() => hostTryoutMutation.mutate("basic")}
+                                    disabled={!canAffordBasic || !canHostTryouts || hostTryoutMutation.isPending}
+                                    variant={canAffordBasic && canHostTryouts ? "default" : "secondary"}
+                                    size="sm"
+                                  >
+                                    {hostTryoutMutation.isPending ? "Hosting..." : 
+                                     !canHostTryouts ? "Used This Season" : 
+                                     !canAffordBasic ? "Not Enough Credits" : 
+                                     "Host Basic Tryout"}
+                                  </Button>
+                                </div>
+                                {!canAffordBasic && canHostTryouts && (
+                                  <p className="text-red-400 text-xs">Insufficient credits</p>
+                                )}
+                              </CardContent>
+                            </Card>
+
+                            {/* Advanced Tryout */}
+                            <Card className="bg-purple-700/50 border-purple-500">
+                              <CardHeader>
+                                <CardTitle className="text-lg text-white">Advanced Tryout</CardTitle>
+                              </CardHeader>
+                              <CardContent className="space-y-3">
+                                <div className="text-sm text-purple-200">
+                                  <p>• 5 candidates to choose from</p>
+                                  <p>• Premium talent pool</p>
+                                  <p>• Higher potential players</p>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-lg font-bold text-green-400">
+                                    {advancedCost.toLocaleString()}₡
+                                  </span>
+                                  <Button
+                                    onClick={() => hostTryoutMutation.mutate("advanced")}
+                                    disabled={!canAffordAdvanced || !canHostTryouts || hostTryoutMutation.isPending}
+                                    variant={canAffordAdvanced && canHostTryouts ? "default" : "secondary"}
+                                    size="sm"
+                                  >
+                                    {hostTryoutMutation.isPending ? "Hosting..." : 
+                                     !canHostTryouts ? "Used This Season" : 
+                                     !canAffordAdvanced ? "Not Enough Credits" : 
+                                     "Host Advanced Tryout"}
+                                  </Button>
+                                </div>
+                                {!canAffordAdvanced && canHostTryouts && (
+                                  <p className="text-red-400 text-xs">Insufficient credits</p>
+                                )}
+                              </CardContent>
+                            </Card>
+                          </div>
+                          
+                          <div className="text-center text-sm text-purple-300">
+                            Current Credits: {currentCredits.toLocaleString()}₡
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -1076,6 +1338,131 @@ export default function MobileRosterHQ() {
             onClose={() => setSelectedPlayer(null)}
           />
         )}
+        
+        {/* Tryout Candidate Selection Modal */}
+        <Dialog open={showTryoutModal} onOpenChange={setShowTryoutModal}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                <Users className="w-6 h-6 text-blue-400" />
+                {tryoutType === 'basic' ? 'Basic' : 'Advanced'} Tryout Results
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {isRevealing ? (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-white mb-2">Evaluating Candidates...</h3>
+                    <Progress value={revealProgress} className="w-full" />
+                    <p className="text-sm text-gray-400 mt-2">
+                      {revealProgress < 100 ? 'Analyzing player statistics and potential...' : 'Evaluation complete!'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-purple-900/30 border border-purple-600 rounded-lg p-3">
+                    <p className="text-purple-200 text-sm mb-2">
+                      Select up to 2 candidates to add to your taxi squad. These players will train with your team and can be promoted during the offseason.
+                    </p>
+                    <div className="text-xs text-purple-300">
+                      💡 Look for players with high potential stars and complementary skills to your current roster.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {revealedCandidates.map((candidate) => (
+                      <div
+                        key={candidate.id}
+                        className={`cursor-pointer transition-all transform hover:scale-105 ${
+                          selectedCandidates.includes(candidate.id)
+                            ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/20'
+                            : ''
+                        } ${
+                          candidate.potential === "High" ? 'ring-2 ring-yellow-400/50' : ''
+                        }`}
+                        onClick={() => toggleCandidateSelection(candidate.id)}
+                      >
+                        <Card className="bg-gradient-to-r from-purple-700 to-purple-800 border-2 border-purple-500 hover:border-purple-400">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-lg">{getRacialIcon(candidate.race || 'Human')}</span>
+                                  <h3 className="font-bold text-white text-sm">
+                                    {candidate.firstName} {candidate.lastName}
+                                  </h3>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs text-white border-white/50">
+                                    Age {candidate.age}
+                                  </Badge>
+                                  <Badge 
+                                    className={`text-xs ${
+                                      candidate.potential === 'High' ? 'bg-yellow-600' :
+                                      candidate.potential === 'Medium' ? 'bg-blue-600' : 'bg-gray-600'
+                                    }`}
+                                  >
+                                    {candidate.potential} Potential
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-lg font-bold text-white">
+                                  {Math.round((candidate.speed + candidate.power + candidate.throwing + 
+                                             candidate.catching + candidate.kicking + candidate.agility) / 6)}
+                                </div>
+                                <div className="text-xs text-white/70">Power</div>
+                              </div>
+                            </div>
+                            
+                            <div className="p-2 bg-purple-900/50 rounded text-xs">
+                              <div className="text-purple-200 mb-1">⭐ Potential Rating</div>
+                              <div className="text-yellow-300 text-lg">
+                                {'⭐'.repeat(candidate.overallPotentialStars || 1)}{'☆'.repeat(5 - (candidate.overallPotentialStars || 1))}
+                              </div>
+                            </div>
+                            
+                            {selectedCandidates.includes(candidate.id) && (
+                              <div className="mt-2 p-2 bg-blue-600/20 border border-blue-500 rounded text-center">
+                                <span className="text-blue-300 text-xs font-medium">✓ Selected for Taxi Squad</span>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-between items-center pt-4 border-t border-gray-600">
+                    <div className="text-sm text-gray-400">
+                      Selected: {selectedCandidates.length}/2
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowTryoutModal(false);
+                          setCandidates([]);
+                          setSelectedCandidates([]);
+                        }}
+                      >
+                        Dismiss All
+                      </Button>
+                      <Button
+                        onClick={() => addToTaxiSquadMutation.mutate(selectedCandidates)}
+                        disabled={selectedCandidates.length === 0 || addToTaxiSquadMutation.isPending}
+                      >
+                        {addToTaxiSquadMutation.isPending ? "Adding..." : "Add to Taxi Squad"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
