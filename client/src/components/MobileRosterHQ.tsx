@@ -237,6 +237,13 @@ export default function MobileRosterHQ() {
     return 'text-red-400';
   };
 
+  const getPlayerPotentialStars = (player: Player) => {
+    // Calculate potential based on player power (1-5 stars)
+    const power = getPlayerPower(player);
+    const stars = Math.min(5, Math.max(1, Math.round(power / 20))); // Convert power to 1-5 scale
+    return '⭐'.repeat(stars) + '☆'.repeat(5 - stars);
+  };
+
   const getStaffTypeName = (type: string) => {
     const names: Record<string, string> = {
       'HEAD_COACH': 'Head Coach',
@@ -750,6 +757,7 @@ export default function MobileRosterHQ() {
                       <CardTitle className="flex items-center text-white">
                         <Users className="w-6 h-6 mr-3 text-purple-400" />
                         🚌 TAXI SQUAD ({rosterView === 'all' ? taxiSquad.length : filteredTaxiSquad.length}/2)
+                        <span className="text-xs text-purple-300 ml-2">(Promotions: Offseason Days 16-17)</span>
                         {rosterView !== 'all' && (
                           <Badge className="ml-2 bg-purple-600">Filtered</Badge>
                         )}
@@ -790,18 +798,10 @@ export default function MobileRosterHQ() {
                               </div>
                               
                               <div className="p-2 bg-purple-900/50 rounded text-xs">
-                                <div className="text-purple-200 mb-1">🚌 Taxi Squad Status</div>
+                                <div className="text-purple-200 mb-1">⭐ Player Potential</div>
                                 <div className="flex justify-between items-center">
-                                  <div>
-                                    <div className="flex justify-between">
-                                      <span className="text-white/70">Promotion Available:</span>
-                                      <span className="text-yellow-300">Days 16-17</span>
-                                    </div>
-                                    {isOffseason && (
-                                      <div className="text-green-400 text-xs mt-1">
-                                        ✅ Available Now
-                                      </div>
-                                    )}
+                                  <div className="text-yellow-300 text-lg">
+                                    {getPlayerPotentialStars(player)}
                                   </div>
                                   {isOffseason && (
                                     <div className="flex gap-1">
