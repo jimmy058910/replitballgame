@@ -2574,6 +2574,23 @@ router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(asyn
       }
     });
 
+    // CRITICAL: Add TryoutHistory record to mark as taxi squad player
+    const currentSeason = await prisma.season.findFirst({
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    await prisma.tryoutHistory.create({
+      data: {
+        playerId: newPlayer.id,
+        teamId: team.id,
+        seasonId: currentSeason?.id || 'season-1-1755358819081',
+        tryoutType: 'BASIC',
+        cost: 25000,
+        playersAdded: 1,
+        conductedAt: new Date()
+      }
+    });
+
     addedPlayers.push(newPlayer);
   }
 
@@ -2585,6 +2602,7 @@ router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(asyn
     players: addedPlayers
   });
 }));
+
 
 // Get seasonal data for team (tryout usage tracking)
 router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: Request, res: Response) => {
@@ -2603,9 +2621,23 @@ router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: Reque
     throw ErrorCreators.unauthorized("Access denied to this team");
   }
 
-  // Check if there are any taxi squad players as indicator of tryouts used
+  // Check if tryouts have been used this season by looking for TryoutHistory records
+  const prisma = await getPrismaClient();
+  const currentSeason = await prisma.season.findFirst({
+    orderBy: { createdAt: 'desc' }
+  });
+  
+  const tryoutHistoryThisSeason = await prisma.tryoutHistory.findMany({
+    where: {
+      teamId: team.id,
+      conductedAt: {
+        gte: currentSeason?.startDate || new Date('2025-01-01')
+      }
+    }
+  });
+  
+  const tryoutsUsed = tryoutHistoryThisSeason.length > 0;
   const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
-  const tryoutsUsed = taxiSquadPlayers.length > 0;
 
   console.log(`✅ [SEASONAL DATA] Tryouts used: ${tryoutsUsed}, taxi squad count: ${taxiSquadPlayers.length}`);
 
