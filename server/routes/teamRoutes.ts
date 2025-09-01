@@ -188,14 +188,15 @@ router.get('/:teamId/finances', requireAuth, asyncHandler(async (req: Request, r
     return total + (contract.salary || 0);
   }, 0);
 
-  // Calculate actual staff salaries - use correct level-based calculation
+  // Calculate actual staff salaries using Universal Value Formula
   let totalStaffSalaries = 0;
   try {
     const staff = await storage.staff.getStaffByTeamId(teamId);
     totalStaffSalaries = staff.reduce((total, staffMember) => {
-      // Correct staff salary calculation: level * 1000 credits (from teamFinancesStorage.ts)
-      const calculatedSalary = (staffMember.level || 1) * 1000;
-      return total + calculatedSalary;
+      // Use Universal Value Formula for dynamic staff salary calculation
+      const { ContractService } = require('../services/contractService.js');
+      const contractCalc = ContractService.calculateContractValue(staffMember);
+      return total + contractCalc.marketValue;
     }, 0);
   } catch (error) {
     console.error('Error fetching staff for salary calculation:', error);

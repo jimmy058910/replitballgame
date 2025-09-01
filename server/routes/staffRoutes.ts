@@ -25,42 +25,48 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
 
     const staff = await storage.staff.getStaffByTeamId(userTeam.id);
     
-    // Get contracts for all staff members
-    const staffWithContracts = await Promise.all(
-      staff.map(async (member) => {
-        try {
-          const contracts = await storage.contracts.getActiveContractsByStaff(member.id);
-          const activeContract = contracts.length > 0 ? contracts[0] : null;
-          
-          return {
-            ...member,
-            contract: activeContract ? {
-              id: activeContract.id,
-              salary: Number(activeContract.salary),
-              duration: activeContract.length,
-              remainingYears: activeContract.length, // Use length as default for remaining years
-              signedDate: activeContract.startDate,
-              expiryDate: activeContract.startDate // Will calculate properly later
-            } : null
-          };
-        } catch (error) {
-          console.error(`Error fetching contract for staff member ${member.id}:`, error);
-          // Return staff member without contract if contract fetch fails
-          return {
-            ...member,
-            contract: null
-          };
-        }
-      })
-    );
+    // Calculate staff salaries using Universal Value Formula
+    const staffWithContracts = staff.map((member) => {
+      try {
+        // Calculate dynamic salary using UVF
+        const contractCalc = ContractService.calculateContractValue(member);
+        
+        return {
+          ...member,
+          contract: {
+            id: null, // Staff don't have actual contract records
+            salary: contractCalc.marketValue,
+            duration: 3, // Default contract length for display
+            remainingYears: 3,
+            signedDate: new Date(),
+            expiryDate: new Date()
+          }
+        };
+      } catch (error) {
+        console.error(`Error calculating salary for staff member ${member.id}:`, error);
+        // Fallback to basic calculation
+        return {
+          ...member,
+          contract: {
+            id: null,
+            salary: (member.level || 1) * 1000,
+            duration: 3,
+            remainingYears: 3,
+            signedDate: new Date(),
+            expiryDate: new Date()
+          }
+        };
+      }
+    });
     
-    // Calculate total staff cost
+    // Calculate total staff cost using Universal Value Formula
     const totalStaffCost = staffWithContracts.reduce((total, member) => {
       if (member.contract && member.contract.salary) {
         return total + member.contract.salary;
       }
-      // Fallback to level-based calculation if no contract
-      return total + (member.level * 1000);
+      // Use UVF calculation if no contract exists
+      const contractCalc = ContractService.calculateContractValue(member);
+      return total + contractCalc.marketValue;
     }, 0);
     
     return res.json({

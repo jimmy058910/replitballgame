@@ -210,7 +210,7 @@ export class TeamFinancesStorage {
   }
 
   /**
-   * Recalculate and save staff salaries for a team
+   * Recalculate and save staff salaries for a team using Universal Value Formula
    * Sums all active staff salaries and updates the team's record
    */
   async recalculateAndSaveStaffSalaries(teamId: number): Promise<void> {
@@ -221,8 +221,14 @@ export class TeamFinancesStorage {
         where: { teamId: teamId }
       });
 
-      // Calculate total staff salaries (using level as salary base for now)
-      const totalStaffSalaries = staffMembers.reduce((sum: number, staff: any) => sum + (staff.level * 1000), 0);
+      // Import ContractService for UVF calculations
+      const { ContractService } = await import('../services/contractService.js');
+
+      // Calculate total staff salaries using Universal Value Formula
+      const totalStaffSalaries = staffMembers.reduce((sum: number, staff: any) => {
+        const contractCalc = ContractService.calculateContractValue(staff);
+        return sum + contractCalc.marketValue;
+      }, 0);
       const totalSalaries = totalStaffSalaries;
 
       // Update team finances with new projected expenses
