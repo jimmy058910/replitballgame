@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 import { Race, PlayerRole, SeasonPhase } from "@prisma/client";
+import { generateRandomName } from "../../shared/names.js";
 
 const router = Router();
 
@@ -10,13 +11,11 @@ function generateRandomPlayer() {
   const races: Race[] = [Race.HUMAN, Race.SYLVAN, Race.GRYLL, Race.LUMINA, Race.UMBRA];
   const roles: PlayerRole[] = [PlayerRole.PASSER, PlayerRole.RUNNER, PlayerRole.BLOCKER];
   
-  const firstNames = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Avery', 'Quinn', 'Sage', 'River'];
-  const lastNames = ['Storm', 'Stone', 'Swift', 'Bright', 'Strong', 'Bold', 'True', 'Fair', 'Wild', 'Free'];
-  
   const race = races[Math.floor(Math.random() * races.length)];
   const role = roles[Math.floor(Math.random() * roles.length)];
-  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  
+  // Use race-specific naming system
+  const { firstName, lastName } = generateRandomName(race.toLowerCase());
   
   // Base stats (6-20 range to match new weaker player balance)
   const baseStats = {

@@ -159,7 +159,7 @@ router.get('/:teamId/finances', requireAuth, asyncHandler(async (req: Request, r
   
   const teamId = parseInt(req.params.teamId);
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   // Get team finances using storage layer
@@ -194,9 +194,14 @@ router.get('/:teamId/finances', requireAuth, asyncHandler(async (req: Request, r
     const staff = await storage.staff.getStaffByTeamId(teamId);
     totalStaffSalaries = staff.reduce((total, staffMember) => {
       // Use Universal Value Formula for dynamic staff salary calculation
-      const { ContractService } = require('../services/contractService.js');
-      const contractCalc = ContractService.calculateContractValue(staffMember);
-      return total + contractCalc.marketValue;
+      const sumOfAttributes = (staffMember.motivation || 0) + (staffMember.development || 0) + 
+                            (staffMember.teaching || 0) + (staffMember.physiology || 0) + 
+                            (staffMember.talentIdentification || 0) + (staffMember.potentialAssessment || 0) + 
+                            (staffMember.tactics || 0);
+      const baseSalary = (sumOfAttributes * 150) + (staffMember.level * 500);
+      const ageModifier = Math.max(0.7, Math.min(1.2, (staffMember.age - 20) / 40 + 0.9));
+      const marketValue = Math.round(baseSalary * ageModifier);
+      return total + marketValue;
     }, 0);
   } catch (error) {
     console.error('Error fetching staff for salary calculation:', error);
@@ -231,7 +236,7 @@ router.get('/:teamId/contracts', requireAuth, asyncHandler(async (req: Request, 
   
   const teamId = parseInt(req.params.teamId);
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   const userId = req.user?.claims?.sub;
@@ -302,7 +307,7 @@ router.get('/:teamId/transactions', requireAuth, asyncHandler(async (req: Reques
   
   const teamId = parseInt(req.params.teamId);
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   const userId = req.user?.claims?.sub;
@@ -2321,7 +2326,7 @@ router.get('/:teamId/formation', requireAuth, asyncHandler(async (req: Request, 
   console.log(`🔍 [ROUTE DEBUG] Handling GET /api/teams/${teamId}/formation`);
 
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   // Verify team ownership
@@ -2373,7 +2378,7 @@ router.put('/:teamId/formation', requireAuth, asyncHandler(async (req: Request, 
   console.log(`🔍 [ROUTE DEBUG] Handling PUT /api/teams/${teamId}/formation`);
 
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   // Verify team ownership
@@ -2386,7 +2391,7 @@ router.put('/:teamId/formation', requireAuth, asyncHandler(async (req: Request, 
 
   // Validate starters and substitutes are arrays
   if (!Array.isArray(starters) || !Array.isArray(substitutes)) {
-    throw ErrorCreators.badRequest("Starters and substitutes must be arrays");
+    throw ErrorCreators.validation("Starters and substitutes must be arrays");
   }
 
   console.log('🔍 Formation update payload:', {
@@ -2440,7 +2445,7 @@ router.get('/:teamId/players', requireAuth, asyncHandler(async (req: Request, re
   console.log(`🔍 [ROUTE DEBUG] Handling GET /api/teams/${teamId}/players`);
 
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   // Verify team ownership
@@ -2470,7 +2475,7 @@ router.get('/:teamId/taxi-squad', requireAuth, asyncHandler(async (req: Request,
   console.log(`🔍 [ROUTE DEBUG] Handling GET /api/teams/${teamId}/taxi-squad`);
 
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   // Verify team ownership
@@ -2496,7 +2501,7 @@ router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(asyn
   console.log(`🔍 [ROUTE DEBUG] Handling POST /api/teams/${teamId}/taxi-squad/add-candidates`);
 
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   // Verify team ownership
@@ -2506,7 +2511,7 @@ router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(asyn
   }
 
   if (!candidates || !Array.isArray(candidates)) {
-    throw ErrorCreators.badRequest("Candidates array is required");
+    throw ErrorCreators.validation("Candidates array is required");
   }
 
   // Check taxi squad capacity (max 3 players)
@@ -2518,11 +2523,11 @@ router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(asyn
   const maxTotalPlayers = 15;
   
   if (totalPlayers + candidates.length > maxTotalPlayers) {
-    throw ErrorCreators.badRequest(`Maximum roster size is ${maxTotalPlayers} players. You currently have ${totalPlayers} players.`);
+    throw ErrorCreators.validation(`Maximum roster size is ${maxTotalPlayers} players. You currently have ${totalPlayers} players.`);
   }
   
   if (currentTaxiSquadPlayers.length + candidates.length > 3) {
-    throw ErrorCreators.badRequest(`Taxi squad full. Can only add ${3 - currentTaxiSquadPlayers.length} more players`);
+    throw ErrorCreators.validation(`Taxi squad full. Can only add ${3 - currentTaxiSquadPlayers.length} more players`);
   }
 
   const addedPlayers = [];
@@ -2589,7 +2594,7 @@ router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: Reque
   console.log(`🔍 [ROUTE DEBUG] Handling GET /api/teams/${teamId}/seasonal-data`);
 
   if (isNaN(teamId)) {
-    throw ErrorCreators.badRequest("Invalid team ID");
+    throw ErrorCreators.validation("Invalid team ID");
   }
 
   // Verify team ownership
@@ -2626,7 +2631,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', requireAuth, asyncHandler(a
   console.log(`🔍 [ROUTE DEBUG] Handling POST /api/teams/${teamId}/taxi-squad/${playerId}/promote`);
 
   if (isNaN(teamId) || isNaN(playerId)) {
-    throw ErrorCreators.badRequest("Invalid team ID or player ID");
+    throw ErrorCreators.validation("Invalid team ID or player ID");
   }
 
   // Verify team ownership
@@ -2665,7 +2670,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', requireAuth, asyncHandler(a
   const isOnTaxiSquad = rosterPosition >= 13 && allTeamPlayers.length > 12;
 
   if (!isOnTaxiSquad) {
-    throw ErrorCreators.badRequest("Player is not on taxi squad");
+    throw ErrorCreators.validation("Player is not on taxi squad");
   }
 
   // Promote player using storage method
@@ -2689,7 +2694,7 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
   console.log(`🔍 [ROUTE DEBUG] Handling DELETE /api/teams/${teamId}/taxi-squad/${playerId}`);
 
   if (isNaN(teamId) || isNaN(playerId)) {
-    throw ErrorCreators.badRequest("Invalid team ID or player ID");
+    throw ErrorCreators.validation("Invalid team ID or player ID");
   }
 
   // Verify team ownership
@@ -2728,7 +2733,7 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
   const isOnTaxiSquad = rosterPosition >= 13 && allTeamPlayers.length > 12;
 
   if (!isOnTaxiSquad) {
-    throw ErrorCreators.badRequest("Player is not on taxi squad");
+    throw ErrorCreators.validation("Player is not on taxi squad");
   }
 
   // Release player using storage method

@@ -121,9 +121,15 @@ export default function MobileRosterHQ() {
     enabled: isAuthenticated,
   });
 
-  // Use players data from team query instead of separate API call
+  // Use players data from team query for main roster (contracted players)
   const players = team?.players || [];
   const playersLoading = teamLoading;
+
+  // Fetch taxi squad players separately using dedicated endpoint
+  const { data: taxiSquadData, isLoading: taxiSquadLoading } = useQuery<Player[]>({
+    queryKey: [`/api/teams/${team?.id}/taxi-squad`],
+    enabled: !!team?.id,
+  });
 
   const { data: staffData, isLoading: staffLoading } = useQuery<{
     staff: (Staff & { contract?: { salary: number; duration: number; remainingYears: number } | null })[];
@@ -160,12 +166,36 @@ export default function MobileRosterHQ() {
         description: "Player has been moved to the main roster with a 3-year contract.",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/players`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/taxi-squad`] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.message || error?.message || "Failed to promote player";
       toast({
         title: "Promotion Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Taxi squad release mutation
+  const releasePlayerMutation = useMutation({
+    mutationFn: async (playerId: string) => {
+      return apiRequest(`/api/teams/${team?.id}/taxi-squad/${playerId}/release`, "POST");
+    },
+    onSuccess: () => {
+      toast({
+        title: "Player Released",
+        description: "Player has been released from the taxi squad.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/taxi-squad`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to release player";
+      toast({
+        title: "Release Failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -405,10 +435,9 @@ export default function MobileRosterHQ() {
     return posA - posB;
   });
 
-  // Calculate flexible main roster (13-15 players) and taxi squad (0-2 players)
-  const taxiSquadPlayers = sortedPlayers.slice(13); // Players beyond position 13 are taxi squad (max 2)
-  const mainRoster = sortedPlayers.slice(0, sortedPlayers.length - taxiSquadPlayers.length); // Flexible main roster
-  const taxiSquad = taxiSquadPlayers;
+  // Use proper separation: Main roster (contracted) vs Taxi squad (no contracts + tryout history)
+  const mainRoster = sortedPlayers; // These are already contracted players from /api/teams/my
+  const taxiSquad = taxiSquadData || []; // These are taxi squad players from dedicated endpoint
   const injuredPlayers = activePlayers.filter(p => p.injuryStatus !== 'HEALTHY');
   const lowStaminaPlayers = activePlayers.filter(p => p.dailyStaminaLevel < 50);
   
@@ -436,7 +465,7 @@ export default function MobileRosterHQ() {
   };
 
   const filteredPlayers = getFilteredPlayers();
-  // Apply flexible roster logic to filtered players
+  // Apply proper separation to filtered players
   const sortedFilteredPlayers = [...filteredPlayers].sort((a, b) => {
     const posA = a.rosterPosition || 0;
     const posB = b.rosterPosition || 0;
@@ -445,9 +474,19 @@ export default function MobileRosterHQ() {
     if (posB === 0) return -1;
     return posA - posB;
   });
-  const filteredTaxiSquadPlayers = sortedFilteredPlayers.slice(13);
-  const filteredMainRoster = sortedFilteredPlayers.slice(0, sortedFilteredPlayers.length - filteredTaxiSquadPlayers.length);
-  const filteredTaxiSquad = filteredTaxiSquadPlayers;
+  const filteredMainRoster = sortedFilteredPlayers; // Already contracted players
+  const filteredTaxiSquad = taxiSquad.filter(player => {
+    // Apply same filtering logic to taxi squad
+    switch (rosterView) {
+      case 'medical':
+        return player.injuryStatus !== 'HEALTHY' || (player.dailyStaminaLevel || 100) < 50;
+      case 'contracts':
+        // Taxi squad players don't have contracts, so exclude from contracts view
+        return false;
+      default:
+        return true;
+    }
+  });
   
   // Role distribution
   const passers = activePlayers.filter(p => p.role === 'PASSER');
@@ -765,24 +804,44 @@ export default function MobileRosterHQ() {
                                     )}
                                   </div>
                                   {isOffseason && (
-                                    <Button
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        promotePlayerMutation.mutate(player.id);
-                                      }}
-                                      disabled={promotePlayerMutation.isPending}
-                                      className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-6"
-                                    >
-                                      {promotePlayerMutation.isPending ? (
-                                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                                      ) : (
-                                        <>
-                                          <ArrowUp className="w-3 h-3 mr-1" />
-                                          Promote
-                                        </>
-                                      )}
-                                    </Button>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          promotePlayerMutation.mutate(player.id);
+                                        }}
+                                        disabled={promotePlayerMutation.isPending}
+                                        className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-6"
+                                      >
+                                        {promotePlayerMutation.isPending ? (
+                                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                        ) : (
+                                          <>
+                                            <ArrowUp className="w-3 h-3 mr-1" />
+                                            Promote
+                                          </>
+                                        )}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          releasePlayerMutation.mutate(player.id);
+                                        }}
+                                        disabled={releasePlayerMutation.isPending}
+                                        className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 h-6"
+                                      >
+                                        {releasePlayerMutation.isPending ? (
+                                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                        ) : (
+                                          <>
+                                            <X className="w-3 h-3 mr-1" />
+                                            Release
+                                          </>
+                                        )}
+                                      </Button>
+                                    </div>
                                   )}
                                 </div>
                               </div>
