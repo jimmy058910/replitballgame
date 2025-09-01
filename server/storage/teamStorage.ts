@@ -221,6 +221,12 @@ export class TeamStorage {
           finances: true,
           stadium: true,
           players: {
+            where: {
+              isOnMarket: false,
+              contract: {
+                isNot: null // Only include players WITH contracts (main roster)
+              }
+            },
             include: {
               contract: true,
               skills: { include: { skill: true } }
