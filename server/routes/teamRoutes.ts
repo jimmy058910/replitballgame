@@ -2605,6 +2605,7 @@ router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(asyn
 
 
 
+
 // Get seasonal data for team (tryout usage tracking)
 router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   const teamId = parseInt(req.params.teamId, 10);

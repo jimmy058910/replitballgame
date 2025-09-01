@@ -92,15 +92,11 @@ export class PlayerStorage {
       where: {
         teamId: parseInt(teamId.toString()),
         isOnMarket: false,
-        // CRITICAL FIX: Only players WITH contracts should be in main roster
-        // This excludes taxi squad players (no contracts + tryout history)
-        AND: [
-          {
-            contract: {
-              isNot: null // Must have contract = main roster
-            }
-          }
-        ]
+        // CRITICAL: Only players WITH contracts = main roster
+        // Players WITHOUT contracts should be in taxi squad only
+        contract: {
+          isNot: null // Must have a contract to be in main roster
+        }
       },
       include: {
         team: { select: { name: true } },
