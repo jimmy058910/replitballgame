@@ -609,7 +609,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
 
   // Fetch current formation
   const { data: currentFormation } = useQuery({
-    queryKey: [`/api/teams/${teamId}/formation`],
+    queryKey: [`/api/tactical/formation`],
     enabled: !!teamId,
   });
 
@@ -795,7 +795,13 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     mutationFn: async () => {
       const starters = formationSlots
         .filter(slot => slot.player)
-        .map(slot => slot.player!);
+        .map(slot => ({ 
+          id: slot.player!.id, 
+          position: slot.position,
+          firstName: slot.player!.firstName,
+          lastName: slot.player!.lastName,
+          role: slot.player!.role
+        }));
 
       const substitutes = [
         ...substitutionQueue.blockers.filter(Boolean),
@@ -808,19 +814,16 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
 
       console.log('🔍 FRONTEND Save Debug:', {
         starters: starters.length,
+        starterPositions: starters.map(s => s.position),
         substitutes: substitutes.length,
         flexSubs: flexSubs.length,
         flexSubNames: flexSubs.map(p => p ? p.firstName + ' ' + p.lastName : 'Unknown')
       });
 
-      return await fetch(`/api/teams/${teamId}/formation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          starters, 
-          substitutes, 
-          flexSubs
-        }),
+      return await apiRequest(`/api/tactical/formation`, "POST", { 
+        starters, 
+        substitutes, 
+        flexSubs
       });
     },
     onSuccess: () => {
@@ -828,7 +831,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
         title: "Formation Saved",
         description: "Your tactical setup has been updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/formation`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/tactical/formation`] });
     },
     onError: () => {
       toast({
@@ -880,7 +883,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
     const starterIds = formationSlots.map(slot => slot.player?.id).filter(Boolean);
     const currentSlotPlayer = selectedSlot?.player?.id;
     
-    // Smart duplicate validation based on assignment type
+    // Enhanced duplicate validation based on assignment type
     if (player.id !== currentSlotPlayer && allAssignedIds.includes(player.id)) {
       
       if (selectedSlot?.isSubstitution && selectedSlot.substitutionPosition === 'wildcard') {
@@ -900,16 +903,26 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
           });
           return;
         }
-        // Allow assignment to flex if only in position-specific subs
+        // Allow assignment to flex if only in position-specific subs (flex can share with position subs)
       } else {
-        // For starters and position-specific subs: Block all duplicates
-        console.warn('Player already assigned elsewhere, assignment blocked');
-        toast({
-          title: "Assignment Blocked",
-          description: `${player.firstName} ${player.lastName} is already assigned to another position`,
-          variant: "destructive",
-        });
-        return;
+        // For starters and position-specific subs: Block all duplicates except flex subs
+        const flexSubIds = substitutionQueue.wildcard.map(p => p?.id).filter(Boolean);
+        const isOnlyInFlexSub = flexSubIds.includes(player.id) && 
+          !starterIds.includes(player.id) &&
+          !substitutionQueue.blockers.some(p => p?.id === player.id) &&
+          !substitutionQueue.runners.some(p => p?.id === player.id) &&
+          !substitutionQueue.passers.some(p => p?.id === player.id);
+        
+        if (!isOnlyInFlexSub) {
+          console.warn('Player already assigned elsewhere, assignment blocked');
+          toast({
+            title: "Assignment Blocked",
+            description: `${player.firstName} ${player.lastName} is already assigned to another position`,
+            variant: "destructive",
+          });
+          return;
+        }
+        // Allow promotion from flex sub to starter/position-specific sub
       }
     }
 
@@ -960,15 +973,17 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
 
   const handleAutoFill = () => {
     const newSlots = [...formationSlots];
+    const assignedPlayerIds = new Set<string>();
     
-    // Auto-assign best available players to empty slots
+    // Auto-assign best available players to empty slots, preventing duplicates
     newSlots.forEach((slot, index) => {
       if (!slot.player) {
-        const eligiblePlayers = slot.isWildcard 
+        const eligiblePlayers = (slot.isWildcard 
           ? availablePlayers
           : availablePlayers.filter(p => 
               p.role.toLowerCase() === slot.requiredRole?.toLowerCase()
-            );
+            )
+        ).filter(p => !assignedPlayerIds.has(p.id)); // Prevent duplicates
         
         if (eligiblePlayers.length > 0) {
           // Pick highest power player
@@ -979,6 +994,7 @@ export default function TapToAssignTactics({ teamId }: TapToAssignTacticsProps) 
           });
           
           newSlots[index] = { ...slot, player: bestPlayer };
+          assignedPlayerIds.add(bestPlayer.id); // Track assigned player
         }
       }
     });

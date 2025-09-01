@@ -26,7 +26,31 @@ router.get("/formation", requireAuth, async (req: any, res) => {
     const players = await storage.players.getPlayersByTeamId(team.id);
     
     // Get formation from team data - formation data is stored in team record
-    const formation = team.formation_data || { starters: [], substitutes: [] };
+    let formation = { starters: [], substitutes: [], flexSubs: [] };
+    
+    if (team.formation_data) {
+      try {
+        // Parse the JSON formation data
+        const parsedFormation = typeof team.formation_data === 'string' 
+          ? JSON.parse(team.formation_data) 
+          : team.formation_data;
+        
+        formation = {
+          starters: parsedFormation.starters || [],
+          substitutes: parsedFormation.substitutes || [],
+          flexSubs: parsedFormation.flexSubs || []
+        };
+        
+        console.log(`✅ [FORMATION] Loaded formation for team ${team.name}:`, {
+          starters: formation.starters.length,
+          substitutes: formation.substitutes.length,
+          flexSubs: formation.flexSubs.length
+        });
+      } catch (error) {
+        console.error('❌ [FORMATION] Failed to parse formation data:', error);
+        formation = { starters: [], substitutes: [], flexSubs: [] };
+      }
+    }
     
     res.json({
       formation: formation,
@@ -238,6 +262,74 @@ router.get("/tactical-analysis", requireAuth, async (req: any, res) => {
   } catch (error) {
     console.error("Error analyzing tactics:", error);
     res.status(500).json({ error: "Failed to analyze tactics" });
+  }
+});
+
+// Save team formation
+router.post("/formation", requireAuth, async (req: any, res) => {
+  try {
+    const { starters, substitutes, flexSubs } = req.body;
+    
+    const team = await storage.teams.getTeamByUserId(req.user.claims.sub);
+    if (!team) {
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    // Validate formation data
+    if (!Array.isArray(starters)) {
+      return res.status(400).json({ error: "Starters array is required" });
+    }
+
+    // Validate no duplicate players in starters
+    const starterIds = starters.map(p => p.id).filter(Boolean);
+    const uniqueStarterIds = new Set(starterIds);
+    
+    if (starterIds.length !== uniqueStarterIds.size) {
+      return res.status(400).json({ error: "Duplicate players not allowed in starting formation" });
+    }
+
+    // Validate all players belong to the team
+    const allPlayerIds = [
+      ...starterIds,
+      ...(Array.isArray(substitutes) ? substitutes.map(p => p.id).filter(Boolean) : []),
+      ...(Array.isArray(flexSubs) ? flexSubs.map(p => p.id).filter(Boolean) : [])
+    ];
+
+    const prisma = await getPrismaClient();
+    const teamPlayers = await prisma.player.findMany({
+      where: { teamId: team.id, id: { in: allPlayerIds.map(id => parseInt(id)) } }
+    });
+
+    if (teamPlayers.length !== allPlayerIds.length) {
+      return res.status(400).json({ error: "Some players do not belong to your team" });
+    }
+
+    // Save formation data to team record
+    const formationData = {
+      starters: starters.map(p => ({ id: p.id, position: p.position })),
+      substitutes: substitutes || [],
+      flexSubs: flexSubs || [],
+      lastUpdated: new Date().toISOString()
+    };
+
+    await storage.teams.updateTeam(team.id, { 
+      formation_data: JSON.stringify(formationData) 
+    });
+
+    console.log(`✅ [FORMATION] Saved formation for team ${team.name}:`, {
+      starters: formationData.starters.length,
+      substitutes: formationData.substitutes.length, 
+      flexSubs: formationData.flexSubs.length
+    });
+
+    res.json({
+      success: true,
+      message: "Formation saved successfully",
+      formation: formationData
+    });
+  } catch (error) {
+    console.error("Error saving formation:", error);
+    res.status(500).json({ error: "Failed to save formation" });
   }
 });
 
