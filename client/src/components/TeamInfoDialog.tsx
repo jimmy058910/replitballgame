@@ -47,41 +47,14 @@ interface Player {
   agility: number;
 }
 
+// Import centralized division utilities
+import { getDivisionNameWithSubdivision as getCanonicalDivisionName } from '../../../shared/divisionUtils';
+
 // Helper function to get division name with subdivision
 const getDivisionNameWithSubdivision = (division: number, subdivision?: string) => {
-  const divisionNames = {
-    1: "Diamond League",
-    2: "Platinum League", 
-    3: "Gold League",
-    4: "Silver League",
-    5: "Bronze League",
-    6: "Iron League",
-    7: "Steel League",
-    8: "Copper League"
-  };
+  // Use the canonical division utils instead of local mapping
+  return getCanonicalDivisionName(division, subdivision);
   
-  const baseName = divisionNames[division as keyof typeof divisionNames] || `Division ${division}`;
-  
-  if (!subdivision || subdivision === "main") {
-    return baseName;
-  }
-  
-  // Map subdivision to display names
-  const subdivisionNames = {
-    "alpha": "Alpha",
-    "beta": "Beta", 
-    "gamma": "Gamma",
-    "delta": "Delta",
-    "epsilon": "Epsilon",
-    "zeta": "Zeta",
-    "eta": "Eta",
-    "theta": "Theta",
-    "iota": "Iota",
-    "kappa": "Kappa"
-  };
-  
-  const subdivisionName = subdivisionNames[subdivision as keyof typeof subdivisionNames] || subdivision;
-  return `${baseName} - ${subdivisionName}`;
 };
 
 interface TeamInfoDialogProps {

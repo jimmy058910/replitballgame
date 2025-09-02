@@ -1259,12 +1259,12 @@ export default function ComprehensiveCompetitionCenter() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-300 flex items-center gap-2">
-                      {currentTournamentStatus?.registered ? (
+                      {currentTournamentStatus?.registeredTeams?.some((t: any) => t.teamId === team?.id) ? (
                         <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                       ) : (
                         <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
                       )}
-                      Daily Divisional Tournament: {currentTournamentStatus?.registered ? "Active • Round 1" : "Registration OPEN • Not Entered"}
+                      Daily Divisional Tournament: {currentTournamentStatus?.registeredTeams?.some((t: any) => t.teamId === team?.id) ? "Active • Registered" : "Registration OPEN • Not Entered"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -2011,10 +2011,6 @@ export default function ComprehensiveCompetitionCenter() {
                   ) : (
                     <div className="space-y-3">
                       <p className="text-yellow-400 text-sm">⏳ Bracket will be generated when tournament starts</p>
-                      <div className="text-xs text-gray-500">
-                        Debug: hasMatches={String(tournamentBracket.hasMatches)}, 
-                        matches.length={tournamentBracket.matches?.length || 0}
-                      </div>
                     </div>
                   )}
                 </div>
