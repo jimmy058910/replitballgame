@@ -1308,12 +1308,12 @@ export class SeasonTimingAutomationService {
   }
 
   /**
-   * ENHANCED: Smart missed progression detection with safeguards
-   * Safely advances days without triggering schedule generation issues
+   * ENHANCED: Smart missed progression detection with safeguards AND season transition handling
+   * Safely advances days and handles season rollover when Day 17 transitions to new season
    */
   private async checkAndExecuteSmartMissedProgressions(): Promise<void> {
     try {
-      logInfo('🔍 [SMART PROGRESSION] Checking for missed daily progressions...');
+      logInfo('🔍 [SMART PROGRESSION] Checking for missed daily progressions and season transitions...');
       
       const currentSeason = await storage.seasons.getCurrentSeason();
       if (!currentSeason) {
@@ -1324,15 +1324,44 @@ export class SeasonTimingAutomationService {
       const databaseDay = currentSeason.currentDay || 1;
       const calculatedDay = await this.calculateCorrectDay(currentSeason);
       
-      console.log('📊 [SMART PROGRESSION] Day Analysis:', {
+      // CRITICAL: Check if we need season transition by examining if we're past the season end
+      const seasonEndTime = new Date(currentSeason.endDate);
+      const currentTime = new Date();
+      const isPastSeasonEnd = currentTime >= seasonEndTime;
+      
+      // Calculate if we should be in a new season based on timing
+      const { calculateCurrentSeasonNumber } = await import('../../shared/dayCalculation.js');
+      const expectedSeasonNumber = calculateCurrentSeasonNumber(new Date(currentSeason.startDate));
+      const currentSeasonNumber = currentSeason.seasonNumber || 1;
+      const needsSeasonTransition = expectedSeasonNumber > currentSeasonNumber || (isPastSeasonEnd && databaseDay === 17);
+      
+      console.log('📊 [SMART PROGRESSION] Analysis:', {
         databaseDay,
         calculatedDay,
+        isPastSeasonEnd,
+        expectedSeasonNumber,
+        currentSeasonNumber,
+        needsSeasonTransition,
         needsProgression: calculatedDay > databaseDay,
         seasonStart: currentSeason.startDate,
-        currentTime: new Date().toISOString()
+        seasonEnd: currentSeason.endDate,
+        currentTime: currentTime.toISOString()
       });
       
-      if (calculatedDay > databaseDay) {
+      // PRIORITY 1: Handle season transition if needed
+      if (needsSeasonTransition) {
+        logInfo(`🔄 [SMART PROGRESSION] Season transition detected: Season ${currentSeasonNumber} → Season ${expectedSeasonNumber}`);
+        logInfo(`🚀 [SMART PROGRESSION] Triggering season rollover from Day ${databaseDay}...`);
+        
+        // Trigger season rollover using existing logic
+        await this.executeSeasonRollover(currentSeasonNumber);
+        
+        logInfo(`✅ [SMART PROGRESSION] Season rollover completed successfully`);
+        return; // Exit after season rollover, new season should be created
+      }
+      
+      // PRIORITY 2: Handle normal day progression within current season
+      if (calculatedDay > databaseDay && calculatedDay <= 17) {
         logInfo(`🚀 [SMART PROGRESSION] Advancing from Day ${databaseDay} to Day ${calculatedDay}...`);
         
         // SAFE UPDATE: Only touch the currentDay field

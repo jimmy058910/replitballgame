@@ -1308,11 +1308,24 @@ export class SeasonalFlowService {
       'Phoenix Rising', 'Crimson Falcons', 'Golden Lions', 'Silver Bears', 'Bronze Tigers'
     ];
     
-    const randomName = aiTeamNames[Math.floor(Math.random() * aiTeamNames.length)];
+    const baseName = aiTeamNames[Math.floor(Math.random() * aiTeamNames.length)];
+    const uniqueId = Math.floor(Math.random() * 1000); // Random 3-digit suffix
+    const randomName = `${baseName} ${uniqueId}`;
+    
+    // First create AI user profile
+    const aiUserProfile = await prisma.userProfile.create({
+      data: {
+        userId: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        email: `ai-team-${Date.now()}@realmrivalry.ai`,
+        firstName: 'AI',
+        lastName: 'Team'
+      }
+    });
     
     // Create AI team
     const aiTeam = await prisma.team.create({
       data: {
+        userProfileId: aiUserProfile.id,
         name: randomName,
         isAI: true,
         division: division,
@@ -1647,11 +1660,34 @@ export class SeasonalFlowService {
     const { ContractProgressionService } = await import('./contractProgressionService.js');
     const contractResult = await ContractProgressionService.processSeasonalContractProgression();
     
-    // 6. Generate schedule for new season
+    // 6. CRITICAL: Create new season record in database
+    const now = new Date();
+    const newSeasonEndDate = new Date(now);
+    newSeasonEndDate.setDate(now.getDate() + 17); // 17-day season cycle
+    
+    const newSeasonRecord = await prisma.season.create({
+      data: {
+        id: `season-${newSeason}-${Date.now()}`,
+        seasonNumber: newSeason,
+        startDate: now,
+        endDate: newSeasonEndDate,
+        currentDay: 1,
+        phase: 'REGULAR_SEASON'
+      }
+    });
+    
+    logInfo(`New season created: Season ${newSeason}, Day 1`, {
+      newSeasonId: newSeasonRecord.id,
+      startDate: newSeasonRecord.startDate,
+      endDate: newSeasonRecord.endDate
+    });
+    
+    // 7. Generate schedule for new season
     const scheduleResult = await this.generateSeasonSchedule(newSeason);
     
     logInfo(`Day 17→1 transition completed`, {
       newSeason,
+      newSeasonCreated: true,
       scheduleGenerated: scheduleResult.matchesGenerated > 0,
       promotionRelegationCompleted: true,
       leaguesRebalanced: rebalanceResult.leaguesRebalanced > 0,
