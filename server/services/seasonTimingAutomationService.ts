@@ -88,7 +88,8 @@ export class SeasonTimingAutomationService {
     this.scheduleMatchSimulation();
     
     // Schedule catch-up check every 15 minutes for missed matches
-    this.scheduleCatchUpChecks();
+    // 🚨 TEMPORARILY DISABLED - Schedule corruption fix in progress
+    // this.scheduleCatchUpChecks();
     
     // Schedule tournament auto-start check every hour
     this.scheduleTournamentAutoStart();

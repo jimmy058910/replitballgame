@@ -73,10 +73,21 @@ export class SeasonalFlowService {
   };
 
   /**
-   * Get current day in the season cycle (1-17)
+   * Get current day in the season cycle (1-17) - DYNAMIC VERSION
    */
-  static getCurrentDay(): number {
-    const startDate = new Date("2025-07-13");
+  static async getCurrentDay(): Promise<number> {
+    const prisma = await getPrismaClient();
+    
+    // Get the current season from database
+    const currentSeason = await prisma.season.findFirst({
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      throw new Error('No current season found');
+    }
+    
+    const startDate = new Date(currentSeason.startDate);
     const now = new Date();
     
     // Calculate days since start, accounting for the day advancement that should occur at 3AM EST
@@ -216,6 +227,17 @@ export class SeasonalFlowService {
     const matches = [];
     const numTeams = teams.length;
     
+    // Get current season start date from database
+    const prisma = await getPrismaClient();
+    const currentSeason = await prisma.season.findFirst({
+      where: { seasonNumber: season },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      throw new Error(`No season found for season number ${season}`);
+    }
+    
     // CORRECTED: Generate 8 matches per day × 14 days = 112 total matches
     for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
       // Generate 8 matches for this day (not 2)
@@ -227,7 +249,7 @@ export class SeasonalFlowService {
       
       for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
         const match = dayMatches[matchIndex];
-        const gameDate = new Date("2025-07-13");
+        const gameDate = new Date(currentSeason.startDate);
         gameDate.setDate(gameDate.getDate() + day - 1);
         
         // Use the appropriate time slot for this match
@@ -276,6 +298,17 @@ export class SeasonalFlowService {
       throw new Error(`Standard subdivision must have at least 2 teams`);
     }
     
+    // Get current season start date from database
+    const prisma = await getPrismaClient();
+    const currentSeason = await prisma.season.findFirst({
+      where: { seasonNumber: season },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      throw new Error(`No season found for season number ${season}`);
+    }
+    
     // CORRECTED: Ensure only ONE subdivision per division (Divisions 3-8)
     // 4 matches per day × 14 days = 56 total matches per division
     
@@ -289,7 +322,7 @@ export class SeasonalFlowService {
       
       for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
         const match = dayMatches[matchIndex];
-        const gameDate = new Date("2025-07-13");
+        const gameDate = new Date(currentSeason.startDate);
         gameDate.setDate(gameDate.getDate() + day - 1);
         
         // Use the appropriate time slot for this match
@@ -397,6 +430,17 @@ export class SeasonalFlowService {
   ): Promise<any[]> {
     const matches = [];
     
+    // Get current season start date from database
+    const prisma = await getPrismaClient();
+    const currentSeason = await prisma.season.findFirst({
+      where: { seasonNumber: season },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      throw new Error(`No season found for season number ${season}`);
+    }
+    
     // Group teams by subdivision
     const subdivisionMap = new Map<string, any[]>();
     for (const team of teams) {
@@ -422,7 +466,7 @@ export class SeasonalFlowService {
           const match = dayMatches[matchIndex];
           
           // Calculate the correct game date based on season start + day
-          const gameDate = new Date("2025-07-13"); // Season start date
+          const gameDate = new Date(currentSeason.startDate);
           gameDate.setDate(gameDate.getDate() + day - 1);
           
           // Use generateDailyGameTimes for consecutive 15-minute intervals
@@ -541,6 +585,17 @@ export class SeasonalFlowService {
       return matches; // Can't generate matches with less than 2 teams
     }
     
+    // Get current season start date from database
+    const prisma = await getPrismaClient();
+    const currentSeason = await prisma.season.findFirst({
+      where: { seasonNumber: season },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      throw new Error(`No season found for season number ${season}`);
+    }
+    
     // Generate matches for 14 days
     for (let day = 1; day <= this.SEASON_CONFIG.REGULAR_SEASON_DAYS; day++) {
       const dayMatches = this.generateSubdivisionDayMatches(teams, day, 1);
@@ -551,7 +606,7 @@ export class SeasonalFlowService {
       
       for (let matchIndex = 0; matchIndex < dayMatches.length; matchIndex++) {
         const match = dayMatches[matchIndex];
-        const gameDate = new Date("2025-07-13");
+        const gameDate = new Date(currentSeason.startDate);
         gameDate.setDate(gameDate.getDate() + day - 1);
         
         // Use the appropriate time slot for this match
