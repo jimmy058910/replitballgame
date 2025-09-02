@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 // Note: Using any types for Prisma enums to avoid import issues
 import { getPrismaClient } from '../database.js';
-import { logInfo } from './errorService.js';
+import { logInfo, logError } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 
-// Initialize Prisma client for all operations in this service
-const prisma = await getPrismaClient();
+// Note: Prisma client will be initialized in each function as needed
+// Removed top-level await to fix TypeScript compilation errors
 
 /**
  * Seasonal Flow Algorithm Service
@@ -876,6 +876,7 @@ export class SeasonalFlowService {
     }>;
     totalPlayoffMatches: number;
   }> {
+    const prisma = await getPrismaClient();
     // Get the actual season ID from database instead of hardcoded format
     const currentSeason = await prisma.season.findFirst({
       where: { seasonNumber: season },
@@ -1040,6 +1041,7 @@ export class SeasonalFlowService {
    * Step 1: Division 1 Relegation - Bottom 6 teams relegated
    */
   static async processDivision1Relegation(season: number, relegations: any[]): Promise<void> {
+    const prisma = await getPrismaClient();
     const division1Teams = await prisma.team.findMany({
       where: { division: 1 },
       orderBy: [
@@ -1070,6 +1072,7 @@ export class SeasonalFlowService {
    * Step 2: Division 2 Promotion - 2 teams from each of 3 sub-divisions
    */
   static async processDivision2Promotion(season: number, promotions: any[]): Promise<void> {
+    const prisma = await getPrismaClient();
     // Get Division 2 subdivisions
     const division2Subdivisions = await prisma.team.groupBy({
       by: ['subdivision'],
@@ -1113,6 +1116,7 @@ export class SeasonalFlowService {
    * Step 3a: Division 2 Relegation - Bottom 4 teams from each 16-team subdivision
    */
   static async processDivision2Relegation(season: number, relegations: any[]): Promise<void> {
+    const prisma = await getPrismaClient();
     const division2Subdivisions = await prisma.team.groupBy({
       by: ['subdivision'],
       where: { division: 2 },
@@ -1154,6 +1158,7 @@ export class SeasonalFlowService {
    * Step 3b: Division 3 Promotion - Promotion Pool System
    */
   static async processDivision3Promotion(season: number, promotions: any[]): Promise<void> {
+    const prisma = await getPrismaClient();
     // Create promotion pool from all Division 3 subdivisions
     const promotionPool = await this.createPromotionPool(3, season);
     
@@ -1178,6 +1183,7 @@ export class SeasonalFlowService {
    * Step 4: Standardized Cascade for Divisions 3-8
    */
   static async processStandardizedCascade(season: number, promotions: any[], relegations: any[]): Promise<void> {
+    const prisma = await getPrismaClient();
     // Process divisions 3-8 (Division 8 has promotions but no relegations)
     for (let division = 3; division <= this.SEASON_CONFIG.MAX_DIVISION; division++) {
       // Relegation: Bottom 4 teams from each subdivision (except Division 8)
@@ -1278,6 +1284,7 @@ export class SeasonalFlowService {
    * Returns top teams ranked by win percentage with point differential as tiebreaker
    */
   static async createPromotionPool(division: number, season: number): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const subdivisions = await prisma.team.groupBy({
       by: ['subdivision'],
       where: { division },
@@ -1329,6 +1336,7 @@ export class SeasonalFlowService {
     division: number;
     leagueId: string;
   }>> {
+    const prisma = await getPrismaClient();
     // Get all championship matches (would need to be created after semifinals)
     const championshipMatches = await prisma.game.findMany({
       where: {
@@ -1368,6 +1376,7 @@ export class SeasonalFlowService {
     teamsRedistributed: number;
     newLeaguesCreated: number;
   }> {
+    const prisma = await getPrismaClient();
     let leaguesRebalanced = 0;
     let teamsRedistributed = 0;
     let newLeaguesCreated = 0;
@@ -1488,6 +1497,7 @@ export class SeasonalFlowService {
       freeAgentsGenerated: number;
     };
   }> {
+    const prisma = await getPrismaClient();
     const newSeason = currentSeason + 1;
     logInfo(`Starting Day 17→1 transition: Season rollover for Season ${currentSeason} → ${newSeason}`);
     
@@ -1561,6 +1571,7 @@ export class SeasonalFlowService {
       statValue: number;
     }>;
   }> {
+    const prisma = await getPrismaClient();
     try {
       const { awardsService } = await import('./awardsService');
       
@@ -1628,6 +1639,7 @@ export class SeasonalFlowService {
       prizeType: string;
     }>;
   }> {
+    const prisma = await getPrismaClient();
     try {
       const distributions = [];
       let totalPrizeMoney = 0;
@@ -1736,6 +1748,7 @@ export class SeasonalFlowService {
     totalAIPlayersDeleted: number;
     totalAIUserProfilesDeleted: number;
   }> {
+    const prisma = await getPrismaClient();
     try {
       logInfo('Starting AI team cleanup...');
       

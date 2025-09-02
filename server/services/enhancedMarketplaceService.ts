@@ -90,6 +90,7 @@ export class EnhancedMarketplaceService {
    * Prevents auctions from ending after Day 17 3AM reset
    */
   static async validateAuctionDuration(durationHours: number): Promise<{ isValid: boolean; message?: string }> {
+    const prisma = await getPrismaClient();
     // Get current season day from database
     const currentSeason = await prisma.season.findFirst({
       orderBy: { startDate: 'desc' }
@@ -123,6 +124,7 @@ export class EnhancedMarketplaceService {
    * Creates listing with all validation and escrow handling
    */
   static async createListing(teamId: number, playerId: number, startBid: number, buyNowPrice: number, durationHours: number): Promise<any> {
+    const prisma = await getPrismaClient();
     // Validate all requirements
     const rosterValidation = await this.validateRosterRequirements(teamId, playerId);
     if (!rosterValidation.isValid) {
@@ -227,6 +229,7 @@ export class EnhancedMarketplaceService {
    * 5-minute extensions with maximum cap
    */
   static async placeBid(teamId: number, listingId: number, bidAmount: number): Promise<any> {
+    const prisma = await getPrismaClient();
     const listing = await prisma.marketplaceListing.findUnique({
       where: { id: listingId },
       include: { 
@@ -395,6 +398,7 @@ export class EnhancedMarketplaceService {
    * Instant purchase with market tax
    */
   static async buyNow(teamId: number, listingId: number): Promise<any> {
+    const prisma = await getPrismaClient();
     const listing = await prisma.marketplaceListing.findUnique({
       where: { id: listingId },
       include: { 
@@ -509,6 +513,7 @@ export class EnhancedMarketplaceService {
    * Converts auctions to buy-now only during Days 16-17
    */
   static async processOffSeasonConversion(): Promise<void> {
+    const prisma = await getPrismaClient();
     const currentSeason = await prisma.season.findFirst({
       orderBy: { startDate: 'desc' }
     });
@@ -571,6 +576,7 @@ export class EnhancedMarketplaceService {
    * Remove unsold players from market at season end
    */
   static async processAutoDelisting(): Promise<void> {
+    const prisma = await getPrismaClient();
     const currentTime = new Date();
     
     const expiredListings = await prisma.marketplaceListing.findMany({
@@ -627,6 +633,7 @@ export class EnhancedMarketplaceService {
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
   } = {}): Promise<any> {
+    const prisma = await getPrismaClient();
     const {
       page = 1,
       limit = 20,
@@ -732,6 +739,7 @@ export class EnhancedMarketplaceService {
    * Personal listings, bids, and statistics
    */
   static async getTeamDashboard(teamId: number): Promise<any> {
+    const prisma = await getPrismaClient();
     const [myListings, myBids, stats] = await Promise.all([
       // My active listings
       prisma.marketplaceListing.findMany({
@@ -796,6 +804,7 @@ export class EnhancedMarketplaceService {
    * GET TEAM MARKETPLACE STATISTICS
    */
   static async getTeamStats(teamId: number): Promise<any> {
+    const prisma = await getPrismaClient();
     const [
       totalListings,
       totalBids,
