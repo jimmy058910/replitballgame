@@ -184,6 +184,10 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     return { income, expenses };
   };
 
+  // Process transaction data for the enhanced UI FIRST
+  const rawTransactions = (transactionData as any)?.transactions || [];
+  
+  // Calculate transaction breakdowns AFTER rawTransactions is defined
   const transactionBreakdowns = calculateTransactionBreakdowns(rawTransactions);
 
   // Map the actual financial data to our expected format with comprehensive data mapping
@@ -226,9 +230,6 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     totalCommitment: (player.salary || 0) * (player.contractLength || 0),
     type: 'player' as const
   })) : [];
-
-  // Process transaction data for the enhanced UI
-  const rawTransactions = (transactionData as any)?.transactions || [];
   const transactionsList = rawTransactions
     .filter((t: any) => {
       // Filter by search term
