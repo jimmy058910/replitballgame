@@ -40,7 +40,7 @@ function getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; 
     // Fallback to calculation if no database value - FIXED: Use proper 3AM EDT boundaries
     const seasonStartDate = currentSeason?.startDate ? new Date(currentSeason.startDate) : 
                            currentSeason?.start_date ? new Date(currentSeason.start_date) : 
-                           new Date("2025-08-16T15:40:19.081Z"); // Season 1 start date
+                           new Date("2025-08-16T15:40:19.081Z"); // Fallback only
     const { calculateCurrentSeasonDay } = require("../../shared/dayCalculation.js");
     currentDayInCycle = calculateCurrentSeasonDay(seasonStartDate);
   }
@@ -53,7 +53,7 @@ function getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; 
  * Helper function to get date for a specific season day
  */
 function getDateForDay(currentSeason: any, dayNumber: number): Date {
-  const startDate = new Date(currentSeason.startDate || "2025-08-16");
+  const startDate = new Date(currentSeason.startDate || "2025-09-02");
   const targetDate = new Date(startDate);
   targetDate.setDate(startDate.getDate() + dayNumber - 1);
   return targetDate;
@@ -188,8 +188,9 @@ async function generateLateSignupScheduleForTeam(userTeam: any, currentDay: numb
     console.log(`🔍 [ALL GAMES DEBUG] Found ${allSubdivisionMatches.length} total subdivision games`);
     
     // DYNAMIC: Filter for gameStartDay to Day 14 in JavaScript
+    // FIXED: Get season outside filter to avoid async issues
+    const baseDate = new Date(currentSeason.startDate);
     const regeneratedMatches = allSubdivisionMatches.filter(match => {
-      const baseDate = new Date('2025-08-16T00:00:00.000Z'); // Day 1
       const daysSinceStart = Math.floor((match.gameDate.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
       const dayNumber = daysSinceStart + 1;
       const isInRange = dayNumber >= gameStartDay && dayNumber <= 14;
@@ -970,7 +971,7 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
       
       // Organize games by day for display
       const schedule: any = {};
-      const startDate = currentSeason.startDate || new Date('2025-08-16');
+      const startDate = currentSeason.startDate || new Date('2025-09-02');
       
       // Remove duplicates by creating a Set of unique game IDs
       const uniqueGames = existingGames.filter((game, index, arr) => 
@@ -1084,21 +1085,20 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
 
     const scheduleByDay: { [key: number]: any[] } = {};
 
-    // Day 5 = Aug 20th (today), Day 6 = Aug 21st, etc.
-    // Database games are Aug 24-Sep 2, so they should map to Days 9-18
+    // FIXED: Use dynamic Season 2 start date for proper day calculation
     for (let day = 1; day <= 17; day++) {
       const dayMatches = allMatches.filter((match: any) => {
         if (match.gameDate) {
           const gameDate = new Date(match.gameDate);
           const gameDateUTC = new Date(gameDate.getFullYear(), gameDate.getMonth(), gameDate.getDate());
           
-          // Day 5 = Aug 20th, so calculate from that base
-          const day5Date = new Date("2025-08-20"); // Day 5 = Aug 20th (today)
-          const day5DateUTC = new Date(day5Date.getFullYear(), day5Date.getMonth(), day5Date.getDate());
-          const daysDiff = Math.floor((gameDateUTC.getTime() - day5DateUTC.getTime()) / (1000 * 60 * 60 * 24));
-          const gameDayInSchedule = daysDiff + 5; // Aug 20th = Day 5
+          // FIXED: Use current season start date instead of hardcoded Season 1 date
+          const seasonStartDate = new Date(currentSeason.startDate);
+          const seasonStartUTC = new Date(seasonStartDate.getFullYear(), seasonStartDate.getMonth(), seasonStartDate.getDate());
+          const daysDiff = Math.floor((gameDateUTC.getTime() - seasonStartUTC.getTime()) / (1000 * 60 * 60 * 24));
+          const gameDayInSchedule = daysDiff + 1; // Season start = Day 1
           
-          console.log(`🎯 [SCHEDULE] Game ${match.id} on ${gameDate.toDateString()} = Day ${gameDayInSchedule}`);
+          console.log(`🎯 [SCHEDULE] Game ${match.id} on ${gameDate.toDateString()} = Day ${gameDayInSchedule} (Season ${currentSeason.seasonNumber})`);
           
           return gameDayInSchedule === day;
         }
@@ -1467,7 +1467,9 @@ router.post('/generate-schedule', requireAuth, async (req: Request, res: Respons
     console.log('⚽ Generating schedule for Days 5-14...');
     
     const scheduledGames = [];
-    const baseDate = new Date("2025-08-20");
+    // FIXED: Use dynamic current season start date
+    const currentSeason = await storage.seasons.getCurrentSeason();
+    const baseDate = new Date(currentSeason.startDate);
     
     // For each day (Days 5-14)
     for (let day = 5; day <= 14; day++) {
@@ -1609,7 +1611,9 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     // Step 4: Generate proper shortened season schedule (Days 7-14)
     // EXACTLY 4 games per day, each team plays exactly once per day
     const games = [];
-    const startDate = new Date('2025-08-16T00:00:00.000Z');
+    // FIXED: Use current season start date
+    const currentSeason = await storage.seasons.getCurrentSeason();
+    const startDate = new Date(currentSeason.startDate);
     
     console.log(`📋 Creating daily round-robin with 8 teams = 4 matches per day`);
     
