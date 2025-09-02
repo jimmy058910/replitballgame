@@ -165,6 +165,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                               } else if (division === 8) {
                                 // Division 8: Only promotion, NO relegation (bottom division)
                                 if (position <= 2) return "bg-green-500 text-white"; // Promotion only
+                                return "bg-gray-600 text-white"; // Safe zone - no relegation from bottom division
                               }
                               
                               return "bg-gray-600 text-white"; // Safe zone
