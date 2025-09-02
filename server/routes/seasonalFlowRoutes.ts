@@ -543,7 +543,7 @@ router.post('/emergency-populate-current-season', requireAuth, async (req, res) 
     // Check current season and skip schedule generation if we're on Day 15 (playoff day)
     const currentSeason = await storage.seasons.getCurrentSeason();
     if (currentSeason) {
-      let scheduleResult = { matchesGenerated: 0, leaguesProcessed: [] };
+      let scheduleResult: { matchesGenerated: number; leaguesProcessed: any[] } = { matchesGenerated: 0, leaguesProcessed: [] };
       
       if (currentSeason.currentDay < 14) {
         // Only generate schedules if we're before playoff brackets are generated

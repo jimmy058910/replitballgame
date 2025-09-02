@@ -371,28 +371,30 @@ export class SeasonalFlowService {
     
     if (numTeams === 8) {
       // Perfect 8-team subdivision - 4 games per day
-      // Proper round-robin schedule: 7 rounds total (each team plays every other team exactly once)
-      const roundRobinSchedule = [
+      // FIXED: 14-round double round-robin (each team plays each other twice - home & away)
+      const baseRounds = [
         [[0, 1], [2, 3], [4, 5], [6, 7]],  // Round 1
         [[0, 2], [1, 4], [3, 6], [5, 7]],  // Round 2  
         [[0, 3], [1, 5], [2, 7], [4, 6]],  // Round 3
         [[0, 4], [1, 6], [2, 5], [3, 7]],  // Round 4
         [[0, 5], [1, 7], [2, 4], [3, 6]],  // Round 5
         [[0, 6], [1, 3], [2, 7], [4, 5]],  // Round 6
-        [[0, 7], [1, 2], [3, 4], [5, 6]]   // Round 7 (final round)
+        [[0, 7], [1, 2], [3, 4], [5, 6]]   // Round 7
       ];
       
-      // Calculate which round this day represents based on the season start day
-      // For full season (Days 1-14): day 1 = round 0, day 2 = round 1, etc.
-      // For shortened season (Days 7-14): day 7 = round 0, day 8 = round 1, etc.
-      // With 7 rounds total, teams complete their round-robin schedule in 7 days
-      const roundIndex = (day - seasonStartDay) % roundRobinSchedule.length;
+      // FIXED: Create 14 rounds total (7 + 7 reversed for home/away)
+      const fullRoundRobinSchedule = [
+        ...baseRounds,  // Rounds 1-7: First meetings
+        // Rounds 8-14: Return matches (reversed home/away)
+        ...baseRounds.map(round => round.map(([home, away]) => [away, home]))
+      ];
       
-      // Only schedule matches if we haven't exceeded the round-robin schedule
-      // After 7 rounds, all teams have played each other exactly once
+      // Calculate which round this day represents (Days 1-14 = Rounds 0-13)
+      const roundIndex = (day - seasonStartDay) % fullRoundRobinSchedule.length;
       
-      if (roundIndex >= 0 && roundIndex < roundRobinSchedule.length) {
-        const dayPairs = roundRobinSchedule[roundIndex];
+      // Generate matches for this day's round
+      if (roundIndex >= 0 && roundIndex < fullRoundRobinSchedule.length) {
+        const dayPairs = fullRoundRobinSchedule[roundIndex];
         for (const [homeIndex, awayIndex] of dayPairs) {
           matches.push({
             homeTeam: teams[homeIndex],
