@@ -27,10 +27,10 @@ export class ScheduleGenerationService {
       await prisma.game.deleteMany();
       logInfo('Cleared existing games');
       
-      // Get all teams in Division 8, Subdivision Alpha
+      // Get all teams in Division 7, Subdivision Alpha
       const teams = await prisma.team.findMany({
         where: {
-          division: 8,
+          division: 7,
           subdivision: 'alpha'
         },
         select: {
@@ -39,10 +39,10 @@ export class ScheduleGenerationService {
         }
       });
       
-      logInfo(`Found ${teams.length} teams in Division 8 Alpha`);
+      logInfo(`Found ${teams.length} teams in Division 7 Alpha`);
       
       if (teams.length !== 8) {
-        throw new Error(`Expected exactly 8 teams in Division 8 Alpha, found ${teams.length}`);
+        throw new Error(`Expected exactly 8 teams in Division 7 Alpha, found ${teams.length}`);
       }
       
       // Generate schedule for Days 5-14
@@ -64,7 +64,7 @@ export class ScheduleGenerationService {
   }
   
   /**
-   * Generate schedule for Division 8 Alpha - 40 games across Days 5-14
+   * Generate schedule for Division 7 Alpha - 56 games across Days 5-14
    */
   static async generateDivisionSchedule(teams: any[]): Promise<number> {
     const prisma = await getPrismaClient();

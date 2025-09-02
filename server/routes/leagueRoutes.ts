@@ -1141,7 +1141,8 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     res.json({
       schedule: scheduleByDay,
       totalDays: 17,
-      currentDay: currentDayInCycle
+      currentDay: currentDayInCycle,
+      seasonStartDate: currentSeason.startDate  // Add season start date for calendar display
     });
   } catch (error) {
     console.error("Error getting daily schedule:", error);

@@ -174,9 +174,12 @@ export class SeasonalFlowService {
     const leaguesProcessed = [];
     
     for (const league of allLeagues) {
-      // Get teams in this league
+      // Get teams in this league, EXCLUDING placeholder teams from scheduling
       const leagueTeams = await prisma.team.findMany({
-        where: { division: league.division }
+        where: { 
+          division: league.division,
+          name: { not: 'DELETED_AI_TEAM' }  // Exclude placeholder team from scheduling
+        }
       });
       
       // Skip divisions with no teams
@@ -618,7 +621,7 @@ export class SeasonalFlowService {
         gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         const matchData = {
-          leagueId: leagueId,
+          leagueId: parseInt(leagueId, 10),  // Convert string to integer for Prisma
           homeTeamId: parseInt(match.homeTeam.id, 10),
           awayTeamId: parseInt(match.awayTeam.id, 10),
           gameDate: gameDate,
@@ -2019,7 +2022,7 @@ export class SeasonalFlowService {
             name: 'DELETED_AI_TEAM',
             leagueId: 8,
             division: 8,
-            subdivision: 'system'
+            subdivision: 'deleted'  // Use unique subdivision to prevent interference
           }
         });
         

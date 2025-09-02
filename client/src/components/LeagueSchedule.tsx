@@ -28,6 +28,7 @@ interface DailySchedule {
   schedule: Record<string, ScheduledMatch[]>;
   totalDays: number;
   currentDay: number;
+  seasonStartDate?: string;  // Add season start date for calendar display
 }
 
 export default function LeagueSchedule() {
@@ -303,6 +304,16 @@ export default function LeagueSchedule() {
                           </Badge>
                         )}
                       </h3>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                        {schedule.seasonStartDate && (() => {
+                          const gameDate = new Date(schedule.seasonStartDate);
+                          gameDate.setDate(gameDate.getDate() + day - 1);
+                          return gameDate.toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            day: 'numeric' 
+                          });
+                        })()}
+                      </span>
                       <div className="flex-1">
                         <Separator />
                       </div>
