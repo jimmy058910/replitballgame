@@ -165,10 +165,27 @@ export class SeasonalFlowService {
       logError(new Error(`No season found for season number ${season}`));
       return { schedulesCreated: 0, matchesGenerated: 0, leaguesProcessed: [] };
     }
-    
+
+    // CRITICAL: Check if schedule already exists to prevent duplicates
     const allLeagues = await prisma.league.findMany({
       where: { seasonId: currentSeason.id }
     });
+    
+    // Simple check: count LEAGUE games for this season
+    const leagueIds = allLeagues.map(l => l.id);
+    const existingGames = await prisma.game.count({
+      where: {
+        leagueId: { in: leagueIds },
+        matchType: 'LEAGUE'
+      }
+    });
+    
+    if (existingGames > 0) {
+      logInfo(`🚫 DUPLICATE PREVENTION: Season ${season} already has ${existingGames} LEAGUE games. Skipping generation.`);
+      return { schedulesCreated: 0, matchesGenerated: 0, leaguesProcessed: [] };
+    }
+    
+    logInfo(`✅ No existing LEAGUE games found for Season ${season}. Proceeding with schedule generation.`);
     
     let totalMatches = 0;
     const leaguesProcessed = [];
