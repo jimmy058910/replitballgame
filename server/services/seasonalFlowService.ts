@@ -151,7 +151,7 @@ export class SeasonalFlowService {
     });
     
     if (!currentSeason) {
-      logError(`No season found for season number ${season}`);
+      logError(new Error(`No season found for season number ${season}`));
       return { schedulesCreated: 0, matchesGenerated: 0, leaguesProcessed: [] };
     }
     
@@ -884,7 +884,7 @@ export class SeasonalFlowService {
     });
     
     if (!currentSeason) {
-      logError(`No season found for season number ${season}`);
+      logError(new Error(`No season found for season number ${season}`));
       return { bracketsByLeague: [], totalPlayoffMatches: 0 };
     }
     
@@ -1155,40 +1155,33 @@ export class SeasonalFlowService {
   }
 
   /**
-   * Step 3b: Division 3 Promotion - Promotion Pool System
+   * Step 3b: Division 3 Promotion - Subdivision-Based System with AI Filling
    */
   static async processDivision3Promotion(season: number, promotions: any[]): Promise<void> {
-    const prisma = await getPrismaClient();
-    // Create promotion pool from all Division 3 subdivisions
-    const promotionPool = await this.createPromotionPool(3, season);
+    console.log(`[SUBDIVISION-BASED PROMOTION] Processing Division 3 promotion to Division 2`);
     
-    // Promote top 12 teams from the pool
-    const teamsToPromote = promotionPool.slice(0, 12);
+    // Get promoted teams from all Division 3 subdivisions using new system
+    const promotedTeams = await this.getSubdivisionPromotedTeams(3, season);
     
-    for (const team of teamsToPromote) {
-      await prisma.team.update({
-        where: { id: team.id },
-        data: { division: 2 }
-      });
-      
-      promotions.push({
-        teamId: team.id,
-        fromDivision: 3,
-        toDivision: 2
-      });
-    }
+    // Take up to 12 teams (matches Division 2 relegation spots) and use AI filling
+    const teamsToPromote = promotedTeams.slice(0, 12);
+    console.log(`[SUBDIVISION-BASED PROMOTION] Promoting ${teamsToPromote.length} teams from Division 3 to Division 2 with AI filling`);
+    
+    // Use AI filling system for Division 2 subdivision balancing
+    await this.promoteTeamsWithAIFilling(teamsToPromote, 2, promotions);
   }
 
   /**
-   * Step 4: Standardized Cascade for Divisions 3-8
+   * Step 4: Standardized Cascade for Divisions 3-8 using Subdivision-Based System
    */
   static async processStandardizedCascade(season: number, promotions: any[], relegations: any[]): Promise<void> {
     const prisma = await getPrismaClient();
-    // Process divisions 3-8 (Division 8 has promotions but no relegations)
+    
+    // Process divisions 3-8 with new subdivision-based promotion system
     for (let division = 3; division <= this.SEASON_CONFIG.MAX_DIVISION; division++) {
-      // Relegation: Bottom 4 teams from each subdivision (except Division 8)
-      let totalRelegated = 0;
+      console.log(`[SUBDIVISION-BASED PROMOTION] Processing Division ${division}`);
       
+      // Relegation: Bottom 4 teams from each subdivision (except Division 8)
       if (division < this.SEASON_CONFIG.MAX_DIVISION) {
         const subdivisions = await prisma.team.groupBy({
           by: ['subdivision'],
@@ -1223,67 +1216,149 @@ export class SeasonalFlowService {
               fromDivision: division,
               toDivision: division + 1
             });
-            
-            totalRelegated++;
           }
         }
       }
       
-      // Promotion: Top teams from promotion pool of division below
+      // Promotion: Use subdivision-based system from division below (except for Division 3)
       if (division < this.SEASON_CONFIG.MAX_DIVISION) {
-        const promotionPool = await this.createPromotionPool(division + 1, season);
-        const teamsToPromote = promotionPool.slice(0, totalRelegated);
+        console.log(`[SUBDIVISION-BASED PROMOTION] Getting promoted teams from Division ${division + 1} to Division ${division}`);
+        const promotedTeams = await this.getSubdivisionPromotedTeams(division + 1, season);
         
-        for (const team of teamsToPromote) {
-          await prisma.team.update({
-            where: { id: team.id },
-            data: { division: division }
-          });
-          
-          promotions.push({
-            teamId: team.id,
-            fromDivision: division + 1,
-            toDivision: division
-          });
-        }
+        // Use AI filling system to create balanced subdivisions in target division
+        console.log(`[SUBDIVISION-BASED PROMOTION] Promoting ${promotedTeams.length} teams from Division ${division + 1} to Division ${division}`);
+        await this.promoteTeamsWithAIFilling(promotedTeams, division, promotions);
       }
-    }
-    
-    // Special case: Division 8 promotions to Division 7
-    // Since Division 8 has no relegations, we need to handle its promotions separately
-    const division8PromotionPool = await this.createPromotionPool(this.SEASON_CONFIG.MAX_DIVISION, season);
-    
-    // Promote top 2 teams from each Division 8 subdivision
-    // Calculate how many spots are available in Division 7 based on relegations
-    const division7Subdivisions = await prisma.team.groupBy({
-      by: ['subdivision'],
-      where: { division: 7 },
-      _count: { id: true }
-    });
-    
-    // Each Division 7 subdivision relegated 4 teams, so we have space for promotions
-    const availablePromotionSpots = division7Subdivisions.length * this.SEASON_CONFIG.STANDARD_RELEGATION_PER_SUBDIVISION;
-    const teamsToPromoteFromDiv8 = division8PromotionPool.slice(0, availablePromotionSpots);
-    
-    for (const team of teamsToPromoteFromDiv8) {
-      await prisma.team.update({
-        where: { id: team.id },
-        data: { division: 7 }
-      });
-      
-      promotions.push({
-        teamId: team.id,
-        fromDivision: 8,
-        toDivision: 7
-      });
     }
   }
 
   /**
-   * Create promotion pool for a division
-   * Returns top teams ranked by win percentage with point differential as tiebreaker
+   * Promote teams to a division and create AI teams to fill incomplete subdivisions
+   * Implements the user's desired AI filling system for balanced subdivisions
    */
-  static async createPromotionPool(division: number, season: number): Promise<any[]> {
+  static async promoteTeamsWithAIFilling(promotedTeams: any[], targetDivision: number, promotions: any[]): Promise<void> {
+    const prisma = await getPrismaClient();
+    const TEAMS_PER_SUBDIVISION = 8;
+    
+    console.log(`[AI FILLING] Promoting ${promotedTeams.length} teams to Division ${targetDivision}`);
+    
+    // Calculate subdivision distribution
+    const totalPromotedTeams = promotedTeams.length;
+    const neededSubdivisions = Math.ceil(totalPromotedTeams / TEAMS_PER_SUBDIVISION);
+    const completeSubdivisions = Math.floor(totalPromotedTeams / TEAMS_PER_SUBDIVISION);
+    const incompleteSubdivisions = neededSubdivisions - completeSubdivisions;
+    const teamsInIncompleteSubdivision = totalPromotedTeams % TEAMS_PER_SUBDIVISION;
+    const aiTeamsNeeded = incompleteSubdivisions > 0 ? (TEAMS_PER_SUBDIVISION - teamsInIncompleteSubdivision) : 0;
+    
+    console.log(`[AI FILLING] Distribution: ${neededSubdivisions} subdivisions needed`);
+    console.log(`[AI FILLING] Complete subdivisions: ${completeSubdivisions} (8 teams each)`);
+    console.log(`[AI FILLING] Incomplete subdivisions: ${incompleteSubdivisions} (${teamsInIncompleteSubdivision} teams each)`);
+    console.log(`[AI FILLING] AI teams needed: ${aiTeamsNeeded}`);
+    
+    // Get available subdivision names (Greek alphabet)
+    const subdivisionNames = ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta', 'theta', 'iota', 'kappa', 'lambda', 'mu', 'nu', 'xi', 'omicron', 'pi', 'rho', 'sigma', 'tau', 'upsilon', 'phi', 'chi', 'psi', 'omega'];
+    
+    // Promote existing teams and assign to subdivisions
+    for (let i = 0; i < promotedTeams.length; i++) {
+      const team = promotedTeams[i];
+      const subdivisionIndex = Math.floor(i / TEAMS_PER_SUBDIVISION);
+      const subdivisionName = subdivisionNames[subdivisionIndex];
+      
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { 
+          division: targetDivision,
+          subdivision: subdivisionName
+        }
+      });
+      
+      promotions.push({
+        teamId: team.id,
+        fromDivision: targetDivision + 1,
+        toDivision: targetDivision
+      });
+    }
+    
+    // Create AI teams to fill incomplete subdivisions
+    if (aiTeamsNeeded > 0) {
+      console.log(`[AI FILLING] Creating ${aiTeamsNeeded} AI teams to complete subdivisions`);
+      
+      for (let i = 0; i < aiTeamsNeeded; i++) {
+        const subdivisionName = subdivisionNames[completeSubdivisions]; // AI teams go to the incomplete subdivision
+        const aiTeam = await this.createAITeam(targetDivision, subdivisionName);
+        
+        console.log(`[AI FILLING] Created AI team: ${aiTeam.name} in Division ${targetDivision}, Subdivision ${subdivisionName}`);
+      }
+    }
+    
+    console.log(`[AI FILLING] Completed promotion with AI filling for Division ${targetDivision}`);
+  }
+
+  /**
+   * Create an AI team for filling incomplete subdivisions
+   */
+  static async createAITeam(division: number, subdivision: string): Promise<any> {
+    const prisma = await getPrismaClient();
+    
+    // Generate AI team name
+    const aiTeamNames = [
+      'Iron Eagles', 'Storm Wolves', 'Thunder Hawks', 'Lightning Bolts', 'Fire Dragons',
+      'Ice Titans', 'Wind Runners', 'Earth Guardians', 'Star Crusaders', 'Moon Riders',
+      'Solar Flares', 'Cosmic Raiders', 'Meteor Strikers', 'Galaxy Warriors', 'Nebula Knights',
+      'Phoenix Rising', 'Crimson Falcons', 'Golden Lions', 'Silver Bears', 'Bronze Tigers'
+    ];
+    
+    const randomName = aiTeamNames[Math.floor(Math.random() * aiTeamNames.length)];
+    
+    // Create AI team
+    const aiTeam = await prisma.team.create({
+      data: {
+        name: randomName,
+        isAI: true,
+        division: division,
+        subdivision: subdivision,
+        camaraderie: 50,
+        fanLoyalty: 50,
+        homeField: 'STANDARD',
+        tacticalFocus: 'BALANCED',
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        points: 0
+      }
+    });
+    
+    // Create basic team finances for AI team
+    await prisma.teamFinances.create({
+      data: {
+        teamId: aiTeam.id,
+        credits: 100000,
+        gems: 10
+      }
+    });
+    
+    // Create basic stadium for AI team
+    await prisma.stadium.create({
+      data: {
+        teamId: aiTeam.id,
+        capacity: 5000,
+        concessionsLevel: 1,
+        parkingLevel: 1,
+        vipSuitesLevel: 1,
+        merchandisingLevel: 1,
+        lightingScreensLevel: 1
+      }
+    });
+    
+    return aiTeam;
+  }
+
+  /**
+   * Get teams promoted from each subdivision using the new subdivision-based system
+   * Returns teams that should be promoted: Regular Season Winner + Playoff Winner
+   * If same team wins both, Regular Season runner-up gets promoted instead
+   */
+  static async getSubdivisionPromotedTeams(division: number, season: number): Promise<any[]> {
     const prisma = await getPrismaClient();
     const subdivisions = await prisma.team.groupBy({
       by: ['subdivision'],
@@ -1291,9 +1366,10 @@ export class SeasonalFlowService {
       _count: { id: true }
     });
     
-    const promotionPool = [];
+    const promotedTeams = [];
     
     for (const subdivision of subdivisions) {
+      // Get regular season standings for this subdivision
       const subdivisionTeams = await prisma.team.findMany({
         where: { 
           division,
@@ -1306,26 +1382,74 @@ export class SeasonalFlowService {
         ]
       });
       
-      // Add season champion (#1) and tournament winner (#2) to pool
-      // For now, add top 2 teams (can be enhanced with tournament logic)
-      const poolEntries = subdivisionTeams.slice(0, 2);
-      promotionPool.push(...poolEntries);
+      const regularSeasonWinner = subdivisionTeams[0]; // #1 in standings
+      const regularSeasonRunnerUp = subdivisionTeams[1]; // #2 in standings
+      
+      // Get playoff winner for this subdivision
+      const subdivisionName = subdivision.subdivision;
+      if (!subdivisionName) continue; // Skip if subdivision name is null
+      
+      const playoffWinner = await this.getSubdivisionPlayoffWinner(division, subdivisionName, season);
+      
+      // Determine promoted teams based on user's logic
+      if (playoffWinner && playoffWinner.id === regularSeasonWinner?.id) {
+        // Same team won both - promote regular season winner + runner-up
+        promotedTeams.push(regularSeasonWinner);
+        if (regularSeasonRunnerUp) {
+          promotedTeams.push(regularSeasonRunnerUp);
+        }
+      } else {
+        // Different teams - promote both winners
+        if (regularSeasonWinner) {
+          promotedTeams.push(regularSeasonWinner);
+        }
+        if (playoffWinner) {
+          promotedTeams.push(playoffWinner);
+        }
+      }
     }
     
-    // Sort promotion pool by win percentage and point differential
-    return promotionPool.sort((a: any, b: any) => {
-      const aWinPct = (a.wins || 0) / Math.max(1, (a.wins || 0) + (a.losses || 0));
-      const bWinPct = (b.wins || 0) / Math.max(1, (b.wins || 0) + (b.losses || 0));
+    return promotedTeams;
+  }
+
+  /**
+   * Get playoff winner for a specific subdivision
+   */
+  static async getSubdivisionPlayoffWinner(division: number, subdivision: string, season: number): Promise<any> {
+    const prisma = await getPrismaClient();
+    
+    try {
+      // Find the tournament for this division/subdivision
+      const tournament = await prisma.tournament.findFirst({
+        where: {
+          division: division,
+          type: 'DAILY_DIVISIONAL',
+          status: 'COMPLETED'
+        },
+        include: {
+          entries: {
+            include: {
+              team: true
+            }
+          }
+        }
+      });
       
-      if (bWinPct !== aWinPct) {
-        return bWinPct - aWinPct;
+      if (!tournament) {
+        return null;
       }
       
-      // Tiebreaker: Point differential
-      const aPointDiff = (a.points || 0) - (a.losses || 0);
-      const bPointDiff = (b.points || 0) - (b.losses || 0);
-      return bPointDiff - aPointDiff;
-    });
+      // Find the winner (finalRank = 1)
+      const winnerEntry = tournament.entries.find(entry => entry.finalRank === 1);
+      if (winnerEntry && winnerEntry.team.subdivision === subdivision) {
+        return winnerEntry.team;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`Error getting playoff winner for division ${division}, subdivision ${subdivision}:`, error);
+      return null;
+    }
   }
 
   /**
