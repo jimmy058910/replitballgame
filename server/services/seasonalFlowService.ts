@@ -1473,6 +1473,7 @@ export class SeasonalFlowService {
     promotionRelegationCompleted: boolean;
     leaguesRebalanced: boolean;
     aiTeamsRemoved: boolean;
+    contractProgressionCompleted: boolean;
     summary: {
       totalMatches: number;
       totalPromotions: number;
@@ -1480,6 +1481,11 @@ export class SeasonalFlowService {
       leaguesCreated: number;
       totalAITeamsDeleted: number;
       totalAIPlayersDeleted: number;
+      contractsProcessed: number;
+      totalSalaryPaid: string;
+      contractsExpired: number;
+      playersToMarketplace: number;
+      freeAgentsGenerated: number;
     };
   }> {
     const newSeason = currentSeason + 1;
@@ -1503,7 +1509,11 @@ export class SeasonalFlowService {
       }
     });
     
-    // 5. Generate schedule for new season
+    // 5. Process contract progression (salaries, expirations, free agents)
+    const { ContractProgressionService } = await import('./contractProgressionService.js');
+    const contractResult = await ContractProgressionService.processSeasonalContractProgression();
+    
+    // 6. Generate schedule for new season
     const scheduleResult = await this.generateSeasonSchedule(newSeason);
     
     logInfo(`Day 17→1 transition completed`, {
@@ -1511,7 +1521,8 @@ export class SeasonalFlowService {
       scheduleGenerated: scheduleResult.matchesGenerated > 0,
       promotionRelegationCompleted: true,
       leaguesRebalanced: rebalanceResult.leaguesRebalanced > 0,
-      aiTeamsRemoved: aiCleanupResult.aiTeamsRemoved
+      aiTeamsRemoved: aiCleanupResult.aiTeamsRemoved,
+      contractProgressionCompleted: contractResult.contractsProcessed > 0
     });
     
     return {
@@ -1520,13 +1531,19 @@ export class SeasonalFlowService {
       promotionRelegationCompleted: true,
       leaguesRebalanced: rebalanceResult.leaguesRebalanced > 0,
       aiTeamsRemoved: aiCleanupResult.aiTeamsRemoved,
+      contractProgressionCompleted: contractResult.contractsProcessed > 0,
       summary: {
         totalMatches: scheduleResult.matchesGenerated,
         totalPromotions: promotionResult.promotions.length,
         totalRelegations: promotionResult.relegations.length,
         leaguesCreated: rebalanceResult.newLeaguesCreated,
         totalAITeamsDeleted: aiCleanupResult.totalAITeamsDeleted,
-        totalAIPlayersDeleted: aiCleanupResult.totalAIPlayersDeleted
+        totalAIPlayersDeleted: aiCleanupResult.totalAIPlayersDeleted,
+        contractsProcessed: contractResult.contractsProcessed,
+        totalSalaryPaid: contractResult.totalSalaryPaid.toString(),
+        contractsExpired: contractResult.contractsExpired,
+        playersToMarketplace: contractResult.playersToMarketplace,
+        freeAgentsGenerated: contractResult.freeAgentsGenerated
       }
     };
   }
