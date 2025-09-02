@@ -174,11 +174,10 @@ export class SeasonalFlowService {
     const leaguesProcessed = [];
     
     for (const league of allLeagues) {
-      // Get teams in this league, EXCLUDING placeholder teams from scheduling
+      // Get teams in this league (including converted AI teams)
       const leagueTeams = await prisma.team.findMany({
         where: { 
-          division: league.division,
-          name: { not: 'DELETED_AI_TEAM' }  // Exclude placeholder team from scheduling
+          division: league.division
         }
       });
       
@@ -621,7 +620,7 @@ export class SeasonalFlowService {
         gameDate.setHours(gameTime.getHours(), gameTime.getMinutes(), 0, 0);
         
         const matchData = {
-          leagueId: parseInt(leagueId, 10),  // Convert string to integer for Prisma
+          leagueId: leagueId,  // Keep as string for consistent type handling
           homeTeamId: parseInt(match.homeTeam.id, 10),
           awayTeamId: parseInt(match.awayTeam.id, 10),
           gameDate: gameDate,

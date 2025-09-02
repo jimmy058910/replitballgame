@@ -104,6 +104,45 @@ router.post('/reset-and-schedule', requireAuth, async (req: Request, res: Respon
 });
 
 /**
+ * MANUAL: Convert DELETED_AI_TEAM to proper AI team
+ */
+router.post('/convert-deleted-team', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    const deletedTeam = await prisma.team.findFirst({
+      where: { name: 'DELETED_AI_TEAM' }
+    });
+    
+    if (deletedTeam) {
+      const newName = 'Storm Raiders 456';
+      await prisma.team.update({
+        where: { id: deletedTeam.id },
+        data: {
+          name: newName,
+          isAI: true
+        }
+      });
+      
+      res.json({
+        success: true,
+        message: `Converted DELETED_AI_TEAM to ${newName}`,
+        teamId: deletedTeam.id
+      });
+    } else {
+      res.json({
+        success: false,
+        message: "DELETED_AI_TEAM not found - already converted"
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error converting team:', error);
+    next(error);
+  }
+});
+
+/**
  * Generate matches for a single day ensuring each team plays exactly once
  * Uses round-robin rotation for fair scheduling
  */
