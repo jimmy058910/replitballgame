@@ -225,7 +225,7 @@ export default function MobileRosterHQ() {
   // Taxi squad release mutation
   const releasePlayerMutation = useMutation({
     mutationFn: async (playerId: string) => {
-      return apiRequest(`/api/teams/${team?.id}/taxi-squad/${playerId}/release`, "POST");
+      return apiRequest(`/api/teams/${team?.id}/taxi-squad/${playerId}`, "DELETE");
     },
     onSuccess: () => {
       toast({
