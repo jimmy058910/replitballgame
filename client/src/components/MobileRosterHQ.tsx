@@ -30,8 +30,6 @@ import {
   Filter,
   X,
   ArrowUp,
-  ChevronDown,
-  ChevronUp,
   Search
 } from 'lucide-react';
 import ModernStickyHeader from './ModernStickyHeader';
@@ -42,7 +40,6 @@ import TapToAssignTactics from './TapToAssignTactics';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Progress } from './ui/progress';
 
 // Type definitions  
 type TryoutCandidate = {
