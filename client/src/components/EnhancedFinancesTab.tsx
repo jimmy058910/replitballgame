@@ -187,6 +187,12 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
   // Process transaction data for the enhanced UI FIRST
   const rawTransactions = (transactionData as any)?.transactions || [];
   
+  // DEBUG: Log transaction data to help debug missing transactions
+  console.log('🔍 [FRONTEND DEBUG] Raw transaction data:', transactionData);
+  console.log('🔍 [FRONTEND DEBUG] Raw transactions count:', rawTransactions.length);
+  console.log('🔍 [FRONTEND DEBUG] Recent 3 transactions:', rawTransactions.slice(0, 3));
+  console.log('🔍 [FRONTEND DEBUG] Current filters - searchTerm:', searchTerm, 'transactionFilter:', transactionFilter);
+  
   // Calculate transaction breakdowns AFTER rawTransactions is defined
   const transactionBreakdowns = calculateTransactionBreakdowns(rawTransactions);
 
@@ -232,14 +238,25 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
   })) : [];
   const transactionsList = rawTransactions
     .filter((t: any) => {
+      // DEBUG: Log each transaction for debugging
+      console.log('🔍 [FILTER DEBUG] Transaction:', t.id, 'creditsAmount:', t.creditsAmount, 'transactionType:', t.transactionType, 'filter:', transactionFilter);
+      
       // Filter by search term
       if (searchTerm && !t.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) && 
           !t.transactionType?.toLowerCase().includes(searchTerm.toLowerCase())) {
+        console.log('🚫 [FILTER DEBUG] Filtered out by search term');
         return false;
       }
       // Filter by type
-      if (transactionFilter === 'income' && parseInt(t.creditsAmount) <= 0) return false;
-      if (transactionFilter === 'expenses' && parseInt(t.creditsAmount) >= 0) return false;
+      if (transactionFilter === 'income' && parseInt(t.creditsAmount) <= 0) {
+        console.log('🚫 [FILTER DEBUG] Filtered out - income filter but creditsAmount <= 0');
+        return false;
+      }
+      if (transactionFilter === 'expenses' && parseInt(t.creditsAmount) >= 0) {
+        console.log('🚫 [FILTER DEBUG] Filtered out - expenses filter but creditsAmount >= 0');
+        return false;
+      }
+      console.log('✅ [FILTER DEBUG] Transaction passed filters');
       return true;
     })
     .map((t: any) => ({
@@ -253,6 +270,10 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
       currency: t.gemsAmount > 0 ? 'gems' : 'credits',
       metadata: t.metadata
     }));
+    
+  // DEBUG: Log final transaction list
+  console.log('🔍 [FRONTEND DEBUG] Final transactionsList count:', transactionsList.length);
+  console.log('🔍 [FRONTEND DEBUG] Final transactions:', transactionsList);
 
   const formatCurrency = (amount: number, currency = 'credits') => {
     const symbol = currency === 'gems' ? '💎' : '₡';
