@@ -12,11 +12,13 @@ export class TournamentDomainService {
       // Get Prisma client
       const prisma = await getPrismaClient();
       
-      // Check if team is already registered for active tournaments
+      // Check if team is already registered for SAME TYPE tournaments (allow Daily + Mid-Season concurrent)
       const existingRegistration = await prisma.tournamentEntry.findFirst({
         where: {
           teamId,
           tournament: {
+            type: 'DAILY_DIVISIONAL', // Only check for Daily tournaments
+            division: request.division, // Same division only
             status: {
               in: ['REGISTRATION_OPEN', 'IN_PROGRESS']
             }
@@ -27,9 +29,10 @@ export class TournamentDomainService {
         }
       });
 
+
       if (existingRegistration) {
         throw new ConflictError(
-          `Team is already registered for ${existingRegistration.tournament.name}`
+          `Team is already registered for ${existingRegistration.tournament.name} (ID: ${existingRegistration.tournament.id}, Status: ${existingRegistration.tournament.status})`
         );
       }
 

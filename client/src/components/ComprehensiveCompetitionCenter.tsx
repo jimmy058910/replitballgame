@@ -1383,7 +1383,7 @@ export default function ComprehensiveCompetitionCenter() {
                                   <div>
                                     <h5 className="font-bold text-white">Daily Divisional Tournament</h5>
                                     <p className="text-sm text-gray-400">
-                                      {getDivisionName(tournament.division)} Division
+                                      {getDivisionName(tournament.division)} Division • ID: {tournament.id}
                                     </p>
                                   </div>
                                 </div>

@@ -793,7 +793,7 @@ export class TournamentService {
     const gameDay = this.getCurrentGameDay();
     const season = this.getCurrentSeason();
 
-    // ✅ FIX: Only check for active Daily tournaments, not Mid-Season Cups
+    // ✅ FIX: Only check for TRULY active Daily tournaments (exclude completed ones)
     const existingActiveEntry = await prisma.tournamentEntry.findFirst({
       where: {
         teamId,
@@ -801,22 +801,26 @@ export class TournamentService {
           type: "DAILY_DIVISIONAL", // Only check Daily tournaments
           status: {
             in: ["REGISTRATION_OPEN", "IN_PROGRESS"]
-          }
+          },
+          division: division, // Same division only
+          seasonDay: gameDay // Same day only
         }
       },
       include: {
         tournament: {
           select: {
+            id: true,
             name: true,
             type: true,
-            division: true
+            division: true,
+            status: true
           }
         }
       }
     });
 
     if (existingActiveEntry) {
-      throw new Error(`You are already registered for ${existingActiveEntry.tournament.name} (Daily Division Tournament). Please wait for your current Daily tournament to complete before registering for another.`);
+      throw new Error(`You are already registered for ${existingActiveEntry.tournament.name} (ID: ${existingActiveEntry.tournament.id}) on Division ${existingActiveEntry.tournament.division}. Please wait for this tournament to complete.`);
     }
 
     // Check if tournament already exists for this division/day
