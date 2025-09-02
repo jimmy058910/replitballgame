@@ -40,6 +40,7 @@ import TapToAssignTactics from './TapToAssignTactics';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 
 // Type definitions  
 type TryoutCandidate = {
@@ -1048,77 +1049,153 @@ export default function MobileRosterHQ() {
                             )}
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Basic Tryout */}
-                            <Card className="bg-purple-700/50 border-purple-500">
-                              <CardHeader>
-                                <CardTitle className="text-lg text-white">Basic Tryout</CardTitle>
-                              </CardHeader>
-                              <CardContent className="space-y-3">
-                                <div className="text-sm text-purple-200">
-                                  <p>• 3 candidates to choose from</p>
-                                  <p>• Standard talent pool</p>
-                                  <p>• Quick evaluation process</p>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-lg font-bold text-green-400">
-                                    {basicCost.toLocaleString()}₡
-                                  </span>
-                                  <Button
-                                    onClick={() => hostTryoutMutation.mutate("basic")}
-                                    disabled={!canAffordBasic || !canHostTryouts || hostTryoutMutation.isPending}
-                                    variant={canAffordBasic && canHostTryouts ? "default" : "secondary"}
-                                    size="sm"
-                                  >
-                                    {hostTryoutMutation.isPending ? "Hosting..." : 
-                                     !canHostTryouts ? "Used This Season" : 
-                                     !canAffordBasic ? "Not Enough Credits" : 
-                                     "Host Basic Tryout"}
-                                  </Button>
-                                </div>
-                                {!canAffordBasic && canHostTryouts && (
-                                  <p className="text-red-400 text-xs">Insufficient credits</p>
-                                )}
-                              </CardContent>
-                            </Card>
-
-                            {/* Advanced Tryout */}
-                            <Card className="bg-purple-700/50 border-purple-500">
-                              <CardHeader>
-                                <CardTitle className="text-lg text-white">Advanced Tryout</CardTitle>
-                              </CardHeader>
-                              <CardContent className="space-y-3">
-                                <div className="text-sm text-purple-200">
-                                  <p>• 5 candidates to choose from</p>
-                                  <p>• Premium talent pool</p>
-                                  <p>• Higher potential players</p>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-lg font-bold text-green-400">
-                                    {advancedCost.toLocaleString()}₡
-                                  </span>
-                                  <Button
-                                    onClick={() => hostTryoutMutation.mutate("advanced")}
-                                    disabled={!canAffordAdvanced || !canHostTryouts || hostTryoutMutation.isPending}
-                                    variant={canAffordAdvanced && canHostTryouts ? "default" : "secondary"}
-                                    size="sm"
-                                  >
-                                    {hostTryoutMutation.isPending ? "Hosting..." : 
-                                     !canHostTryouts ? "Used This Season" : 
-                                     !canAffordAdvanced ? "Not Enough Credits" : 
-                                     "Host Advanced Tryout"}
-                                  </Button>
-                                </div>
-                                {!canAffordAdvanced && canHostTryouts && (
-                                  <p className="text-red-400 text-xs">Insufficient credits</p>
-                                )}
-                              </CardContent>
-                            </Card>
-                          </div>
+                          {!canHostTryouts ? (
+                            <Accordion type="single" collapsible className="w-full">
+                              <AccordionItem value="tryout-options" className="border-purple-600">
+                                <AccordionTrigger className="text-purple-200 hover:text-white">
+                                  <span className="text-sm font-medium">View Tryout Options</span>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                                    {/* Basic Tryout */}
+                                    <Card className="bg-purple-700/50 border-purple-500">
+                                      <CardHeader>
+                                        <CardTitle className="text-lg text-white">Basic Tryout</CardTitle>
+                                      </CardHeader>
+                                      <CardContent className="space-y-3">
+                                        <div className="text-sm text-purple-200">
+                                          <p>• 3 candidates to choose from</p>
+                                          <p>• Standard talent pool</p>
+                                          <p>• Quick evaluation process</p>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-lg font-bold text-green-400">
+                                            {basicCost.toLocaleString()}₡
+                                          </span>
+                                          <Button
+                                            onClick={() => hostTryoutMutation.mutate("basic")}
+                                            disabled={!canAffordBasic || !canHostTryouts || hostTryoutMutation.isPending}
+                                            variant={canAffordBasic && canHostTryouts ? "default" : "secondary"}
+                                            size="sm"
+                                          >
+                                            {hostTryoutMutation.isPending ? "Hosting..." : 
+                                             !canHostTryouts ? "Used This Season" : 
+                                             !canAffordBasic ? "Not Enough Credits" : 
+                                             "Host Basic Tryout"}
+                                          </Button>
+                                        </div>
+                                        {!canAffordBasic && canHostTryouts && (
+                                          <p className="text-red-400 text-xs">Insufficient credits</p>
+                                        )}
+                                      </CardContent>
+                                    </Card>
+            
+                                    {/* Advanced Tryout */}
+                                    <Card className="bg-purple-700/50 border-purple-500">
+                                      <CardHeader>
+                                        <CardTitle className="text-lg text-white">Advanced Tryout</CardTitle>
+                                      </CardHeader>
+                                      <CardContent className="space-y-3">
+                                        <div className="text-sm text-purple-200">
+                                          <p>• 5 candidates to choose from</p>
+                                          <p>• Premium talent pool</p>
+                                          <p>• Higher potential players</p>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-lg font-bold text-green-400">
+                                            {advancedCost.toLocaleString()}₡
+                                          </span>
+                                          <Button
+                                            onClick={() => hostTryoutMutation.mutate("advanced")}
+                                            disabled={!canAffordAdvanced || !canHostTryouts || hostTryoutMutation.isPending}
+                                            variant={canAffordAdvanced && canHostTryouts ? "default" : "secondary"}
+                                            size="sm"
+                                          >
+                                            {hostTryoutMutation.isPending ? "Hosting..." : 
+                                             !canHostTryouts ? "Used This Season" : 
+                                             !canAffordAdvanced ? "Not Enough Credits" : 
+                                             "Host Advanced Tryout"}
+                                          </Button>
+                                        </div>
+                                        {!canAffordAdvanced && canHostTryouts && (
+                                          <p className="text-red-400 text-xs">Insufficient credits</p>
+                                        )}
+                                      </CardContent>
+                                    </Card>
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Basic Tryout */}
+                              <Card className="bg-purple-700/50 border-purple-500">
+                                <CardHeader>
+                                  <CardTitle className="text-lg text-white">Basic Tryout</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                  <div className="text-sm text-purple-200">
+                                    <p>• 3 candidates to choose from</p>
+                                    <p>• Standard talent pool</p>
+                                    <p>• Quick evaluation process</p>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-lg font-bold text-green-400">
+                                      {basicCost.toLocaleString()}₡
+                                    </span>
+                                    <Button
+                                      onClick={() => hostTryoutMutation.mutate("basic")}
+                                      disabled={!canAffordBasic || !canHostTryouts || hostTryoutMutation.isPending}
+                                      variant={canAffordBasic && canHostTryouts ? "default" : "secondary"}
+                                      size="sm"
+                                    >
+                                      {hostTryoutMutation.isPending ? "Hosting..." : 
+                                       !canHostTryouts ? "Used This Season" : 
+                                       !canAffordBasic ? "Not Enough Credits" : 
+                                       "Host Basic Tryout"}
+                                    </Button>
+                                  </div>
+                                  {!canAffordBasic && canHostTryouts && (
+                                    <p className="text-red-400 text-xs">Insufficient credits</p>
+                                  )}
+                                </CardContent>
+                              </Card>
+      
+                              {/* Advanced Tryout */}
+                              <Card className="bg-purple-700/50 border-purple-500">
+                                <CardHeader>
+                                  <CardTitle className="text-lg text-white">Advanced Tryout</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                  <div className="text-sm text-purple-200">
+                                    <p>• 5 candidates to choose from</p>
+                                    <p>• Premium talent pool</p>
+                                    <p>• Higher potential players</p>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-lg font-bold text-green-400">
+                                      {advancedCost.toLocaleString()}₡
+                                    </span>
+                                    <Button
+                                      onClick={() => hostTryoutMutation.mutate("advanced")}
+                                      disabled={!canAffordAdvanced || !canHostTryouts || hostTryoutMutation.isPending}
+                                      variant={canAffordAdvanced && canHostTryouts ? "default" : "secondary"}
+                                      size="sm"
+                                    >
+                                      {hostTryoutMutation.isPending ? "Hosting..." : 
+                                       !canHostTryouts ? "Used This Season" : 
+                                       !canAffordAdvanced ? "Not Enough Credits" : 
+                                       "Host Advanced Tryout"}
+                                    </Button>
+                                  </div>
+                                  {!canAffordAdvanced && canHostTryouts && (
+                                    <p className="text-red-400 text-xs">Insufficient credits</p>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </div>
+                          )}
                           
-                          <div className="text-center text-sm text-purple-300">
-                            Current Credits: {currentCredits.toLocaleString()}₡
-                          </div>
                         </div>
                       </div>
                     )}
