@@ -353,7 +353,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
               awayScore: 0,
               status: 'SCHEDULED',
               round: nextRound,
-              gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+              gameDate: new Date(), // Schedule immediately for visibility
               matchType: 'TOURNAMENT_DAILY',
               simulated: false
             });
