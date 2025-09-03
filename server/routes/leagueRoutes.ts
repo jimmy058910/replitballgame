@@ -510,15 +510,21 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     
     // Get all completed league matches for standings calculation
     
-    // FIXED: Only include true league games - exclude tournament games regardless of matchType
+    // FIXED: Only include true league games - LEAGUE games and PLAYOFF games without tournamentId
     const allLeagueGames = await prisma.game.findMany({
       where: {
-        // Exclude any games that are part of a tournament (tournamentId should be null)
-        tournamentId: null,
         OR: [
-          { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
-          { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
-        ]
+          // Include all LEAGUE games regardless of tournamentId
+          { matchType: 'LEAGUE' },
+          // Include PLAYOFF games ONLY if they're not part of a tournament (league playoffs)
+          { matchType: 'PLAYOFF', tournamentId: null }
+        ],
+        AND: {
+          OR: [
+            { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
+            { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
+          ]
+        }
       },
       orderBy: { gameDate: 'asc' }
     });
