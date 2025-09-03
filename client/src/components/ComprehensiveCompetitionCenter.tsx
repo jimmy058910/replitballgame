@@ -2093,7 +2093,15 @@ export default function ComprehensiveCompetitionCenter() {
                             {team.teamName}
                           </span>
                           <span className="text-gray-500 text-xs">
-                            {new Date(team.registeredAt).toLocaleDateString()}
+                            {(() => {
+                              if (!globalRankings || globalRankings.length === 0) return 'Ranking: ?';
+                              
+                              const teamRanking = globalRankings.find(r => r.id === team.teamId) || 
+                                                globalRankings.find(r => String(r.id) === String(team.teamId));
+                              
+                              const rank = teamRanking?.globalRank || 0;
+                              return rank > 0 ? `#${rank}` : 'Unranked';
+                            })()}
                           </span>
                         </div>
                       ))}
