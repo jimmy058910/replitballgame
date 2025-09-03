@@ -90,6 +90,7 @@ router.get('/active', requireAuth, async (req: any, res) => {
 // Get my active tournament entries
 router.get('/my-active', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
 
@@ -180,6 +181,7 @@ router.get('/my-active', requireAuth, async (req: any, res) => {
 // Get specific tournament status details
 router.get('/:id/status', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const tournamentId = req.params.id;
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
@@ -393,6 +395,7 @@ router.get('/:id/status', requireAuth, async (req: any, res) => {
 // Force start tournament (Admin only)
 router.post('/:id/force-start', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const tournamentId = req.params.id;
     const userId = req.user.claims.sub;
     
@@ -558,6 +561,7 @@ router.get('/:id/matches', requireAuth, async (req: any, res) => {
 // Start live tournament round
 router.post('/:id/matches/simulate-round', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const tournamentId = req.params.id;
     const { round } = req.body;
     const userId = req.user.claims.sub;
@@ -615,6 +619,35 @@ router.post('/:id/matches/simulate-round', requireAuth, async (req: any, res) =>
             awayScore: simulationResult.finalScore.away
           }
         });
+
+        // Record stadium revenue for home team
+        if (simulationResult.revenueGenerated > 0) {
+          const homeTeam = await prisma.team.findUnique({
+            where: { id: match.homeTeamId }
+          });
+          
+          if (homeTeam?.userProfileId) {
+            // Get the userProfile to find userId
+            const userProfile = await prisma.userProfile.findUnique({
+              where: { id: homeTeam.userProfileId }
+            });
+            
+            if (userProfile) {
+              const { PaymentHistoryService } = await import('../services/paymentHistoryService');
+              await PaymentHistoryService.recordTransaction({
+                userId: userProfile.userId,
+                teamId: match.homeTeamId,
+                transactionType: 'STADIUM_REVENUE' as any,
+                itemName: 'Home Game Stadium Revenue',
+                itemType: 'STADIUM_REVENUE' as any,
+                creditsAmount: simulationResult.revenueGenerated,
+                gemsAmount: 0,
+                status: 'completed' as any
+              });
+              console.log(`💰 Recorded stadium revenue: ${simulationResult.revenueGenerated}₡ for team ${homeTeam.name}`);
+            }
+          }
+        }
         
         console.log(`Completed instant simulation for tournament match ${match.id}`);
         
@@ -642,6 +675,7 @@ router.post('/:id/matches/simulate-round', requireAuth, async (req: any, res) =>
 // Manual trigger for IN_PROGRESS matches (testing endpoint)
 router.post('/:id/matches/manual-start', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const tournamentId = req.params.id;
     const { round } = req.body;
     const userId = req.user.claims.sub;
@@ -719,6 +753,7 @@ router.post('/:id/matches/manual-start', requireAuth, async (req: any, res) => {
 // Force tournament progression endpoint (testing)
 router.post('/:id/force-progression', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const tournamentId = req.params.id;
     const userId = req.user.claims.sub;
     
@@ -949,6 +984,35 @@ router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) 
             awayScore: simulationResult.finalScore.away
           }
         });
+
+        // Record stadium revenue for home team
+        if (simulationResult.revenueGenerated > 0) {
+          const homeTeam = await prisma.team.findUnique({
+            where: { id: match.homeTeamId }
+          });
+          
+          if (homeTeam?.userProfileId) {
+            // Get the userProfile to find userId
+            const userProfile = await prisma.userProfile.findUnique({
+              where: { id: homeTeam.userProfileId }
+            });
+            
+            if (userProfile) {
+              const { PaymentHistoryService } = await import('../services/paymentHistoryService');
+              await PaymentHistoryService.recordTransaction({
+                userId: userProfile.userId,
+                teamId: match.homeTeamId,
+                transactionType: 'STADIUM_REVENUE' as any,
+                itemName: 'Home Game Stadium Revenue',
+                itemType: 'STADIUM_REVENUE' as any,
+                creditsAmount: simulationResult.revenueGenerated,
+                gemsAmount: 0,
+                status: 'completed' as any
+              });
+              console.log(`💰 Recorded stadium revenue: ${simulationResult.revenueGenerated}₡ for team ${homeTeam.name}`);
+            }
+          }
+        }
         
         console.log(`Completed instant simulation for tournament match ${match.id}`);
         

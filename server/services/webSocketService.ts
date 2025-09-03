@@ -259,6 +259,41 @@ class WebSocketService {
                   awayScore: simulationResult.finalScore.away
                 }
               });
+
+              // Record stadium revenue for home team
+              if (simulationResult.revenueGenerated > 0) {
+                const match = await prisma.game.findUnique({
+                  where: { id: parseInt(data.matchId) }
+                });
+                
+                if (match) {
+                  const homeTeam = await prisma.team.findUnique({
+                    where: { id: match.homeTeamId }
+                  });
+                  
+                  if (homeTeam?.userProfileId) {
+                    // Get the userProfile to find userId
+                    const userProfile = await prisma.userProfile.findUnique({
+                      where: { id: homeTeam.userProfileId }
+                    });
+                    
+                    if (userProfile) {
+                      const { PaymentHistoryService } = await import('./paymentHistoryService');
+                      await PaymentHistoryService.recordTransaction({
+                        userId: userProfile.userId,
+                        teamId: match.homeTeamId,
+                        transactionType: 'STADIUM_REVENUE' as any,
+                        itemName: 'Home Game Stadium Revenue',
+                        itemType: 'STADIUM_REVENUE' as any,
+                        creditsAmount: simulationResult.revenueGenerated,
+                        gemsAmount: 0,
+                        status: 'completed' as any
+                      });
+                      console.log(`💰 Recorded stadium revenue: ${simulationResult.revenueGenerated}₡ for team ${homeTeam.name}`);
+                    }
+                  }
+                }
+              }
               
               this.broadcastToMatch(data.matchId, 'match_completed', { 
                 matchId: data.matchId,

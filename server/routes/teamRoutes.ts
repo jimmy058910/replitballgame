@@ -2782,4 +2782,5 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
   });
 }));
 
+
 export default router;

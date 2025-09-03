@@ -328,6 +328,41 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
         awayScore: simulationResult.finalScore.away
       }
     });
+
+    // Record stadium revenue for home team
+    if (simulationResult.revenueGenerated > 0) {
+      const match = await prisma.game.findUnique({
+        where: { id: parseInt(matchId) }
+      });
+      
+      if (match) {
+        const homeTeam = await prisma.team.findUnique({
+          where: { id: match.homeTeamId }
+        });
+        
+        if (homeTeam?.userProfileId) {
+          // Get the userProfile to find userId
+          const userProfile = await prisma.userProfile.findUnique({
+            where: { id: homeTeam.userProfileId }
+          });
+          
+          if (userProfile) {
+            const { PaymentHistoryService } = await import('../services/paymentHistoryService');
+            await PaymentHistoryService.recordTransaction({
+              userId: userProfile.userId,
+              teamId: match.homeTeamId,
+              transactionType: 'STADIUM_REVENUE' as any,
+              itemName: 'Home Game Stadium Revenue',
+              itemType: 'STADIUM_REVENUE' as any,
+              creditsAmount: simulationResult.revenueGenerated,
+              gemsAmount: 0,
+              status: 'completed' as any
+            });
+            console.log(`💰 Recorded stadium revenue: ${simulationResult.revenueGenerated}₡ for team ${homeTeam.name}`);
+          }
+        }
+      }
+    }
     
     res.json({ 
       success: true, 
@@ -894,6 +929,35 @@ router.post('/:id/simulate', requireAuth, async (req: Request, res: Response, ne
       status: "COMPLETED",
       simulationLog: result.stats as any,
     });
+
+    // Record stadium revenue for home team
+    if (result.revenueGenerated > 0) {
+      const homeTeam = await prisma.team.findUnique({
+        where: { id: match.homeTeamId }
+      });
+      
+      if (homeTeam?.userProfileId) {
+        // Get the userProfile to find userId
+        const userProfile = await prisma.userProfile.findUnique({
+          where: { id: homeTeam.userProfileId }
+        });
+        
+        if (userProfile) {
+          const { PaymentHistoryService } = await import('../services/paymentHistoryService');
+          await PaymentHistoryService.recordTransaction({
+            userId: userProfile.userId,
+            teamId: match.homeTeamId,
+            transactionType: 'STADIUM_REVENUE' as any,
+            itemName: 'Home Game Stadium Revenue',
+            itemType: 'STADIUM_REVENUE' as any,
+            creditsAmount: result.revenueGenerated,
+            gemsAmount: 0,
+            status: 'COMPLETED' as any
+          });
+          console.log(`💰 Recorded stadium revenue: ${result.revenueGenerated}₡ for team ${homeTeam.name}`);
+        }
+      }
+    }
     
     console.log(`✅ MATCH COMPLETED: ${match.id} - Score: ${result.finalScore.home}-${result.finalScore.away}`);
     
@@ -1196,6 +1260,36 @@ router.post('/:id/quick-simulate', requireAuth, async (req: Request, res: Respon
         awayScore: result.finalScore.away
       }
     });
+
+    // Record stadium revenue for home team
+    if (result.revenueGenerated > 0) {
+      const prisma = await getPrismaClient();
+      const homeTeam = await prisma.team.findUnique({
+        where: { id: match.homeTeamId }
+      });
+      
+      if (homeTeam?.userProfileId) {
+        // Get the userProfile to find userId
+        const userProfile = await prisma.userProfile.findUnique({
+          where: { id: homeTeam.userProfileId }
+        });
+        
+        if (userProfile) {
+          const { PaymentHistoryService } = await import('../services/paymentHistoryService');
+          await PaymentHistoryService.recordTransaction({
+            userId: userProfile.userId,
+            teamId: match.homeTeamId,
+            transactionType: 'STADIUM_REVENUE' as any,
+            itemName: 'Home Game Stadium Revenue',
+            itemType: 'STADIUM_REVENUE' as any,
+            creditsAmount: result.revenueGenerated,
+            gemsAmount: 0,
+            status: 'COMPLETED' as any
+          });
+          console.log(`💰 Recorded stadium revenue: ${result.revenueGenerated}₡ for team ${homeTeam.name}`);
+        }
+      }
+    }
 
     // Update team standings if this is a league match
     if (match.matchType === 'LEAGUE') {
