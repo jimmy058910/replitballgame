@@ -46,7 +46,7 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players, sho
   const getDivisionNameWithSubdivision = (division: number, subdivision?: string) => {
     const divisionNames: Record<number, string> = {
       1: "Diamond", 2: "Platinum", 3: "Gold", 4: "Silver", 
-      5: "Bronze", 6: "Iron", 7: "Stone", 8: "Copper"
+      5: "Bronze", 6: "Copper", 7: "Iron", 8: "Stone"
     };
     
     const baseName = divisionNames[division] || `Division ${division}`;

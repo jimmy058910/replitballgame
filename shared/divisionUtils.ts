@@ -9,9 +9,9 @@ export const DIVISION_NAMES = {
   3: "Gold League",
   4: "Silver League",
   5: "Bronze League",
-  6: "Iron League",
-  7: "Stone League",
-  8: "Copper League",
+  6: "Copper League",
+  7: "Iron League",
+  8: "Stone League",
 } as const;
 
 export function getDivisionName(division: number): string {
