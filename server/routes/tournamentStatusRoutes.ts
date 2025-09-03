@@ -790,6 +790,8 @@ router.post('/:id/force-progression', requireAuth, async (req: any, res) => {
 // Helper function to check and advance tournament if needed
 async function checkAndAdvanceTournament(tournamentId: number) {
   try {
+    console.log(`🔍 [TOURNAMENT CHECK] Checking advancement for tournament ${tournamentId}`);
+    
     // Check quarterfinals (round 1)
     const quarterfinalsMatches = await prisma.game.findMany({
       where: {
@@ -798,6 +800,8 @@ async function checkAndAdvanceTournament(tournamentId: number) {
         status: 'COMPLETED' as any
       }
     });
+
+    console.log(`🔍 [TOURNAMENT CHECK] Found ${quarterfinalsMatches.length} completed quarterfinals`);
 
     if (quarterfinalsMatches.length === 4) {
       // All quarterfinals are complete, check if semifinals exist
@@ -808,8 +812,14 @@ async function checkAndAdvanceTournament(tournamentId: number) {
         }
       });
 
-      // REMOVED: Tournament bracket generation logic - now handled by UnifiedTournamentAutomation only
-      // This prevents duplicate bracket generation race conditions
+      console.log(`🔍 [TOURNAMENT CHECK] Found ${semifinalsMatches.length} existing semifinals`);
+
+      if (semifinalsMatches.length === 0) {
+        // Need to generate semifinals - call tournament flow service
+        console.log(`🚀 [TOURNAMENT CHECK] Triggering round advancement for tournament ${tournamentId}`);
+        const { tournamentFlowService } = await import('../services/tournamentFlowService.js');
+        await tournamentFlowService.handleMatchCompletion(quarterfinalsMatches[0].id);
+      }
     }
   } catch (error) {
     console.error("Error checking tournament advancement:", error);
