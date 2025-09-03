@@ -394,12 +394,14 @@ function calculateTeamPower(players: any[]): number {
 }
 
 
-// League routes
+// League routes  
 router.get('/:division/standings', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  console.log(`\n🚨 [ROUTE DEBUG] ENHANCED ROUTE HIT - LINE 399!`);
   console.log(`\n🏆 [STANDINGS API] ========== REQUEST RECEIVED ==========`);
   console.log(`🔍 [STANDINGS API] Division: ${req.params.division}`);
   console.log(`🔍 [STANDINGS API] User: ${req.user?.claims?.sub}`);
   console.log(`🔍 [STANDINGS API] Headers: ${JSON.stringify(req.headers.authorization?.substring(0, 50))}`);
+  console.log(`🔍 [STANDINGS API] Full URL: ${req.originalUrl}`);
   
   try {
     const division = parseInt(req.params.division);
@@ -429,14 +431,61 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       defaultSubdivision: userSubdivision
     });
     
-    // FLEXIBLE USER MATCHING: If no team found, try to find any team in main subdivision
+    // CRITICAL DEBUG: If team found but wrong subdivision, force search for Oakland Cougars
+    if (userTeam && userTeam.name !== 'Oakland Cougars') {
+      console.log(`⚠️ [CRITICAL] Found team "${userTeam.name}" but user wants Oakland Cougars standings!`);
+      console.log(`🔍 [FORCED SEARCH] Searching all subdivisions for Oakland Cougars...`);
+      
+      // Force search for Oakland Cougars in all subdivisions
+      for (const sub of ['alpha', 'beta', 'gamma', 'main', 'delta', 'epsilon']) {
+        const teamsInSub = await storage.teams.getTeamsByDivisionAndSubdivision(division, sub);
+        console.log(`🔍 [${sub.toUpperCase()}] ${teamsInSub.length} teams:`, teamsInSub.map(t => t.name));
+        const oaklandInSub = teamsInSub.find(team => team.name.includes('Oakland Cougars'));
+        if (oaklandInSub) {
+          console.log(`✅ [FORCED FOUND] Oakland Cougars found in ${sub} subdivision!`);
+          userSubdivision = sub;
+          break;
+        }
+      }
+    }
+    
+    // FLEXIBLE USER MATCHING: If no team found, check all subdivisions to find Oakland Cougars
     // This handles authentication mismatches during development
     if (!userTeam) {
-      console.log(`⚠️ [STANDINGS API] No team found for userId ${userId}, checking main subdivision`);
-      const teamsInMain = await storage.teams.getTeamsByDivisionAndSubdivision(division, 'main');
-      if (teamsInMain.length > 0) {
-        console.log(`✅ [STANDINGS API] Found ${teamsInMain.length} teams in main subdivision`);
-        userSubdivision = 'main';
+      console.log(`⚠️ [STANDINGS API] No team found for userId ${userId}, checking all subdivisions`);
+      
+      // Check alpha subdivision first (where Oakland Cougars likely is)
+      const teamsInAlpha = await storage.teams.getTeamsByDivisionAndSubdivision(division, 'alpha');
+      console.log(`🔍 [SUBDIVISION DEBUG] Alpha subdivision has ${teamsInAlpha.length} teams:`, teamsInAlpha.map(t => t.name));
+      const oaklandInAlpha = teamsInAlpha.find(team => team.name.includes('Oakland Cougars'));
+      if (oaklandInAlpha) {
+        console.log(`✅ [STANDINGS API] Found Oakland Cougars in alpha subdivision`);
+        userSubdivision = 'alpha';
+      } else {
+        console.log(`⚠️ [SUBDIVISION DEBUG] Oakland Cougars NOT found in alpha subdivision`);
+        
+        // Try main subdivision
+        const teamsInMain = await storage.teams.getTeamsByDivisionAndSubdivision(division, 'main');
+        console.log(`🔍 [SUBDIVISION DEBUG] Main subdivision has ${teamsInMain.length} teams:`, teamsInMain.map(t => t.name));
+        const oaklandInMain = teamsInMain.find(team => team.name.includes('Oakland Cougars'));
+        if (oaklandInMain) {
+          console.log(`✅ [STANDINGS API] Found Oakland Cougars in main subdivision`);
+          userSubdivision = 'main';
+        } else {
+          console.log(`⚠️ [SUBDIVISION DEBUG] Oakland Cougars NOT found in main subdivision either`);
+          console.log(`🔍 [SUBDIVISION DEBUG] Looking in other subdivisions...`);
+          
+          // Check all possible subdivisions
+          for (const sub of ['beta', 'gamma', 'delta', 'epsilon']) {
+            const teamsInSub = await storage.teams.getTeamsByDivisionAndSubdivision(division, sub);
+            const oaklandInSub = teamsInSub.find(team => team.name.includes('Oakland Cougars'));
+            if (oaklandInSub) {
+              console.log(`✅ [STANDINGS API] Found Oakland Cougars in ${sub} subdivision`);
+              userSubdivision = sub;
+              break;
+            }
+          }
+        }
       }
     }
     

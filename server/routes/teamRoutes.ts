@@ -811,90 +811,10 @@ router.get('/fix-opponent-debug', asyncHandler(async (req: Request, res: Respons
   }
 }));
 
-// CRITICAL FIX: Add standings route directly to teamRoutes
-// This fixes the Vite interception issue by providing direct access
-router.get('/:division/standings', async (req: Request, res: Response) => {
-  console.log(`🏆 [DIRECT STANDINGS] Division ${req.params.division} standings requested`);
-  
-  try {
-    const division = parseInt(req.params.division);
-    if (isNaN(division) || division < 1 || division > 8) {
-      return res.status(400).json({ message: "Invalid division" });
-    }
+// REMOVED: Duplicate standings route that conflicts with leagueRoutes.ts enhanced version
+// The enhanced standings calculation is handled in /api/leagues/:division/standings
 
-    const prisma = await getPrismaClient();
-    
-    // Get all teams in Division 8 Alpha (where Oakland Cougars is)
-    const teams = await prisma.team.findMany({
-      where: { 
-        division: division,
-        subdivision: 'alpha' // Oakland Cougars is in alpha
-      },
-      orderBy: [
-        { points: 'desc' },
-        { wins: 'desc' },
-        { name: 'asc' }
-      ]
-    });
 
-    console.log(`✅ [DIRECT STANDINGS] Found ${teams.length} teams in Division ${division} Alpha`);
-    
-    // Get all matches with scores (completed games) - simplified query
-    const completedMatches = await prisma.game.findMany({
-      where: {
-        matchType: 'LEAGUE',
-        homeScore: { not: null }, // Games with actual scores
-        awayScore: { not: null },
-        OR: [
-          { homeTeamId: { in: teams.map(t => t.id) } },
-          { awayTeamId: { in: teams.map(t => t.id) } }
-        ]
-      },
-      include: {
-        homeTeam: true,
-        awayTeam: true
-      }
-    });
-
-    console.log(`🎮 [STANDINGS] Found ${completedMatches.length} completed league matches for score calculations`);
-    
-    // Debug log to see what games we found
-    console.log(`🎯 [STANDINGS DEBUG] Found ${completedMatches.length} completed matches`);
-    if (completedMatches.length > 0) {
-      console.log(`🎯 [STANDINGS DEBUG] Sample completed match:`, {
-        id: completedMatches[0].id,
-        homeTeam: completedMatches[0].homeTeam.name,
-        awayTeam: completedMatches[0].awayTeam.name,
-        homeScore: completedMatches[0].homeScore,
-        awayScore: completedMatches[0].awayScore,
-        status: completedMatches[0].status,
-        gameDate: completedMatches[0].gameDate
-      });
-    }
-
-    // CRITICAL FIX: Correct draws calculation (same logic as main fix)
-    const correctedTeams = teams.map(team => {
-      const correctDraws = Math.max(0, (team.points || 0) - ((team.wins || 0) * 3));
-      const correctPoints = team.points || 0; // Keep existing points from game results
-      const hasDrawsError = (team.draws || 0) !== correctDraws;
-      
-      // Calculate actual scores from completed games
-      const teamMatches = completedMatches.filter(match => 
-        match.homeTeamId === team.id || match.awayTeamId === team.id
-      );
-      
-      let totalScores = 0;
-      let scoresAgainst = 0;
-      
-      teamMatches.forEach(match => {
-        if (match.homeTeamId === team.id) {
-          totalScores += match.homeScore || 0;
-          scoresAgainst += match.awayScore || 0;
-        } else {
-          totalScores += match.awayScore || 0;
-          scoresAgainst += match.homeScore || 0;
-        }
-      });
       
       const scoreDifference = totalScores - scoresAgainst;
       const actualPlayed = teamMatches.length; // Only count COMPLETED games
@@ -988,12 +908,6 @@ router.get('/:division/standings', async (req: Request, res: Response) => {
       }
     }
 
-    res.json(correctedTeams);
-  } catch (error) {
-    console.error('❌ [DIRECT STANDINGS] Error:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
 
 // Fix financial balance based on transaction history (direct database approach)
 router.post('/:teamId/fix-financial-balance', requireAuth, asyncHandler(async (req: Request, res: Response) => {
