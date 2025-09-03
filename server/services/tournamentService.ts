@@ -1117,12 +1117,12 @@ export class TournamentService {
           now.getTime();
         
         const timeSinceFullMs = now.getTime() - lastEntryTime;
-        const tenMinutesMs = 10 * 60 * 1000; // 10 minutes
+        const twoMinutesMs = 2 * 60 * 1000; // 2 minutes
         
-        if (timeSinceFullMs >= tenMinutesMs) {
-          // Tournament is full and 10 minutes have passed - start it
+        if (timeSinceFullMs >= twoMinutesMs) {
+          // Tournament is full and 2 minutes have passed - start it
           await this.startTournament(tournament.id);
-          console.log(`Auto-started tournament ${tournament.id} (${tournament.name}) - 10 minutes elapsed since full`);
+          console.log(`Auto-started tournament ${tournament.id} (${tournament.name}) - 2 minutes elapsed since full`);
         }
         continue;
       }
