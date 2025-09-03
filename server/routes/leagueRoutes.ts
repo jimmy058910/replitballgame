@@ -510,10 +510,11 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     
     // Get all completed league matches for standings calculation
     
-    // FIXED: Only include LEAGUE games for standings calculation (exclude tournaments)
+    // FIXED: Use same logic as daily schedule - include LEAGUE and PLAYOFF games for standings
     const allLeagueGames = await prisma.game.findMany({
       where: {
-        matchType: 'LEAGUE', // Only league games for standings
+        // Match the same logic as daily schedule API: include LEAGUE and PLAYOFF games
+        matchType: { in: ['LEAGUE', 'PLAYOFF'] },
         OR: [
           { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
           { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
