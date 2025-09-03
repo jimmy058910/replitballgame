@@ -404,4 +404,5 @@ function getExpectedPowerForDivision(division: number): number {
   }
 }
 
+
 export default router;

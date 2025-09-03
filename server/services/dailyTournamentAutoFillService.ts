@@ -341,25 +341,19 @@ class DailyTournamentAutoFillService {
     try {
       console.log(`🏁 [TOURNAMENT AUTO-FILL] Completing tournament ${tournamentId} setup`);
 
-      const prisma = await getPrismaClient();
-      
-      // Update tournament status to ready
-      await prisma.tournament.update({
-        where: { id: tournamentId },
-        data: {
-          status: 'IN_PROGRESS',
-          startTime: new Date()
-        }
-      });
-
-      // Clear any active timer
+      // Clear any active timer first
       const timer = this.activeTimers.get(tournamentId);
       if (timer) {
         clearTimeout(timer.timeoutId);
         this.activeTimers.delete(tournamentId);
       }
 
-      console.log(`✅ [TOURNAMENT AUTO-FILL] Tournament ${tournamentId} ready to start with 8 teams`);
+      // Use the tournament service to properly start the tournament with bracket generation
+      const { TournamentService } = await import('./tournamentService');
+      const tournamentService = new TournamentService();
+      await tournamentService.startTournament(tournamentId);
+
+      console.log(`✅ [TOURNAMENT AUTO-FILL] Tournament ${tournamentId} started with bracket generated`);
 
     } catch (error) {
       console.error(`❌ [TOURNAMENT AUTO-FILL] Failed to complete tournament setup:`, error);

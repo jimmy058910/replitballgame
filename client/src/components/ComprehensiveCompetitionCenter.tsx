@@ -2094,21 +2094,11 @@ export default function ComprehensiveCompetitionCenter() {
                           </span>
                           <span className="text-gray-500 text-xs">
                             {(() => {
-                              console.log('🔍 [RANKING DEBUG] GlobalRankings available:', !!globalRankings, 'Length:', globalRankings?.length);
-                              console.log('🔍 [RANKING DEBUG] Looking for teamId:', team.teamId, 'Type:', typeof team.teamId);
-                              
-                              if (!globalRankings || globalRankings.length === 0) {
-                                console.log('❌ [RANKING DEBUG] No global rankings data available');
-                                return 'Loading...';
-                              }
-                              
-                              console.log('🔍 [RANKING DEBUG] Sample ranking IDs:', globalRankings.slice(0, 3).map(r => ({ id: r.id, type: typeof r.id, rank: r.globalRank })));
+                              if (!globalRankings || globalRankings.length === 0) return 'Loading...';
                               
                               const teamRanking = globalRankings.find(r => r.id === team.teamId) || 
                                                 globalRankings.find(r => String(r.id) === String(team.teamId)) ||
                                                 globalRankings.find(r => parseInt(String(r.id)) === parseInt(String(team.teamId)));
-                              
-                              console.log('🔍 [RANKING DEBUG] Found ranking:', teamRanking);
                               
                               const rank = teamRanking?.globalRank || 0;
                               return rank > 0 ? `#${rank}` : 'Unranked';
