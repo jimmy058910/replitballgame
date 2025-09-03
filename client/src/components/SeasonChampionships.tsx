@@ -61,7 +61,7 @@ export default function SeasonChampionships() {
   });
 
   const { data: leagueStandings = [] } = useQuery<any[]>({ // Typed leagueStandings, default to empty array
-    queryKey: ["/api/league/standings", selectedDivision],
+    queryKey: ["/api/leagues/standings", selectedDivision],
     enabled: !!selectedDivision,
   });
 
