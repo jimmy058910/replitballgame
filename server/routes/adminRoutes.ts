@@ -297,4 +297,127 @@ router.post('/tournament/:id/generate-bracket', async (req: Request, res: Respon
   }
 });
 
+// Fix schedule duplicates and missing games for Division 7 Alpha
+router.post('/fix-division-7-schedule', async (req: Request, res: Response) => {
+  try {
+    console.log('🔧 [ADMIN] Fixing Division 7 Alpha schedule issues...');
+    
+    const { getPrismaClient } = await import('../database');
+    const prisma = await getPrismaClient();
+    
+    // Get Division 7 Alpha teams
+    const teams = await prisma.team.findMany({
+      where: { 
+        division: 7,
+        subdivision: 'alpha'
+      }
+    });
+    
+    console.log(`🔍 Found ${teams.length} teams in Division 7 Alpha`);
+    
+    // Get team IDs for easier lookup
+    const teamLookup = new Map();
+    teams.forEach(t => teamLookup.set(t.name, t.id));
+    
+    const oaklandId = teamLookup.get('Oakland Cougars');
+    const earthGuardiansId = teamLookup.get('Earth Guardians 132');
+    const fireHawksId = teamLookup.get('Fire Hawks 261');
+    const galaxyWarriorsId = teamLookup.get('Galaxy Warriors 792');
+    
+    let deletedCount = 0;
+    let createdCount = 0;
+    
+    // STEP 1: Remove duplicate games
+    console.log('🗑️ Removing duplicate games...');
+    
+    // Find Oakland vs Fire Hawks games (should be 2, currently 3)
+    const oaklandFireHawks = await prisma.game.findMany({
+      where: {
+        OR: [
+          { homeTeamId: oaklandId, awayTeamId: fireHawksId },
+          { homeTeamId: fireHawksId, awayTeamId: oaklandId }
+        ],
+        status: 'SCHEDULED'
+      },
+      orderBy: { gameDate: 'desc' }
+    });
+    
+    // Delete the latest extra game (Day 13)
+    if (oaklandFireHawks.length > 2) {
+      await prisma.game.delete({
+        where: { id: oaklandFireHawks[0].id }
+      });
+      console.log(`✅ Deleted duplicate Oakland vs Fire Hawks game (ID: ${oaklandFireHawks[0].id})`);
+      deletedCount++;
+    }
+    
+    // Find Oakland vs Earth Guardians games (should be 1 more, currently 2 extra)
+    const oaklandEarthGuardians = await prisma.game.findMany({
+      where: {
+        OR: [
+          { homeTeamId: oaklandId, awayTeamId: earthGuardiansId },
+          { homeTeamId: earthGuardiansId, awayTeamId: oaklandId }
+        ],
+        status: 'SCHEDULED'
+      },
+      orderBy: { gameDate: 'desc' }
+    });
+    
+    // Delete the latest extra game (Day 14) 
+    if (oaklandEarthGuardians.length > 1) {
+      await prisma.game.delete({
+        where: { id: oaklandEarthGuardians[0].id }
+      });
+      console.log(`✅ Deleted duplicate Oakland vs Earth Guardians game (ID: ${oaklandEarthGuardians[0].id})`);
+      deletedCount++;
+    }
+    
+    // STEP 2: Add missing games
+    console.log('➕ Adding missing games...');
+    
+    // Add missing Oakland vs Galaxy Warriors game (they only have 1, need 2)
+    const newGame1 = await prisma.game.create({
+      data: {
+        leagueId: 7, // Division 7 league
+        homeTeamId: oaklandId,
+        awayTeamId: galaxyWarriorsId,
+        gameDate: new Date('2025-09-15T22:00:00Z'), // Day 15, 6:00 PM
+        status: 'SCHEDULED',
+        matchType: 'LEAGUE'
+      }
+    });
+    console.log(`✅ Created missing Oakland vs Galaxy Warriors game (ID: ${newGame1.id})`);
+    createdCount++;
+    
+    // Add missing Earth Guardians vs Fire Hawks game (they only have 1, need 2)
+    const newGame2 = await prisma.game.create({
+      data: {
+        leagueId: 7, // Division 7 league  
+        homeTeamId: earthGuardiansId,
+        awayTeamId: fireHawksId,
+        gameDate: new Date('2025-09-15T22:15:00Z'), // Day 15, 6:15 PM
+        status: 'SCHEDULED',
+        matchType: 'LEAGUE'
+      }
+    });
+    console.log(`✅ Created missing Earth Guardians vs Fire Hawks game (ID: ${newGame2.id})`);
+    createdCount++;
+    
+    res.json({
+      success: true,
+      message: `Fixed Division 7 Alpha schedule`,
+      deletedGames: deletedCount,
+      createdGames: createdCount,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fixing Division 7 schedule:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
