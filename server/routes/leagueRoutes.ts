@@ -545,14 +545,16 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     // CRITICAL DEBUG: Show more games to find Day 2 games
     console.log(`🔍 [FIRST 10 GAMES DETAILS]:`, allLeagueGames.slice(0, 10).map(g => `Game ${g.id}: ${g.status || 'NO_STATUS'}, ${g.homeScore}-${g.awayScore}, Date: ${new Date(g.gameDate).toDateString()}`));
     
-    // CRITICAL: Look specifically for Oakland Cougars Day 2 game
-    const oaklandDay2Games = allLeagueGames.filter(g => 
-      (g.homeTeamId === 4 || g.awayTeamId === 4) && 
+    // CRITICAL: Look specifically for ALL Day 2 games to debug what's missing
+    const day2Games = allLeagueGames.filter(g => 
       new Date(g.gameDate).getDate() === 3  // September 3rd = Day 2
     );
-    console.log(`🔍 [OAKLAND DAY 2 DEBUG]:`, oaklandDay2Games.map(g => 
-      `Game ${g.id}: ${g.status || 'NO_STATUS'}, Scores: ${g.homeScore}-${g.awayScore}, Date: ${new Date(g.gameDate).toLocaleString()}`
-    ));
+    console.log(`🔍 [DAY 2 GAMES DEBUG] Found ${day2Games.length} Day 2 games:`);
+    day2Games.forEach(g => {
+      const homeTeam = teamsInDivision.find(t => t.id === g.homeTeamId)?.name || 'Unknown';
+      const awayTeam = teamsInDivision.find(t => t.id === g.awayTeamId)?.name || 'Unknown';
+      console.log(`🎮 Game ${g.id}: ${homeTeam} vs ${awayTeam}, Status: '${g.status}', Scores: ${g.homeScore}-${g.awayScore}, Simulated: ${g.simulated}`);
+    });
     
     // CRITICAL FIX: Get completed games with more flexible criteria for Day 2 games
     const completedMatches = allLeagueGames.filter((match: any) => {
@@ -600,12 +602,12 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     });
     
     // CRITICAL FIX: Reset all team standings and recalculate from scratch based on actual games
-    console.log('🔄 [STANDINGS FIX] Resetting all Division 8 Alpha team standings...');
+    console.log(`🔄 [STANDINGS FIX] Resetting all Division ${division} ${userSubdivision} team standings...`);
     
     // Reset all teams to 0 standings first
     await prisma.team.updateMany({
       where: {
-        division: 8,
+        division: division,
         subdivision: userSubdivision
       },
       data: {
@@ -672,7 +674,7 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     
     // Update database with correct standings
     for (const [teamId, stats] of teamStandings) {
-      await prisma.team.update({
+      const updatedTeam = await prisma.team.update({
         where: { id: teamId },
         data: {
           wins: stats.wins,
@@ -680,6 +682,8 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
           points: stats.points
         }
       });
+      
+      console.log(`✅ [STANDINGS FIXED] ${updatedTeam.name}: ${stats.wins}W-${stats.draws}D-${stats.losses}L = ${stats.points} points (${stats.gamesPlayed} games played)`);
     }
     
     console.log('✅ [STANDINGS FIX] All team standings recalculated from actual game results');

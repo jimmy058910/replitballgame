@@ -1106,6 +1106,15 @@ router.post('/fix-day8-status-and-standings', requireAuth, asyncHandler(async (r
         data: { status: 'COMPLETED' }
       });
       console.log(`✅ [FIX DAY 8] Game ${gameId} status updated to COMPLETED`);
+      
+      // BULLETPROOF STANDINGS UPDATE: Automatically update when game marked completed
+      try {
+        const { StandingsUpdateService } = await import('../services/standingsUpdateService.js');
+        await StandingsUpdateService.onGameCompleted(gameId);
+        console.log(`✅ [FIX DAY 8] Standings updated for game ${gameId}`);
+      } catch (standingsError) {
+        console.error(`❌ [FIX DAY 8] Error updating standings for game ${gameId}:`, standingsError);
+      }
     }
     
     // Step 2: Reset all team standings to 0

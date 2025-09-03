@@ -1015,24 +1015,24 @@ router.post('/:matchId/simulate-play', requireAuth, async (req: Request, res: Re
 
     // Check if match just completed and is a league match
     if (status === 'COMPLETED' && !wasCompleted && match.matchType === 'LEAGUE') {
-      console.log(`🏆 LEAGUE MATCH COMPLETION (simulate-play): ${matchId} - Using proper standings update flow`);
-      const { matchStateManager } = await import('../services/matchStateManager');
+      console.log(`🏆 LEAGUE MATCH COMPLETION (simulate-play): ${matchId} - BULLETPROOF standings update`);
       
-      // Update match status
+      // Update match status first
       await matchStorage.updateMatch(parseInt(matchId), {
         homeScore, awayScore, status,
         simulationLog: updatedGameData,
       });
       
-      // Trigger standings update
-      await matchStateManager.updateTeamRecords(
-        match.homeTeamId, 
-        match.awayTeamId, 
-        homeScore, 
-        awayScore
-      );
+      // BULLETPROOF STANDINGS UPDATE: Simple, reliable, automatic
+      const { StandingsUpdateService } = await import('../services/standingsUpdateService.js');
       
-      console.log(`✅ LEAGUE STANDINGS UPDATED: Match ${matchId} - Home: ${homeScore}, Away: ${awayScore}`);
+      try {
+        await StandingsUpdateService.onGameCompleted(parseInt(matchId));
+        console.log(`✅ BULLETPROOF STANDINGS: Game ${matchId} updated automatically (${homeScore}-${awayScore})`);
+      } catch (standingsError) {
+        console.error(`❌ Error updating standings for game ${matchId}:`, standingsError);
+      }
+      
     } else {
       // Regular update for non-league matches or non-completion updates
       await matchStorage.updateMatch(parseInt(matchId), {
