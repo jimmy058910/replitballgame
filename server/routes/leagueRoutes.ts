@@ -601,95 +601,16 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       }
     });
     
-    // CRITICAL FIX: Reset all team standings and recalculate from scratch based on actual games
-    console.log(`🔄 [STANDINGS FIX] Resetting all Division ${division} ${userSubdivision} team standings...`);
+    // BULLETPROOF STANDINGS: Just read the corrected values from database
+    console.log(`📊 [BULLETPROOF STANDINGS] Reading corrected standings from database for Division ${division} ${userSubdivision}`);
     
-    // Reset all teams to 0 standings first
-    await prisma.team.updateMany({
-      where: {
-        division: division,
-        subdivision: userSubdivision
-      },
-      data: {
-        wins: 0,
-        losses: 0,
-        points: 0
-      }
-    });
-    
-    // Now recalculate standings from actual completed games
-    const teamStandings = new Map();
-    
-    // Initialize all teams with zero records
-    teamsInDivision.forEach((team: any) => {
-      teamStandings.set(team.id, {
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        points: 0,
-        gamesPlayed: 0
-      });
-    });
-    
-    // Process each completed game to update standings
-    completedMatches.forEach((match: any) => {
-      const homeScore = match.homeScore || 0;
-      const awayScore = match.awayScore || 0;
-      const homeTeamId = match.homeTeamId;
-      const awayTeamId = match.awayTeamId;
-      
-      // Only count games involving teams in this division
-      const homeTeamInDivision = teamsInDivision.some((t: any) => t.id === homeTeamId);
-      const awayTeamInDivision = teamsInDivision.some((t: any) => t.id === awayTeamId);
-      
-      if (homeTeamInDivision && awayTeamInDivision) {
-        const homeStats = teamStandings.get(homeTeamId);
-        const awayStats = teamStandings.get(awayTeamId);
-        
-        if (homeStats && awayStats) {
-          // Increment games played for both teams
-          homeStats.gamesPlayed++;
-          awayStats.gamesPlayed++;
-          
-          if (homeScore > awayScore) {
-            // Home team wins
-            homeStats.wins++;
-            homeStats.points += 3;
-            awayStats.losses++;
-          } else if (awayScore > homeScore) {
-            // Away team wins
-            awayStats.wins++;
-            awayStats.points += 3;
-            homeStats.losses++;
-          } else {
-            // Draw
-            homeStats.draws++;
-            homeStats.points += 1;
-            awayStats.draws++;
-            awayStats.points += 1;
-          }
-        }
-      }
-    });
-    
-    // Update database with correct standings
-    for (const [teamId, stats] of teamStandings) {
-      const updatedTeam = await prisma.team.update({
-        where: { id: teamId },
-        data: {
-          wins: stats.wins,
-          losses: stats.losses,
-          points: stats.points
-        }
-      });
-      
-      console.log(`✅ [STANDINGS FIXED] ${updatedTeam.name}: ${stats.wins}W-${stats.draws}D-${stats.losses}L = ${stats.points} points (${stats.gamesPlayed} games played)`);
-    }
-    
-    console.log('✅ [STANDINGS FIX] All team standings recalculated from actual game results');
-    
-    // Refresh teams data with updated standings
+    // Get fresh team data with current standings from database
     teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
+    
+    // Log the standings we're reading from database
+    teamsInDivision.forEach((team: any) => {
+      console.log(`📊 [STANDINGS] ${team.name}: ${team.wins}W-${team.draws || 0}D-${team.losses}L = ${team.points} points`);
+    });
 
     // Enhanced standings with streak and additional stats
     const enhancedTeams = teamsInDivision.map((team) => {
