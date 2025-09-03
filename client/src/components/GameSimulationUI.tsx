@@ -12,7 +12,6 @@ import webSocketManager, { LiveMatchState, MatchEvent, WebSocketCallbacks } from
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import GameCanvas from './GameCanvas';
-import EnhancedPostMatchSummary from './EnhancedPostMatchSummary';
 
 interface GameSimulationUIProps {
   matchId: string;
@@ -580,18 +579,22 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
        // @ts-expect-error TS2367 */}
       {liveState?.status === 'FINISHED' && (
         <div className="mb-6">
-          <EnhancedPostMatchSummary 
-            matchData={{
-              homeScore: liveState.homeScore,
-              awayScore: liveState.awayScore,
-              matchType: matchType || 'LEAGUE'
-            }}
-            gameData={initialMatchData || {}}
-            liveState={liveState}
-            onViewReplay={() => {
-              console.log('View Replay clicked');
-            }}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-yellow-500" />
+                Match Complete
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center space-y-2">
+                <div className="text-lg font-semibold">
+                  Final Score: {liveState.homeScore} - {liveState.awayScore}
+                </div>
+                <Badge variant="outline">{matchType || 'LEAGUE'} Match</Badge>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
