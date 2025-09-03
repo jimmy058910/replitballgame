@@ -13,13 +13,13 @@ const router = Router();
  */
 
 router.post('/fix-real-standings', requireAuth, async (req, res) => {
-  console.log('🔧 FIXING STANDINGS BASED ON ACTUAL GAME RESULTS');
-  console.log('================================================');
+  console.log('🔧 FIXING DIVISION 7 ALPHA STANDINGS - ALL COMPLETED GAMES');
+  console.log('==========================================================');
   
   try {
     const prisma = await getPrismaClient();
     
-    // FIXED: Use same team filtering approach as teamRoutes.ts
+    // Get Division 7 Alpha teams specifically
     const teams = await prisma.team.findMany({
       where: { 
         division: 7,
@@ -27,7 +27,7 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
       }
     });
     
-    console.log(`🔍 Found ${teams.length} teams in Division 8 Alpha: [${teams.map(t => t.name).join(', ')}]`);
+    console.log(`🔍 Found ${teams.length} teams in Division 7 Alpha: [${teams.map(t => t.name).join(', ')}]`);
     
     // Get all completed games using same pattern as teamRoutes.ts
     const completedGames = await prisma.game.findMany({
@@ -61,10 +61,11 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
       data: {
         wins: 0,
         losses: 0,
+        draws: 0,
         points: 0
       }
     });
-    console.log('✅ All Division 8 Alpha teams reset to 0 standings');
+    console.log('✅ All Division 7 Alpha teams reset to 0 standings');
     
     const results = [];
     
@@ -191,18 +192,19 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
     }
     
     console.log('\n✅ Real standings fix completed!');
-    console.log('🔍 Checking final standings for Division 8 Alpha...');
+    console.log('🔍 Checking final standings for Division 7 Alpha...');
     
-    // Display updated standings for Division 8 Alpha
+    // Display updated standings for Division 7 Alpha
     const alphaTeams = await prisma.team.findMany({
       where: {
-        division: 8,
+        division: 7,
         subdivision: 'alpha'
       },
       select: {
         name: true,
         wins: true,
         losses: true,
+        draws: true,
         points: true
       },
       orderBy: [
@@ -211,11 +213,11 @@ router.post('/fix-real-standings', requireAuth, async (req, res) => {
       ]
     });
     
-    console.log('\n📊 CORRECTED DIVISION 8 ALPHA STANDINGS:');
+    console.log('\n📊 CORRECTED DIVISION 7 ALPHA STANDINGS:');
     console.log('=========================================');
     alphaTeams.forEach((team, index) => {
-      const gamesPlayed = (team.wins || 0) + (team.losses || 0);
-      console.log(`${index + 1}. ${team.name}: GP=${gamesPlayed}, W=${team.wins || 0}, L=${team.losses || 0}, Pts=${team.points || 0}`);
+      const gamesPlayed = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
+      console.log(`${index + 1}. ${team.name}: GP=${gamesPlayed}, W=${team.wins || 0}, L=${team.losses || 0}, D=${team.draws || 0}, Pts=${team.points || 0}`);
     });
     
     res.json({
@@ -680,6 +682,139 @@ router.get('/debug-division-7-alpha', requireAuth, async (req, res) => {
       success: false,
       error: 'Failed to analyze Division 7 Alpha',
       details: error.message
+    });
+  }
+});
+
+/**
+ * Process specific missing Day 2 games: 10117, 10118, 10120
+ */
+router.post('/fix-day2-games', requireAuth, async (req, res) => {
+  console.log('🔧 FIXING SPECIFIC DAY 2 GAMES: 10117, 10118, 10120');
+  console.log('==================================================');
+  
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Get the specific missing games
+    const missingGames = await prisma.game.findMany({
+      where: {
+        id: { in: [10117, 10118, 10120] }
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true
+      }
+    });
+    
+    console.log(`🔍 Found ${missingGames.length} missing Day 2 games:`);
+    missingGames.forEach(game => {
+      console.log(`  Game ${game.id}: ${game.homeTeam.name} ${game.homeScore}-${game.awayScore} ${game.awayTeam.name} (${game.matchType})`);
+    });
+    
+    const results = [];
+    
+    // Process each missing game
+    for (const game of missingGames) {
+      const homeScore = game.homeScore || 0;
+      const awayScore = game.awayScore || 0;
+      
+      console.log(`\n🏈 Processing missing game: ${game.homeTeam.name} (${homeScore}) vs ${game.awayTeam.name} (${awayScore})`);
+      
+      if (homeScore > awayScore) {
+        // Home team wins
+        await prisma.team.update({
+          where: { id: game.homeTeam.id },
+          data: {
+            wins: { increment: 1 },
+            points: { increment: 3 }
+          }
+        });
+        
+        await prisma.team.update({
+          where: { id: game.awayTeam.id },
+          data: {
+            losses: { increment: 1 }
+          }
+        });
+        
+        console.log(`  ✅ ${game.homeTeam.name} WINS`);
+        
+        results.push({
+          gameId: game.id,
+          winner: game.homeTeam.name,
+          loser: game.awayTeam.name,
+          score: `${homeScore}-${awayScore}`
+        });
+        
+      } else if (awayScore > homeScore) {
+        // Away team wins
+        await prisma.team.update({
+          where: { id: game.awayTeam.id },
+          data: {
+            wins: { increment: 1 },
+            points: { increment: 3 }
+          }
+        });
+        
+        await prisma.team.update({
+          where: { id: game.homeTeam.id },
+          data: {
+            losses: { increment: 1 }
+          }
+        });
+        
+        console.log(`  ✅ ${game.awayTeam.name} WINS`);
+        
+        results.push({
+          gameId: game.id,
+          winner: game.awayTeam.name,
+          loser: game.homeTeam.name,
+          score: `${homeScore}-${awayScore}`
+        });
+      }
+    }
+    
+    // Show Division 7 Alpha standings after processing missing games
+    const alphaTeams = await prisma.team.findMany({
+      where: {
+        division: 7,
+        subdivision: 'alpha'
+      },
+      select: {
+        name: true,
+        wins: true,
+        losses: true,
+        draws: true,
+        points: true
+      },
+      orderBy: [
+        { points: 'desc' },
+        { wins: 'desc' }
+      ]
+    });
+    
+    console.log('\n📊 DIVISION 7 ALPHA STANDINGS AFTER MISSING GAMES:');
+    console.log('=================================================');
+    alphaTeams.forEach((team, index) => {
+      const gamesPlayed = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
+      console.log(`${index + 1}. ${team.name}: GP=${gamesPlayed}, W=${team.wins || 0}, L=${team.losses || 0}, Pts=${team.points || 0}`);
+    });
+    
+    res.json({
+      success: true,
+      message: 'Missing Day 2 games processed successfully',
+      gamesProcessed: missingGames.length,
+      results,
+      finalStandings: alphaTeams
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fixing Day 2 games:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fix Day 2 games',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
