@@ -175,7 +175,7 @@ const ModernStickyHeader: React.FC = () => {
   const getDivisionName = (division: number): string => {
     const names: Record<number, string> = {
       1: "Diamond", 2: "Platinum", 3: "Gold", 4: "Silver", 
-      5: "Bronze", 6: "Iron", 7: "Steel", 8: "Stone"
+      5: "Bronze", 6: "Iron", 7: "Stone", 8: "Copper"
     };
     return names[division] || `Div ${division}`;
   };

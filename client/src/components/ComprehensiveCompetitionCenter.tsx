@@ -138,8 +138,8 @@ const formatMatchTime = (gameDate: string) => {
 
 // Helper function to get division name
 const getDivisionName = (division: number): string => {
-  const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
-  return divisionNames[division] || "Stone";
+  const divisionNames = ["", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Iron", "Stone", "Copper"];
+  return divisionNames[division] || "Copper";
 };
 
 // Helper function to get Daily Division Tournament rewards
