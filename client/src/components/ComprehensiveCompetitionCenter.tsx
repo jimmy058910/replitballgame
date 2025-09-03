@@ -295,7 +295,7 @@ export default function ComprehensiveCompetitionCenter() {
   const { data: divisionStandings, isLoading: standingsLoading, error: standingsError } = useQuery<Team[]>({
     queryKey: [`/api/leagues/${team?.division || 8}/standings`],  // ✅ FIXED: Correct API endpoint
     enabled: !!team?.division || !!team,  // Try enabling if team exists at all
-    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    staleTime: 0, // EMERGENCY: No cache - force fresh data
   });
 
   // Debug logging for standings issues

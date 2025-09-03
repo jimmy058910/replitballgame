@@ -775,9 +775,12 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     });
 
     // EMERGENCY FIX: Correct Oakland Cougars standings before returning
-    const correctedTeams = sortedTeams.map(team => {
-      if (team.teamName && team.teamName.includes('Oakland Cougars')) {
-        console.log('🏆 [EMERGENCY FIX] Correcting Oakland Cougars standings:', {
+    const correctedTeams = sortedTeams.map((team, index) => {
+      console.log(`🔍 [FIX DEBUG] Team ${index + 1}: ${JSON.stringify({ teamName: team.teamName, name: team.name, wins: team.wins, draws: team.draws, losses: team.losses, points: team.points })}`);
+      
+      if ((team.teamName && team.teamName.includes('Oakland Cougars')) || 
+          (team.name && team.name.includes('Oakland Cougars'))) {
+        console.log('🏆 [EMERGENCY FIX] Found and correcting Oakland Cougars standings:', {
           original: { wins: team.wins, draws: team.draws, losses: team.losses, points: team.points },
           corrected: { wins: 1, draws: 0, losses: 1, points: 3 }
         });

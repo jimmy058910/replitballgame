@@ -61,8 +61,9 @@ export default function SeasonChampionships() {
   });
 
   const { data: leagueStandings = [] } = useQuery<any[]>({ // Typed leagueStandings, default to empty array
-    queryKey: ["/api/leagues/standings", selectedDivision],
+    queryKey: [`/api/leagues/${selectedDivision}/standings`], // FIXED: Use correct endpoint format
     enabled: !!selectedDivision,
+    staleTime: 0, // EMERGENCY: No cache - force fresh data
   });
 
   const { data: championshipHistory = [] } = useQuery<ChampionshipSeason[]>({ // Typed championshipHistory, default to empty array

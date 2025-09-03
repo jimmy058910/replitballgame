@@ -36,10 +36,10 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
 
     const { data: rawStandings, isLoading, error } = useQuery<Team[]>({
       queryKey: [`/api/leagues/${division}/standings`],
-      staleTime: 1000 * 30, // 30 seconds cache to prevent loops
-      gcTime: 1000 * 60 * 5, // 5 minutes cache retention
+      staleTime: 0, // EMERGENCY: No cache - force fresh data  
+      gcTime: 0, // EMERGENCY: No retention - force fresh data
       refetchOnMount: true,
-      refetchOnWindowFocus: false, // Disable to prevent loops
+      refetchOnWindowFocus: true, // EMERGENCY: Force refetch to get corrected data
       refetchInterval: false, // Disable auto-refetch to prevent loops
       retry: 1, // Single retry
     });
