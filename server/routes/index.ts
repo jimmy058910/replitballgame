@@ -69,7 +69,6 @@ import quickCacheTest from "./quickCacheTest.js";
 import testAutomationRoutes from "./testAutomationRoutes.js";
 import resetRoutes from "./resetRoutes.js";
 import lateRegistrationRoutes from "./lateRegistrationRoutes.js";
-import correctStandingsRoutes from "./correctStandingsRoutes.js";
 import manualStandingsComplete from "./manualStandingsComplete.js";
 import cleanupTournamentRoutes from "./cleanupTournamentRoutes.js";
 import simpleCleanupRoutes from "./simpleCleanupRoutes.js";
@@ -229,7 +228,6 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/admin", resetRoutes); // Admin reset and scheduling functionality
   app.use("/api/cache", cacheRoutes); // Cache management and statistics
   app.use("/api/cache-test", quickCacheTest); // Cache testing and demonstration
-  app.use("/api/correct-standings", correctStandingsRoutes); // Fix standings based on actual game results
   app.use("/api/manual-standings", manualStandingsComplete); // Complete comprehensive standings fix
   app.use("/api/tournament-cleanup", cleanupTournamentRoutes); // Emergency cleanup for stuck tournament registrations
   app.use("/api/simple-cleanup", simpleCleanupRoutes); // Simple cleanup using working Prisma patterns
