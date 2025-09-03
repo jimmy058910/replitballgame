@@ -513,12 +513,12 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     // Since we need to count all games played by each team
     const prisma = await getPrismaClient();
     
-    console.log(`🔧 [STANDINGS FIX] Getting all completed league matches for Division 8 Alpha teams`);
+    console.log(`🔧 [STANDINGS FIX - NEW CODE] Getting all completed league matches for Division ${division} ${userSubdivision} teams`);
     
-    // FIRST: Get ALL league games for these teams to understand what exists
+    // FIRST: Get ALL games for these teams (ANY matchType) to catch Day 2 games
+    // CRITICAL FIX: Include ALL games regardless of matchType to find Day 2 games
     const allLeagueGames = await prisma.game.findMany({
       where: {
-        matchType: 'LEAGUE',
         OR: [
           { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
           { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
@@ -527,8 +527,31 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       orderBy: { gameDate: 'asc' }
     });
     
-    console.log(`🔍 [ALL LEAGUE GAMES] Found ${allLeagueGames.length} total league games for Division 8 Alpha teams`);
+    console.log(`🔍 [ALL LEAGUE GAMES] Found ${allLeagueGames.length} total games for Division ${division} teams`);
     console.log(`🔍 [ALL LEAGUE GAMES] DETAILED COUNT: ${allLeagueGames.length} games found`);
+    
+    // CRITICAL DEBUG: Search for Oakland Cougars games specifically
+    const oaklandGames = allLeagueGames.filter(g => 
+      g.homeTeamId === 4 || g.awayTeamId === 4  // Oakland Cougars ID is 4
+    );
+    console.log(`🎯 [OAKLAND DEBUG] Found ${oaklandGames.length} Oakland Cougars games:`);
+    oaklandGames.forEach(g => {
+      console.log(`🎮 Oakland Game ${g.id}: Home=${g.homeTeamId}, Away=${g.awayTeamId}, Status='${g.status}', Scores=${g.homeScore}-${g.awayScore}, Date=${new Date(g.gameDate).toDateString()}, MatchType='${g.matchType}'`);
+    });
+    
+    // CRITICAL DEBUG: Search specifically for the missing Day 2 games by ID
+    const missingDay2GameIds = [10117, 10118, 10120];
+    const foundDay2Games = allLeagueGames.filter(g => missingDay2GameIds.includes(g.id));
+    console.log(`🔍 [MISSING DAY 2 SEARCH] Searching for games ${missingDay2GameIds.join(', ')} in Division ${division} query...`);
+    console.log(`🔍 [MISSING DAY 2 SEARCH] Found ${foundDay2Games.length} of the Day 2 games in this query:`);
+    foundDay2Games.forEach(g => {
+      console.log(`🎮 Found Day 2 Game ${g.id}: Home=${g.homeTeamId}, Away=${g.awayTeamId}, Status='${g.status}', MatchType='${g.matchType}'`);
+    });
+    
+    if (foundDay2Games.length === 0) {
+      console.log(`❌ [CRITICAL] None of the Day 2 games (${missingDay2GameIds.join(', ')}) were found in Division ${division} standings query!`);
+      console.log(`❌ [CRITICAL] This means either these games involve teams from different divisions OR the team IDs don't match!`);
+    }
     
     // Debug: Show breakdown of all games by status and scores
     const allGamesByStatus = allLeagueGames.reduce((acc: any, match: any) => {
@@ -540,23 +563,10 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     }, {});
     
     console.log(`🔍 [ALL GAMES BREAKDOWN]:`, allGamesByStatus);
-    console.log(`🔍 [FIRST 5 GAMES DETAILS]:`, allLeagueGames.slice(0, 5).map(g => `Game ${g.id}: ${g.status || 'NO_STATUS'}, ${g.homeScore}-${g.awayScore}, Date: ${g.gameDate}`));
-    
-    // CRITICAL DEBUG: Show more games to find Day 2 games
-    console.log(`🔍 [FIRST 10 GAMES DETAILS]:`, allLeagueGames.slice(0, 10).map(g => `Game ${g.id}: ${g.status || 'NO_STATUS'}, ${g.homeScore}-${g.awayScore}, Date: ${new Date(g.gameDate).toDateString()}`));
-    
-    // CRITICAL: Look specifically for ALL Day 2 games to debug what's missing
-    const day2Games = allLeagueGames.filter(g => 
-      new Date(g.gameDate).getDate() === 3  // September 3rd = Day 2
-    );
-    console.log(`🔍 [DAY 2 GAMES DEBUG] Found ${day2Games.length} Day 2 games:`);
-    day2Games.forEach(g => {
-      const homeTeam = teamsInDivision.find(t => t.id === g.homeTeamId)?.name || 'Unknown';
-      const awayTeam = teamsInDivision.find(t => t.id === g.awayTeamId)?.name || 'Unknown';
-      console.log(`🎮 Game ${g.id}: ${homeTeam} vs ${awayTeam}, Status: '${g.status}', Scores: ${g.homeScore}-${g.awayScore}, Simulated: ${g.simulated}`);
-    });
     
     // CRITICAL FIX: Get completed games with more flexible criteria for Day 2 games
+    console.log(`🔍 [FILTER START] Starting to filter ${allLeagueGames.length} games for completed matches...`);
+    
     const completedMatches = allLeagueGames.filter((match: any) => {
       // Game is completed if it has COMPLETED status OR has both scores OR is marked as simulated
       const hasCompletedStatus = match.status === 'COMPLETED';
@@ -566,13 +576,20 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       // EXPANDED CRITERIA: Include simulated games and games with any valid scores
       const isCompleted = hasCompletedStatus || hasScores || isSimulated;
       
-      // CRITICAL DEBUG: Log each game filtering decision
+      // CRITICAL DEBUG: Log each game filtering decision for Oakland games
       if ((match.homeTeamId === 4 || match.awayTeamId === 4)) {
-        console.log(`🔍 [FIXED GAME FILTER] Game ${match.id}: status='${match.status}', homeScore=${match.homeScore}, awayScore=${match.awayScore}, simulated=${match.simulated}, isCompleted=${isCompleted}, date=${new Date(match.gameDate).toDateString()}`);
+        console.log(`🔍 [OAKLAND FILTER] Game ${match.id}: status='${match.status}', homeScore=${match.homeScore}, awayScore=${match.awayScore}, simulated=${match.simulated}, isCompleted=${isCompleted}, date=${new Date(match.gameDate).toDateString()}`);
+      }
+      
+      // ALSO debug the specific Day 2 games
+      if ([10117, 10118, 10120].includes(match.id)) {
+        console.log(`🎯 [DAY 2 FILTER] Game ${match.id}: status='${match.status}', homeScore=${match.homeScore}, awayScore=${match.awayScore}, simulated=${match.simulated}, isCompleted=${isCompleted}`);
       }
       
       return isCompleted;
     });
+    
+    console.log(`🔍 [FILTER RESULT] Found ${completedMatches.length} completed matches out of ${allLeagueGames.length} total games`);
     
     console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores`);
     
@@ -601,15 +618,45 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       }
     });
     
-    // BULLETPROOF STANDINGS: Just read the corrected values from database
-    console.log(`📊 [BULLETPROOF STANDINGS] Reading corrected standings from database for Division ${division} ${userSubdivision}`);
+    // DYNAMIC STANDINGS: Calculate from found completed games instead of reading stale database values
+    console.log(`📊 [DYNAMIC STANDINGS] Calculating standings from ${completedMatches.length} completed games for Division ${division} ${userSubdivision}`);
     
-    // Get fresh team data with current standings from database
-    teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
-    
-    // Log the standings we're reading from database
+    // Calculate fresh standings from the completed games we found
     teamsInDivision.forEach((team: any) => {
-      console.log(`📊 [STANDINGS] ${team.name}: ${team.wins}W-${team.draws || 0}D-${team.losses}L = ${team.points} points`);
+      const teamMatches = completedMatches.filter((match: any) => 
+        match.homeTeamId === team.id || match.awayTeamId === team.id
+      );
+      
+      let wins = 0, losses = 0, draws = 0;
+      let totalScored = 0, totalAgainst = 0;
+      
+      teamMatches.forEach((match: any) => {
+        const isHome = match.homeTeamId === team.id;
+        const teamScore = isHome ? match.homeScore : match.awayScore;
+        const opponentScore = isHome ? match.awayScore : match.homeScore;
+        
+        totalScored += teamScore || 0;
+        totalAgainst += opponentScore || 0;
+        
+        if (teamScore > opponentScore) {
+          wins++;
+        } else if (teamScore < opponentScore) {
+          losses++;
+        } else {
+          draws++;
+        }
+      });
+      
+      // Update team with calculated values
+      team.wins = wins;
+      team.losses = losses;  
+      team.draws = draws;
+      team.points = (wins * 3) + (draws * 1);
+      team.totalScored = totalScored;
+      team.totalAgainst = totalAgainst;
+      team.scoreDifference = totalScored - totalAgainst;
+      
+      console.log(`📊 [CALCULATED] ${team.name}: ${wins}W-${draws}D-${losses}L = ${team.points} points (TS: ${totalScored}, SA: ${totalAgainst}, SD: ${team.scoreDifference})`);
     });
 
     // Enhanced standings with streak and additional stats

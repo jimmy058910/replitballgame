@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { getPrismaClient } from '../database.js';
 import { requireAuth } from '../middleware/firebaseAuth.js';
 import { StandingsUpdateService } from '../services/standingsUpdateService.js';
@@ -816,6 +816,264 @@ router.post('/fix-day2-games', requireAuth, async (req, res) => {
       error: 'Failed to fix Day 2 games',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+});
+
+// Debug endpoint to check Day 2 games status
+router.get('/debug-day2-games', requireAuth, async (req, res, next) => {
+  try {
+    const prisma = await getPrismaClient();
+    
+    console.log('🔍 [DEBUG DAY 2] Checking status of Day 2 games...');
+    
+    // Check the specific Day 2 games that were processed
+    const day2GameIds = [10117, 10118, 10120];
+    
+    const day2Games = await prisma.game.findMany({
+      where: {
+        id: { in: day2GameIds }
+      },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      }
+    });
+    
+    console.log(`🎮 [DEBUG DAY 2] Found ${day2Games.length} Day 2 games:`);
+    
+    const gamesInfo = day2Games.map(game => {
+      const completionCriteria = {
+        hasCompletedStatus: game.status === 'COMPLETED',
+        hasScores: (game.homeScore !== null && game.awayScore !== null),
+        isSimulated: game.simulated === true
+      };
+      
+      const isCompleted = completionCriteria.hasCompletedStatus || completionCriteria.hasScores || completionCriteria.isSimulated;
+      
+      console.log(`🎮 Game ${game.id}: ${game.homeTeam.name} vs ${game.awayTeam.name}`);
+      console.log(`   Status: '${game.status}', Scores: ${game.homeScore}-${game.awayScore}, Simulated: ${game.simulated}`);
+      console.log(`   Completion criteria: ${JSON.stringify(completionCriteria)}`);
+      console.log(`   IS COMPLETED: ${isCompleted}`);
+      
+      return {
+        id: game.id,
+        homeTeam: game.homeTeam.name,
+        awayTeam: game.awayTeam.name,
+        homeScore: game.homeScore,
+        awayScore: game.awayScore,
+        status: game.status,
+        simulated: game.simulated,
+        gameDate: game.gameDate,
+        isCompleted,
+        completionCriteria
+      };
+    });
+    
+    res.json({
+      message: 'Day 2 games debug information',
+      totalGames: day2Games.length,
+      games: gamesInfo
+    });
+    
+  } catch (error) {
+    console.error('❌ [DEBUG DAY 2] Error:', error);
+    next(error);
+  }
+});
+
+// Fix Day 2 games completion status
+router.post('/fix-day2-games-completion', requireAuth, async (req, res, next) => {
+  try {
+    const prisma = await getPrismaClient();
+    
+    console.log('🔧 [FIX DAY 2] Fixing Day 2 games completion status...');
+    
+    // The three Day 2 games that need fixing
+    const day2GameUpdates = [
+      { id: 10117, homeScore: 17, awayScore: 8, status: 'COMPLETED', simulated: true },
+      { id: 10118, homeScore: 16, awayScore: 10, status: 'COMPLETED', simulated: true },
+      { id: 10120, homeScore: 18, awayScore: 5, status: 'COMPLETED', simulated: true }
+    ];
+    
+    const results = [];
+    
+    for (const gameUpdate of day2GameUpdates) {
+      console.log(`🔧 [FIX DAY 2] Updating Game ${gameUpdate.id}...`);
+      
+      const updatedGame = await prisma.game.update({
+        where: { id: gameUpdate.id },
+        data: {
+          homeScore: gameUpdate.homeScore,
+          awayScore: gameUpdate.awayScore,
+          status: gameUpdate.status as any,
+          simulated: gameUpdate.simulated
+        },
+        include: {
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } }
+        }
+      });
+      
+      console.log(`✅ [FIX DAY 2] Game ${gameUpdate.id} updated: ${updatedGame.homeTeam?.name || 'Home'} ${updatedGame.homeScore} - ${updatedGame.awayScore} ${updatedGame.awayTeam?.name || 'Away'}`);
+      
+      results.push({
+        id: updatedGame.id,
+        homeTeam: updatedGame.homeTeam?.name || 'Home Team',
+        awayTeam: updatedGame.awayTeam?.name || 'Away Team',
+        homeScore: updatedGame.homeScore,
+        awayScore: updatedGame.awayScore,
+        status: updatedGame.status,
+        simulated: updatedGame.simulated
+      });
+    }
+    
+    console.log('✅ [FIX DAY 2] All Day 2 games fixed successfully');
+    
+    res.json({
+      message: 'Day 2 games completion status fixed',
+      gamesFixed: results.length,
+      games: results
+    });
+    
+  } catch (error) {
+    console.error('❌ [FIX DAY 2] Error:', error);
+    next(error);
+  }
+});
+
+// Debug specific game details 
+router.get('/debug-game/:gameId', requireAuth, async (req, res, next) => {
+  try {
+    const prisma = await getPrismaClient();
+    const gameId = parseInt(req.params.gameId);
+    
+    console.log(`🔍 [DEBUG GAME] Analyzing game ${gameId}`);
+    
+    const game = await prisma.game.findUnique({
+      where: { id: gameId },
+      include: {
+        homeTeam: { select: { id: true, name: true, division: true, subdivision: true } },
+        awayTeam: { select: { id: true, name: true, division: true, subdivision: true } }
+      }
+    });
+    
+    if (!game) {
+      return res.json({ error: `Game ${gameId} not found` });
+    }
+    
+    console.log(`🎮 Game ${gameId} details:`, {
+      homeTeam: game.homeTeam,
+      awayTeam: game.awayTeam,
+      matchType: game.matchType,
+      status: game.status,
+      scores: `${game.homeScore}-${game.awayScore}`,
+      gameDate: game.gameDate
+    });
+    
+    res.json({
+      message: `Game ${gameId} debug information`,
+      game: {
+        id: game.id,
+        homeTeam: game.homeTeam,
+        awayTeam: game.awayTeam,
+        matchType: game.matchType,
+        status: game.status,
+        homeScore: game.homeScore,
+        awayScore: game.awayScore,
+        gameDate: game.gameDate,
+        simulated: game.simulated
+      }
+    });
+    
+  } catch (error: any) {
+    console.error('Debug game error:', error);
+    res.status(500).json({ error: 'Failed to debug game' });
+  }
+});
+
+// Debug endpoint to analyze standings query issues
+router.get('/debug-standings-query/:division', requireAuth, async (req, res, next) => {
+  try {
+    const prisma = await getPrismaClient();
+    const division = parseInt(req.params.division);
+    
+    console.log(`🔍 [DEBUG STANDINGS QUERY] Analyzing standings query for Division ${division}`);
+    
+    // Get teams in the division (all subdivisions)
+    const allTeamsInDivision = await prisma.team.findMany({
+      where: { division },
+      select: { id: true, name: true, division: true, subdivision: true }
+    });
+    
+    console.log(`🔍 Found ${allTeamsInDivision.length} teams in Division ${division}:`);
+    allTeamsInDivision.forEach(team => {
+      console.log(`  - ${team.name} (ID: ${team.id}, ${team.division}${team.subdivision})`);
+    });
+    
+    // Get all league games involving these teams
+    const allLeagueGames = await prisma.game.findMany({
+      where: {
+        matchType: 'LEAGUE',
+        OR: [
+          { homeTeamId: { in: allTeamsInDivision.map(t => t.id) } },
+          { awayTeamId: { in: allTeamsInDivision.map(t => t.id) } }
+        ]
+      },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    
+    console.log(`🔍 Found ${allLeagueGames.length} league games involving Division ${division} teams`);
+    
+    // Group games by day
+    const gamesByDay: any = {};
+    allLeagueGames.forEach(game => {
+      const day = new Date(game.gameDate).getDate();
+      if (!gamesByDay[day]) gamesByDay[day] = [];
+      gamesByDay[day].push({
+        id: game.id,
+        homeTeam: game.homeTeam?.name,
+        awayTeam: game.awayTeam?.name,
+        status: game.status,
+        homeScore: game.homeScore,
+        awayScore: game.awayScore,
+        date: game.gameDate
+      });
+    });
+    
+    // Specifically look for Oakland Cougars games
+    const oaklandGames = allLeagueGames.filter(game => 
+      game.homeTeam?.name?.includes('Oakland') || game.awayTeam?.name?.includes('Oakland')
+    );
+    
+    console.log(`🔍 Found ${oaklandGames.length} Oakland Cougars games in Division ${division}:`);
+    oaklandGames.forEach(game => {
+      console.log(`  Game ${game.id}: ${game.homeTeam?.name} vs ${game.awayTeam?.name} (${game.status})`);
+    });
+    
+    res.json({
+      message: `Division ${division} standings query debug`,
+      totalTeams: allTeamsInDivision.length,
+      teams: allTeamsInDivision,
+      totalGames: allLeagueGames.length,
+      gamesByDay,
+      oaklandGames: oaklandGames.map(g => ({
+        id: g.id,
+        homeTeam: g.homeTeam?.name,
+        awayTeam: g.awayTeam?.name,
+        status: g.status,
+        homeScore: g.homeScore,
+        awayScore: g.awayScore,
+        date: g.gameDate
+      }))
+    });
+    
+  } catch (error: any) {
+    console.error('Debug standings query error:', error);
+    res.status(500).json({ error: 'Failed to debug standings query' });
   }
 });
 
