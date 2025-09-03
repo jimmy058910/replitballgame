@@ -1,5 +1,5 @@
 # Overview
-Realm Rivalry is a mobile-first fantasy sports management game offering deep, engaging simulation. It focuses on tactical team building, real-time match simulation, and complex player development across 5 fantasy races in an 8-division league. Key capabilities include detailed simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre with high-fidelity simulation.
+Realm Rivalry is a mobile-first fantasy sports management game designed for deep, engaging simulation. It focuses on tactical team building, real-time match simulation, and complex player development across five fantasy races within an eight-division league structure. Key capabilities include detailed simulation of stadium economics, player aging, and injury systems, with live WebSocket-powered matches. The game operates on a 17-day season cycle with automated progression and comprehensive tournament systems, aiming to capture market share in the mobile sports management genre with high-fidelity simulation.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
@@ -23,7 +23,7 @@ Preferred communication style: Simple, everyday language.
 
 **COMPREHENSIVE PROBLEM-SOLVING APPROACH**: When encountering development issues, ALWAYS perform complete systematic analysis to identify all root causes simultaneously, rather than fixing the first issue found. Implement comprehensive solutions that address the entire problem domain in a single change, not symptom-by-symptom fixes.
 
-**AUTOMATION SYSTEM SAFEGUARDS**: The Day 6 game issue (August 2025) was caused by faulty startup automation that repeatedly created unintended games on server restart. All problematic automation methods have been permanently disabled in favor of stable manual APIs. Future automation changes require careful testing to prevent similar recurring issues.
+**AUTOMATION SYSTEM SAFEGUARDS**: All problematic automation methods have been permanently disabled in favor of stable manual APIs. Future automation changes require careful testing to prevent similar recurring issues.
 
 **DEVELOPMENT APPROACH**: Always prioritize industry-standard practices and proper implementations from the beginning. Avoid shortcuts, bypasses, or band-aid solutions. Research and implement the correct solution first - this saves significant time and effort compared to fixing temporary approaches later.
 
@@ -40,12 +40,6 @@ Preferred communication style: Simple, everyday language.
 **COMMITMENT TO EXCELLENCE**: Take additional time for research and comprehensive implementation when it ensures industry-standard compliance. Quality and proper architecture always precede speed of delivery.
 
 **ZERO TECHNICAL DEBT POLICY**: No band-aids, no temporary fixes, no shortcuts. Every solution must be implemented correctly from the start using industry-standard practices. If a temporary approach is suggested, it must be rejected in favor of the proper implementation.
-
-**DEPLOYMENT TROUBLESHOOTING SUCCESS CASE (August 2025)**: Applied comprehensive root cause analysis to resolve multiple Cloud Run deployment failures:
-- **Issue 1**: Mixed secrets with environment variables (syntax error)
-- **Issue 2**: Used reserved PORT environment variable (Cloud Run auto-manages)
-- **Solution**: Systematic analysis identified both issues simultaneously, implemented comprehensive fix in single deployment
-- **Result**: Zero technical debt, proper industry-standard configuration, successful end-to-end pipeline
 
 **COMPREHENSIVE TROUBLESHOOTING METHODOLOGY**: ALWAYS perform holistic analysis to identify ALL root causes simultaneously, rather than fixing symptoms individually. Required approach:
 
@@ -81,28 +75,13 @@ Preferred communication style: Simple, everyday language.
 
 **CRITICAL DEPLOYMENT PREFERENCE**: NEVER use Replit's Deploy button. User has custom hybrid deployment pipeline (Google Cloud Run + Firebase + Cloud SQL) that auto-deploys on Git push from Replit using **Google Cloud Build** Blue-Green deployment workflow for zero-downtime releases.
 
-**RECENT MAJOR ACHIEVEMENT (August 2025)**: Successfully migrated from GitHub Actions to Google Cloud Build with comprehensive performance optimizations:
-- ✅ **Deployment Pipeline Migration**: Complete transition from GitHub Actions to Google Cloud Build
-- ✅ **Docker Layer Caching**: Implemented multi-stage Dockerfile with aggressive layer caching ("Layer already exists" optimization)
-- ✅ **Secrets Management**: Proper separation of environment variables and Secret Manager integration
-- ✅ **Cloud Run Deployment**: Resolved reserved environment variable conflicts (PORT auto-managed by Cloud Run)
-- ✅ **End-to-End Success**: Full deployment pipeline working with health checks and database integration
-- ✅ **Performance Gains**: Significantly faster builds with layer reuse and optimized build context
-
-**PLAYOFF SYSTEM CRITICAL FIX (August 2025)**: Applied comprehensive troubleshooting methodology to resolve duplicate playoff game scheduling:
-- **Issue**: Playoff semifinals appearing on Day 14, Day 15, AND Day 16 due to hardcoded date calculation errors
-- **Root Cause Analysis**: Date calculation using hardcoded "2025-07-27" instead of proper season.startDate + 15 days
-- **Comprehensive Solution**: Fixed date calculation logic + created targeted cleanup API endpoint + deleted 28 incorrect duplicate games
-- **Result**: Playoff semifinals now correctly scheduled ONLY on Day 15 at exact specified times (1:00 AM and 1:15 AM EDT)
-- **Zero Technical Debt**: Implemented proper season-based date calculation rather than temporary workarounds
-
 # System Architecture
 
 ## Hybrid Cloud Deployment Model
 The application uses a hybrid architecture with the frontend on Firebase Hosting and backend services on Google Cloud Run (Express.js, WebSockets, database connections), allowing for independent failure recovery and flexible release cycles.
 
 ## Database and ORM Architecture
-Google Cloud SQL PostgreSQL is used for both development and production environments with complete separation. **PRISMA ORM ONLY** - the project uses Prisma Client exclusively for all database operations, type-safe database access, and schema management with comprehensive indexing. Production connects via unix sockets in cloud environments, development uses direct TCP connections.
+Google Cloud SQL PostgreSQL is used for both development and production environments with complete separation. The project uses Prisma Client exclusively for all database operations, type-safe database access, and schema management with comprehensive indexing. Production connects via Unix sockets in cloud environments, development uses direct TCP connections.
 
 ## Frontend Technology Stack
 The frontend is built with React 18 and TypeScript. UI components use Radix UI primitives and shadcn/ui, styled with Tailwind CSS for mobile-first responsiveness. TanStack React Query handles server state, and Wouter is used for client-side routing with lazy loading. The design features a five-hub navigation system optimized for mobile devices with PWA capabilities including service workers for offline functionality, push notifications, and app manifest.
