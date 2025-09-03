@@ -373,6 +373,10 @@ router.post('/instant', requireAuth, async (req: any, res: Response, next: NextF
         awayScore: simulationResult.finalScore.away
       }
     });
+    
+    // CRITICAL: Update standings for completed league games
+    const { StandingsUpdateService } = await import('../services/standingsUpdateService.js');
+    await StandingsUpdateService.updateStandingsForCompletedGame(match.id);
 
     // No need to create duplicate exhibition record - the match already exists in Game table
 
@@ -502,6 +506,10 @@ router.post('/challenge', requireAuth, async (req: any, res: Response, next: Nex
         awayScore: simulationResult.finalScore.away
       }
     });
+    
+    // CRITICAL: Update standings for completed league games
+    const { StandingsUpdateService } = await import('../services/standingsUpdateService.js');
+    await StandingsUpdateService.updateStandingsForCompletedGame(match.id);
     
     // No need to create duplicate exhibition record - the match already exists in Game table
 
@@ -681,6 +689,10 @@ router.post('/instant-match', requireAuth, async (req: any, res: Response, next:
           awayScore: simulationResult.finalScore.away
         }
       });
+      
+      // CRITICAL: Update standings for completed league games
+      const { StandingsUpdateService } = await import('../services/standingsUpdateService.js');
+      await StandingsUpdateService.updateStandingsForCompletedGame(match.id);
     } catch (error) {
       console.error(`Failed to simulate exhibition match ${match.id}, cleaning up:`, error);
       // Clean up the failed match to prevent SCHEDULED exhibitions
@@ -769,6 +781,10 @@ router.post('/challenge-opponent', requireAuth, async (req: any, res: Response, 
           awayScore: simulationResult.finalScore.away
         }
       });
+      
+      // CRITICAL: Update standings for completed league games
+      const { StandingsUpdateService } = await import('../services/standingsUpdateService.js');
+      await StandingsUpdateService.updateStandingsForCompletedGame(match.id);
     } catch (error) {
       console.error(`Failed to simulate exhibition match ${match.id}, cleaning up:`, error);
       // Clean up the failed match to prevent SCHEDULED exhibitions

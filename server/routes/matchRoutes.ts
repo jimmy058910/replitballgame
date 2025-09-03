@@ -328,6 +328,10 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
         awayScore: simulationResult.finalScore.away
       }
     });
+    
+    // CRITICAL: Update standings for completed league games
+    const { StandingsUpdateService } = await import('../services/standingsUpdateService.js');
+    await StandingsUpdateService.updateStandingsForCompletedGame(parseInt(matchId));
 
     // Record stadium revenue for home team
     if (simulationResult.revenueGenerated > 0) {

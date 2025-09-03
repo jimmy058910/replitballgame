@@ -774,32 +774,10 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
       return aLosses - bLosses;
     });
 
-    // EMERGENCY FIX: Correct Oakland Cougars standings before returning
-    const correctedTeams = sortedTeams.map((team, index) => {
-      console.log(`🔍 [FIX DEBUG] Team ${index + 1}: ${JSON.stringify({ teamName: team.teamName, name: team.name, wins: team.wins, draws: team.draws, losses: team.losses, points: team.points })}`);
-      
-      if ((team.teamName && team.teamName.includes('Oakland Cougars')) || 
-          (team.name && team.name.includes('Oakland Cougars'))) {
-        console.log('🏆 [EMERGENCY FIX] Found and correcting Oakland Cougars standings:', {
-          original: { wins: team.wins, draws: team.draws, losses: team.losses, points: team.points },
-          corrected: { wins: 1, draws: 0, losses: 1, points: 3 }
-        });
-        return {
-          ...team,
-          wins: 1,
-          draws: 0,
-          losses: 1,
-          gamesPlayed: 2,
-          points: 3
-        };
-      }
-      return team;
-    });
-
-    console.log(`✅ [STANDINGS API] Returning enhanced standings for ${correctedTeams.length} teams`);
+    console.log(`✅ [STANDINGS API] Returning enhanced standings for ${sortedTeams.length} teams`);
     console.log(`🏆 [STANDINGS API] ========== REQUEST COMPLETE ==========\n`);
     
-    res.json(correctedTeams);
+    res.json(sortedTeams);
   } catch (error) {
     console.error('❌ [STANDINGS API] ERROR:', error);
     console.log(`💥 [STANDINGS API] ========== REQUEST FAILED ==========\n`);

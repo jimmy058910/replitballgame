@@ -2612,38 +2612,5 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
 }));
 
 
-// Emergency fix for Oakland Cougars standings
-router.post('/fix-oakland-standings', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const prisma = await getPrismaClient();
-    
-    // Update Oakland Cougars directly
-    const updatedTeam = await prisma.team.updateMany({
-      where: {
-        name: {
-          contains: 'Oakland Cougars'
-        }
-      },
-      data: {
-        wins: 1,
-        losses: 1,
-        draws: 0,
-        points: 3
-      }
-    });
-    
-    console.log('🏆 [EMERGENCY FIX] Updated Oakland Cougars to 1W-1L-3pts');
-    
-    return res.json({
-      success: true,
-      message: 'Oakland Cougars standings fixed to 1W-1L-3pts',
-      teamsUpdated: updatedTeam.count
-    });
-    
-  } catch (error) {
-    console.error('❌ [EMERGENCY FIX] Error:', error);
-    return next(error);
-  }
-});
 
 export default router;

@@ -3,6 +3,7 @@ import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
+import { StandingsUpdateService } from '../services/standingsUpdateService.js';
 import moment from "moment-timezone";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
@@ -168,6 +169,9 @@ router.post("/instant-match", requireAuth, async (req: any, res: Response, next:
         }
       });
       console.log("Tournament match completed via instant simulation", { matchId: newMatch.id, homeScore: simulationResult.finalScore.home, awayScore: simulationResult.finalScore.away });
+      
+      // CRITICAL: Update standings for completed league games
+      await StandingsUpdateService.updateStandingsForCompletedGame(newMatch.id);
     } catch (error) {
       console.error("Failed to simulate tournament match", { matchId: newMatch.id, error: error instanceof Error ? error.message : String(error) });
       // Continue with response even if simulation fails
@@ -292,6 +296,9 @@ router.post("/challenge-opponent", requireAuth, async (req: any, res: Response, 
         }
       });
       console.log("Tournament match completed via instant simulation", { matchId: newMatch.id, homeScore: simulationResult.finalScore.home, awayScore: simulationResult.finalScore.away });
+      
+      // CRITICAL: Update standings for completed league games
+      await StandingsUpdateService.updateStandingsForCompletedGame(newMatch.id);
     } catch (error: any) {
       console.error("Failed to simulate tournament match", { matchId: newMatch.id, error: error.message });
       // Continue with response even if simulation fails
