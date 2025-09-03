@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../database.js';
-import { PrismaClient, Tournament, TournamentEntry } from "@prisma/client";
+import { PrismaClient, Tournament, TournamentEntry } from "../db";
 
 export class TournamentStorage {
   async getAllTournamentHistory(): Promise<any[]> {

@@ -22,6 +22,7 @@ export async function validateTeamAvailability(
     dayEnd.setHours(23, 59, 59, 999);
     
     // Check for existing league games for this team on this day
+    const prisma = await getPrismaClient();
     const existingGame = await prisma.game.findFirst({
       where: {
         OR: [
@@ -92,6 +93,7 @@ export async function getLeagueGamesForDay(gameDate: Date) {
   const dayEnd = new Date(gameDate);
   dayEnd.setHours(23, 59, 59, 999);
   
+  const prisma = await getPrismaClient();
   return await prisma.game.findMany({
     where: {
       matchType: 'LEAGUE',

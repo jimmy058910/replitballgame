@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../database.js';
-import { PrismaClient, Staff, StaffType } from "@prisma/client";
+import { PrismaClient, Staff, StaffType } from "../db";
 
 export class StaffStorage {
   async createStaff(staffData: {

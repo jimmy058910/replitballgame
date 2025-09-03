@@ -567,6 +567,109 @@ exports.Prisma.PaymentTransactionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PlayerDevelopmentHistoryScalarFieldEnum = {
+  id: 'id',
+  playerId: 'playerId',
+  developmentDate: 'developmentDate',
+  developmentType: 'developmentType',
+  statChanges: 'statChanges',
+  previousValues: 'previousValues',
+  newValues: 'newValues',
+  triggerReason: 'triggerReason',
+  activityScore: 'activityScore',
+  gamesPlayedFactor: 'gamesPlayedFactor',
+  potentialModifier: 'potentialModifier',
+  ageModifier: 'ageModifier',
+  coachingBonus: 'coachingBonus',
+  trainerBonus: 'trainerBonus'
+};
+
+exports.Prisma.PlayerMatchStatsScalarFieldEnum = {
+  id: 'id',
+  playerId: 'playerId',
+  gameId: 'gameId',
+  minutesPlayed: 'minutesPlayed',
+  performanceRating: 'performanceRating',
+  camaraderieContribution: 'camaraderieContribution',
+  scores: 'scores',
+  assists: 'assists',
+  passAttempts: 'passAttempts',
+  passCompletions: 'passCompletions',
+  passingYards: 'passingYards',
+  perfectPasses: 'perfectPasses',
+  rushingYards: 'rushingYards',
+  breakawayRuns: 'breakawayRuns',
+  catches: 'catches',
+  receivingYards: 'receivingYards',
+  drops: 'drops',
+  tackles: 'tackles',
+  tackleAttempts: 'tackleAttempts',
+  knockdowns: 'knockdowns',
+  blocks: 'blocks',
+  injuriesInflicted: 'injuriesInflicted',
+  interceptions: 'interceptions',
+  ballStrips: 'ballStrips',
+  passDeflections: 'passDeflections',
+  fumblesLost: 'fumblesLost',
+  ballRetention: 'ballRetention',
+  distanceCovered: 'distanceCovered',
+  staminaUsed: 'staminaUsed',
+  ballPossessionTime: 'ballPossessionTime',
+  pressureApplied: 'pressureApplied',
+  injuries: 'injuries',
+  matchDate: 'matchDate',
+  matchType: 'matchType'
+};
+
+exports.Prisma.TeamMatchStatsScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  gameId: 'gameId',
+  timeOfPossession: 'timeOfPossession',
+  possessionPercentage: 'possessionPercentage',
+  averageFieldPosition: 'averageFieldPosition',
+  territoryGained: 'territoryGained',
+  totalScore: 'totalScore',
+  totalPassingYards: 'totalPassingYards',
+  totalRushingYards: 'totalRushingYards',
+  totalOffensiveYards: 'totalOffensiveYards',
+  passingAccuracy: 'passingAccuracy',
+  ballRetentionRate: 'ballRetentionRate',
+  scoringOpportunities: 'scoringOpportunities',
+  scoringEfficiency: 'scoringEfficiency',
+  totalTackles: 'totalTackles',
+  totalKnockdowns: 'totalKnockdowns',
+  totalBlocks: 'totalBlocks',
+  totalInjuriesInflicted: 'totalInjuriesInflicted',
+  totalInterceptions: 'totalInterceptions',
+  totalBallStrips: 'totalBallStrips',
+  passDeflections: 'passDeflections',
+  defensiveStops: 'defensiveStops',
+  totalFumbles: 'totalFumbles',
+  turnoverDifferential: 'turnoverDifferential',
+  physicalDominance: 'physicalDominance',
+  ballSecurityRating: 'ballSecurityRating',
+  homeFieldAdvantage: 'homeFieldAdvantage',
+  crowdIntensity: 'crowdIntensity',
+  domeReverberation: 'domeReverberation',
+  camaraderieTeamBonus: 'camaraderieTeamBonus',
+  tacticalEffectiveness: 'tacticalEffectiveness',
+  equipmentAdvantage: 'equipmentAdvantage',
+  physicalConditioning: 'physicalConditioning',
+  matchDate: 'matchDate',
+  matchType: 'matchType'
+};
+
+exports.Prisma.PlayerCareerMilestoneScalarFieldEnum = {
+  id: 'id',
+  playerId: 'playerId',
+  milestoneType: 'milestoneType',
+  description: 'description',
+  achievedAt: 'achievedAt',
+  seasonId: 'seasonId',
+  metadata: 'metadata'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -797,7 +900,11 @@ exports.Prisma.ModelName = {
   EquipmentReward: 'EquipmentReward',
   Tournament: 'Tournament',
   TournamentEntry: 'TournamentEntry',
-  PaymentTransaction: 'PaymentTransaction'
+  PaymentTransaction: 'PaymentTransaction',
+  PlayerDevelopmentHistory: 'PlayerDevelopmentHistory',
+  PlayerMatchStats: 'PlayerMatchStats',
+  TeamMatchStats: 'TeamMatchStats',
+  PlayerCareerMilestone: 'PlayerCareerMilestone'
 };
 
 /**

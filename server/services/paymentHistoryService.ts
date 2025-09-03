@@ -1,5 +1,5 @@
 import { getPrismaClient } from "../database.js";
-import type { PaymentTransaction, Prisma } from "@prisma/client";
+import type { PaymentTransaction, Prisma } from "../db";
 
 export class PaymentHistoryService {
   /**

@@ -1,5 +1,5 @@
 import { getPrismaClient } from "../database.js";
-import type { Player, Staff } from "@prisma/client";
+import type { Player, Staff } from "../db";
 
 /**
  * Comprehensive Player Aging and Seasonal Progression System

@@ -1,5 +1,5 @@
 import { getPrismaClient } from "../database.js";
-import type { Player, Staff, Contract, Team } from "@prisma/client";
+import type { Player, Staff, Contract, Team } from "../db";
 import { logInfo } from './errorService.js';
 
 export interface ContractProgressionResult {

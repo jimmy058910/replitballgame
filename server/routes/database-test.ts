@@ -7,6 +7,7 @@ const router = Router();
 router.post('/database-test', async (req, res) => {
   try {
     console.log('🔍 MANUAL DATABASE TEST INITIATED:', new Date().toISOString());
+    const prisma = await getPrismaClient();
     
     // Test basic connection
     const result = await prisma.$queryRaw`SELECT 1 as test, NOW() as timestamp`;
@@ -40,6 +41,7 @@ router.get('/database-test', async (req, res) => {
   try {
     console.log('🔍 SIMPLE DATABASE TEST:', new Date().toISOString());
     console.log('🔍 Using working db.ts Prisma client');
+    const prisma = await getPrismaClient();
     
     const result = await prisma.$queryRaw`SELECT 1 as test`;
     console.log('✅ Simple database test successful');

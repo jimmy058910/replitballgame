@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, InventoryItem } from "@prisma/client";
+import { PrismaClient, InventoryItem } from "../db";
 
 // Note: MatchConsumable type not yet in schema, using any for now
 type MatchConsumable = any;
@@ -9,6 +9,7 @@ type MatchConsumable = any;
 export class ConsumableStorage {
   // Get team's consumable inventory
   async getTeamConsumables(teamId: number): Promise<InventoryItem[]> {
+    const prisma = await getPrismaClient();
     return await prisma.inventoryItem.findMany({
       where: { teamId },
       include: {
@@ -20,6 +21,7 @@ export class ConsumableStorage {
 
   // Get team's available consumables (items of consumable type)
   async getTeamAvailableConsumables(teamId: number): Promise<InventoryItem[]> {
+    const prisma = await getPrismaClient();
     return await prisma.inventoryItem.findMany({
       where: {
         teamId,
@@ -64,6 +66,7 @@ export class ConsumableStorage {
       }
 
       // Check if team has this consumable in inventory
+      const prisma = await getPrismaClient();
       const inventoryItem = await prisma.inventoryItem.findFirst({
         where: {
           teamId,
@@ -115,6 +118,7 @@ export class ConsumableStorage {
   // Remove a consumable from inventory (used for consumption)
   async consumeItem(teamId: number, consumableId: number, quantity: number = 1): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       const inventoryItem = await prisma.inventoryItem.findFirst({
         where: {
           teamId,

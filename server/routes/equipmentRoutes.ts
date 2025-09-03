@@ -15,6 +15,7 @@ router.post('/equip', requireAuth, asyncHandler(async (req: any, res: Response) 
   const { teamId, playerId, itemId, itemName } = req.body;
 
   // Get userProfile to check team ownership
+  const prisma = await getPrismaClient();
   const userProfile = await prisma.userProfile.findFirst({
     where: { userId: userId }
   });
@@ -152,6 +153,7 @@ router.get('/player/:playerId', requireAuth, asyncHandler(async (req: any, res: 
   const { playerId } = req.params;
 
   // Get userProfile to check team ownership
+  const prisma = await getPrismaClient();
   const userProfile = await prisma.userProfile.findFirst({
     where: { userId: userId }
   });

@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
-import { Race, PlayerRole, SeasonPhase } from "@prisma/client";
+import { Race, PlayerRole, SeasonPhase } from "../db";
 import { generateRandomName } from "../../shared/names.js";
 import { generatePotential } from "../../shared/potentialSystem.js";
 

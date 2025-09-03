@@ -12,7 +12,9 @@
       "Bash(powershell:*)",
       "WebFetch(domain:docs.google.com)",
       "Bash(grep:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(git push:*)",
+      "Bash(npm install)"
     ],
     "deny": [],
     "ask": []

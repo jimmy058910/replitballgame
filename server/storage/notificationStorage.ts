@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../database.js';
-import { PrismaClient, Notification, NotificationType } from "@prisma/client";
+import { PrismaClient, Notification, NotificationType } from "../db";
 
 // Prisma handles ID generation and the service layer defines data structure.
 

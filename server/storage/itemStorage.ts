@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, Item, InventoryItem, $Enums } from "@prisma/client";
+import { PrismaClient, Item, InventoryItem, $Enums } from "../db";
 
 
 
@@ -16,6 +16,7 @@ export class ItemStorage {
     gemPrice?: number;
     effectValue?: any;
   }): Promise<Item> {
+    const prisma = await getPrismaClient();
     const newItem = await prisma.item.create({
       data: {
         name: itemData.name,
@@ -34,6 +35,7 @@ export class ItemStorage {
   }
 
   async getItemById(id: number): Promise<Item | null> {
+    const prisma = await getPrismaClient();
     const item = await prisma.item.findUnique({
       where: { id }
     });
@@ -41,6 +43,7 @@ export class ItemStorage {
   }
 
   async getItemsByType(itemType: $Enums.ItemType): Promise<Item[]> {
+    const prisma = await getPrismaClient();
     return await prisma.item.findMany({
       where: { type: itemType },
       orderBy: { name: 'asc' }
@@ -48,6 +51,7 @@ export class ItemStorage {
   }
 
   async getMarketplaceItems(itemType?: $Enums.ItemType): Promise<Item[]> {
+    const prisma = await getPrismaClient();
     return await prisma.item.findMany({
       where: {
         ...(itemType ? { type: itemType } : {}),
@@ -65,6 +69,7 @@ export class ItemStorage {
 
   async updateItem(id: number, updates: any): Promise<Item | null> {
     try {
+      const prisma = await getPrismaClient();
       const updatedItem = await prisma.item.update({
         where: { id },
         data: updates
@@ -78,6 +83,7 @@ export class ItemStorage {
 
   async deleteItem(id: number): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.item.delete({
         where: { id }
       });
@@ -91,6 +97,7 @@ export class ItemStorage {
   // Team Inventory Operations
   async addItemToTeamInventory(teamId: number, itemId: number, quantity: number = 1): Promise<InventoryItem> {
     // Check if item already exists in team inventory
+    const prisma = await getPrismaClient();
     const existingItem = await prisma.inventoryItem.findFirst({
       where: { teamId, itemId }
     });
@@ -124,6 +131,7 @@ export class ItemStorage {
   }
 
   async getTeamInventory(teamId: number, itemType?: $Enums.ItemType): Promise<InventoryItem[]> {
+    const prisma = await getPrismaClient();
     return await prisma.inventoryItem.findMany({
       where: {
         teamId,
@@ -140,6 +148,7 @@ export class ItemStorage {
   }
 
   async removeItemFromTeamInventory(teamId: number, itemId: number, quantity: number = 1): Promise<InventoryItem | null> {
+    const prisma = await getPrismaClient();
     const inventoryItem = await prisma.inventoryItem.findFirst({
       where: { teamId, itemId }
     });
@@ -170,6 +179,7 @@ export class ItemStorage {
   }
 
   async getItemsByRarity(rarity: $Enums.ItemRarity): Promise<Item[]> {
+    const prisma = await getPrismaClient();
     return await prisma.item.findMany({
       where: { rarity },
       orderBy: { name: 'asc' }

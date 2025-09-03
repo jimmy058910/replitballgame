@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, PaymentTransaction } from "@prisma/client";
+import { PrismaClient, PaymentTransaction } from "../db";
 
 
 
@@ -14,6 +14,7 @@ export class PaymentStorage {
     completedAt?: Date;
   }): Promise<PaymentTransaction> {
     // PaymentTransaction schema is incomplete - using minimal required fields
+    const prisma = await getPrismaClient();
     const newTransaction = await prisma.paymentTransaction.create({
       data: {
         teamId: txData.teamId,
@@ -31,6 +32,7 @@ export class PaymentStorage {
   }
 
   async getPaymentTransactionById(id: number): Promise<PaymentTransaction | null> {
+    const prisma = await getPrismaClient();
     const transaction = await prisma.paymentTransaction.findUnique({
       where: { id }
       // include: {
@@ -41,6 +43,7 @@ export class PaymentStorage {
   }
 
   async getPaymentTransactionByStripeIntentId(stripePaymentIntentId: string): Promise<PaymentTransaction | null> {
+    const prisma = await getPrismaClient();
     const transaction = await prisma.paymentTransaction.findFirst({
       // where: { stripePaymentIntentId }, // stripePaymentIntentId not in schema yet
       where: { id: 0 } // Placeholder until stripePaymentIntentId added to schema
@@ -60,6 +63,7 @@ export class PaymentStorage {
 
       // Remove 'id' from updates to avoid Prisma constraint conflicts
       const { id: _, ...updateData } = updates;
+      const prisma = await getPrismaClient();
       const updatedTransaction = await prisma.paymentTransaction.update({
         where: { id },
         data: updateData
@@ -72,6 +76,7 @@ export class PaymentStorage {
   }
 
   async getPaymentTransactionsByTeam(teamId: number, limit: number = 50): Promise<PaymentTransaction[]> {
+    const prisma = await getPrismaClient();
     return await prisma.paymentTransaction.findMany({
       where: { teamId },
       orderBy: { createdAt: 'desc' },
@@ -80,6 +85,7 @@ export class PaymentStorage {
   }
 
   async getCompletedTransactions(teamId?: number): Promise<PaymentTransaction[]> {
+    const prisma = await getPrismaClient();
     return await prisma.paymentTransaction.findMany({
       where: {
         status: 'completed',

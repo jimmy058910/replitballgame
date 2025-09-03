@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../database.js';
-import { PrismaClient, TeamFinances } from "@prisma/client";
+import { PrismaClient, TeamFinances } from "../db";
 
 
 
@@ -90,6 +90,7 @@ export class TeamFinancesStorage {
         updateData.facilitiesMaintenanceCost = BigInt(updateData.facilitiesMaintenanceCost.toString());
       }
 
+      const prisma = await getPrismaClient();
       const updatedFinances = await prisma.teamFinances.update({
         where: { id: existingFinances.id },
         data: updateData,

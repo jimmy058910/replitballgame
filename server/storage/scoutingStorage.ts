@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, Player, Team } from "@prisma/client";
+import { PrismaClient, Player, Team } from "../db";
 
 
 
@@ -20,6 +20,7 @@ export class ScoutingStorage {
     stamina: number;
     leadership: number;
   }): Promise<Player> {
+    const prisma = await getPrismaClient();
     const newCandidate = await prisma.player.create({
       data: {
         teamId: 0, // Taxi squad placeholder
@@ -46,6 +47,7 @@ export class ScoutingStorage {
   }
 
   async getTryoutCandidates(teamId: number): Promise<Player[]> {
+    const prisma = await getPrismaClient();
     return await prisma.player.findMany({
       where: { 
         teamId: 0 // Taxi squad candidates
@@ -59,6 +61,7 @@ export class ScoutingStorage {
 
   async promoteTryoutCandidate(playerId: number, teamId: number): Promise<Player | null> {
     try {
+      const prisma = await getPrismaClient();
       const promotedPlayer = await prisma.player.update({
         where: { id: playerId },
         data: { teamId },
@@ -75,6 +78,7 @@ export class ScoutingStorage {
 
   async releaseTryoutCandidate(playerId: number): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.player.delete({
         where: { 
           id: playerId,
@@ -93,6 +97,7 @@ export class ScoutingStorage {
     players: any[];
     scoutQuality: string;
   }> {
+    const prisma = await getPrismaClient();
     const targetTeam = await prisma.team.findUnique({
       where: { id: targetTeamId },
       include: {
@@ -144,6 +149,7 @@ export class ScoutingStorage {
   }
 
   async clearTaxiSquad(teamId: number): Promise<number> {
+    const prisma = await getPrismaClient();
     const result = await prisma.player.deleteMany({
       where: { teamId: 0 } // Clear all taxi squad candidates
     });

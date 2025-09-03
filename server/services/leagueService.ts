@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "../db";
 import { generateRandomName, getFullName } from "../../shared/names.js";
 import { generatePotential } from "../../shared/potentialSystem.js";
 import gameConfig from "../config/game_config.json" with { type: "json" };

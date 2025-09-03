@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../database.js';
-import { PrismaClient, Player, Race, PlayerRole, InjuryStatus } from "@prisma/client";
+import { PrismaClient, Player, Race, PlayerRole, InjuryStatus } from "../db";
 
 
 

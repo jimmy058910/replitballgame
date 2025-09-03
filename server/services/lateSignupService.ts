@@ -1,7 +1,7 @@
 import { getPrismaClient } from '../database.js';
 import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
-import { Race, PlayerRole } from "@prisma/client";
+import { Race, PlayerRole } from "../db";
 
 /**
  * Late Signup Service

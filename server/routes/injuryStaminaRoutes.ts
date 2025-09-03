@@ -14,6 +14,7 @@ router.get('/team/:teamId/status', requireAuth, async (req: any, res: Response, 
     const userId = req.user.claims.sub;
 
     // Verify team ownership
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findFirst({
       where: { id: parseInt(teamId) },
       include: { user: true }

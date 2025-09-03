@@ -51,6 +51,7 @@ router.post("/activate", requireAuth, asyncHandler(async (req: any, res: Respons
   }
 
   // Validate that this is a league match
+  const prisma = await getPrismaClient();
   const match = await prisma.game.findFirst({
     where: { id: matchId }
   });

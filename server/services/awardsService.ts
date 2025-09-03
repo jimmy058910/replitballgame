@@ -2,7 +2,7 @@ import { getPrismaClient } from "../database.js";
 import { nanoid } from "nanoid";
 import type { 
   Prisma
-} from "@prisma/client";
+} from "../db";
 
 export class AwardsService {
   

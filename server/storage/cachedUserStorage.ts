@@ -5,7 +5,7 @@
 
 import { userStorage } from './userStorage.js';
 import { memoryCache } from '../utils/memoryCache';
-import type { UserProfile } from "@prisma/client";
+import type { UserProfile } from "../db";
 
 export class CachedUserStorage {
   // Cache TTL configurations

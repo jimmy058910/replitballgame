@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, Stadium } from "@prisma/client";
+import { PrismaClient, Stadium } from "../db";
 
 export class StadiumStorage {
   async createStadium(stadiumData: {
@@ -11,6 +11,7 @@ export class StadiumStorage {
     merchandisingLevel?: number;
     lightingScreensLevel?: number;
   }): Promise<Stadium> {
+    const prisma = await getPrismaClient();
     const newStadium = await prisma.stadium.create({
       data: {
         teamId: stadiumData.teamId,
@@ -29,6 +30,7 @@ export class StadiumStorage {
   }
 
   async getStadiumById(id: number): Promise<Stadium | null> {
+    const prisma = await getPrismaClient();
     const stadium = await prisma.stadium.findUnique({
       where: { id },
       include: {
@@ -39,6 +41,7 @@ export class StadiumStorage {
   }
 
   async getTeamStadium(teamId: number): Promise<Stadium | null> {
+    const prisma = await getPrismaClient();
     const stadium = await prisma.stadium.findFirst({
       where: { teamId },
       include: {
@@ -50,6 +53,7 @@ export class StadiumStorage {
 
   async updateStadium(id: number, updates: Partial<Stadium>): Promise<Stadium | null> {
     try {
+      const prisma = await getPrismaClient();
       const updatedStadium = await prisma.stadium.update({
         where: { id },
         data: updates,
@@ -66,6 +70,7 @@ export class StadiumStorage {
 
   async updateTeamStadium(teamId: number, updates: Partial<Stadium>): Promise<Stadium | null> {
     try {
+      const prisma = await getPrismaClient();
       const stadium = await prisma.stadium.findFirst({
         where: { teamId }
       });
@@ -91,6 +96,7 @@ export class StadiumStorage {
 
   async deleteStadium(id: number): Promise<boolean> {
     try {
+      const prisma = await getPrismaClient();
       await prisma.stadium.delete({
         where: { id }
       });

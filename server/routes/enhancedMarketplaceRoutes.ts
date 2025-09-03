@@ -60,6 +60,7 @@ router.post('/listings', requireAuth, async (req: any, res) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
+    const prisma = await getPrismaClient();
     const userProfile = await prisma.userProfile.findFirst({
       where: { userId },
       include: { Team: true }
@@ -110,6 +111,7 @@ router.post('/listings/:listingId/bid', requireAuth, async (req: any, res) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
+    const prisma = await getPrismaClient();
     const userProfile = await prisma.userProfile.findFirst({
       where: { userId },
       include: { Team: true }
@@ -160,6 +162,7 @@ router.post('/listings/:listingId/buy-now', requireAuth, async (req: any, res) =
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
+    const prisma = await getPrismaClient();
     const userProfile = await prisma.userProfile.findFirst({
       where: { userId },
       include: { Team: true }
@@ -190,6 +193,7 @@ router.get('/dashboard', requireAuth, async (req: any, res) => {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
+    const prisma = await getPrismaClient();
     const userProfile = await prisma.userProfile.findFirst({
       where: { userId },
       include: { Team: true }
@@ -244,6 +248,7 @@ router.get('/listings/:listingId/history', async (req, res) => {
   try {
     const listingId = parseInt(req.params.listingId);
     
+    const prisma = await getPrismaClient();
     const history = await prisma.listingHistory.findMany({
       where: { listingId },
       include: {
@@ -277,6 +282,7 @@ router.get('/player/:playerId/valuation', async (req, res) => {
   try {
     const playerId = parseInt(req.params.playerId);
     
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findUnique({
       where: { id: playerId }
     });

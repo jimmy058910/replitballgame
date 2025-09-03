@@ -91,6 +91,7 @@ router.post('/', requireAuth, async (req: any, res: Response, next: NextFunction
     //     return res.status(403).json({ message: "Forbidden: Cannot create injury for player not on your team." });
     // }
 
+    const prisma = await getPrismaClient();
     const newInjury = await prisma.player.update({
       where: { id: parseInt(injuryData.playerId.toString()) },
       data: {
@@ -129,6 +130,7 @@ router.patch('/:injuryId/treatment', requireAuth, async (req: any, res: Response
     const { injuryId } = req.params;
     const treatmentData = treatmentSchema.parse(req.body);
 
+    const prisma = await getPrismaClient();
     const injury = await prisma.player.findUnique({ where: { id: parseInt(injuryId) } });
     if (!injury) {
         return res.status(404).json({ message: "Injury record not found." });
@@ -190,6 +192,7 @@ router.post('/medical-staff', requireAuth, async (req: any, res: Response, next:
     }
 
     const staffDataFromRequest = medicalStaffSchema.omit({ teamId: true }).parse(req.body);
+    const prisma = await getPrismaClient();
     const newStaffMember = await prisma.staff.create({
       data: {
         ...staffDataFromRequest,
@@ -244,6 +247,7 @@ router.patch('/conditioning/:playerId', requireAuth, async (req: any, res: Respo
 
     // TODO: storage.updatePlayerConditioning(playerId, updates) or storage.updatePlayer(playerId, { stamina: updates.fitnessLevel ... })
     // For now, mocking the update.
+    const prisma = await getPrismaClient();
     const updatedPlayer = await prisma.player.update({
       where: { id: parseInt(playerId) },
       data: { staminaAttribute: updates.fitnessLevel }

@@ -3,7 +3,7 @@
  * Implements connection management for Google Cloud SQL PostgreSQL
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../db";
 
 export class ConnectionPoolOptimizer {
   private static instance: ConnectionPoolOptimizer;

@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, MarketplaceListing, Bid } from "@prisma/client";
+import { PrismaClient, MarketplaceListing, Bid } from "../db";
 
 export class AuctionStorage {
   async createAuction(auctionData: {
@@ -9,6 +9,7 @@ export class AuctionStorage {
     buyNowPrice?: bigint;
     duration: number;
   }): Promise<MarketplaceListing> {
+    const prisma = await getPrismaClient();
     const endTime = new Date();
     endTime.setHours(endTime.getHours() + auctionData.duration);
 
@@ -40,6 +41,7 @@ export class AuctionStorage {
   }
 
   async getAuctionById(id: number): Promise<MarketplaceListing | null> {
+    const prisma = await getPrismaClient();
     const auction = await prisma.marketplaceListing.findUnique({
       where: { id },
       include: {
@@ -57,6 +59,7 @@ export class AuctionStorage {
   }
 
   async getActiveAuctions(limit: number = 50, offset: number = 0): Promise<MarketplaceListing[]> {
+    const prisma = await getPrismaClient();
     return await prisma.marketplaceListing.findMany({
       where: { isActive: true },
       include: {
@@ -76,6 +79,7 @@ export class AuctionStorage {
   }
 
   async getAuctionsBySeller(teamId: number): Promise<MarketplaceListing[]> {
+    const prisma = await getPrismaClient();
     return await prisma.marketplaceListing.findMany({
       where: { sellerTeamId: teamId },
       include: {
@@ -93,6 +97,7 @@ export class AuctionStorage {
   }
 
   async getAuctionsByPlayer(playerId: number, activeOnly: boolean = false): Promise<MarketplaceListing[]> {
+    const prisma = await getPrismaClient();
     return await prisma.marketplaceListing.findMany({
       where: {
         playerId,
@@ -114,6 +119,7 @@ export class AuctionStorage {
 
   async updateAuction(id: number, updates: Partial<MarketplaceListing>): Promise<MarketplaceListing | null> {
     try {
+      const prisma = await getPrismaClient();
       const updatedAuction = await prisma.marketplaceListing.update({
         where: { id },
         data: updates,
@@ -140,6 +146,7 @@ export class AuctionStorage {
     teamId: number;
     amount: bigint;
   }): Promise<Bid> {
+    const prisma = await getPrismaClient();
     const newBid = await prisma.bid.create({
       data: {
         listingId: bidData.listingId,
@@ -169,6 +176,7 @@ export class AuctionStorage {
   }
 
   async getBidsByListing(listingId: number): Promise<Bid[]> {
+    const prisma = await getPrismaClient();
     return await prisma.bid.findMany({
       where: { listingId },
       include: {
@@ -184,6 +192,7 @@ export class AuctionStorage {
   }
 
   async getBidsByTeam(teamId: number): Promise<Bid[]> {
+    const prisma = await getPrismaClient();
     return await prisma.bid.findMany({
       where: { bidderTeamId: teamId },
       include: {

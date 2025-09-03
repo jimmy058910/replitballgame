@@ -1,9 +1,10 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, Player, $Enums } from "@prisma/client";
+import { PrismaClient, Player, $Enums } from "../db";
 
 export class InjuryStorage {
   async updatePlayerInjury(playerId: number, injuryStatus: $Enums.InjuryStatus, recoveryPointsNeeded?: number, recoveryPointsCurrent?: number): Promise<Player | null> {
     try {
+      const prisma = await getPrismaClient();
       const updatedPlayer = await prisma.player.update({
         where: { id: playerId },
         data: {
@@ -23,6 +24,7 @@ export class InjuryStorage {
   }
 
   async getPlayerInjuries(teamId: number): Promise<Player[]> {
+    const prisma = await getPrismaClient();
     return await prisma.player.findMany({
       where: {
         teamId,
@@ -39,6 +41,7 @@ export class InjuryStorage {
 
   async updateStamina(playerId: number, staminaValue: number): Promise<Player | null> {
     try {
+      const prisma = await getPrismaClient();
       const updatedPlayer = await prisma.player.update({
         where: { id: playerId },
         data: {
@@ -57,6 +60,7 @@ export class InjuryStorage {
 
   async healPlayer(playerId: number, recoveryPoints: number): Promise<Player | null> {
     try {
+      const prisma = await getPrismaClient();
       const player = await prisma.player.findUnique({
         where: { id: playerId }
       });
@@ -94,6 +98,7 @@ export class InjuryStorage {
   }
 
   async getTeamStaminaReport(teamId: number): Promise<any[]> {
+    const prisma = await getPrismaClient();
     return await prisma.player.findMany({
       where: { teamId },
       select: {

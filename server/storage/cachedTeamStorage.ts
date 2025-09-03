@@ -5,7 +5,7 @@
 
 import { storage } from './index.js';
 import { memoryCache } from '../utils/memoryCache';
-import type { Team } from "@prisma/client";
+import type { Team } from "../db";
 import { getPrismaClient } from '../db';
 
 export class CachedTeamStorage {
@@ -36,6 +36,7 @@ export class CachedTeamStorage {
       cacheKey,
       async () => {
         // Convert userProfileId to userId string first
+        const prisma = await getPrismaClient();
         const userProfile = await prisma.userProfile.findUnique({
           where: { id: userProfileId },
           select: { userId: true }

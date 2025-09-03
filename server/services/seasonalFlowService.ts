@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../db";
 // Note: Using any types for Prisma enums to avoid import issues
 import { getPrismaClient } from '../database.js';
 import { logInfo, logError } from './errorService.js';

@@ -1,5 +1,5 @@
 import { getPrismaClient } from "../database.js";
-import { Player } from "@prisma/client";
+import { Player } from "../db";
 import { ContractService } from './contractService.js';
 
 export class PlayerContractInitializer {

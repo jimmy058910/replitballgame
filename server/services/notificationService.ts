@@ -1,6 +1,6 @@
 import { getPrismaClient } from "../database.js";
 import { randomUUID } from "crypto";
-import { NotificationType } from "@prisma/client";
+import { NotificationType } from "../db";
 
 export interface NotificationData {
   teamId: number;

@@ -1,5 +1,5 @@
 import { getPrismaClient } from "../database.js";
-import { StaffType } from "@prisma/client";
+import { StaffType } from "../db";
 
 export class PlayerAgingRetirementService {
 

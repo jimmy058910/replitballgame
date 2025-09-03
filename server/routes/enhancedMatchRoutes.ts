@@ -10,6 +10,7 @@ router.get('/matches/:matchId/stadium-data', async (req, res) => {
   try {
     const { matchId } = req.params;
     
+    const prisma = await getPrismaClient();
     const match = await prisma.game.findUnique({
       where: { id: parseInt(matchId) },
       include: {
@@ -82,6 +83,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
   try {
     const { matchId } = req.params;
     
+    const prisma = await getPrismaClient();
     const match = await prisma.game.findUnique({
       where: { id: parseInt(matchId) },
       include: {

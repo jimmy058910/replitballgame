@@ -26,6 +26,7 @@ router.get('/team-performance', requireAuth, async (req: Request, res: Response,
     const userProfile = req.user as any;
     
     // Get user's team using Prisma
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findFirst({
       where: { userProfileId: userProfile.id }
     });
@@ -95,6 +96,7 @@ router.get('/player-distribution', requireAuth, async (req: Request, res: Respon
     const userProfile = req.user as any;
     
     // Get user's team
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findFirst({
       where: { userProfileId: userProfile.id }
     });
@@ -151,6 +153,7 @@ router.get('/season-progress', requireAuth, async (req: Request, res: Response, 
     const userProfile = req.user as any;
     
     // Get user's team
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findFirst({
       where: { userProfileId: userProfile.id }
     });
@@ -233,6 +236,7 @@ router.get('/division-standings', requireAuth, async (req: Request, res: Respons
     const userProfile = req.user as any;
     
     // Get user's team
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findFirst({
       where: { userProfileId: userProfile.id }
     });

@@ -198,6 +198,26 @@ export type TournamentEntry = $Result.DefaultSelection<Prisma.$TournamentEntryPa
  * 
  */
 export type PaymentTransaction = $Result.DefaultSelection<Prisma.$PaymentTransactionPayload>
+/**
+ * Model PlayerDevelopmentHistory
+ * 
+ */
+export type PlayerDevelopmentHistory = $Result.DefaultSelection<Prisma.$PlayerDevelopmentHistoryPayload>
+/**
+ * Model PlayerMatchStats
+ * 
+ */
+export type PlayerMatchStats = $Result.DefaultSelection<Prisma.$PlayerMatchStatsPayload>
+/**
+ * Model TeamMatchStats
+ * 
+ */
+export type TeamMatchStats = $Result.DefaultSelection<Prisma.$TeamMatchStatsPayload>
+/**
+ * Model PlayerCareerMilestone
+ * 
+ */
+export type PlayerCareerMilestone = $Result.DefaultSelection<Prisma.$PlayerCareerMilestonePayload>
 
 /**
  * Enums
@@ -1002,6 +1022,46 @@ export class PrismaClient<
     * ```
     */
   get paymentTransaction(): Prisma.PaymentTransactionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.playerDevelopmentHistory`: Exposes CRUD operations for the **PlayerDevelopmentHistory** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PlayerDevelopmentHistories
+    * const playerDevelopmentHistories = await prisma.playerDevelopmentHistory.findMany()
+    * ```
+    */
+  get playerDevelopmentHistory(): Prisma.PlayerDevelopmentHistoryDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.playerMatchStats`: Exposes CRUD operations for the **PlayerMatchStats** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PlayerMatchStats
+    * const playerMatchStats = await prisma.playerMatchStats.findMany()
+    * ```
+    */
+  get playerMatchStats(): Prisma.PlayerMatchStatsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.teamMatchStats`: Exposes CRUD operations for the **TeamMatchStats** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more TeamMatchStats
+    * const teamMatchStats = await prisma.teamMatchStats.findMany()
+    * ```
+    */
+  get teamMatchStats(): Prisma.TeamMatchStatsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.playerCareerMilestone`: Exposes CRUD operations for the **PlayerCareerMilestone** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PlayerCareerMilestones
+    * const playerCareerMilestones = await prisma.playerCareerMilestone.findMany()
+    * ```
+    */
+  get playerCareerMilestone(): Prisma.PlayerCareerMilestoneDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1478,7 +1538,11 @@ export namespace Prisma {
     EquipmentReward: 'EquipmentReward',
     Tournament: 'Tournament',
     TournamentEntry: 'TournamentEntry',
-    PaymentTransaction: 'PaymentTransaction'
+    PaymentTransaction: 'PaymentTransaction',
+    PlayerDevelopmentHistory: 'PlayerDevelopmentHistory',
+    PlayerMatchStats: 'PlayerMatchStats',
+    TeamMatchStats: 'TeamMatchStats',
+    PlayerCareerMilestone: 'PlayerCareerMilestone'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1497,7 +1561,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "userProfile" | "session" | "team" | "player" | "playerEquipment" | "contract" | "skill" | "playerSkillLink" | "staff" | "teamFinances" | "stadium" | "item" | "inventoryItem" | "activeBoost" | "marketplaceListing" | "bid" | "listingHistory" | "playerMarketValue" | "strategy" | "league" | "leagueStanding" | "game" | "season" | "notification" | "tryoutPack" | "tryoutHistory" | "gemPack" | "creditExchangeRate" | "referral" | "redeemCode" | "redeemCodeRecord" | "adRewardMilestone" | "premiumBoxReward" | "equipmentReward" | "tournament" | "tournamentEntry" | "paymentTransaction"
+      modelProps: "userProfile" | "session" | "team" | "player" | "playerEquipment" | "contract" | "skill" | "playerSkillLink" | "staff" | "teamFinances" | "stadium" | "item" | "inventoryItem" | "activeBoost" | "marketplaceListing" | "bid" | "listingHistory" | "playerMarketValue" | "strategy" | "league" | "leagueStanding" | "game" | "season" | "notification" | "tryoutPack" | "tryoutHistory" | "gemPack" | "creditExchangeRate" | "referral" | "redeemCode" | "redeemCodeRecord" | "adRewardMilestone" | "premiumBoxReward" | "equipmentReward" | "tournament" | "tournamentEntry" | "paymentTransaction" | "playerDevelopmentHistory" | "playerMatchStats" | "teamMatchStats" | "playerCareerMilestone"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4239,6 +4303,302 @@ export namespace Prisma {
           }
         }
       }
+      PlayerDevelopmentHistory: {
+        payload: Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>
+        fields: Prisma.PlayerDevelopmentHistoryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PlayerDevelopmentHistoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PlayerDevelopmentHistoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>
+          }
+          findFirst: {
+            args: Prisma.PlayerDevelopmentHistoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PlayerDevelopmentHistoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>
+          }
+          findMany: {
+            args: Prisma.PlayerDevelopmentHistoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>[]
+          }
+          create: {
+            args: Prisma.PlayerDevelopmentHistoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>
+          }
+          createMany: {
+            args: Prisma.PlayerDevelopmentHistoryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PlayerDevelopmentHistoryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>[]
+          }
+          delete: {
+            args: Prisma.PlayerDevelopmentHistoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>
+          }
+          update: {
+            args: Prisma.PlayerDevelopmentHistoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>
+          }
+          deleteMany: {
+            args: Prisma.PlayerDevelopmentHistoryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PlayerDevelopmentHistoryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PlayerDevelopmentHistoryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>[]
+          }
+          upsert: {
+            args: Prisma.PlayerDevelopmentHistoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerDevelopmentHistoryPayload>
+          }
+          aggregate: {
+            args: Prisma.PlayerDevelopmentHistoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePlayerDevelopmentHistory>
+          }
+          groupBy: {
+            args: Prisma.PlayerDevelopmentHistoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PlayerDevelopmentHistoryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PlayerDevelopmentHistoryCountArgs<ExtArgs>
+            result: $Utils.Optional<PlayerDevelopmentHistoryCountAggregateOutputType> | number
+          }
+        }
+      }
+      PlayerMatchStats: {
+        payload: Prisma.$PlayerMatchStatsPayload<ExtArgs>
+        fields: Prisma.PlayerMatchStatsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PlayerMatchStatsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PlayerMatchStatsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>
+          }
+          findFirst: {
+            args: Prisma.PlayerMatchStatsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PlayerMatchStatsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>
+          }
+          findMany: {
+            args: Prisma.PlayerMatchStatsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>[]
+          }
+          create: {
+            args: Prisma.PlayerMatchStatsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>
+          }
+          createMany: {
+            args: Prisma.PlayerMatchStatsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PlayerMatchStatsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>[]
+          }
+          delete: {
+            args: Prisma.PlayerMatchStatsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>
+          }
+          update: {
+            args: Prisma.PlayerMatchStatsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>
+          }
+          deleteMany: {
+            args: Prisma.PlayerMatchStatsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PlayerMatchStatsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PlayerMatchStatsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>[]
+          }
+          upsert: {
+            args: Prisma.PlayerMatchStatsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerMatchStatsPayload>
+          }
+          aggregate: {
+            args: Prisma.PlayerMatchStatsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePlayerMatchStats>
+          }
+          groupBy: {
+            args: Prisma.PlayerMatchStatsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PlayerMatchStatsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PlayerMatchStatsCountArgs<ExtArgs>
+            result: $Utils.Optional<PlayerMatchStatsCountAggregateOutputType> | number
+          }
+        }
+      }
+      TeamMatchStats: {
+        payload: Prisma.$TeamMatchStatsPayload<ExtArgs>
+        fields: Prisma.TeamMatchStatsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TeamMatchStatsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TeamMatchStatsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>
+          }
+          findFirst: {
+            args: Prisma.TeamMatchStatsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TeamMatchStatsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>
+          }
+          findMany: {
+            args: Prisma.TeamMatchStatsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>[]
+          }
+          create: {
+            args: Prisma.TeamMatchStatsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>
+          }
+          createMany: {
+            args: Prisma.TeamMatchStatsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TeamMatchStatsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>[]
+          }
+          delete: {
+            args: Prisma.TeamMatchStatsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>
+          }
+          update: {
+            args: Prisma.TeamMatchStatsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>
+          }
+          deleteMany: {
+            args: Prisma.TeamMatchStatsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TeamMatchStatsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.TeamMatchStatsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>[]
+          }
+          upsert: {
+            args: Prisma.TeamMatchStatsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TeamMatchStatsPayload>
+          }
+          aggregate: {
+            args: Prisma.TeamMatchStatsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTeamMatchStats>
+          }
+          groupBy: {
+            args: Prisma.TeamMatchStatsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TeamMatchStatsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TeamMatchStatsCountArgs<ExtArgs>
+            result: $Utils.Optional<TeamMatchStatsCountAggregateOutputType> | number
+          }
+        }
+      }
+      PlayerCareerMilestone: {
+        payload: Prisma.$PlayerCareerMilestonePayload<ExtArgs>
+        fields: Prisma.PlayerCareerMilestoneFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PlayerCareerMilestoneFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PlayerCareerMilestoneFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>
+          }
+          findFirst: {
+            args: Prisma.PlayerCareerMilestoneFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PlayerCareerMilestoneFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>
+          }
+          findMany: {
+            args: Prisma.PlayerCareerMilestoneFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>[]
+          }
+          create: {
+            args: Prisma.PlayerCareerMilestoneCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>
+          }
+          createMany: {
+            args: Prisma.PlayerCareerMilestoneCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PlayerCareerMilestoneCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>[]
+          }
+          delete: {
+            args: Prisma.PlayerCareerMilestoneDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>
+          }
+          update: {
+            args: Prisma.PlayerCareerMilestoneUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>
+          }
+          deleteMany: {
+            args: Prisma.PlayerCareerMilestoneDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PlayerCareerMilestoneUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PlayerCareerMilestoneUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>[]
+          }
+          upsert: {
+            args: Prisma.PlayerCareerMilestoneUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlayerCareerMilestonePayload>
+          }
+          aggregate: {
+            args: Prisma.PlayerCareerMilestoneAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePlayerCareerMilestone>
+          }
+          groupBy: {
+            args: Prisma.PlayerCareerMilestoneGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PlayerCareerMilestoneGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PlayerCareerMilestoneCountArgs<ExtArgs>
+            result: $Utils.Optional<PlayerCareerMilestoneCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4360,6 +4720,10 @@ export namespace Prisma {
     tournament?: TournamentOmit
     tournamentEntry?: TournamentEntryOmit
     paymentTransaction?: PaymentTransactionOmit
+    playerDevelopmentHistory?: PlayerDevelopmentHistoryOmit
+    playerMatchStats?: PlayerMatchStatsOmit
+    teamMatchStats?: TeamMatchStatsOmit
+    playerCareerMilestone?: PlayerCareerMilestoneOmit
   }
 
   /* Types for Logging */
@@ -4498,6 +4862,7 @@ export namespace Prisma {
     tryoutHistory: number
     homeTeamGames: number
     awayTeamGames: number
+    teamMatchStats: number
   }
 
   export type TeamCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4514,6 +4879,7 @@ export namespace Prisma {
     tryoutHistory?: boolean | TeamCountOutputTypeCountTryoutHistoryArgs
     homeTeamGames?: boolean | TeamCountOutputTypeCountHomeTeamGamesArgs
     awayTeamGames?: boolean | TeamCountOutputTypeCountAwayTeamGamesArgs
+    teamMatchStats?: boolean | TeamCountOutputTypeCountTeamMatchStatsArgs
   }
 
   // Custom InputTypes
@@ -4618,6 +4984,13 @@ export namespace Prisma {
     where?: GameWhereInput
   }
 
+  /**
+   * TeamCountOutputType without action
+   */
+  export type TeamCountOutputTypeCountTeamMatchStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TeamMatchStatsWhereInput
+  }
+
 
   /**
    * Count Type PlayerCountOutputType
@@ -4628,6 +5001,9 @@ export namespace Prisma {
     tryoutHistory: number
     activeBoosts: number
     currentEquipment: number
+    developmentHistory: number
+    matchStats: number
+    careerMilestones: number
   }
 
   export type PlayerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4635,6 +5011,9 @@ export namespace Prisma {
     tryoutHistory?: boolean | PlayerCountOutputTypeCountTryoutHistoryArgs
     activeBoosts?: boolean | PlayerCountOutputTypeCountActiveBoostsArgs
     currentEquipment?: boolean | PlayerCountOutputTypeCountCurrentEquipmentArgs
+    developmentHistory?: boolean | PlayerCountOutputTypeCountDevelopmentHistoryArgs
+    matchStats?: boolean | PlayerCountOutputTypeCountMatchStatsArgs
+    careerMilestones?: boolean | PlayerCountOutputTypeCountCareerMilestonesArgs
   }
 
   // Custom InputTypes
@@ -4674,6 +5053,27 @@ export namespace Prisma {
    */
   export type PlayerCountOutputTypeCountCurrentEquipmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PlayerEquipmentWhereInput
+  }
+
+  /**
+   * PlayerCountOutputType without action
+   */
+  export type PlayerCountOutputTypeCountDevelopmentHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlayerDevelopmentHistoryWhereInput
+  }
+
+  /**
+   * PlayerCountOutputType without action
+   */
+  export type PlayerCountOutputTypeCountMatchStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlayerMatchStatsWhereInput
+  }
+
+  /**
+   * PlayerCountOutputType without action
+   */
+  export type PlayerCountOutputTypeCountCareerMilestonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlayerCareerMilestoneWhereInput
   }
 
 
@@ -4852,6 +5252,46 @@ export namespace Prisma {
    */
   export type LeagueCountOutputTypeCountStandingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LeagueStandingWhereInput
+  }
+
+
+  /**
+   * Count Type GameCountOutputType
+   */
+
+  export type GameCountOutputType = {
+    playerStats: number
+    teamStats: number
+  }
+
+  export type GameCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    playerStats?: boolean | GameCountOutputTypeCountPlayerStatsArgs
+    teamStats?: boolean | GameCountOutputTypeCountTeamStatsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameCountOutputType
+     */
+    select?: GameCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeCountPlayerStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlayerMatchStatsWhereInput
+  }
+
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeCountTeamStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TeamMatchStatsWhereInput
   }
 
 
@@ -7558,6 +7998,7 @@ export namespace Prisma {
     tryoutHistory?: boolean | Team$tryoutHistoryArgs<ExtArgs>
     homeTeamGames?: boolean | Team$homeTeamGamesArgs<ExtArgs>
     awayTeamGames?: boolean | Team$awayTeamGamesArgs<ExtArgs>
+    teamMatchStats?: boolean | Team$teamMatchStatsArgs<ExtArgs>
     _count?: boolean | TeamCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["team"]>
 
@@ -7648,6 +8089,7 @@ export namespace Prisma {
     tryoutHistory?: boolean | Team$tryoutHistoryArgs<ExtArgs>
     homeTeamGames?: boolean | Team$homeTeamGamesArgs<ExtArgs>
     awayTeamGames?: boolean | Team$awayTeamGamesArgs<ExtArgs>
+    teamMatchStats?: boolean | Team$teamMatchStatsArgs<ExtArgs>
     _count?: boolean | TeamCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TeamIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7680,6 +8122,7 @@ export namespace Prisma {
       tryoutHistory: Prisma.$TryoutHistoryPayload<ExtArgs>[]
       homeTeamGames: Prisma.$GamePayload<ExtArgs>[]
       awayTeamGames: Prisma.$GamePayload<ExtArgs>[]
+      teamMatchStats: Prisma.$TeamMatchStatsPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -8112,6 +8555,7 @@ export namespace Prisma {
     tryoutHistory<T extends Team$tryoutHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Team$tryoutHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TryoutHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     homeTeamGames<T extends Team$homeTeamGamesArgs<ExtArgs> = {}>(args?: Subset<T, Team$homeTeamGamesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     awayTeamGames<T extends Team$awayTeamGamesArgs<ExtArgs> = {}>(args?: Subset<T, Team$awayTeamGamesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    teamMatchStats<T extends Team$teamMatchStatsArgs<ExtArgs> = {}>(args?: Subset<T, Team$teamMatchStatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8943,6 +9387,30 @@ export namespace Prisma {
   }
 
   /**
+   * Team.teamMatchStats
+   */
+  export type Team$teamMatchStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    where?: TeamMatchStatsWhereInput
+    orderBy?: TeamMatchStatsOrderByWithRelationInput | TeamMatchStatsOrderByWithRelationInput[]
+    cursor?: TeamMatchStatsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TeamMatchStatsScalarFieldEnum | TeamMatchStatsScalarFieldEnum[]
+  }
+
+  /**
    * Team without action
    */
   export type TeamDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9471,6 +9939,9 @@ export namespace Prisma {
     tryoutHistory?: boolean | Player$tryoutHistoryArgs<ExtArgs>
     activeBoosts?: boolean | Player$activeBoostsArgs<ExtArgs>
     currentEquipment?: boolean | Player$currentEquipmentArgs<ExtArgs>
+    developmentHistory?: boolean | Player$developmentHistoryArgs<ExtArgs>
+    matchStats?: boolean | Player$matchStatsArgs<ExtArgs>
+    careerMilestones?: boolean | Player$careerMilestonesArgs<ExtArgs>
     _count?: boolean | PlayerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["player"]>
 
@@ -9591,6 +10062,9 @@ export namespace Prisma {
     tryoutHistory?: boolean | Player$tryoutHistoryArgs<ExtArgs>
     activeBoosts?: boolean | Player$activeBoostsArgs<ExtArgs>
     currentEquipment?: boolean | Player$currentEquipmentArgs<ExtArgs>
+    developmentHistory?: boolean | Player$developmentHistoryArgs<ExtArgs>
+    matchStats?: boolean | Player$matchStatsArgs<ExtArgs>
+    careerMilestones?: boolean | Player$careerMilestonesArgs<ExtArgs>
     _count?: boolean | PlayerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PlayerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9611,6 +10085,9 @@ export namespace Prisma {
       tryoutHistory: Prisma.$TryoutHistoryPayload<ExtArgs>[]
       activeBoosts: Prisma.$ActiveBoostPayload<ExtArgs>[]
       currentEquipment: Prisma.$PlayerEquipmentPayload<ExtArgs>[]
+      developmentHistory: Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>[]
+      matchStats: Prisma.$PlayerMatchStatsPayload<ExtArgs>[]
+      careerMilestones: Prisma.$PlayerCareerMilestonePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -10047,6 +10524,9 @@ export namespace Prisma {
     tryoutHistory<T extends Player$tryoutHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Player$tryoutHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TryoutHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     activeBoosts<T extends Player$activeBoostsArgs<ExtArgs> = {}>(args?: Subset<T, Player$activeBoostsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActiveBoostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     currentEquipment<T extends Player$currentEquipmentArgs<ExtArgs> = {}>(args?: Subset<T, Player$currentEquipmentArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerEquipmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    developmentHistory<T extends Player$developmentHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Player$developmentHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    matchStats<T extends Player$matchStatsArgs<ExtArgs> = {}>(args?: Subset<T, Player$matchStatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    careerMilestones<T extends Player$careerMilestonesArgs<ExtArgs> = {}>(args?: Subset<T, Player$careerMilestonesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -10654,6 +11134,78 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PlayerEquipmentScalarFieldEnum | PlayerEquipmentScalarFieldEnum[]
+  }
+
+  /**
+   * Player.developmentHistory
+   */
+  export type Player$developmentHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    where?: PlayerDevelopmentHistoryWhereInput
+    orderBy?: PlayerDevelopmentHistoryOrderByWithRelationInput | PlayerDevelopmentHistoryOrderByWithRelationInput[]
+    cursor?: PlayerDevelopmentHistoryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PlayerDevelopmentHistoryScalarFieldEnum | PlayerDevelopmentHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * Player.matchStats
+   */
+  export type Player$matchStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    where?: PlayerMatchStatsWhereInput
+    orderBy?: PlayerMatchStatsOrderByWithRelationInput | PlayerMatchStatsOrderByWithRelationInput[]
+    cursor?: PlayerMatchStatsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PlayerMatchStatsScalarFieldEnum | PlayerMatchStatsScalarFieldEnum[]
+  }
+
+  /**
+   * Player.careerMilestones
+   */
+  export type Player$careerMilestonesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    where?: PlayerCareerMilestoneWhereInput
+    orderBy?: PlayerCareerMilestoneOrderByWithRelationInput | PlayerCareerMilestoneOrderByWithRelationInput[]
+    cursor?: PlayerCareerMilestoneWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PlayerCareerMilestoneScalarFieldEnum | PlayerCareerMilestoneScalarFieldEnum[]
   }
 
   /**
@@ -31149,6 +31701,9 @@ export namespace Prisma {
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
     tournament?: boolean | Game$tournamentArgs<ExtArgs>
+    playerStats?: boolean | Game$playerStatsArgs<ExtArgs>
+    teamStats?: boolean | Game$teamStatsArgs<ExtArgs>
+    _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["game"]>
 
   export type GameSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -31216,6 +31771,9 @@ export namespace Prisma {
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
     tournament?: boolean | Game$tournamentArgs<ExtArgs>
+    playerStats?: boolean | Game$playerStatsArgs<ExtArgs>
+    teamStats?: boolean | Game$teamStatsArgs<ExtArgs>
+    _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type GameIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     league?: boolean | Game$leagueArgs<ExtArgs>
@@ -31237,6 +31795,8 @@ export namespace Prisma {
       homeTeam: Prisma.$TeamPayload<ExtArgs>
       awayTeam: Prisma.$TeamPayload<ExtArgs>
       tournament: Prisma.$TournamentPayload<ExtArgs> | null
+      playerStats: Prisma.$PlayerMatchStatsPayload<ExtArgs>[]
+      teamStats: Prisma.$TeamMatchStatsPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -31651,6 +32211,8 @@ export namespace Prisma {
     homeTeam<T extends TeamDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TeamDefaultArgs<ExtArgs>>): Prisma__TeamClient<$Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     awayTeam<T extends TeamDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TeamDefaultArgs<ExtArgs>>): Prisma__TeamClient<$Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     tournament<T extends Game$tournamentArgs<ExtArgs> = {}>(args?: Subset<T, Game$tournamentArgs<ExtArgs>>): Prisma__TournamentClient<$Result.GetResult<Prisma.$TournamentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    playerStats<T extends Game$playerStatsArgs<ExtArgs> = {}>(args?: Subset<T, Game$playerStatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    teamStats<T extends Game$teamStatsArgs<ExtArgs> = {}>(args?: Subset<T, Game$teamStatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -32125,6 +32687,54 @@ export namespace Prisma {
      */
     include?: TournamentInclude<ExtArgs> | null
     where?: TournamentWhereInput
+  }
+
+  /**
+   * Game.playerStats
+   */
+  export type Game$playerStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    where?: PlayerMatchStatsWhereInput
+    orderBy?: PlayerMatchStatsOrderByWithRelationInput | PlayerMatchStatsOrderByWithRelationInput[]
+    cursor?: PlayerMatchStatsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PlayerMatchStatsScalarFieldEnum | PlayerMatchStatsScalarFieldEnum[]
+  }
+
+  /**
+   * Game.teamStats
+   */
+  export type Game$teamStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    where?: TeamMatchStatsWhereInput
+    orderBy?: TeamMatchStatsOrderByWithRelationInput | TeamMatchStatsOrderByWithRelationInput[]
+    cursor?: TeamMatchStatsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TeamMatchStatsScalarFieldEnum | TeamMatchStatsScalarFieldEnum[]
   }
 
   /**
@@ -48789,6 +49399,5585 @@ export namespace Prisma {
 
 
   /**
+   * Model PlayerDevelopmentHistory
+   */
+
+  export type AggregatePlayerDevelopmentHistory = {
+    _count: PlayerDevelopmentHistoryCountAggregateOutputType | null
+    _avg: PlayerDevelopmentHistoryAvgAggregateOutputType | null
+    _sum: PlayerDevelopmentHistorySumAggregateOutputType | null
+    _min: PlayerDevelopmentHistoryMinAggregateOutputType | null
+    _max: PlayerDevelopmentHistoryMaxAggregateOutputType | null
+  }
+
+  export type PlayerDevelopmentHistoryAvgAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    activityScore: number | null
+    gamesPlayedFactor: number | null
+    potentialModifier: number | null
+    ageModifier: number | null
+    coachingBonus: number | null
+    trainerBonus: number | null
+  }
+
+  export type PlayerDevelopmentHistorySumAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    activityScore: number | null
+    gamesPlayedFactor: number | null
+    potentialModifier: number | null
+    ageModifier: number | null
+    coachingBonus: number | null
+    trainerBonus: number | null
+  }
+
+  export type PlayerDevelopmentHistoryMinAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    developmentDate: Date | null
+    developmentType: string | null
+    triggerReason: string | null
+    activityScore: number | null
+    gamesPlayedFactor: number | null
+    potentialModifier: number | null
+    ageModifier: number | null
+    coachingBonus: number | null
+    trainerBonus: number | null
+  }
+
+  export type PlayerDevelopmentHistoryMaxAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    developmentDate: Date | null
+    developmentType: string | null
+    triggerReason: string | null
+    activityScore: number | null
+    gamesPlayedFactor: number | null
+    potentialModifier: number | null
+    ageModifier: number | null
+    coachingBonus: number | null
+    trainerBonus: number | null
+  }
+
+  export type PlayerDevelopmentHistoryCountAggregateOutputType = {
+    id: number
+    playerId: number
+    developmentDate: number
+    developmentType: number
+    statChanges: number
+    previousValues: number
+    newValues: number
+    triggerReason: number
+    activityScore: number
+    gamesPlayedFactor: number
+    potentialModifier: number
+    ageModifier: number
+    coachingBonus: number
+    trainerBonus: number
+    _all: number
+  }
+
+
+  export type PlayerDevelopmentHistoryAvgAggregateInputType = {
+    id?: true
+    playerId?: true
+    activityScore?: true
+    gamesPlayedFactor?: true
+    potentialModifier?: true
+    ageModifier?: true
+    coachingBonus?: true
+    trainerBonus?: true
+  }
+
+  export type PlayerDevelopmentHistorySumAggregateInputType = {
+    id?: true
+    playerId?: true
+    activityScore?: true
+    gamesPlayedFactor?: true
+    potentialModifier?: true
+    ageModifier?: true
+    coachingBonus?: true
+    trainerBonus?: true
+  }
+
+  export type PlayerDevelopmentHistoryMinAggregateInputType = {
+    id?: true
+    playerId?: true
+    developmentDate?: true
+    developmentType?: true
+    triggerReason?: true
+    activityScore?: true
+    gamesPlayedFactor?: true
+    potentialModifier?: true
+    ageModifier?: true
+    coachingBonus?: true
+    trainerBonus?: true
+  }
+
+  export type PlayerDevelopmentHistoryMaxAggregateInputType = {
+    id?: true
+    playerId?: true
+    developmentDate?: true
+    developmentType?: true
+    triggerReason?: true
+    activityScore?: true
+    gamesPlayedFactor?: true
+    potentialModifier?: true
+    ageModifier?: true
+    coachingBonus?: true
+    trainerBonus?: true
+  }
+
+  export type PlayerDevelopmentHistoryCountAggregateInputType = {
+    id?: true
+    playerId?: true
+    developmentDate?: true
+    developmentType?: true
+    statChanges?: true
+    previousValues?: true
+    newValues?: true
+    triggerReason?: true
+    activityScore?: true
+    gamesPlayedFactor?: true
+    potentialModifier?: true
+    ageModifier?: true
+    coachingBonus?: true
+    trainerBonus?: true
+    _all?: true
+  }
+
+  export type PlayerDevelopmentHistoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlayerDevelopmentHistory to aggregate.
+     */
+    where?: PlayerDevelopmentHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerDevelopmentHistories to fetch.
+     */
+    orderBy?: PlayerDevelopmentHistoryOrderByWithRelationInput | PlayerDevelopmentHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PlayerDevelopmentHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerDevelopmentHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerDevelopmentHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PlayerDevelopmentHistories
+    **/
+    _count?: true | PlayerDevelopmentHistoryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PlayerDevelopmentHistoryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PlayerDevelopmentHistorySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PlayerDevelopmentHistoryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PlayerDevelopmentHistoryMaxAggregateInputType
+  }
+
+  export type GetPlayerDevelopmentHistoryAggregateType<T extends PlayerDevelopmentHistoryAggregateArgs> = {
+        [P in keyof T & keyof AggregatePlayerDevelopmentHistory]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePlayerDevelopmentHistory[P]>
+      : GetScalarType<T[P], AggregatePlayerDevelopmentHistory[P]>
+  }
+
+
+
+
+  export type PlayerDevelopmentHistoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlayerDevelopmentHistoryWhereInput
+    orderBy?: PlayerDevelopmentHistoryOrderByWithAggregationInput | PlayerDevelopmentHistoryOrderByWithAggregationInput[]
+    by: PlayerDevelopmentHistoryScalarFieldEnum[] | PlayerDevelopmentHistoryScalarFieldEnum
+    having?: PlayerDevelopmentHistoryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PlayerDevelopmentHistoryCountAggregateInputType | true
+    _avg?: PlayerDevelopmentHistoryAvgAggregateInputType
+    _sum?: PlayerDevelopmentHistorySumAggregateInputType
+    _min?: PlayerDevelopmentHistoryMinAggregateInputType
+    _max?: PlayerDevelopmentHistoryMaxAggregateInputType
+  }
+
+  export type PlayerDevelopmentHistoryGroupByOutputType = {
+    id: number
+    playerId: number
+    developmentDate: Date
+    developmentType: string
+    statChanges: JsonValue
+    previousValues: JsonValue
+    newValues: JsonValue
+    triggerReason: string
+    activityScore: number
+    gamesPlayedFactor: number
+    potentialModifier: number
+    ageModifier: number
+    coachingBonus: number
+    trainerBonus: number
+    _count: PlayerDevelopmentHistoryCountAggregateOutputType | null
+    _avg: PlayerDevelopmentHistoryAvgAggregateOutputType | null
+    _sum: PlayerDevelopmentHistorySumAggregateOutputType | null
+    _min: PlayerDevelopmentHistoryMinAggregateOutputType | null
+    _max: PlayerDevelopmentHistoryMaxAggregateOutputType | null
+  }
+
+  type GetPlayerDevelopmentHistoryGroupByPayload<T extends PlayerDevelopmentHistoryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PlayerDevelopmentHistoryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PlayerDevelopmentHistoryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PlayerDevelopmentHistoryGroupByOutputType[P]>
+            : GetScalarType<T[P], PlayerDevelopmentHistoryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PlayerDevelopmentHistorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    developmentDate?: boolean
+    developmentType?: boolean
+    statChanges?: boolean
+    previousValues?: boolean
+    newValues?: boolean
+    triggerReason?: boolean
+    activityScore?: boolean
+    gamesPlayedFactor?: boolean
+    potentialModifier?: boolean
+    ageModifier?: boolean
+    coachingBonus?: boolean
+    trainerBonus?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerDevelopmentHistory"]>
+
+  export type PlayerDevelopmentHistorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    developmentDate?: boolean
+    developmentType?: boolean
+    statChanges?: boolean
+    previousValues?: boolean
+    newValues?: boolean
+    triggerReason?: boolean
+    activityScore?: boolean
+    gamesPlayedFactor?: boolean
+    potentialModifier?: boolean
+    ageModifier?: boolean
+    coachingBonus?: boolean
+    trainerBonus?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerDevelopmentHistory"]>
+
+  export type PlayerDevelopmentHistorySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    developmentDate?: boolean
+    developmentType?: boolean
+    statChanges?: boolean
+    previousValues?: boolean
+    newValues?: boolean
+    triggerReason?: boolean
+    activityScore?: boolean
+    gamesPlayedFactor?: boolean
+    potentialModifier?: boolean
+    ageModifier?: boolean
+    coachingBonus?: boolean
+    trainerBonus?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerDevelopmentHistory"]>
+
+  export type PlayerDevelopmentHistorySelectScalar = {
+    id?: boolean
+    playerId?: boolean
+    developmentDate?: boolean
+    developmentType?: boolean
+    statChanges?: boolean
+    previousValues?: boolean
+    newValues?: boolean
+    triggerReason?: boolean
+    activityScore?: boolean
+    gamesPlayedFactor?: boolean
+    potentialModifier?: boolean
+    ageModifier?: boolean
+    coachingBonus?: boolean
+    trainerBonus?: boolean
+  }
+
+  export type PlayerDevelopmentHistoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "playerId" | "developmentDate" | "developmentType" | "statChanges" | "previousValues" | "newValues" | "triggerReason" | "activityScore" | "gamesPlayedFactor" | "potentialModifier" | "ageModifier" | "coachingBonus" | "trainerBonus", ExtArgs["result"]["playerDevelopmentHistory"]>
+  export type PlayerDevelopmentHistoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }
+  export type PlayerDevelopmentHistoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }
+  export type PlayerDevelopmentHistoryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }
+
+  export type $PlayerDevelopmentHistoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PlayerDevelopmentHistory"
+    objects: {
+      player: Prisma.$PlayerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      playerId: number
+      developmentDate: Date
+      developmentType: string
+      statChanges: Prisma.JsonValue
+      previousValues: Prisma.JsonValue
+      newValues: Prisma.JsonValue
+      triggerReason: string
+      activityScore: number
+      gamesPlayedFactor: number
+      potentialModifier: number
+      ageModifier: number
+      coachingBonus: number
+      trainerBonus: number
+    }, ExtArgs["result"]["playerDevelopmentHistory"]>
+    composites: {}
+  }
+
+  type PlayerDevelopmentHistoryGetPayload<S extends boolean | null | undefined | PlayerDevelopmentHistoryDefaultArgs> = $Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload, S>
+
+  type PlayerDevelopmentHistoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PlayerDevelopmentHistoryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PlayerDevelopmentHistoryCountAggregateInputType | true
+    }
+
+  export interface PlayerDevelopmentHistoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PlayerDevelopmentHistory'], meta: { name: 'PlayerDevelopmentHistory' } }
+    /**
+     * Find zero or one PlayerDevelopmentHistory that matches the filter.
+     * @param {PlayerDevelopmentHistoryFindUniqueArgs} args - Arguments to find a PlayerDevelopmentHistory
+     * @example
+     * // Get one PlayerDevelopmentHistory
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PlayerDevelopmentHistoryFindUniqueArgs>(args: SelectSubset<T, PlayerDevelopmentHistoryFindUniqueArgs<ExtArgs>>): Prisma__PlayerDevelopmentHistoryClient<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PlayerDevelopmentHistory that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PlayerDevelopmentHistoryFindUniqueOrThrowArgs} args - Arguments to find a PlayerDevelopmentHistory
+     * @example
+     * // Get one PlayerDevelopmentHistory
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PlayerDevelopmentHistoryFindUniqueOrThrowArgs>(args: SelectSubset<T, PlayerDevelopmentHistoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PlayerDevelopmentHistoryClient<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PlayerDevelopmentHistory that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerDevelopmentHistoryFindFirstArgs} args - Arguments to find a PlayerDevelopmentHistory
+     * @example
+     * // Get one PlayerDevelopmentHistory
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PlayerDevelopmentHistoryFindFirstArgs>(args?: SelectSubset<T, PlayerDevelopmentHistoryFindFirstArgs<ExtArgs>>): Prisma__PlayerDevelopmentHistoryClient<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PlayerDevelopmentHistory that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerDevelopmentHistoryFindFirstOrThrowArgs} args - Arguments to find a PlayerDevelopmentHistory
+     * @example
+     * // Get one PlayerDevelopmentHistory
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PlayerDevelopmentHistoryFindFirstOrThrowArgs>(args?: SelectSubset<T, PlayerDevelopmentHistoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__PlayerDevelopmentHistoryClient<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PlayerDevelopmentHistories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerDevelopmentHistoryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PlayerDevelopmentHistories
+     * const playerDevelopmentHistories = await prisma.playerDevelopmentHistory.findMany()
+     * 
+     * // Get first 10 PlayerDevelopmentHistories
+     * const playerDevelopmentHistories = await prisma.playerDevelopmentHistory.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const playerDevelopmentHistoryWithIdOnly = await prisma.playerDevelopmentHistory.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PlayerDevelopmentHistoryFindManyArgs>(args?: SelectSubset<T, PlayerDevelopmentHistoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PlayerDevelopmentHistory.
+     * @param {PlayerDevelopmentHistoryCreateArgs} args - Arguments to create a PlayerDevelopmentHistory.
+     * @example
+     * // Create one PlayerDevelopmentHistory
+     * const PlayerDevelopmentHistory = await prisma.playerDevelopmentHistory.create({
+     *   data: {
+     *     // ... data to create a PlayerDevelopmentHistory
+     *   }
+     * })
+     * 
+     */
+    create<T extends PlayerDevelopmentHistoryCreateArgs>(args: SelectSubset<T, PlayerDevelopmentHistoryCreateArgs<ExtArgs>>): Prisma__PlayerDevelopmentHistoryClient<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PlayerDevelopmentHistories.
+     * @param {PlayerDevelopmentHistoryCreateManyArgs} args - Arguments to create many PlayerDevelopmentHistories.
+     * @example
+     * // Create many PlayerDevelopmentHistories
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PlayerDevelopmentHistoryCreateManyArgs>(args?: SelectSubset<T, PlayerDevelopmentHistoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PlayerDevelopmentHistories and returns the data saved in the database.
+     * @param {PlayerDevelopmentHistoryCreateManyAndReturnArgs} args - Arguments to create many PlayerDevelopmentHistories.
+     * @example
+     * // Create many PlayerDevelopmentHistories
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PlayerDevelopmentHistories and only return the `id`
+     * const playerDevelopmentHistoryWithIdOnly = await prisma.playerDevelopmentHistory.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PlayerDevelopmentHistoryCreateManyAndReturnArgs>(args?: SelectSubset<T, PlayerDevelopmentHistoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PlayerDevelopmentHistory.
+     * @param {PlayerDevelopmentHistoryDeleteArgs} args - Arguments to delete one PlayerDevelopmentHistory.
+     * @example
+     * // Delete one PlayerDevelopmentHistory
+     * const PlayerDevelopmentHistory = await prisma.playerDevelopmentHistory.delete({
+     *   where: {
+     *     // ... filter to delete one PlayerDevelopmentHistory
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PlayerDevelopmentHistoryDeleteArgs>(args: SelectSubset<T, PlayerDevelopmentHistoryDeleteArgs<ExtArgs>>): Prisma__PlayerDevelopmentHistoryClient<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PlayerDevelopmentHistory.
+     * @param {PlayerDevelopmentHistoryUpdateArgs} args - Arguments to update one PlayerDevelopmentHistory.
+     * @example
+     * // Update one PlayerDevelopmentHistory
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PlayerDevelopmentHistoryUpdateArgs>(args: SelectSubset<T, PlayerDevelopmentHistoryUpdateArgs<ExtArgs>>): Prisma__PlayerDevelopmentHistoryClient<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PlayerDevelopmentHistories.
+     * @param {PlayerDevelopmentHistoryDeleteManyArgs} args - Arguments to filter PlayerDevelopmentHistories to delete.
+     * @example
+     * // Delete a few PlayerDevelopmentHistories
+     * const { count } = await prisma.playerDevelopmentHistory.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PlayerDevelopmentHistoryDeleteManyArgs>(args?: SelectSubset<T, PlayerDevelopmentHistoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlayerDevelopmentHistories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerDevelopmentHistoryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PlayerDevelopmentHistories
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PlayerDevelopmentHistoryUpdateManyArgs>(args: SelectSubset<T, PlayerDevelopmentHistoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlayerDevelopmentHistories and returns the data updated in the database.
+     * @param {PlayerDevelopmentHistoryUpdateManyAndReturnArgs} args - Arguments to update many PlayerDevelopmentHistories.
+     * @example
+     * // Update many PlayerDevelopmentHistories
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PlayerDevelopmentHistories and only return the `id`
+     * const playerDevelopmentHistoryWithIdOnly = await prisma.playerDevelopmentHistory.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PlayerDevelopmentHistoryUpdateManyAndReturnArgs>(args: SelectSubset<T, PlayerDevelopmentHistoryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PlayerDevelopmentHistory.
+     * @param {PlayerDevelopmentHistoryUpsertArgs} args - Arguments to update or create a PlayerDevelopmentHistory.
+     * @example
+     * // Update or create a PlayerDevelopmentHistory
+     * const playerDevelopmentHistory = await prisma.playerDevelopmentHistory.upsert({
+     *   create: {
+     *     // ... data to create a PlayerDevelopmentHistory
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PlayerDevelopmentHistory we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PlayerDevelopmentHistoryUpsertArgs>(args: SelectSubset<T, PlayerDevelopmentHistoryUpsertArgs<ExtArgs>>): Prisma__PlayerDevelopmentHistoryClient<$Result.GetResult<Prisma.$PlayerDevelopmentHistoryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PlayerDevelopmentHistories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerDevelopmentHistoryCountArgs} args - Arguments to filter PlayerDevelopmentHistories to count.
+     * @example
+     * // Count the number of PlayerDevelopmentHistories
+     * const count = await prisma.playerDevelopmentHistory.count({
+     *   where: {
+     *     // ... the filter for the PlayerDevelopmentHistories we want to count
+     *   }
+     * })
+    **/
+    count<T extends PlayerDevelopmentHistoryCountArgs>(
+      args?: Subset<T, PlayerDevelopmentHistoryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PlayerDevelopmentHistoryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PlayerDevelopmentHistory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerDevelopmentHistoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PlayerDevelopmentHistoryAggregateArgs>(args: Subset<T, PlayerDevelopmentHistoryAggregateArgs>): Prisma.PrismaPromise<GetPlayerDevelopmentHistoryAggregateType<T>>
+
+    /**
+     * Group by PlayerDevelopmentHistory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerDevelopmentHistoryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PlayerDevelopmentHistoryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PlayerDevelopmentHistoryGroupByArgs['orderBy'] }
+        : { orderBy?: PlayerDevelopmentHistoryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PlayerDevelopmentHistoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPlayerDevelopmentHistoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PlayerDevelopmentHistory model
+   */
+  readonly fields: PlayerDevelopmentHistoryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PlayerDevelopmentHistory.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PlayerDevelopmentHistoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    player<T extends PlayerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PlayerDefaultArgs<ExtArgs>>): Prisma__PlayerClient<$Result.GetResult<Prisma.$PlayerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PlayerDevelopmentHistory model
+   */
+  interface PlayerDevelopmentHistoryFieldRefs {
+    readonly id: FieldRef<"PlayerDevelopmentHistory", 'Int'>
+    readonly playerId: FieldRef<"PlayerDevelopmentHistory", 'Int'>
+    readonly developmentDate: FieldRef<"PlayerDevelopmentHistory", 'DateTime'>
+    readonly developmentType: FieldRef<"PlayerDevelopmentHistory", 'String'>
+    readonly statChanges: FieldRef<"PlayerDevelopmentHistory", 'Json'>
+    readonly previousValues: FieldRef<"PlayerDevelopmentHistory", 'Json'>
+    readonly newValues: FieldRef<"PlayerDevelopmentHistory", 'Json'>
+    readonly triggerReason: FieldRef<"PlayerDevelopmentHistory", 'String'>
+    readonly activityScore: FieldRef<"PlayerDevelopmentHistory", 'Float'>
+    readonly gamesPlayedFactor: FieldRef<"PlayerDevelopmentHistory", 'Int'>
+    readonly potentialModifier: FieldRef<"PlayerDevelopmentHistory", 'Float'>
+    readonly ageModifier: FieldRef<"PlayerDevelopmentHistory", 'Float'>
+    readonly coachingBonus: FieldRef<"PlayerDevelopmentHistory", 'Float'>
+    readonly trainerBonus: FieldRef<"PlayerDevelopmentHistory", 'Float'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PlayerDevelopmentHistory findUnique
+   */
+  export type PlayerDevelopmentHistoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerDevelopmentHistory to fetch.
+     */
+    where: PlayerDevelopmentHistoryWhereUniqueInput
+  }
+
+  /**
+   * PlayerDevelopmentHistory findUniqueOrThrow
+   */
+  export type PlayerDevelopmentHistoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerDevelopmentHistory to fetch.
+     */
+    where: PlayerDevelopmentHistoryWhereUniqueInput
+  }
+
+  /**
+   * PlayerDevelopmentHistory findFirst
+   */
+  export type PlayerDevelopmentHistoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerDevelopmentHistory to fetch.
+     */
+    where?: PlayerDevelopmentHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerDevelopmentHistories to fetch.
+     */
+    orderBy?: PlayerDevelopmentHistoryOrderByWithRelationInput | PlayerDevelopmentHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlayerDevelopmentHistories.
+     */
+    cursor?: PlayerDevelopmentHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerDevelopmentHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerDevelopmentHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlayerDevelopmentHistories.
+     */
+    distinct?: PlayerDevelopmentHistoryScalarFieldEnum | PlayerDevelopmentHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerDevelopmentHistory findFirstOrThrow
+   */
+  export type PlayerDevelopmentHistoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerDevelopmentHistory to fetch.
+     */
+    where?: PlayerDevelopmentHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerDevelopmentHistories to fetch.
+     */
+    orderBy?: PlayerDevelopmentHistoryOrderByWithRelationInput | PlayerDevelopmentHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlayerDevelopmentHistories.
+     */
+    cursor?: PlayerDevelopmentHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerDevelopmentHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerDevelopmentHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlayerDevelopmentHistories.
+     */
+    distinct?: PlayerDevelopmentHistoryScalarFieldEnum | PlayerDevelopmentHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerDevelopmentHistory findMany
+   */
+  export type PlayerDevelopmentHistoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerDevelopmentHistories to fetch.
+     */
+    where?: PlayerDevelopmentHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerDevelopmentHistories to fetch.
+     */
+    orderBy?: PlayerDevelopmentHistoryOrderByWithRelationInput | PlayerDevelopmentHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PlayerDevelopmentHistories.
+     */
+    cursor?: PlayerDevelopmentHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerDevelopmentHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerDevelopmentHistories.
+     */
+    skip?: number
+    distinct?: PlayerDevelopmentHistoryScalarFieldEnum | PlayerDevelopmentHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerDevelopmentHistory create
+   */
+  export type PlayerDevelopmentHistoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PlayerDevelopmentHistory.
+     */
+    data: XOR<PlayerDevelopmentHistoryCreateInput, PlayerDevelopmentHistoryUncheckedCreateInput>
+  }
+
+  /**
+   * PlayerDevelopmentHistory createMany
+   */
+  export type PlayerDevelopmentHistoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PlayerDevelopmentHistories.
+     */
+    data: PlayerDevelopmentHistoryCreateManyInput | PlayerDevelopmentHistoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PlayerDevelopmentHistory createManyAndReturn
+   */
+  export type PlayerDevelopmentHistoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * The data used to create many PlayerDevelopmentHistories.
+     */
+    data: PlayerDevelopmentHistoryCreateManyInput | PlayerDevelopmentHistoryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlayerDevelopmentHistory update
+   */
+  export type PlayerDevelopmentHistoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PlayerDevelopmentHistory.
+     */
+    data: XOR<PlayerDevelopmentHistoryUpdateInput, PlayerDevelopmentHistoryUncheckedUpdateInput>
+    /**
+     * Choose, which PlayerDevelopmentHistory to update.
+     */
+    where: PlayerDevelopmentHistoryWhereUniqueInput
+  }
+
+  /**
+   * PlayerDevelopmentHistory updateMany
+   */
+  export type PlayerDevelopmentHistoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PlayerDevelopmentHistories.
+     */
+    data: XOR<PlayerDevelopmentHistoryUpdateManyMutationInput, PlayerDevelopmentHistoryUncheckedUpdateManyInput>
+    /**
+     * Filter which PlayerDevelopmentHistories to update
+     */
+    where?: PlayerDevelopmentHistoryWhereInput
+    /**
+     * Limit how many PlayerDevelopmentHistories to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PlayerDevelopmentHistory updateManyAndReturn
+   */
+  export type PlayerDevelopmentHistoryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * The data used to update PlayerDevelopmentHistories.
+     */
+    data: XOR<PlayerDevelopmentHistoryUpdateManyMutationInput, PlayerDevelopmentHistoryUncheckedUpdateManyInput>
+    /**
+     * Filter which PlayerDevelopmentHistories to update
+     */
+    where?: PlayerDevelopmentHistoryWhereInput
+    /**
+     * Limit how many PlayerDevelopmentHistories to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlayerDevelopmentHistory upsert
+   */
+  export type PlayerDevelopmentHistoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PlayerDevelopmentHistory to update in case it exists.
+     */
+    where: PlayerDevelopmentHistoryWhereUniqueInput
+    /**
+     * In case the PlayerDevelopmentHistory found by the `where` argument doesn't exist, create a new PlayerDevelopmentHistory with this data.
+     */
+    create: XOR<PlayerDevelopmentHistoryCreateInput, PlayerDevelopmentHistoryUncheckedCreateInput>
+    /**
+     * In case the PlayerDevelopmentHistory was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PlayerDevelopmentHistoryUpdateInput, PlayerDevelopmentHistoryUncheckedUpdateInput>
+  }
+
+  /**
+   * PlayerDevelopmentHistory delete
+   */
+  export type PlayerDevelopmentHistoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+    /**
+     * Filter which PlayerDevelopmentHistory to delete.
+     */
+    where: PlayerDevelopmentHistoryWhereUniqueInput
+  }
+
+  /**
+   * PlayerDevelopmentHistory deleteMany
+   */
+  export type PlayerDevelopmentHistoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlayerDevelopmentHistories to delete
+     */
+    where?: PlayerDevelopmentHistoryWhereInput
+    /**
+     * Limit how many PlayerDevelopmentHistories to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PlayerDevelopmentHistory without action
+   */
+  export type PlayerDevelopmentHistoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerDevelopmentHistory
+     */
+    select?: PlayerDevelopmentHistorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerDevelopmentHistory
+     */
+    omit?: PlayerDevelopmentHistoryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerDevelopmentHistoryInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PlayerMatchStats
+   */
+
+  export type AggregatePlayerMatchStats = {
+    _count: PlayerMatchStatsCountAggregateOutputType | null
+    _avg: PlayerMatchStatsAvgAggregateOutputType | null
+    _sum: PlayerMatchStatsSumAggregateOutputType | null
+    _min: PlayerMatchStatsMinAggregateOutputType | null
+    _max: PlayerMatchStatsMaxAggregateOutputType | null
+  }
+
+  export type PlayerMatchStatsAvgAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    gameId: number | null
+    minutesPlayed: number | null
+    performanceRating: number | null
+    camaraderieContribution: number | null
+    scores: number | null
+    assists: number | null
+    passAttempts: number | null
+    passCompletions: number | null
+    passingYards: number | null
+    perfectPasses: number | null
+    rushingYards: number | null
+    breakawayRuns: number | null
+    catches: number | null
+    receivingYards: number | null
+    drops: number | null
+    tackles: number | null
+    tackleAttempts: number | null
+    knockdowns: number | null
+    blocks: number | null
+    injuriesInflicted: number | null
+    interceptions: number | null
+    ballStrips: number | null
+    passDeflections: number | null
+    fumblesLost: number | null
+    ballRetention: number | null
+    distanceCovered: number | null
+    staminaUsed: number | null
+    ballPossessionTime: number | null
+    pressureApplied: number | null
+    injuries: number | null
+  }
+
+  export type PlayerMatchStatsSumAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    gameId: number | null
+    minutesPlayed: number | null
+    performanceRating: number | null
+    camaraderieContribution: number | null
+    scores: number | null
+    assists: number | null
+    passAttempts: number | null
+    passCompletions: number | null
+    passingYards: number | null
+    perfectPasses: number | null
+    rushingYards: number | null
+    breakawayRuns: number | null
+    catches: number | null
+    receivingYards: number | null
+    drops: number | null
+    tackles: number | null
+    tackleAttempts: number | null
+    knockdowns: number | null
+    blocks: number | null
+    injuriesInflicted: number | null
+    interceptions: number | null
+    ballStrips: number | null
+    passDeflections: number | null
+    fumblesLost: number | null
+    ballRetention: number | null
+    distanceCovered: number | null
+    staminaUsed: number | null
+    ballPossessionTime: number | null
+    pressureApplied: number | null
+    injuries: number | null
+  }
+
+  export type PlayerMatchStatsMinAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    gameId: number | null
+    minutesPlayed: number | null
+    performanceRating: number | null
+    camaraderieContribution: number | null
+    scores: number | null
+    assists: number | null
+    passAttempts: number | null
+    passCompletions: number | null
+    passingYards: number | null
+    perfectPasses: number | null
+    rushingYards: number | null
+    breakawayRuns: number | null
+    catches: number | null
+    receivingYards: number | null
+    drops: number | null
+    tackles: number | null
+    tackleAttempts: number | null
+    knockdowns: number | null
+    blocks: number | null
+    injuriesInflicted: number | null
+    interceptions: number | null
+    ballStrips: number | null
+    passDeflections: number | null
+    fumblesLost: number | null
+    ballRetention: number | null
+    distanceCovered: number | null
+    staminaUsed: number | null
+    ballPossessionTime: number | null
+    pressureApplied: number | null
+    injuries: number | null
+    matchDate: Date | null
+    matchType: $Enums.MatchType | null
+  }
+
+  export type PlayerMatchStatsMaxAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    gameId: number | null
+    minutesPlayed: number | null
+    performanceRating: number | null
+    camaraderieContribution: number | null
+    scores: number | null
+    assists: number | null
+    passAttempts: number | null
+    passCompletions: number | null
+    passingYards: number | null
+    perfectPasses: number | null
+    rushingYards: number | null
+    breakawayRuns: number | null
+    catches: number | null
+    receivingYards: number | null
+    drops: number | null
+    tackles: number | null
+    tackleAttempts: number | null
+    knockdowns: number | null
+    blocks: number | null
+    injuriesInflicted: number | null
+    interceptions: number | null
+    ballStrips: number | null
+    passDeflections: number | null
+    fumblesLost: number | null
+    ballRetention: number | null
+    distanceCovered: number | null
+    staminaUsed: number | null
+    ballPossessionTime: number | null
+    pressureApplied: number | null
+    injuries: number | null
+    matchDate: Date | null
+    matchType: $Enums.MatchType | null
+  }
+
+  export type PlayerMatchStatsCountAggregateOutputType = {
+    id: number
+    playerId: number
+    gameId: number
+    minutesPlayed: number
+    performanceRating: number
+    camaraderieContribution: number
+    scores: number
+    assists: number
+    passAttempts: number
+    passCompletions: number
+    passingYards: number
+    perfectPasses: number
+    rushingYards: number
+    breakawayRuns: number
+    catches: number
+    receivingYards: number
+    drops: number
+    tackles: number
+    tackleAttempts: number
+    knockdowns: number
+    blocks: number
+    injuriesInflicted: number
+    interceptions: number
+    ballStrips: number
+    passDeflections: number
+    fumblesLost: number
+    ballRetention: number
+    distanceCovered: number
+    staminaUsed: number
+    ballPossessionTime: number
+    pressureApplied: number
+    injuries: number
+    matchDate: number
+    matchType: number
+    _all: number
+  }
+
+
+  export type PlayerMatchStatsAvgAggregateInputType = {
+    id?: true
+    playerId?: true
+    gameId?: true
+    minutesPlayed?: true
+    performanceRating?: true
+    camaraderieContribution?: true
+    scores?: true
+    assists?: true
+    passAttempts?: true
+    passCompletions?: true
+    passingYards?: true
+    perfectPasses?: true
+    rushingYards?: true
+    breakawayRuns?: true
+    catches?: true
+    receivingYards?: true
+    drops?: true
+    tackles?: true
+    tackleAttempts?: true
+    knockdowns?: true
+    blocks?: true
+    injuriesInflicted?: true
+    interceptions?: true
+    ballStrips?: true
+    passDeflections?: true
+    fumblesLost?: true
+    ballRetention?: true
+    distanceCovered?: true
+    staminaUsed?: true
+    ballPossessionTime?: true
+    pressureApplied?: true
+    injuries?: true
+  }
+
+  export type PlayerMatchStatsSumAggregateInputType = {
+    id?: true
+    playerId?: true
+    gameId?: true
+    minutesPlayed?: true
+    performanceRating?: true
+    camaraderieContribution?: true
+    scores?: true
+    assists?: true
+    passAttempts?: true
+    passCompletions?: true
+    passingYards?: true
+    perfectPasses?: true
+    rushingYards?: true
+    breakawayRuns?: true
+    catches?: true
+    receivingYards?: true
+    drops?: true
+    tackles?: true
+    tackleAttempts?: true
+    knockdowns?: true
+    blocks?: true
+    injuriesInflicted?: true
+    interceptions?: true
+    ballStrips?: true
+    passDeflections?: true
+    fumblesLost?: true
+    ballRetention?: true
+    distanceCovered?: true
+    staminaUsed?: true
+    ballPossessionTime?: true
+    pressureApplied?: true
+    injuries?: true
+  }
+
+  export type PlayerMatchStatsMinAggregateInputType = {
+    id?: true
+    playerId?: true
+    gameId?: true
+    minutesPlayed?: true
+    performanceRating?: true
+    camaraderieContribution?: true
+    scores?: true
+    assists?: true
+    passAttempts?: true
+    passCompletions?: true
+    passingYards?: true
+    perfectPasses?: true
+    rushingYards?: true
+    breakawayRuns?: true
+    catches?: true
+    receivingYards?: true
+    drops?: true
+    tackles?: true
+    tackleAttempts?: true
+    knockdowns?: true
+    blocks?: true
+    injuriesInflicted?: true
+    interceptions?: true
+    ballStrips?: true
+    passDeflections?: true
+    fumblesLost?: true
+    ballRetention?: true
+    distanceCovered?: true
+    staminaUsed?: true
+    ballPossessionTime?: true
+    pressureApplied?: true
+    injuries?: true
+    matchDate?: true
+    matchType?: true
+  }
+
+  export type PlayerMatchStatsMaxAggregateInputType = {
+    id?: true
+    playerId?: true
+    gameId?: true
+    minutesPlayed?: true
+    performanceRating?: true
+    camaraderieContribution?: true
+    scores?: true
+    assists?: true
+    passAttempts?: true
+    passCompletions?: true
+    passingYards?: true
+    perfectPasses?: true
+    rushingYards?: true
+    breakawayRuns?: true
+    catches?: true
+    receivingYards?: true
+    drops?: true
+    tackles?: true
+    tackleAttempts?: true
+    knockdowns?: true
+    blocks?: true
+    injuriesInflicted?: true
+    interceptions?: true
+    ballStrips?: true
+    passDeflections?: true
+    fumblesLost?: true
+    ballRetention?: true
+    distanceCovered?: true
+    staminaUsed?: true
+    ballPossessionTime?: true
+    pressureApplied?: true
+    injuries?: true
+    matchDate?: true
+    matchType?: true
+  }
+
+  export type PlayerMatchStatsCountAggregateInputType = {
+    id?: true
+    playerId?: true
+    gameId?: true
+    minutesPlayed?: true
+    performanceRating?: true
+    camaraderieContribution?: true
+    scores?: true
+    assists?: true
+    passAttempts?: true
+    passCompletions?: true
+    passingYards?: true
+    perfectPasses?: true
+    rushingYards?: true
+    breakawayRuns?: true
+    catches?: true
+    receivingYards?: true
+    drops?: true
+    tackles?: true
+    tackleAttempts?: true
+    knockdowns?: true
+    blocks?: true
+    injuriesInflicted?: true
+    interceptions?: true
+    ballStrips?: true
+    passDeflections?: true
+    fumblesLost?: true
+    ballRetention?: true
+    distanceCovered?: true
+    staminaUsed?: true
+    ballPossessionTime?: true
+    pressureApplied?: true
+    injuries?: true
+    matchDate?: true
+    matchType?: true
+    _all?: true
+  }
+
+  export type PlayerMatchStatsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlayerMatchStats to aggregate.
+     */
+    where?: PlayerMatchStatsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerMatchStats to fetch.
+     */
+    orderBy?: PlayerMatchStatsOrderByWithRelationInput | PlayerMatchStatsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PlayerMatchStatsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerMatchStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerMatchStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PlayerMatchStats
+    **/
+    _count?: true | PlayerMatchStatsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PlayerMatchStatsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PlayerMatchStatsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PlayerMatchStatsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PlayerMatchStatsMaxAggregateInputType
+  }
+
+  export type GetPlayerMatchStatsAggregateType<T extends PlayerMatchStatsAggregateArgs> = {
+        [P in keyof T & keyof AggregatePlayerMatchStats]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePlayerMatchStats[P]>
+      : GetScalarType<T[P], AggregatePlayerMatchStats[P]>
+  }
+
+
+
+
+  export type PlayerMatchStatsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlayerMatchStatsWhereInput
+    orderBy?: PlayerMatchStatsOrderByWithAggregationInput | PlayerMatchStatsOrderByWithAggregationInput[]
+    by: PlayerMatchStatsScalarFieldEnum[] | PlayerMatchStatsScalarFieldEnum
+    having?: PlayerMatchStatsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PlayerMatchStatsCountAggregateInputType | true
+    _avg?: PlayerMatchStatsAvgAggregateInputType
+    _sum?: PlayerMatchStatsSumAggregateInputType
+    _min?: PlayerMatchStatsMinAggregateInputType
+    _max?: PlayerMatchStatsMaxAggregateInputType
+  }
+
+  export type PlayerMatchStatsGroupByOutputType = {
+    id: number
+    playerId: number
+    gameId: number
+    minutesPlayed: number
+    performanceRating: number | null
+    camaraderieContribution: number
+    scores: number
+    assists: number
+    passAttempts: number
+    passCompletions: number
+    passingYards: number
+    perfectPasses: number
+    rushingYards: number
+    breakawayRuns: number
+    catches: number
+    receivingYards: number
+    drops: number
+    tackles: number
+    tackleAttempts: number
+    knockdowns: number
+    blocks: number
+    injuriesInflicted: number
+    interceptions: number
+    ballStrips: number
+    passDeflections: number
+    fumblesLost: number
+    ballRetention: number
+    distanceCovered: number
+    staminaUsed: number
+    ballPossessionTime: number
+    pressureApplied: number
+    injuries: number
+    matchDate: Date
+    matchType: $Enums.MatchType
+    _count: PlayerMatchStatsCountAggregateOutputType | null
+    _avg: PlayerMatchStatsAvgAggregateOutputType | null
+    _sum: PlayerMatchStatsSumAggregateOutputType | null
+    _min: PlayerMatchStatsMinAggregateOutputType | null
+    _max: PlayerMatchStatsMaxAggregateOutputType | null
+  }
+
+  type GetPlayerMatchStatsGroupByPayload<T extends PlayerMatchStatsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PlayerMatchStatsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PlayerMatchStatsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PlayerMatchStatsGroupByOutputType[P]>
+            : GetScalarType<T[P], PlayerMatchStatsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PlayerMatchStatsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    gameId?: boolean
+    minutesPlayed?: boolean
+    performanceRating?: boolean
+    camaraderieContribution?: boolean
+    scores?: boolean
+    assists?: boolean
+    passAttempts?: boolean
+    passCompletions?: boolean
+    passingYards?: boolean
+    perfectPasses?: boolean
+    rushingYards?: boolean
+    breakawayRuns?: boolean
+    catches?: boolean
+    receivingYards?: boolean
+    drops?: boolean
+    tackles?: boolean
+    tackleAttempts?: boolean
+    knockdowns?: boolean
+    blocks?: boolean
+    injuriesInflicted?: boolean
+    interceptions?: boolean
+    ballStrips?: boolean
+    passDeflections?: boolean
+    fumblesLost?: boolean
+    ballRetention?: boolean
+    distanceCovered?: boolean
+    staminaUsed?: boolean
+    ballPossessionTime?: boolean
+    pressureApplied?: boolean
+    injuries?: boolean
+    matchDate?: boolean
+    matchType?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerMatchStats"]>
+
+  export type PlayerMatchStatsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    gameId?: boolean
+    minutesPlayed?: boolean
+    performanceRating?: boolean
+    camaraderieContribution?: boolean
+    scores?: boolean
+    assists?: boolean
+    passAttempts?: boolean
+    passCompletions?: boolean
+    passingYards?: boolean
+    perfectPasses?: boolean
+    rushingYards?: boolean
+    breakawayRuns?: boolean
+    catches?: boolean
+    receivingYards?: boolean
+    drops?: boolean
+    tackles?: boolean
+    tackleAttempts?: boolean
+    knockdowns?: boolean
+    blocks?: boolean
+    injuriesInflicted?: boolean
+    interceptions?: boolean
+    ballStrips?: boolean
+    passDeflections?: boolean
+    fumblesLost?: boolean
+    ballRetention?: boolean
+    distanceCovered?: boolean
+    staminaUsed?: boolean
+    ballPossessionTime?: boolean
+    pressureApplied?: boolean
+    injuries?: boolean
+    matchDate?: boolean
+    matchType?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerMatchStats"]>
+
+  export type PlayerMatchStatsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    gameId?: boolean
+    minutesPlayed?: boolean
+    performanceRating?: boolean
+    camaraderieContribution?: boolean
+    scores?: boolean
+    assists?: boolean
+    passAttempts?: boolean
+    passCompletions?: boolean
+    passingYards?: boolean
+    perfectPasses?: boolean
+    rushingYards?: boolean
+    breakawayRuns?: boolean
+    catches?: boolean
+    receivingYards?: boolean
+    drops?: boolean
+    tackles?: boolean
+    tackleAttempts?: boolean
+    knockdowns?: boolean
+    blocks?: boolean
+    injuriesInflicted?: boolean
+    interceptions?: boolean
+    ballStrips?: boolean
+    passDeflections?: boolean
+    fumblesLost?: boolean
+    ballRetention?: boolean
+    distanceCovered?: boolean
+    staminaUsed?: boolean
+    ballPossessionTime?: boolean
+    pressureApplied?: boolean
+    injuries?: boolean
+    matchDate?: boolean
+    matchType?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerMatchStats"]>
+
+  export type PlayerMatchStatsSelectScalar = {
+    id?: boolean
+    playerId?: boolean
+    gameId?: boolean
+    minutesPlayed?: boolean
+    performanceRating?: boolean
+    camaraderieContribution?: boolean
+    scores?: boolean
+    assists?: boolean
+    passAttempts?: boolean
+    passCompletions?: boolean
+    passingYards?: boolean
+    perfectPasses?: boolean
+    rushingYards?: boolean
+    breakawayRuns?: boolean
+    catches?: boolean
+    receivingYards?: boolean
+    drops?: boolean
+    tackles?: boolean
+    tackleAttempts?: boolean
+    knockdowns?: boolean
+    blocks?: boolean
+    injuriesInflicted?: boolean
+    interceptions?: boolean
+    ballStrips?: boolean
+    passDeflections?: boolean
+    fumblesLost?: boolean
+    ballRetention?: boolean
+    distanceCovered?: boolean
+    staminaUsed?: boolean
+    ballPossessionTime?: boolean
+    pressureApplied?: boolean
+    injuries?: boolean
+    matchDate?: boolean
+    matchType?: boolean
+  }
+
+  export type PlayerMatchStatsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "playerId" | "gameId" | "minutesPlayed" | "performanceRating" | "camaraderieContribution" | "scores" | "assists" | "passAttempts" | "passCompletions" | "passingYards" | "perfectPasses" | "rushingYards" | "breakawayRuns" | "catches" | "receivingYards" | "drops" | "tackles" | "tackleAttempts" | "knockdowns" | "blocks" | "injuriesInflicted" | "interceptions" | "ballStrips" | "passDeflections" | "fumblesLost" | "ballRetention" | "distanceCovered" | "staminaUsed" | "ballPossessionTime" | "pressureApplied" | "injuries" | "matchDate" | "matchType", ExtArgs["result"]["playerMatchStats"]>
+  export type PlayerMatchStatsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type PlayerMatchStatsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type PlayerMatchStatsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+
+  export type $PlayerMatchStatsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PlayerMatchStats"
+    objects: {
+      player: Prisma.$PlayerPayload<ExtArgs>
+      game: Prisma.$GamePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      playerId: number
+      gameId: number
+      minutesPlayed: number
+      performanceRating: number | null
+      camaraderieContribution: number
+      scores: number
+      assists: number
+      passAttempts: number
+      passCompletions: number
+      passingYards: number
+      perfectPasses: number
+      rushingYards: number
+      breakawayRuns: number
+      catches: number
+      receivingYards: number
+      drops: number
+      tackles: number
+      tackleAttempts: number
+      knockdowns: number
+      blocks: number
+      injuriesInflicted: number
+      interceptions: number
+      ballStrips: number
+      passDeflections: number
+      fumblesLost: number
+      ballRetention: number
+      distanceCovered: number
+      staminaUsed: number
+      ballPossessionTime: number
+      pressureApplied: number
+      injuries: number
+      matchDate: Date
+      matchType: $Enums.MatchType
+    }, ExtArgs["result"]["playerMatchStats"]>
+    composites: {}
+  }
+
+  type PlayerMatchStatsGetPayload<S extends boolean | null | undefined | PlayerMatchStatsDefaultArgs> = $Result.GetResult<Prisma.$PlayerMatchStatsPayload, S>
+
+  type PlayerMatchStatsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PlayerMatchStatsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PlayerMatchStatsCountAggregateInputType | true
+    }
+
+  export interface PlayerMatchStatsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PlayerMatchStats'], meta: { name: 'PlayerMatchStats' } }
+    /**
+     * Find zero or one PlayerMatchStats that matches the filter.
+     * @param {PlayerMatchStatsFindUniqueArgs} args - Arguments to find a PlayerMatchStats
+     * @example
+     * // Get one PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PlayerMatchStatsFindUniqueArgs>(args: SelectSubset<T, PlayerMatchStatsFindUniqueArgs<ExtArgs>>): Prisma__PlayerMatchStatsClient<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PlayerMatchStats that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PlayerMatchStatsFindUniqueOrThrowArgs} args - Arguments to find a PlayerMatchStats
+     * @example
+     * // Get one PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PlayerMatchStatsFindUniqueOrThrowArgs>(args: SelectSubset<T, PlayerMatchStatsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PlayerMatchStatsClient<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PlayerMatchStats that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerMatchStatsFindFirstArgs} args - Arguments to find a PlayerMatchStats
+     * @example
+     * // Get one PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PlayerMatchStatsFindFirstArgs>(args?: SelectSubset<T, PlayerMatchStatsFindFirstArgs<ExtArgs>>): Prisma__PlayerMatchStatsClient<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PlayerMatchStats that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerMatchStatsFindFirstOrThrowArgs} args - Arguments to find a PlayerMatchStats
+     * @example
+     * // Get one PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PlayerMatchStatsFindFirstOrThrowArgs>(args?: SelectSubset<T, PlayerMatchStatsFindFirstOrThrowArgs<ExtArgs>>): Prisma__PlayerMatchStatsClient<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PlayerMatchStats that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerMatchStatsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.findMany()
+     * 
+     * // Get first 10 PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const playerMatchStatsWithIdOnly = await prisma.playerMatchStats.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PlayerMatchStatsFindManyArgs>(args?: SelectSubset<T, PlayerMatchStatsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PlayerMatchStats.
+     * @param {PlayerMatchStatsCreateArgs} args - Arguments to create a PlayerMatchStats.
+     * @example
+     * // Create one PlayerMatchStats
+     * const PlayerMatchStats = await prisma.playerMatchStats.create({
+     *   data: {
+     *     // ... data to create a PlayerMatchStats
+     *   }
+     * })
+     * 
+     */
+    create<T extends PlayerMatchStatsCreateArgs>(args: SelectSubset<T, PlayerMatchStatsCreateArgs<ExtArgs>>): Prisma__PlayerMatchStatsClient<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PlayerMatchStats.
+     * @param {PlayerMatchStatsCreateManyArgs} args - Arguments to create many PlayerMatchStats.
+     * @example
+     * // Create many PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PlayerMatchStatsCreateManyArgs>(args?: SelectSubset<T, PlayerMatchStatsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PlayerMatchStats and returns the data saved in the database.
+     * @param {PlayerMatchStatsCreateManyAndReturnArgs} args - Arguments to create many PlayerMatchStats.
+     * @example
+     * // Create many PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PlayerMatchStats and only return the `id`
+     * const playerMatchStatsWithIdOnly = await prisma.playerMatchStats.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PlayerMatchStatsCreateManyAndReturnArgs>(args?: SelectSubset<T, PlayerMatchStatsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PlayerMatchStats.
+     * @param {PlayerMatchStatsDeleteArgs} args - Arguments to delete one PlayerMatchStats.
+     * @example
+     * // Delete one PlayerMatchStats
+     * const PlayerMatchStats = await prisma.playerMatchStats.delete({
+     *   where: {
+     *     // ... filter to delete one PlayerMatchStats
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PlayerMatchStatsDeleteArgs>(args: SelectSubset<T, PlayerMatchStatsDeleteArgs<ExtArgs>>): Prisma__PlayerMatchStatsClient<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PlayerMatchStats.
+     * @param {PlayerMatchStatsUpdateArgs} args - Arguments to update one PlayerMatchStats.
+     * @example
+     * // Update one PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PlayerMatchStatsUpdateArgs>(args: SelectSubset<T, PlayerMatchStatsUpdateArgs<ExtArgs>>): Prisma__PlayerMatchStatsClient<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PlayerMatchStats.
+     * @param {PlayerMatchStatsDeleteManyArgs} args - Arguments to filter PlayerMatchStats to delete.
+     * @example
+     * // Delete a few PlayerMatchStats
+     * const { count } = await prisma.playerMatchStats.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PlayerMatchStatsDeleteManyArgs>(args?: SelectSubset<T, PlayerMatchStatsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlayerMatchStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerMatchStatsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PlayerMatchStatsUpdateManyArgs>(args: SelectSubset<T, PlayerMatchStatsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlayerMatchStats and returns the data updated in the database.
+     * @param {PlayerMatchStatsUpdateManyAndReturnArgs} args - Arguments to update many PlayerMatchStats.
+     * @example
+     * // Update many PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PlayerMatchStats and only return the `id`
+     * const playerMatchStatsWithIdOnly = await prisma.playerMatchStats.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PlayerMatchStatsUpdateManyAndReturnArgs>(args: SelectSubset<T, PlayerMatchStatsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PlayerMatchStats.
+     * @param {PlayerMatchStatsUpsertArgs} args - Arguments to update or create a PlayerMatchStats.
+     * @example
+     * // Update or create a PlayerMatchStats
+     * const playerMatchStats = await prisma.playerMatchStats.upsert({
+     *   create: {
+     *     // ... data to create a PlayerMatchStats
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PlayerMatchStats we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PlayerMatchStatsUpsertArgs>(args: SelectSubset<T, PlayerMatchStatsUpsertArgs<ExtArgs>>): Prisma__PlayerMatchStatsClient<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PlayerMatchStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerMatchStatsCountArgs} args - Arguments to filter PlayerMatchStats to count.
+     * @example
+     * // Count the number of PlayerMatchStats
+     * const count = await prisma.playerMatchStats.count({
+     *   where: {
+     *     // ... the filter for the PlayerMatchStats we want to count
+     *   }
+     * })
+    **/
+    count<T extends PlayerMatchStatsCountArgs>(
+      args?: Subset<T, PlayerMatchStatsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PlayerMatchStatsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PlayerMatchStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerMatchStatsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PlayerMatchStatsAggregateArgs>(args: Subset<T, PlayerMatchStatsAggregateArgs>): Prisma.PrismaPromise<GetPlayerMatchStatsAggregateType<T>>
+
+    /**
+     * Group by PlayerMatchStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerMatchStatsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PlayerMatchStatsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PlayerMatchStatsGroupByArgs['orderBy'] }
+        : { orderBy?: PlayerMatchStatsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PlayerMatchStatsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPlayerMatchStatsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PlayerMatchStats model
+   */
+  readonly fields: PlayerMatchStatsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PlayerMatchStats.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PlayerMatchStatsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    player<T extends PlayerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PlayerDefaultArgs<ExtArgs>>): Prisma__PlayerClient<$Result.GetResult<Prisma.$PlayerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    game<T extends GameDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GameDefaultArgs<ExtArgs>>): Prisma__GameClient<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PlayerMatchStats model
+   */
+  interface PlayerMatchStatsFieldRefs {
+    readonly id: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly playerId: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly gameId: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly minutesPlayed: FieldRef<"PlayerMatchStats", 'Float'>
+    readonly performanceRating: FieldRef<"PlayerMatchStats", 'Float'>
+    readonly camaraderieContribution: FieldRef<"PlayerMatchStats", 'Float'>
+    readonly scores: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly assists: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly passAttempts: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly passCompletions: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly passingYards: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly perfectPasses: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly rushingYards: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly breakawayRuns: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly catches: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly receivingYards: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly drops: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly tackles: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly tackleAttempts: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly knockdowns: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly blocks: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly injuriesInflicted: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly interceptions: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly ballStrips: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly passDeflections: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly fumblesLost: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly ballRetention: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly distanceCovered: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly staminaUsed: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly ballPossessionTime: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly pressureApplied: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly injuries: FieldRef<"PlayerMatchStats", 'Int'>
+    readonly matchDate: FieldRef<"PlayerMatchStats", 'DateTime'>
+    readonly matchType: FieldRef<"PlayerMatchStats", 'MatchType'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PlayerMatchStats findUnique
+   */
+  export type PlayerMatchStatsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerMatchStats to fetch.
+     */
+    where: PlayerMatchStatsWhereUniqueInput
+  }
+
+  /**
+   * PlayerMatchStats findUniqueOrThrow
+   */
+  export type PlayerMatchStatsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerMatchStats to fetch.
+     */
+    where: PlayerMatchStatsWhereUniqueInput
+  }
+
+  /**
+   * PlayerMatchStats findFirst
+   */
+  export type PlayerMatchStatsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerMatchStats to fetch.
+     */
+    where?: PlayerMatchStatsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerMatchStats to fetch.
+     */
+    orderBy?: PlayerMatchStatsOrderByWithRelationInput | PlayerMatchStatsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlayerMatchStats.
+     */
+    cursor?: PlayerMatchStatsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerMatchStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerMatchStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlayerMatchStats.
+     */
+    distinct?: PlayerMatchStatsScalarFieldEnum | PlayerMatchStatsScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerMatchStats findFirstOrThrow
+   */
+  export type PlayerMatchStatsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerMatchStats to fetch.
+     */
+    where?: PlayerMatchStatsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerMatchStats to fetch.
+     */
+    orderBy?: PlayerMatchStatsOrderByWithRelationInput | PlayerMatchStatsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlayerMatchStats.
+     */
+    cursor?: PlayerMatchStatsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerMatchStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerMatchStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlayerMatchStats.
+     */
+    distinct?: PlayerMatchStatsScalarFieldEnum | PlayerMatchStatsScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerMatchStats findMany
+   */
+  export type PlayerMatchStatsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerMatchStats to fetch.
+     */
+    where?: PlayerMatchStatsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerMatchStats to fetch.
+     */
+    orderBy?: PlayerMatchStatsOrderByWithRelationInput | PlayerMatchStatsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PlayerMatchStats.
+     */
+    cursor?: PlayerMatchStatsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerMatchStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerMatchStats.
+     */
+    skip?: number
+    distinct?: PlayerMatchStatsScalarFieldEnum | PlayerMatchStatsScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerMatchStats create
+   */
+  export type PlayerMatchStatsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PlayerMatchStats.
+     */
+    data: XOR<PlayerMatchStatsCreateInput, PlayerMatchStatsUncheckedCreateInput>
+  }
+
+  /**
+   * PlayerMatchStats createMany
+   */
+  export type PlayerMatchStatsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PlayerMatchStats.
+     */
+    data: PlayerMatchStatsCreateManyInput | PlayerMatchStatsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PlayerMatchStats createManyAndReturn
+   */
+  export type PlayerMatchStatsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * The data used to create many PlayerMatchStats.
+     */
+    data: PlayerMatchStatsCreateManyInput | PlayerMatchStatsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlayerMatchStats update
+   */
+  export type PlayerMatchStatsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PlayerMatchStats.
+     */
+    data: XOR<PlayerMatchStatsUpdateInput, PlayerMatchStatsUncheckedUpdateInput>
+    /**
+     * Choose, which PlayerMatchStats to update.
+     */
+    where: PlayerMatchStatsWhereUniqueInput
+  }
+
+  /**
+   * PlayerMatchStats updateMany
+   */
+  export type PlayerMatchStatsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PlayerMatchStats.
+     */
+    data: XOR<PlayerMatchStatsUpdateManyMutationInput, PlayerMatchStatsUncheckedUpdateManyInput>
+    /**
+     * Filter which PlayerMatchStats to update
+     */
+    where?: PlayerMatchStatsWhereInput
+    /**
+     * Limit how many PlayerMatchStats to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PlayerMatchStats updateManyAndReturn
+   */
+  export type PlayerMatchStatsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * The data used to update PlayerMatchStats.
+     */
+    data: XOR<PlayerMatchStatsUpdateManyMutationInput, PlayerMatchStatsUncheckedUpdateManyInput>
+    /**
+     * Filter which PlayerMatchStats to update
+     */
+    where?: PlayerMatchStatsWhereInput
+    /**
+     * Limit how many PlayerMatchStats to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlayerMatchStats upsert
+   */
+  export type PlayerMatchStatsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PlayerMatchStats to update in case it exists.
+     */
+    where: PlayerMatchStatsWhereUniqueInput
+    /**
+     * In case the PlayerMatchStats found by the `where` argument doesn't exist, create a new PlayerMatchStats with this data.
+     */
+    create: XOR<PlayerMatchStatsCreateInput, PlayerMatchStatsUncheckedCreateInput>
+    /**
+     * In case the PlayerMatchStats was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PlayerMatchStatsUpdateInput, PlayerMatchStatsUncheckedUpdateInput>
+  }
+
+  /**
+   * PlayerMatchStats delete
+   */
+  export type PlayerMatchStatsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter which PlayerMatchStats to delete.
+     */
+    where: PlayerMatchStatsWhereUniqueInput
+  }
+
+  /**
+   * PlayerMatchStats deleteMany
+   */
+  export type PlayerMatchStatsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlayerMatchStats to delete
+     */
+    where?: PlayerMatchStatsWhereInput
+    /**
+     * Limit how many PlayerMatchStats to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PlayerMatchStats without action
+   */
+  export type PlayerMatchStatsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerMatchStats
+     */
+    select?: PlayerMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerMatchStats
+     */
+    omit?: PlayerMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerMatchStatsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model TeamMatchStats
+   */
+
+  export type AggregateTeamMatchStats = {
+    _count: TeamMatchStatsCountAggregateOutputType | null
+    _avg: TeamMatchStatsAvgAggregateOutputType | null
+    _sum: TeamMatchStatsSumAggregateOutputType | null
+    _min: TeamMatchStatsMinAggregateOutputType | null
+    _max: TeamMatchStatsMaxAggregateOutputType | null
+  }
+
+  export type TeamMatchStatsAvgAggregateOutputType = {
+    id: number | null
+    teamId: number | null
+    gameId: number | null
+    timeOfPossession: number | null
+    possessionPercentage: number | null
+    averageFieldPosition: number | null
+    territoryGained: number | null
+    totalScore: number | null
+    totalPassingYards: number | null
+    totalRushingYards: number | null
+    totalOffensiveYards: number | null
+    passingAccuracy: number | null
+    ballRetentionRate: number | null
+    scoringOpportunities: number | null
+    scoringEfficiency: number | null
+    totalTackles: number | null
+    totalKnockdowns: number | null
+    totalBlocks: number | null
+    totalInjuriesInflicted: number | null
+    totalInterceptions: number | null
+    totalBallStrips: number | null
+    passDeflections: number | null
+    defensiveStops: number | null
+    totalFumbles: number | null
+    turnoverDifferential: number | null
+    physicalDominance: number | null
+    ballSecurityRating: number | null
+    homeFieldAdvantage: number | null
+    crowdIntensity: number | null
+    domeReverberation: number | null
+    camaraderieTeamBonus: number | null
+    tacticalEffectiveness: number | null
+    equipmentAdvantage: number | null
+    physicalConditioning: number | null
+  }
+
+  export type TeamMatchStatsSumAggregateOutputType = {
+    id: number | null
+    teamId: number | null
+    gameId: number | null
+    timeOfPossession: number | null
+    possessionPercentage: number | null
+    averageFieldPosition: number | null
+    territoryGained: number | null
+    totalScore: number | null
+    totalPassingYards: number | null
+    totalRushingYards: number | null
+    totalOffensiveYards: number | null
+    passingAccuracy: number | null
+    ballRetentionRate: number | null
+    scoringOpportunities: number | null
+    scoringEfficiency: number | null
+    totalTackles: number | null
+    totalKnockdowns: number | null
+    totalBlocks: number | null
+    totalInjuriesInflicted: number | null
+    totalInterceptions: number | null
+    totalBallStrips: number | null
+    passDeflections: number | null
+    defensiveStops: number | null
+    totalFumbles: number | null
+    turnoverDifferential: number | null
+    physicalDominance: number | null
+    ballSecurityRating: number | null
+    homeFieldAdvantage: number | null
+    crowdIntensity: number | null
+    domeReverberation: number | null
+    camaraderieTeamBonus: number | null
+    tacticalEffectiveness: number | null
+    equipmentAdvantage: number | null
+    physicalConditioning: number | null
+  }
+
+  export type TeamMatchStatsMinAggregateOutputType = {
+    id: number | null
+    teamId: number | null
+    gameId: number | null
+    timeOfPossession: number | null
+    possessionPercentage: number | null
+    averageFieldPosition: number | null
+    territoryGained: number | null
+    totalScore: number | null
+    totalPassingYards: number | null
+    totalRushingYards: number | null
+    totalOffensiveYards: number | null
+    passingAccuracy: number | null
+    ballRetentionRate: number | null
+    scoringOpportunities: number | null
+    scoringEfficiency: number | null
+    totalTackles: number | null
+    totalKnockdowns: number | null
+    totalBlocks: number | null
+    totalInjuriesInflicted: number | null
+    totalInterceptions: number | null
+    totalBallStrips: number | null
+    passDeflections: number | null
+    defensiveStops: number | null
+    totalFumbles: number | null
+    turnoverDifferential: number | null
+    physicalDominance: number | null
+    ballSecurityRating: number | null
+    homeFieldAdvantage: number | null
+    crowdIntensity: number | null
+    domeReverberation: number | null
+    camaraderieTeamBonus: number | null
+    tacticalEffectiveness: number | null
+    equipmentAdvantage: number | null
+    physicalConditioning: number | null
+    matchDate: Date | null
+    matchType: $Enums.MatchType | null
+  }
+
+  export type TeamMatchStatsMaxAggregateOutputType = {
+    id: number | null
+    teamId: number | null
+    gameId: number | null
+    timeOfPossession: number | null
+    possessionPercentage: number | null
+    averageFieldPosition: number | null
+    territoryGained: number | null
+    totalScore: number | null
+    totalPassingYards: number | null
+    totalRushingYards: number | null
+    totalOffensiveYards: number | null
+    passingAccuracy: number | null
+    ballRetentionRate: number | null
+    scoringOpportunities: number | null
+    scoringEfficiency: number | null
+    totalTackles: number | null
+    totalKnockdowns: number | null
+    totalBlocks: number | null
+    totalInjuriesInflicted: number | null
+    totalInterceptions: number | null
+    totalBallStrips: number | null
+    passDeflections: number | null
+    defensiveStops: number | null
+    totalFumbles: number | null
+    turnoverDifferential: number | null
+    physicalDominance: number | null
+    ballSecurityRating: number | null
+    homeFieldAdvantage: number | null
+    crowdIntensity: number | null
+    domeReverberation: number | null
+    camaraderieTeamBonus: number | null
+    tacticalEffectiveness: number | null
+    equipmentAdvantage: number | null
+    physicalConditioning: number | null
+    matchDate: Date | null
+    matchType: $Enums.MatchType | null
+  }
+
+  export type TeamMatchStatsCountAggregateOutputType = {
+    id: number
+    teamId: number
+    gameId: number
+    timeOfPossession: number
+    possessionPercentage: number
+    averageFieldPosition: number
+    territoryGained: number
+    totalScore: number
+    totalPassingYards: number
+    totalRushingYards: number
+    totalOffensiveYards: number
+    passingAccuracy: number
+    ballRetentionRate: number
+    scoringOpportunities: number
+    scoringEfficiency: number
+    totalTackles: number
+    totalKnockdowns: number
+    totalBlocks: number
+    totalInjuriesInflicted: number
+    totalInterceptions: number
+    totalBallStrips: number
+    passDeflections: number
+    defensiveStops: number
+    totalFumbles: number
+    turnoverDifferential: number
+    physicalDominance: number
+    ballSecurityRating: number
+    homeFieldAdvantage: number
+    crowdIntensity: number
+    domeReverberation: number
+    camaraderieTeamBonus: number
+    tacticalEffectiveness: number
+    equipmentAdvantage: number
+    physicalConditioning: number
+    matchDate: number
+    matchType: number
+    _all: number
+  }
+
+
+  export type TeamMatchStatsAvgAggregateInputType = {
+    id?: true
+    teamId?: true
+    gameId?: true
+    timeOfPossession?: true
+    possessionPercentage?: true
+    averageFieldPosition?: true
+    territoryGained?: true
+    totalScore?: true
+    totalPassingYards?: true
+    totalRushingYards?: true
+    totalOffensiveYards?: true
+    passingAccuracy?: true
+    ballRetentionRate?: true
+    scoringOpportunities?: true
+    scoringEfficiency?: true
+    totalTackles?: true
+    totalKnockdowns?: true
+    totalBlocks?: true
+    totalInjuriesInflicted?: true
+    totalInterceptions?: true
+    totalBallStrips?: true
+    passDeflections?: true
+    defensiveStops?: true
+    totalFumbles?: true
+    turnoverDifferential?: true
+    physicalDominance?: true
+    ballSecurityRating?: true
+    homeFieldAdvantage?: true
+    crowdIntensity?: true
+    domeReverberation?: true
+    camaraderieTeamBonus?: true
+    tacticalEffectiveness?: true
+    equipmentAdvantage?: true
+    physicalConditioning?: true
+  }
+
+  export type TeamMatchStatsSumAggregateInputType = {
+    id?: true
+    teamId?: true
+    gameId?: true
+    timeOfPossession?: true
+    possessionPercentage?: true
+    averageFieldPosition?: true
+    territoryGained?: true
+    totalScore?: true
+    totalPassingYards?: true
+    totalRushingYards?: true
+    totalOffensiveYards?: true
+    passingAccuracy?: true
+    ballRetentionRate?: true
+    scoringOpportunities?: true
+    scoringEfficiency?: true
+    totalTackles?: true
+    totalKnockdowns?: true
+    totalBlocks?: true
+    totalInjuriesInflicted?: true
+    totalInterceptions?: true
+    totalBallStrips?: true
+    passDeflections?: true
+    defensiveStops?: true
+    totalFumbles?: true
+    turnoverDifferential?: true
+    physicalDominance?: true
+    ballSecurityRating?: true
+    homeFieldAdvantage?: true
+    crowdIntensity?: true
+    domeReverberation?: true
+    camaraderieTeamBonus?: true
+    tacticalEffectiveness?: true
+    equipmentAdvantage?: true
+    physicalConditioning?: true
+  }
+
+  export type TeamMatchStatsMinAggregateInputType = {
+    id?: true
+    teamId?: true
+    gameId?: true
+    timeOfPossession?: true
+    possessionPercentage?: true
+    averageFieldPosition?: true
+    territoryGained?: true
+    totalScore?: true
+    totalPassingYards?: true
+    totalRushingYards?: true
+    totalOffensiveYards?: true
+    passingAccuracy?: true
+    ballRetentionRate?: true
+    scoringOpportunities?: true
+    scoringEfficiency?: true
+    totalTackles?: true
+    totalKnockdowns?: true
+    totalBlocks?: true
+    totalInjuriesInflicted?: true
+    totalInterceptions?: true
+    totalBallStrips?: true
+    passDeflections?: true
+    defensiveStops?: true
+    totalFumbles?: true
+    turnoverDifferential?: true
+    physicalDominance?: true
+    ballSecurityRating?: true
+    homeFieldAdvantage?: true
+    crowdIntensity?: true
+    domeReverberation?: true
+    camaraderieTeamBonus?: true
+    tacticalEffectiveness?: true
+    equipmentAdvantage?: true
+    physicalConditioning?: true
+    matchDate?: true
+    matchType?: true
+  }
+
+  export type TeamMatchStatsMaxAggregateInputType = {
+    id?: true
+    teamId?: true
+    gameId?: true
+    timeOfPossession?: true
+    possessionPercentage?: true
+    averageFieldPosition?: true
+    territoryGained?: true
+    totalScore?: true
+    totalPassingYards?: true
+    totalRushingYards?: true
+    totalOffensiveYards?: true
+    passingAccuracy?: true
+    ballRetentionRate?: true
+    scoringOpportunities?: true
+    scoringEfficiency?: true
+    totalTackles?: true
+    totalKnockdowns?: true
+    totalBlocks?: true
+    totalInjuriesInflicted?: true
+    totalInterceptions?: true
+    totalBallStrips?: true
+    passDeflections?: true
+    defensiveStops?: true
+    totalFumbles?: true
+    turnoverDifferential?: true
+    physicalDominance?: true
+    ballSecurityRating?: true
+    homeFieldAdvantage?: true
+    crowdIntensity?: true
+    domeReverberation?: true
+    camaraderieTeamBonus?: true
+    tacticalEffectiveness?: true
+    equipmentAdvantage?: true
+    physicalConditioning?: true
+    matchDate?: true
+    matchType?: true
+  }
+
+  export type TeamMatchStatsCountAggregateInputType = {
+    id?: true
+    teamId?: true
+    gameId?: true
+    timeOfPossession?: true
+    possessionPercentage?: true
+    averageFieldPosition?: true
+    territoryGained?: true
+    totalScore?: true
+    totalPassingYards?: true
+    totalRushingYards?: true
+    totalOffensiveYards?: true
+    passingAccuracy?: true
+    ballRetentionRate?: true
+    scoringOpportunities?: true
+    scoringEfficiency?: true
+    totalTackles?: true
+    totalKnockdowns?: true
+    totalBlocks?: true
+    totalInjuriesInflicted?: true
+    totalInterceptions?: true
+    totalBallStrips?: true
+    passDeflections?: true
+    defensiveStops?: true
+    totalFumbles?: true
+    turnoverDifferential?: true
+    physicalDominance?: true
+    ballSecurityRating?: true
+    homeFieldAdvantage?: true
+    crowdIntensity?: true
+    domeReverberation?: true
+    camaraderieTeamBonus?: true
+    tacticalEffectiveness?: true
+    equipmentAdvantage?: true
+    physicalConditioning?: true
+    matchDate?: true
+    matchType?: true
+    _all?: true
+  }
+
+  export type TeamMatchStatsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TeamMatchStats to aggregate.
+     */
+    where?: TeamMatchStatsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TeamMatchStats to fetch.
+     */
+    orderBy?: TeamMatchStatsOrderByWithRelationInput | TeamMatchStatsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TeamMatchStatsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TeamMatchStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TeamMatchStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned TeamMatchStats
+    **/
+    _count?: true | TeamMatchStatsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TeamMatchStatsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TeamMatchStatsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TeamMatchStatsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TeamMatchStatsMaxAggregateInputType
+  }
+
+  export type GetTeamMatchStatsAggregateType<T extends TeamMatchStatsAggregateArgs> = {
+        [P in keyof T & keyof AggregateTeamMatchStats]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTeamMatchStats[P]>
+      : GetScalarType<T[P], AggregateTeamMatchStats[P]>
+  }
+
+
+
+
+  export type TeamMatchStatsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TeamMatchStatsWhereInput
+    orderBy?: TeamMatchStatsOrderByWithAggregationInput | TeamMatchStatsOrderByWithAggregationInput[]
+    by: TeamMatchStatsScalarFieldEnum[] | TeamMatchStatsScalarFieldEnum
+    having?: TeamMatchStatsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TeamMatchStatsCountAggregateInputType | true
+    _avg?: TeamMatchStatsAvgAggregateInputType
+    _sum?: TeamMatchStatsSumAggregateInputType
+    _min?: TeamMatchStatsMinAggregateInputType
+    _max?: TeamMatchStatsMaxAggregateInputType
+  }
+
+  export type TeamMatchStatsGroupByOutputType = {
+    id: number
+    teamId: number
+    gameId: number
+    timeOfPossession: number
+    possessionPercentage: number
+    averageFieldPosition: number
+    territoryGained: number
+    totalScore: number
+    totalPassingYards: number
+    totalRushingYards: number
+    totalOffensiveYards: number
+    passingAccuracy: number
+    ballRetentionRate: number
+    scoringOpportunities: number
+    scoringEfficiency: number
+    totalTackles: number
+    totalKnockdowns: number
+    totalBlocks: number
+    totalInjuriesInflicted: number
+    totalInterceptions: number
+    totalBallStrips: number
+    passDeflections: number
+    defensiveStops: number
+    totalFumbles: number
+    turnoverDifferential: number
+    physicalDominance: number
+    ballSecurityRating: number
+    homeFieldAdvantage: number
+    crowdIntensity: number
+    domeReverberation: number
+    camaraderieTeamBonus: number
+    tacticalEffectiveness: number
+    equipmentAdvantage: number
+    physicalConditioning: number
+    matchDate: Date
+    matchType: $Enums.MatchType
+    _count: TeamMatchStatsCountAggregateOutputType | null
+    _avg: TeamMatchStatsAvgAggregateOutputType | null
+    _sum: TeamMatchStatsSumAggregateOutputType | null
+    _min: TeamMatchStatsMinAggregateOutputType | null
+    _max: TeamMatchStatsMaxAggregateOutputType | null
+  }
+
+  type GetTeamMatchStatsGroupByPayload<T extends TeamMatchStatsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TeamMatchStatsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TeamMatchStatsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TeamMatchStatsGroupByOutputType[P]>
+            : GetScalarType<T[P], TeamMatchStatsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TeamMatchStatsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    teamId?: boolean
+    gameId?: boolean
+    timeOfPossession?: boolean
+    possessionPercentage?: boolean
+    averageFieldPosition?: boolean
+    territoryGained?: boolean
+    totalScore?: boolean
+    totalPassingYards?: boolean
+    totalRushingYards?: boolean
+    totalOffensiveYards?: boolean
+    passingAccuracy?: boolean
+    ballRetentionRate?: boolean
+    scoringOpportunities?: boolean
+    scoringEfficiency?: boolean
+    totalTackles?: boolean
+    totalKnockdowns?: boolean
+    totalBlocks?: boolean
+    totalInjuriesInflicted?: boolean
+    totalInterceptions?: boolean
+    totalBallStrips?: boolean
+    passDeflections?: boolean
+    defensiveStops?: boolean
+    totalFumbles?: boolean
+    turnoverDifferential?: boolean
+    physicalDominance?: boolean
+    ballSecurityRating?: boolean
+    homeFieldAdvantage?: boolean
+    crowdIntensity?: boolean
+    domeReverberation?: boolean
+    camaraderieTeamBonus?: boolean
+    tacticalEffectiveness?: boolean
+    equipmentAdvantage?: boolean
+    physicalConditioning?: boolean
+    matchDate?: boolean
+    matchType?: boolean
+    team?: boolean | TeamDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["teamMatchStats"]>
+
+  export type TeamMatchStatsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    teamId?: boolean
+    gameId?: boolean
+    timeOfPossession?: boolean
+    possessionPercentage?: boolean
+    averageFieldPosition?: boolean
+    territoryGained?: boolean
+    totalScore?: boolean
+    totalPassingYards?: boolean
+    totalRushingYards?: boolean
+    totalOffensiveYards?: boolean
+    passingAccuracy?: boolean
+    ballRetentionRate?: boolean
+    scoringOpportunities?: boolean
+    scoringEfficiency?: boolean
+    totalTackles?: boolean
+    totalKnockdowns?: boolean
+    totalBlocks?: boolean
+    totalInjuriesInflicted?: boolean
+    totalInterceptions?: boolean
+    totalBallStrips?: boolean
+    passDeflections?: boolean
+    defensiveStops?: boolean
+    totalFumbles?: boolean
+    turnoverDifferential?: boolean
+    physicalDominance?: boolean
+    ballSecurityRating?: boolean
+    homeFieldAdvantage?: boolean
+    crowdIntensity?: boolean
+    domeReverberation?: boolean
+    camaraderieTeamBonus?: boolean
+    tacticalEffectiveness?: boolean
+    equipmentAdvantage?: boolean
+    physicalConditioning?: boolean
+    matchDate?: boolean
+    matchType?: boolean
+    team?: boolean | TeamDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["teamMatchStats"]>
+
+  export type TeamMatchStatsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    teamId?: boolean
+    gameId?: boolean
+    timeOfPossession?: boolean
+    possessionPercentage?: boolean
+    averageFieldPosition?: boolean
+    territoryGained?: boolean
+    totalScore?: boolean
+    totalPassingYards?: boolean
+    totalRushingYards?: boolean
+    totalOffensiveYards?: boolean
+    passingAccuracy?: boolean
+    ballRetentionRate?: boolean
+    scoringOpportunities?: boolean
+    scoringEfficiency?: boolean
+    totalTackles?: boolean
+    totalKnockdowns?: boolean
+    totalBlocks?: boolean
+    totalInjuriesInflicted?: boolean
+    totalInterceptions?: boolean
+    totalBallStrips?: boolean
+    passDeflections?: boolean
+    defensiveStops?: boolean
+    totalFumbles?: boolean
+    turnoverDifferential?: boolean
+    physicalDominance?: boolean
+    ballSecurityRating?: boolean
+    homeFieldAdvantage?: boolean
+    crowdIntensity?: boolean
+    domeReverberation?: boolean
+    camaraderieTeamBonus?: boolean
+    tacticalEffectiveness?: boolean
+    equipmentAdvantage?: boolean
+    physicalConditioning?: boolean
+    matchDate?: boolean
+    matchType?: boolean
+    team?: boolean | TeamDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["teamMatchStats"]>
+
+  export type TeamMatchStatsSelectScalar = {
+    id?: boolean
+    teamId?: boolean
+    gameId?: boolean
+    timeOfPossession?: boolean
+    possessionPercentage?: boolean
+    averageFieldPosition?: boolean
+    territoryGained?: boolean
+    totalScore?: boolean
+    totalPassingYards?: boolean
+    totalRushingYards?: boolean
+    totalOffensiveYards?: boolean
+    passingAccuracy?: boolean
+    ballRetentionRate?: boolean
+    scoringOpportunities?: boolean
+    scoringEfficiency?: boolean
+    totalTackles?: boolean
+    totalKnockdowns?: boolean
+    totalBlocks?: boolean
+    totalInjuriesInflicted?: boolean
+    totalInterceptions?: boolean
+    totalBallStrips?: boolean
+    passDeflections?: boolean
+    defensiveStops?: boolean
+    totalFumbles?: boolean
+    turnoverDifferential?: boolean
+    physicalDominance?: boolean
+    ballSecurityRating?: boolean
+    homeFieldAdvantage?: boolean
+    crowdIntensity?: boolean
+    domeReverberation?: boolean
+    camaraderieTeamBonus?: boolean
+    tacticalEffectiveness?: boolean
+    equipmentAdvantage?: boolean
+    physicalConditioning?: boolean
+    matchDate?: boolean
+    matchType?: boolean
+  }
+
+  export type TeamMatchStatsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "teamId" | "gameId" | "timeOfPossession" | "possessionPercentage" | "averageFieldPosition" | "territoryGained" | "totalScore" | "totalPassingYards" | "totalRushingYards" | "totalOffensiveYards" | "passingAccuracy" | "ballRetentionRate" | "scoringOpportunities" | "scoringEfficiency" | "totalTackles" | "totalKnockdowns" | "totalBlocks" | "totalInjuriesInflicted" | "totalInterceptions" | "totalBallStrips" | "passDeflections" | "defensiveStops" | "totalFumbles" | "turnoverDifferential" | "physicalDominance" | "ballSecurityRating" | "homeFieldAdvantage" | "crowdIntensity" | "domeReverberation" | "camaraderieTeamBonus" | "tacticalEffectiveness" | "equipmentAdvantage" | "physicalConditioning" | "matchDate" | "matchType", ExtArgs["result"]["teamMatchStats"]>
+  export type TeamMatchStatsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    team?: boolean | TeamDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type TeamMatchStatsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    team?: boolean | TeamDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+  export type TeamMatchStatsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    team?: boolean | TeamDefaultArgs<ExtArgs>
+    game?: boolean | GameDefaultArgs<ExtArgs>
+  }
+
+  export type $TeamMatchStatsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "TeamMatchStats"
+    objects: {
+      team: Prisma.$TeamPayload<ExtArgs>
+      game: Prisma.$GamePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      teamId: number
+      gameId: number
+      timeOfPossession: number
+      possessionPercentage: number
+      averageFieldPosition: number
+      territoryGained: number
+      totalScore: number
+      totalPassingYards: number
+      totalRushingYards: number
+      totalOffensiveYards: number
+      passingAccuracy: number
+      ballRetentionRate: number
+      scoringOpportunities: number
+      scoringEfficiency: number
+      totalTackles: number
+      totalKnockdowns: number
+      totalBlocks: number
+      totalInjuriesInflicted: number
+      totalInterceptions: number
+      totalBallStrips: number
+      passDeflections: number
+      defensiveStops: number
+      totalFumbles: number
+      turnoverDifferential: number
+      physicalDominance: number
+      ballSecurityRating: number
+      homeFieldAdvantage: number
+      crowdIntensity: number
+      domeReverberation: number
+      camaraderieTeamBonus: number
+      tacticalEffectiveness: number
+      equipmentAdvantage: number
+      physicalConditioning: number
+      matchDate: Date
+      matchType: $Enums.MatchType
+    }, ExtArgs["result"]["teamMatchStats"]>
+    composites: {}
+  }
+
+  type TeamMatchStatsGetPayload<S extends boolean | null | undefined | TeamMatchStatsDefaultArgs> = $Result.GetResult<Prisma.$TeamMatchStatsPayload, S>
+
+  type TeamMatchStatsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<TeamMatchStatsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TeamMatchStatsCountAggregateInputType | true
+    }
+
+  export interface TeamMatchStatsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TeamMatchStats'], meta: { name: 'TeamMatchStats' } }
+    /**
+     * Find zero or one TeamMatchStats that matches the filter.
+     * @param {TeamMatchStatsFindUniqueArgs} args - Arguments to find a TeamMatchStats
+     * @example
+     * // Get one TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TeamMatchStatsFindUniqueArgs>(args: SelectSubset<T, TeamMatchStatsFindUniqueArgs<ExtArgs>>): Prisma__TeamMatchStatsClient<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one TeamMatchStats that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TeamMatchStatsFindUniqueOrThrowArgs} args - Arguments to find a TeamMatchStats
+     * @example
+     * // Get one TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TeamMatchStatsFindUniqueOrThrowArgs>(args: SelectSubset<T, TeamMatchStatsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TeamMatchStatsClient<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TeamMatchStats that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamMatchStatsFindFirstArgs} args - Arguments to find a TeamMatchStats
+     * @example
+     * // Get one TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TeamMatchStatsFindFirstArgs>(args?: SelectSubset<T, TeamMatchStatsFindFirstArgs<ExtArgs>>): Prisma__TeamMatchStatsClient<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first TeamMatchStats that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamMatchStatsFindFirstOrThrowArgs} args - Arguments to find a TeamMatchStats
+     * @example
+     * // Get one TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TeamMatchStatsFindFirstOrThrowArgs>(args?: SelectSubset<T, TeamMatchStatsFindFirstOrThrowArgs<ExtArgs>>): Prisma__TeamMatchStatsClient<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more TeamMatchStats that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamMatchStatsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.findMany()
+     * 
+     * // Get first 10 TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const teamMatchStatsWithIdOnly = await prisma.teamMatchStats.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TeamMatchStatsFindManyArgs>(args?: SelectSubset<T, TeamMatchStatsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a TeamMatchStats.
+     * @param {TeamMatchStatsCreateArgs} args - Arguments to create a TeamMatchStats.
+     * @example
+     * // Create one TeamMatchStats
+     * const TeamMatchStats = await prisma.teamMatchStats.create({
+     *   data: {
+     *     // ... data to create a TeamMatchStats
+     *   }
+     * })
+     * 
+     */
+    create<T extends TeamMatchStatsCreateArgs>(args: SelectSubset<T, TeamMatchStatsCreateArgs<ExtArgs>>): Prisma__TeamMatchStatsClient<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many TeamMatchStats.
+     * @param {TeamMatchStatsCreateManyArgs} args - Arguments to create many TeamMatchStats.
+     * @example
+     * // Create many TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TeamMatchStatsCreateManyArgs>(args?: SelectSubset<T, TeamMatchStatsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many TeamMatchStats and returns the data saved in the database.
+     * @param {TeamMatchStatsCreateManyAndReturnArgs} args - Arguments to create many TeamMatchStats.
+     * @example
+     * // Create many TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many TeamMatchStats and only return the `id`
+     * const teamMatchStatsWithIdOnly = await prisma.teamMatchStats.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TeamMatchStatsCreateManyAndReturnArgs>(args?: SelectSubset<T, TeamMatchStatsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a TeamMatchStats.
+     * @param {TeamMatchStatsDeleteArgs} args - Arguments to delete one TeamMatchStats.
+     * @example
+     * // Delete one TeamMatchStats
+     * const TeamMatchStats = await prisma.teamMatchStats.delete({
+     *   where: {
+     *     // ... filter to delete one TeamMatchStats
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TeamMatchStatsDeleteArgs>(args: SelectSubset<T, TeamMatchStatsDeleteArgs<ExtArgs>>): Prisma__TeamMatchStatsClient<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one TeamMatchStats.
+     * @param {TeamMatchStatsUpdateArgs} args - Arguments to update one TeamMatchStats.
+     * @example
+     * // Update one TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TeamMatchStatsUpdateArgs>(args: SelectSubset<T, TeamMatchStatsUpdateArgs<ExtArgs>>): Prisma__TeamMatchStatsClient<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more TeamMatchStats.
+     * @param {TeamMatchStatsDeleteManyArgs} args - Arguments to filter TeamMatchStats to delete.
+     * @example
+     * // Delete a few TeamMatchStats
+     * const { count } = await prisma.teamMatchStats.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TeamMatchStatsDeleteManyArgs>(args?: SelectSubset<T, TeamMatchStatsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TeamMatchStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamMatchStatsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TeamMatchStatsUpdateManyArgs>(args: SelectSubset<T, TeamMatchStatsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more TeamMatchStats and returns the data updated in the database.
+     * @param {TeamMatchStatsUpdateManyAndReturnArgs} args - Arguments to update many TeamMatchStats.
+     * @example
+     * // Update many TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more TeamMatchStats and only return the `id`
+     * const teamMatchStatsWithIdOnly = await prisma.teamMatchStats.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends TeamMatchStatsUpdateManyAndReturnArgs>(args: SelectSubset<T, TeamMatchStatsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one TeamMatchStats.
+     * @param {TeamMatchStatsUpsertArgs} args - Arguments to update or create a TeamMatchStats.
+     * @example
+     * // Update or create a TeamMatchStats
+     * const teamMatchStats = await prisma.teamMatchStats.upsert({
+     *   create: {
+     *     // ... data to create a TeamMatchStats
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TeamMatchStats we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TeamMatchStatsUpsertArgs>(args: SelectSubset<T, TeamMatchStatsUpsertArgs<ExtArgs>>): Prisma__TeamMatchStatsClient<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of TeamMatchStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamMatchStatsCountArgs} args - Arguments to filter TeamMatchStats to count.
+     * @example
+     * // Count the number of TeamMatchStats
+     * const count = await prisma.teamMatchStats.count({
+     *   where: {
+     *     // ... the filter for the TeamMatchStats we want to count
+     *   }
+     * })
+    **/
+    count<T extends TeamMatchStatsCountArgs>(
+      args?: Subset<T, TeamMatchStatsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TeamMatchStatsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a TeamMatchStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamMatchStatsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TeamMatchStatsAggregateArgs>(args: Subset<T, TeamMatchStatsAggregateArgs>): Prisma.PrismaPromise<GetTeamMatchStatsAggregateType<T>>
+
+    /**
+     * Group by TeamMatchStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamMatchStatsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TeamMatchStatsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TeamMatchStatsGroupByArgs['orderBy'] }
+        : { orderBy?: TeamMatchStatsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TeamMatchStatsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTeamMatchStatsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the TeamMatchStats model
+   */
+  readonly fields: TeamMatchStatsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for TeamMatchStats.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TeamMatchStatsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    team<T extends TeamDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TeamDefaultArgs<ExtArgs>>): Prisma__TeamClient<$Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    game<T extends GameDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GameDefaultArgs<ExtArgs>>): Prisma__GameClient<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the TeamMatchStats model
+   */
+  interface TeamMatchStatsFieldRefs {
+    readonly id: FieldRef<"TeamMatchStats", 'Int'>
+    readonly teamId: FieldRef<"TeamMatchStats", 'Int'>
+    readonly gameId: FieldRef<"TeamMatchStats", 'Int'>
+    readonly timeOfPossession: FieldRef<"TeamMatchStats", 'Int'>
+    readonly possessionPercentage: FieldRef<"TeamMatchStats", 'Float'>
+    readonly averageFieldPosition: FieldRef<"TeamMatchStats", 'Float'>
+    readonly territoryGained: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalScore: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalPassingYards: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalRushingYards: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalOffensiveYards: FieldRef<"TeamMatchStats", 'Int'>
+    readonly passingAccuracy: FieldRef<"TeamMatchStats", 'Float'>
+    readonly ballRetentionRate: FieldRef<"TeamMatchStats", 'Float'>
+    readonly scoringOpportunities: FieldRef<"TeamMatchStats", 'Int'>
+    readonly scoringEfficiency: FieldRef<"TeamMatchStats", 'Float'>
+    readonly totalTackles: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalKnockdowns: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalBlocks: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalInjuriesInflicted: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalInterceptions: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalBallStrips: FieldRef<"TeamMatchStats", 'Int'>
+    readonly passDeflections: FieldRef<"TeamMatchStats", 'Int'>
+    readonly defensiveStops: FieldRef<"TeamMatchStats", 'Int'>
+    readonly totalFumbles: FieldRef<"TeamMatchStats", 'Int'>
+    readonly turnoverDifferential: FieldRef<"TeamMatchStats", 'Int'>
+    readonly physicalDominance: FieldRef<"TeamMatchStats", 'Int'>
+    readonly ballSecurityRating: FieldRef<"TeamMatchStats", 'Float'>
+    readonly homeFieldAdvantage: FieldRef<"TeamMatchStats", 'Float'>
+    readonly crowdIntensity: FieldRef<"TeamMatchStats", 'Float'>
+    readonly domeReverberation: FieldRef<"TeamMatchStats", 'Float'>
+    readonly camaraderieTeamBonus: FieldRef<"TeamMatchStats", 'Float'>
+    readonly tacticalEffectiveness: FieldRef<"TeamMatchStats", 'Float'>
+    readonly equipmentAdvantage: FieldRef<"TeamMatchStats", 'Float'>
+    readonly physicalConditioning: FieldRef<"TeamMatchStats", 'Float'>
+    readonly matchDate: FieldRef<"TeamMatchStats", 'DateTime'>
+    readonly matchType: FieldRef<"TeamMatchStats", 'MatchType'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * TeamMatchStats findUnique
+   */
+  export type TeamMatchStatsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamMatchStats to fetch.
+     */
+    where: TeamMatchStatsWhereUniqueInput
+  }
+
+  /**
+   * TeamMatchStats findUniqueOrThrow
+   */
+  export type TeamMatchStatsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamMatchStats to fetch.
+     */
+    where: TeamMatchStatsWhereUniqueInput
+  }
+
+  /**
+   * TeamMatchStats findFirst
+   */
+  export type TeamMatchStatsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamMatchStats to fetch.
+     */
+    where?: TeamMatchStatsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TeamMatchStats to fetch.
+     */
+    orderBy?: TeamMatchStatsOrderByWithRelationInput | TeamMatchStatsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TeamMatchStats.
+     */
+    cursor?: TeamMatchStatsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TeamMatchStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TeamMatchStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TeamMatchStats.
+     */
+    distinct?: TeamMatchStatsScalarFieldEnum | TeamMatchStatsScalarFieldEnum[]
+  }
+
+  /**
+   * TeamMatchStats findFirstOrThrow
+   */
+  export type TeamMatchStatsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamMatchStats to fetch.
+     */
+    where?: TeamMatchStatsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TeamMatchStats to fetch.
+     */
+    orderBy?: TeamMatchStatsOrderByWithRelationInput | TeamMatchStatsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for TeamMatchStats.
+     */
+    cursor?: TeamMatchStatsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TeamMatchStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TeamMatchStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of TeamMatchStats.
+     */
+    distinct?: TeamMatchStatsScalarFieldEnum | TeamMatchStatsScalarFieldEnum[]
+  }
+
+  /**
+   * TeamMatchStats findMany
+   */
+  export type TeamMatchStatsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter, which TeamMatchStats to fetch.
+     */
+    where?: TeamMatchStatsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of TeamMatchStats to fetch.
+     */
+    orderBy?: TeamMatchStatsOrderByWithRelationInput | TeamMatchStatsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing TeamMatchStats.
+     */
+    cursor?: TeamMatchStatsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` TeamMatchStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` TeamMatchStats.
+     */
+    skip?: number
+    distinct?: TeamMatchStatsScalarFieldEnum | TeamMatchStatsScalarFieldEnum[]
+  }
+
+  /**
+   * TeamMatchStats create
+   */
+  export type TeamMatchStatsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a TeamMatchStats.
+     */
+    data: XOR<TeamMatchStatsCreateInput, TeamMatchStatsUncheckedCreateInput>
+  }
+
+  /**
+   * TeamMatchStats createMany
+   */
+  export type TeamMatchStatsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TeamMatchStats.
+     */
+    data: TeamMatchStatsCreateManyInput | TeamMatchStatsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * TeamMatchStats createManyAndReturn
+   */
+  export type TeamMatchStatsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * The data used to create many TeamMatchStats.
+     */
+    data: TeamMatchStatsCreateManyInput | TeamMatchStatsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TeamMatchStats update
+   */
+  export type TeamMatchStatsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a TeamMatchStats.
+     */
+    data: XOR<TeamMatchStatsUpdateInput, TeamMatchStatsUncheckedUpdateInput>
+    /**
+     * Choose, which TeamMatchStats to update.
+     */
+    where: TeamMatchStatsWhereUniqueInput
+  }
+
+  /**
+   * TeamMatchStats updateMany
+   */
+  export type TeamMatchStatsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TeamMatchStats.
+     */
+    data: XOR<TeamMatchStatsUpdateManyMutationInput, TeamMatchStatsUncheckedUpdateManyInput>
+    /**
+     * Filter which TeamMatchStats to update
+     */
+    where?: TeamMatchStatsWhereInput
+    /**
+     * Limit how many TeamMatchStats to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * TeamMatchStats updateManyAndReturn
+   */
+  export type TeamMatchStatsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * The data used to update TeamMatchStats.
+     */
+    data: XOR<TeamMatchStatsUpdateManyMutationInput, TeamMatchStatsUncheckedUpdateManyInput>
+    /**
+     * Filter which TeamMatchStats to update
+     */
+    where?: TeamMatchStatsWhereInput
+    /**
+     * Limit how many TeamMatchStats to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * TeamMatchStats upsert
+   */
+  export type TeamMatchStatsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the TeamMatchStats to update in case it exists.
+     */
+    where: TeamMatchStatsWhereUniqueInput
+    /**
+     * In case the TeamMatchStats found by the `where` argument doesn't exist, create a new TeamMatchStats with this data.
+     */
+    create: XOR<TeamMatchStatsCreateInput, TeamMatchStatsUncheckedCreateInput>
+    /**
+     * In case the TeamMatchStats was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TeamMatchStatsUpdateInput, TeamMatchStatsUncheckedUpdateInput>
+  }
+
+  /**
+   * TeamMatchStats delete
+   */
+  export type TeamMatchStatsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+    /**
+     * Filter which TeamMatchStats to delete.
+     */
+    where: TeamMatchStatsWhereUniqueInput
+  }
+
+  /**
+   * TeamMatchStats deleteMany
+   */
+  export type TeamMatchStatsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which TeamMatchStats to delete
+     */
+    where?: TeamMatchStatsWhereInput
+    /**
+     * Limit how many TeamMatchStats to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * TeamMatchStats without action
+   */
+  export type TeamMatchStatsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TeamMatchStats
+     */
+    select?: TeamMatchStatsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the TeamMatchStats
+     */
+    omit?: TeamMatchStatsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TeamMatchStatsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PlayerCareerMilestone
+   */
+
+  export type AggregatePlayerCareerMilestone = {
+    _count: PlayerCareerMilestoneCountAggregateOutputType | null
+    _avg: PlayerCareerMilestoneAvgAggregateOutputType | null
+    _sum: PlayerCareerMilestoneSumAggregateOutputType | null
+    _min: PlayerCareerMilestoneMinAggregateOutputType | null
+    _max: PlayerCareerMilestoneMaxAggregateOutputType | null
+  }
+
+  export type PlayerCareerMilestoneAvgAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+  }
+
+  export type PlayerCareerMilestoneSumAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+  }
+
+  export type PlayerCareerMilestoneMinAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    milestoneType: string | null
+    description: string | null
+    achievedAt: Date | null
+    seasonId: string | null
+  }
+
+  export type PlayerCareerMilestoneMaxAggregateOutputType = {
+    id: number | null
+    playerId: number | null
+    milestoneType: string | null
+    description: string | null
+    achievedAt: Date | null
+    seasonId: string | null
+  }
+
+  export type PlayerCareerMilestoneCountAggregateOutputType = {
+    id: number
+    playerId: number
+    milestoneType: number
+    description: number
+    achievedAt: number
+    seasonId: number
+    metadata: number
+    _all: number
+  }
+
+
+  export type PlayerCareerMilestoneAvgAggregateInputType = {
+    id?: true
+    playerId?: true
+  }
+
+  export type PlayerCareerMilestoneSumAggregateInputType = {
+    id?: true
+    playerId?: true
+  }
+
+  export type PlayerCareerMilestoneMinAggregateInputType = {
+    id?: true
+    playerId?: true
+    milestoneType?: true
+    description?: true
+    achievedAt?: true
+    seasonId?: true
+  }
+
+  export type PlayerCareerMilestoneMaxAggregateInputType = {
+    id?: true
+    playerId?: true
+    milestoneType?: true
+    description?: true
+    achievedAt?: true
+    seasonId?: true
+  }
+
+  export type PlayerCareerMilestoneCountAggregateInputType = {
+    id?: true
+    playerId?: true
+    milestoneType?: true
+    description?: true
+    achievedAt?: true
+    seasonId?: true
+    metadata?: true
+    _all?: true
+  }
+
+  export type PlayerCareerMilestoneAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlayerCareerMilestone to aggregate.
+     */
+    where?: PlayerCareerMilestoneWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerCareerMilestones to fetch.
+     */
+    orderBy?: PlayerCareerMilestoneOrderByWithRelationInput | PlayerCareerMilestoneOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PlayerCareerMilestoneWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerCareerMilestones from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerCareerMilestones.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PlayerCareerMilestones
+    **/
+    _count?: true | PlayerCareerMilestoneCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PlayerCareerMilestoneAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PlayerCareerMilestoneSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PlayerCareerMilestoneMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PlayerCareerMilestoneMaxAggregateInputType
+  }
+
+  export type GetPlayerCareerMilestoneAggregateType<T extends PlayerCareerMilestoneAggregateArgs> = {
+        [P in keyof T & keyof AggregatePlayerCareerMilestone]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePlayerCareerMilestone[P]>
+      : GetScalarType<T[P], AggregatePlayerCareerMilestone[P]>
+  }
+
+
+
+
+  export type PlayerCareerMilestoneGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlayerCareerMilestoneWhereInput
+    orderBy?: PlayerCareerMilestoneOrderByWithAggregationInput | PlayerCareerMilestoneOrderByWithAggregationInput[]
+    by: PlayerCareerMilestoneScalarFieldEnum[] | PlayerCareerMilestoneScalarFieldEnum
+    having?: PlayerCareerMilestoneScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PlayerCareerMilestoneCountAggregateInputType | true
+    _avg?: PlayerCareerMilestoneAvgAggregateInputType
+    _sum?: PlayerCareerMilestoneSumAggregateInputType
+    _min?: PlayerCareerMilestoneMinAggregateInputType
+    _max?: PlayerCareerMilestoneMaxAggregateInputType
+  }
+
+  export type PlayerCareerMilestoneGroupByOutputType = {
+    id: number
+    playerId: number
+    milestoneType: string
+    description: string
+    achievedAt: Date
+    seasonId: string | null
+    metadata: JsonValue | null
+    _count: PlayerCareerMilestoneCountAggregateOutputType | null
+    _avg: PlayerCareerMilestoneAvgAggregateOutputType | null
+    _sum: PlayerCareerMilestoneSumAggregateOutputType | null
+    _min: PlayerCareerMilestoneMinAggregateOutputType | null
+    _max: PlayerCareerMilestoneMaxAggregateOutputType | null
+  }
+
+  type GetPlayerCareerMilestoneGroupByPayload<T extends PlayerCareerMilestoneGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PlayerCareerMilestoneGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PlayerCareerMilestoneGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PlayerCareerMilestoneGroupByOutputType[P]>
+            : GetScalarType<T[P], PlayerCareerMilestoneGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PlayerCareerMilestoneSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    milestoneType?: boolean
+    description?: boolean
+    achievedAt?: boolean
+    seasonId?: boolean
+    metadata?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerCareerMilestone"]>
+
+  export type PlayerCareerMilestoneSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    milestoneType?: boolean
+    description?: boolean
+    achievedAt?: boolean
+    seasonId?: boolean
+    metadata?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerCareerMilestone"]>
+
+  export type PlayerCareerMilestoneSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    playerId?: boolean
+    milestoneType?: boolean
+    description?: boolean
+    achievedAt?: boolean
+    seasonId?: boolean
+    metadata?: boolean
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["playerCareerMilestone"]>
+
+  export type PlayerCareerMilestoneSelectScalar = {
+    id?: boolean
+    playerId?: boolean
+    milestoneType?: boolean
+    description?: boolean
+    achievedAt?: boolean
+    seasonId?: boolean
+    metadata?: boolean
+  }
+
+  export type PlayerCareerMilestoneOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "playerId" | "milestoneType" | "description" | "achievedAt" | "seasonId" | "metadata", ExtArgs["result"]["playerCareerMilestone"]>
+  export type PlayerCareerMilestoneInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }
+  export type PlayerCareerMilestoneIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }
+  export type PlayerCareerMilestoneIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    player?: boolean | PlayerDefaultArgs<ExtArgs>
+  }
+
+  export type $PlayerCareerMilestonePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PlayerCareerMilestone"
+    objects: {
+      player: Prisma.$PlayerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      playerId: number
+      milestoneType: string
+      description: string
+      achievedAt: Date
+      seasonId: string | null
+      metadata: Prisma.JsonValue | null
+    }, ExtArgs["result"]["playerCareerMilestone"]>
+    composites: {}
+  }
+
+  type PlayerCareerMilestoneGetPayload<S extends boolean | null | undefined | PlayerCareerMilestoneDefaultArgs> = $Result.GetResult<Prisma.$PlayerCareerMilestonePayload, S>
+
+  type PlayerCareerMilestoneCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PlayerCareerMilestoneFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PlayerCareerMilestoneCountAggregateInputType | true
+    }
+
+  export interface PlayerCareerMilestoneDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PlayerCareerMilestone'], meta: { name: 'PlayerCareerMilestone' } }
+    /**
+     * Find zero or one PlayerCareerMilestone that matches the filter.
+     * @param {PlayerCareerMilestoneFindUniqueArgs} args - Arguments to find a PlayerCareerMilestone
+     * @example
+     * // Get one PlayerCareerMilestone
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PlayerCareerMilestoneFindUniqueArgs>(args: SelectSubset<T, PlayerCareerMilestoneFindUniqueArgs<ExtArgs>>): Prisma__PlayerCareerMilestoneClient<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PlayerCareerMilestone that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PlayerCareerMilestoneFindUniqueOrThrowArgs} args - Arguments to find a PlayerCareerMilestone
+     * @example
+     * // Get one PlayerCareerMilestone
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PlayerCareerMilestoneFindUniqueOrThrowArgs>(args: SelectSubset<T, PlayerCareerMilestoneFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PlayerCareerMilestoneClient<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PlayerCareerMilestone that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerCareerMilestoneFindFirstArgs} args - Arguments to find a PlayerCareerMilestone
+     * @example
+     * // Get one PlayerCareerMilestone
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PlayerCareerMilestoneFindFirstArgs>(args?: SelectSubset<T, PlayerCareerMilestoneFindFirstArgs<ExtArgs>>): Prisma__PlayerCareerMilestoneClient<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PlayerCareerMilestone that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerCareerMilestoneFindFirstOrThrowArgs} args - Arguments to find a PlayerCareerMilestone
+     * @example
+     * // Get one PlayerCareerMilestone
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PlayerCareerMilestoneFindFirstOrThrowArgs>(args?: SelectSubset<T, PlayerCareerMilestoneFindFirstOrThrowArgs<ExtArgs>>): Prisma__PlayerCareerMilestoneClient<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PlayerCareerMilestones that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerCareerMilestoneFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PlayerCareerMilestones
+     * const playerCareerMilestones = await prisma.playerCareerMilestone.findMany()
+     * 
+     * // Get first 10 PlayerCareerMilestones
+     * const playerCareerMilestones = await prisma.playerCareerMilestone.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const playerCareerMilestoneWithIdOnly = await prisma.playerCareerMilestone.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PlayerCareerMilestoneFindManyArgs>(args?: SelectSubset<T, PlayerCareerMilestoneFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PlayerCareerMilestone.
+     * @param {PlayerCareerMilestoneCreateArgs} args - Arguments to create a PlayerCareerMilestone.
+     * @example
+     * // Create one PlayerCareerMilestone
+     * const PlayerCareerMilestone = await prisma.playerCareerMilestone.create({
+     *   data: {
+     *     // ... data to create a PlayerCareerMilestone
+     *   }
+     * })
+     * 
+     */
+    create<T extends PlayerCareerMilestoneCreateArgs>(args: SelectSubset<T, PlayerCareerMilestoneCreateArgs<ExtArgs>>): Prisma__PlayerCareerMilestoneClient<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PlayerCareerMilestones.
+     * @param {PlayerCareerMilestoneCreateManyArgs} args - Arguments to create many PlayerCareerMilestones.
+     * @example
+     * // Create many PlayerCareerMilestones
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PlayerCareerMilestoneCreateManyArgs>(args?: SelectSubset<T, PlayerCareerMilestoneCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PlayerCareerMilestones and returns the data saved in the database.
+     * @param {PlayerCareerMilestoneCreateManyAndReturnArgs} args - Arguments to create many PlayerCareerMilestones.
+     * @example
+     * // Create many PlayerCareerMilestones
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PlayerCareerMilestones and only return the `id`
+     * const playerCareerMilestoneWithIdOnly = await prisma.playerCareerMilestone.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PlayerCareerMilestoneCreateManyAndReturnArgs>(args?: SelectSubset<T, PlayerCareerMilestoneCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PlayerCareerMilestone.
+     * @param {PlayerCareerMilestoneDeleteArgs} args - Arguments to delete one PlayerCareerMilestone.
+     * @example
+     * // Delete one PlayerCareerMilestone
+     * const PlayerCareerMilestone = await prisma.playerCareerMilestone.delete({
+     *   where: {
+     *     // ... filter to delete one PlayerCareerMilestone
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PlayerCareerMilestoneDeleteArgs>(args: SelectSubset<T, PlayerCareerMilestoneDeleteArgs<ExtArgs>>): Prisma__PlayerCareerMilestoneClient<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PlayerCareerMilestone.
+     * @param {PlayerCareerMilestoneUpdateArgs} args - Arguments to update one PlayerCareerMilestone.
+     * @example
+     * // Update one PlayerCareerMilestone
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PlayerCareerMilestoneUpdateArgs>(args: SelectSubset<T, PlayerCareerMilestoneUpdateArgs<ExtArgs>>): Prisma__PlayerCareerMilestoneClient<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PlayerCareerMilestones.
+     * @param {PlayerCareerMilestoneDeleteManyArgs} args - Arguments to filter PlayerCareerMilestones to delete.
+     * @example
+     * // Delete a few PlayerCareerMilestones
+     * const { count } = await prisma.playerCareerMilestone.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PlayerCareerMilestoneDeleteManyArgs>(args?: SelectSubset<T, PlayerCareerMilestoneDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlayerCareerMilestones.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerCareerMilestoneUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PlayerCareerMilestones
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PlayerCareerMilestoneUpdateManyArgs>(args: SelectSubset<T, PlayerCareerMilestoneUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlayerCareerMilestones and returns the data updated in the database.
+     * @param {PlayerCareerMilestoneUpdateManyAndReturnArgs} args - Arguments to update many PlayerCareerMilestones.
+     * @example
+     * // Update many PlayerCareerMilestones
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PlayerCareerMilestones and only return the `id`
+     * const playerCareerMilestoneWithIdOnly = await prisma.playerCareerMilestone.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PlayerCareerMilestoneUpdateManyAndReturnArgs>(args: SelectSubset<T, PlayerCareerMilestoneUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PlayerCareerMilestone.
+     * @param {PlayerCareerMilestoneUpsertArgs} args - Arguments to update or create a PlayerCareerMilestone.
+     * @example
+     * // Update or create a PlayerCareerMilestone
+     * const playerCareerMilestone = await prisma.playerCareerMilestone.upsert({
+     *   create: {
+     *     // ... data to create a PlayerCareerMilestone
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PlayerCareerMilestone we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PlayerCareerMilestoneUpsertArgs>(args: SelectSubset<T, PlayerCareerMilestoneUpsertArgs<ExtArgs>>): Prisma__PlayerCareerMilestoneClient<$Result.GetResult<Prisma.$PlayerCareerMilestonePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PlayerCareerMilestones.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerCareerMilestoneCountArgs} args - Arguments to filter PlayerCareerMilestones to count.
+     * @example
+     * // Count the number of PlayerCareerMilestones
+     * const count = await prisma.playerCareerMilestone.count({
+     *   where: {
+     *     // ... the filter for the PlayerCareerMilestones we want to count
+     *   }
+     * })
+    **/
+    count<T extends PlayerCareerMilestoneCountArgs>(
+      args?: Subset<T, PlayerCareerMilestoneCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PlayerCareerMilestoneCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PlayerCareerMilestone.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerCareerMilestoneAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PlayerCareerMilestoneAggregateArgs>(args: Subset<T, PlayerCareerMilestoneAggregateArgs>): Prisma.PrismaPromise<GetPlayerCareerMilestoneAggregateType<T>>
+
+    /**
+     * Group by PlayerCareerMilestone.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlayerCareerMilestoneGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PlayerCareerMilestoneGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PlayerCareerMilestoneGroupByArgs['orderBy'] }
+        : { orderBy?: PlayerCareerMilestoneGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PlayerCareerMilestoneGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPlayerCareerMilestoneGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PlayerCareerMilestone model
+   */
+  readonly fields: PlayerCareerMilestoneFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PlayerCareerMilestone.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PlayerCareerMilestoneClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    player<T extends PlayerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PlayerDefaultArgs<ExtArgs>>): Prisma__PlayerClient<$Result.GetResult<Prisma.$PlayerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PlayerCareerMilestone model
+   */
+  interface PlayerCareerMilestoneFieldRefs {
+    readonly id: FieldRef<"PlayerCareerMilestone", 'Int'>
+    readonly playerId: FieldRef<"PlayerCareerMilestone", 'Int'>
+    readonly milestoneType: FieldRef<"PlayerCareerMilestone", 'String'>
+    readonly description: FieldRef<"PlayerCareerMilestone", 'String'>
+    readonly achievedAt: FieldRef<"PlayerCareerMilestone", 'DateTime'>
+    readonly seasonId: FieldRef<"PlayerCareerMilestone", 'String'>
+    readonly metadata: FieldRef<"PlayerCareerMilestone", 'Json'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PlayerCareerMilestone findUnique
+   */
+  export type PlayerCareerMilestoneFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerCareerMilestone to fetch.
+     */
+    where: PlayerCareerMilestoneWhereUniqueInput
+  }
+
+  /**
+   * PlayerCareerMilestone findUniqueOrThrow
+   */
+  export type PlayerCareerMilestoneFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerCareerMilestone to fetch.
+     */
+    where: PlayerCareerMilestoneWhereUniqueInput
+  }
+
+  /**
+   * PlayerCareerMilestone findFirst
+   */
+  export type PlayerCareerMilestoneFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerCareerMilestone to fetch.
+     */
+    where?: PlayerCareerMilestoneWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerCareerMilestones to fetch.
+     */
+    orderBy?: PlayerCareerMilestoneOrderByWithRelationInput | PlayerCareerMilestoneOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlayerCareerMilestones.
+     */
+    cursor?: PlayerCareerMilestoneWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerCareerMilestones from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerCareerMilestones.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlayerCareerMilestones.
+     */
+    distinct?: PlayerCareerMilestoneScalarFieldEnum | PlayerCareerMilestoneScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerCareerMilestone findFirstOrThrow
+   */
+  export type PlayerCareerMilestoneFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerCareerMilestone to fetch.
+     */
+    where?: PlayerCareerMilestoneWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerCareerMilestones to fetch.
+     */
+    orderBy?: PlayerCareerMilestoneOrderByWithRelationInput | PlayerCareerMilestoneOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlayerCareerMilestones.
+     */
+    cursor?: PlayerCareerMilestoneWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerCareerMilestones from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerCareerMilestones.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlayerCareerMilestones.
+     */
+    distinct?: PlayerCareerMilestoneScalarFieldEnum | PlayerCareerMilestoneScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerCareerMilestone findMany
+   */
+  export type PlayerCareerMilestoneFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * Filter, which PlayerCareerMilestones to fetch.
+     */
+    where?: PlayerCareerMilestoneWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlayerCareerMilestones to fetch.
+     */
+    orderBy?: PlayerCareerMilestoneOrderByWithRelationInput | PlayerCareerMilestoneOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PlayerCareerMilestones.
+     */
+    cursor?: PlayerCareerMilestoneWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlayerCareerMilestones from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlayerCareerMilestones.
+     */
+    skip?: number
+    distinct?: PlayerCareerMilestoneScalarFieldEnum | PlayerCareerMilestoneScalarFieldEnum[]
+  }
+
+  /**
+   * PlayerCareerMilestone create
+   */
+  export type PlayerCareerMilestoneCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PlayerCareerMilestone.
+     */
+    data: XOR<PlayerCareerMilestoneCreateInput, PlayerCareerMilestoneUncheckedCreateInput>
+  }
+
+  /**
+   * PlayerCareerMilestone createMany
+   */
+  export type PlayerCareerMilestoneCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PlayerCareerMilestones.
+     */
+    data: PlayerCareerMilestoneCreateManyInput | PlayerCareerMilestoneCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PlayerCareerMilestone createManyAndReturn
+   */
+  export type PlayerCareerMilestoneCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * The data used to create many PlayerCareerMilestones.
+     */
+    data: PlayerCareerMilestoneCreateManyInput | PlayerCareerMilestoneCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlayerCareerMilestone update
+   */
+  export type PlayerCareerMilestoneUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PlayerCareerMilestone.
+     */
+    data: XOR<PlayerCareerMilestoneUpdateInput, PlayerCareerMilestoneUncheckedUpdateInput>
+    /**
+     * Choose, which PlayerCareerMilestone to update.
+     */
+    where: PlayerCareerMilestoneWhereUniqueInput
+  }
+
+  /**
+   * PlayerCareerMilestone updateMany
+   */
+  export type PlayerCareerMilestoneUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PlayerCareerMilestones.
+     */
+    data: XOR<PlayerCareerMilestoneUpdateManyMutationInput, PlayerCareerMilestoneUncheckedUpdateManyInput>
+    /**
+     * Filter which PlayerCareerMilestones to update
+     */
+    where?: PlayerCareerMilestoneWhereInput
+    /**
+     * Limit how many PlayerCareerMilestones to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PlayerCareerMilestone updateManyAndReturn
+   */
+  export type PlayerCareerMilestoneUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * The data used to update PlayerCareerMilestones.
+     */
+    data: XOR<PlayerCareerMilestoneUpdateManyMutationInput, PlayerCareerMilestoneUncheckedUpdateManyInput>
+    /**
+     * Filter which PlayerCareerMilestones to update
+     */
+    where?: PlayerCareerMilestoneWhereInput
+    /**
+     * Limit how many PlayerCareerMilestones to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlayerCareerMilestone upsert
+   */
+  export type PlayerCareerMilestoneUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PlayerCareerMilestone to update in case it exists.
+     */
+    where: PlayerCareerMilestoneWhereUniqueInput
+    /**
+     * In case the PlayerCareerMilestone found by the `where` argument doesn't exist, create a new PlayerCareerMilestone with this data.
+     */
+    create: XOR<PlayerCareerMilestoneCreateInput, PlayerCareerMilestoneUncheckedCreateInput>
+    /**
+     * In case the PlayerCareerMilestone was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PlayerCareerMilestoneUpdateInput, PlayerCareerMilestoneUncheckedUpdateInput>
+  }
+
+  /**
+   * PlayerCareerMilestone delete
+   */
+  export type PlayerCareerMilestoneDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+    /**
+     * Filter which PlayerCareerMilestone to delete.
+     */
+    where: PlayerCareerMilestoneWhereUniqueInput
+  }
+
+  /**
+   * PlayerCareerMilestone deleteMany
+   */
+  export type PlayerCareerMilestoneDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlayerCareerMilestones to delete
+     */
+    where?: PlayerCareerMilestoneWhereInput
+    /**
+     * Limit how many PlayerCareerMilestones to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PlayerCareerMilestone without action
+   */
+  export type PlayerCareerMilestoneDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlayerCareerMilestone
+     */
+    select?: PlayerCareerMilestoneSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PlayerCareerMilestone
+     */
+    omit?: PlayerCareerMilestoneOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlayerCareerMilestoneInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -49358,6 +55547,121 @@ export namespace Prisma {
   };
 
   export type PaymentTransactionScalarFieldEnum = (typeof PaymentTransactionScalarFieldEnum)[keyof typeof PaymentTransactionScalarFieldEnum]
+
+
+  export const PlayerDevelopmentHistoryScalarFieldEnum: {
+    id: 'id',
+    playerId: 'playerId',
+    developmentDate: 'developmentDate',
+    developmentType: 'developmentType',
+    statChanges: 'statChanges',
+    previousValues: 'previousValues',
+    newValues: 'newValues',
+    triggerReason: 'triggerReason',
+    activityScore: 'activityScore',
+    gamesPlayedFactor: 'gamesPlayedFactor',
+    potentialModifier: 'potentialModifier',
+    ageModifier: 'ageModifier',
+    coachingBonus: 'coachingBonus',
+    trainerBonus: 'trainerBonus'
+  };
+
+  export type PlayerDevelopmentHistoryScalarFieldEnum = (typeof PlayerDevelopmentHistoryScalarFieldEnum)[keyof typeof PlayerDevelopmentHistoryScalarFieldEnum]
+
+
+  export const PlayerMatchStatsScalarFieldEnum: {
+    id: 'id',
+    playerId: 'playerId',
+    gameId: 'gameId',
+    minutesPlayed: 'minutesPlayed',
+    performanceRating: 'performanceRating',
+    camaraderieContribution: 'camaraderieContribution',
+    scores: 'scores',
+    assists: 'assists',
+    passAttempts: 'passAttempts',
+    passCompletions: 'passCompletions',
+    passingYards: 'passingYards',
+    perfectPasses: 'perfectPasses',
+    rushingYards: 'rushingYards',
+    breakawayRuns: 'breakawayRuns',
+    catches: 'catches',
+    receivingYards: 'receivingYards',
+    drops: 'drops',
+    tackles: 'tackles',
+    tackleAttempts: 'tackleAttempts',
+    knockdowns: 'knockdowns',
+    blocks: 'blocks',
+    injuriesInflicted: 'injuriesInflicted',
+    interceptions: 'interceptions',
+    ballStrips: 'ballStrips',
+    passDeflections: 'passDeflections',
+    fumblesLost: 'fumblesLost',
+    ballRetention: 'ballRetention',
+    distanceCovered: 'distanceCovered',
+    staminaUsed: 'staminaUsed',
+    ballPossessionTime: 'ballPossessionTime',
+    pressureApplied: 'pressureApplied',
+    injuries: 'injuries',
+    matchDate: 'matchDate',
+    matchType: 'matchType'
+  };
+
+  export type PlayerMatchStatsScalarFieldEnum = (typeof PlayerMatchStatsScalarFieldEnum)[keyof typeof PlayerMatchStatsScalarFieldEnum]
+
+
+  export const TeamMatchStatsScalarFieldEnum: {
+    id: 'id',
+    teamId: 'teamId',
+    gameId: 'gameId',
+    timeOfPossession: 'timeOfPossession',
+    possessionPercentage: 'possessionPercentage',
+    averageFieldPosition: 'averageFieldPosition',
+    territoryGained: 'territoryGained',
+    totalScore: 'totalScore',
+    totalPassingYards: 'totalPassingYards',
+    totalRushingYards: 'totalRushingYards',
+    totalOffensiveYards: 'totalOffensiveYards',
+    passingAccuracy: 'passingAccuracy',
+    ballRetentionRate: 'ballRetentionRate',
+    scoringOpportunities: 'scoringOpportunities',
+    scoringEfficiency: 'scoringEfficiency',
+    totalTackles: 'totalTackles',
+    totalKnockdowns: 'totalKnockdowns',
+    totalBlocks: 'totalBlocks',
+    totalInjuriesInflicted: 'totalInjuriesInflicted',
+    totalInterceptions: 'totalInterceptions',
+    totalBallStrips: 'totalBallStrips',
+    passDeflections: 'passDeflections',
+    defensiveStops: 'defensiveStops',
+    totalFumbles: 'totalFumbles',
+    turnoverDifferential: 'turnoverDifferential',
+    physicalDominance: 'physicalDominance',
+    ballSecurityRating: 'ballSecurityRating',
+    homeFieldAdvantage: 'homeFieldAdvantage',
+    crowdIntensity: 'crowdIntensity',
+    domeReverberation: 'domeReverberation',
+    camaraderieTeamBonus: 'camaraderieTeamBonus',
+    tacticalEffectiveness: 'tacticalEffectiveness',
+    equipmentAdvantage: 'equipmentAdvantage',
+    physicalConditioning: 'physicalConditioning',
+    matchDate: 'matchDate',
+    matchType: 'matchType'
+  };
+
+  export type TeamMatchStatsScalarFieldEnum = (typeof TeamMatchStatsScalarFieldEnum)[keyof typeof TeamMatchStatsScalarFieldEnum]
+
+
+  export const PlayerCareerMilestoneScalarFieldEnum: {
+    id: 'id',
+    playerId: 'playerId',
+    milestoneType: 'milestoneType',
+    description: 'description',
+    achievedAt: 'achievedAt',
+    seasonId: 'seasonId',
+    metadata: 'metadata'
+  };
+
+  export type PlayerCareerMilestoneScalarFieldEnum = (typeof PlayerCareerMilestoneScalarFieldEnum)[keyof typeof PlayerCareerMilestoneScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -49977,6 +56281,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryListRelationFilter
     homeTeamGames?: GameListRelationFilter
     awayTeamGames?: GameListRelationFilter
+    teamMatchStats?: TeamMatchStatsListRelationFilter
   }
 
   export type TeamOrderByWithRelationInput = {
@@ -50016,6 +56321,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryOrderByRelationAggregateInput
     homeTeamGames?: GameOrderByRelationAggregateInput
     awayTeamGames?: GameOrderByRelationAggregateInput
+    teamMatchStats?: TeamMatchStatsOrderByRelationAggregateInput
   }
 
   export type TeamWhereUniqueInput = Prisma.AtLeast<{
@@ -50058,6 +56364,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryListRelationFilter
     homeTeamGames?: GameListRelationFilter
     awayTeamGames?: GameListRelationFilter
+    teamMatchStats?: TeamMatchStatsListRelationFilter
   }, "id" | "userProfileId" | "name">
 
   export type TeamOrderByWithAggregationInput = {
@@ -50154,6 +56461,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryListRelationFilter
     activeBoosts?: ActiveBoostListRelationFilter
     currentEquipment?: PlayerEquipmentListRelationFilter
+    developmentHistory?: PlayerDevelopmentHistoryListRelationFilter
+    matchStats?: PlayerMatchStatsListRelationFilter
+    careerMilestones?: PlayerCareerMilestoneListRelationFilter
   }
 
   export type PlayerOrderByWithRelationInput = {
@@ -50197,6 +56507,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryOrderByRelationAggregateInput
     activeBoosts?: ActiveBoostOrderByRelationAggregateInput
     currentEquipment?: PlayerEquipmentOrderByRelationAggregateInput
+    developmentHistory?: PlayerDevelopmentHistoryOrderByRelationAggregateInput
+    matchStats?: PlayerMatchStatsOrderByRelationAggregateInput
+    careerMilestones?: PlayerCareerMilestoneOrderByRelationAggregateInput
   }
 
   export type PlayerWhereUniqueInput = Prisma.AtLeast<{
@@ -50243,6 +56556,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryListRelationFilter
     activeBoosts?: ActiveBoostListRelationFilter
     currentEquipment?: PlayerEquipmentListRelationFilter
+    developmentHistory?: PlayerDevelopmentHistoryListRelationFilter
+    matchStats?: PlayerMatchStatsListRelationFilter
+    careerMilestones?: PlayerCareerMilestoneListRelationFilter
   }, "id">
 
   export type PlayerOrderByWithAggregationInput = {
@@ -51706,6 +58022,8 @@ export namespace Prisma {
     homeTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     awayTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     tournament?: XOR<TournamentNullableScalarRelationFilter, TournamentWhereInput> | null
+    playerStats?: PlayerMatchStatsListRelationFilter
+    teamStats?: TeamMatchStatsListRelationFilter
   }
 
   export type GameOrderByWithRelationInput = {
@@ -51727,6 +58045,8 @@ export namespace Prisma {
     homeTeam?: TeamOrderByWithRelationInput
     awayTeam?: TeamOrderByWithRelationInput
     tournament?: TournamentOrderByWithRelationInput
+    playerStats?: PlayerMatchStatsOrderByRelationAggregateInput
+    teamStats?: TeamMatchStatsOrderByRelationAggregateInput
   }
 
   export type GameWhereUniqueInput = Prisma.AtLeast<{
@@ -51751,6 +58071,8 @@ export namespace Prisma {
     homeTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     awayTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     tournament?: XOR<TournamentNullableScalarRelationFilter, TournamentWhereInput> | null
+    playerStats?: PlayerMatchStatsListRelationFilter
+    teamStats?: TeamMatchStatsListRelationFilter
   }, "id">
 
   export type GameOrderByWithAggregationInput = {
@@ -52799,6 +59121,597 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"PaymentTransaction"> | Date | string
   }
 
+  export type PlayerDevelopmentHistoryWhereInput = {
+    AND?: PlayerDevelopmentHistoryWhereInput | PlayerDevelopmentHistoryWhereInput[]
+    OR?: PlayerDevelopmentHistoryWhereInput[]
+    NOT?: PlayerDevelopmentHistoryWhereInput | PlayerDevelopmentHistoryWhereInput[]
+    id?: IntFilter<"PlayerDevelopmentHistory"> | number
+    playerId?: IntFilter<"PlayerDevelopmentHistory"> | number
+    developmentDate?: DateTimeFilter<"PlayerDevelopmentHistory"> | Date | string
+    developmentType?: StringFilter<"PlayerDevelopmentHistory"> | string
+    statChanges?: JsonFilter<"PlayerDevelopmentHistory">
+    previousValues?: JsonFilter<"PlayerDevelopmentHistory">
+    newValues?: JsonFilter<"PlayerDevelopmentHistory">
+    triggerReason?: StringFilter<"PlayerDevelopmentHistory"> | string
+    activityScore?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    gamesPlayedFactor?: IntFilter<"PlayerDevelopmentHistory"> | number
+    potentialModifier?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    ageModifier?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    coachingBonus?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    trainerBonus?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    player?: XOR<PlayerScalarRelationFilter, PlayerWhereInput>
+  }
+
+  export type PlayerDevelopmentHistoryOrderByWithRelationInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    developmentDate?: SortOrder
+    developmentType?: SortOrder
+    statChanges?: SortOrder
+    previousValues?: SortOrder
+    newValues?: SortOrder
+    triggerReason?: SortOrder
+    activityScore?: SortOrder
+    gamesPlayedFactor?: SortOrder
+    potentialModifier?: SortOrder
+    ageModifier?: SortOrder
+    coachingBonus?: SortOrder
+    trainerBonus?: SortOrder
+    player?: PlayerOrderByWithRelationInput
+  }
+
+  export type PlayerDevelopmentHistoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: PlayerDevelopmentHistoryWhereInput | PlayerDevelopmentHistoryWhereInput[]
+    OR?: PlayerDevelopmentHistoryWhereInput[]
+    NOT?: PlayerDevelopmentHistoryWhereInput | PlayerDevelopmentHistoryWhereInput[]
+    playerId?: IntFilter<"PlayerDevelopmentHistory"> | number
+    developmentDate?: DateTimeFilter<"PlayerDevelopmentHistory"> | Date | string
+    developmentType?: StringFilter<"PlayerDevelopmentHistory"> | string
+    statChanges?: JsonFilter<"PlayerDevelopmentHistory">
+    previousValues?: JsonFilter<"PlayerDevelopmentHistory">
+    newValues?: JsonFilter<"PlayerDevelopmentHistory">
+    triggerReason?: StringFilter<"PlayerDevelopmentHistory"> | string
+    activityScore?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    gamesPlayedFactor?: IntFilter<"PlayerDevelopmentHistory"> | number
+    potentialModifier?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    ageModifier?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    coachingBonus?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    trainerBonus?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    player?: XOR<PlayerScalarRelationFilter, PlayerWhereInput>
+  }, "id">
+
+  export type PlayerDevelopmentHistoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    developmentDate?: SortOrder
+    developmentType?: SortOrder
+    statChanges?: SortOrder
+    previousValues?: SortOrder
+    newValues?: SortOrder
+    triggerReason?: SortOrder
+    activityScore?: SortOrder
+    gamesPlayedFactor?: SortOrder
+    potentialModifier?: SortOrder
+    ageModifier?: SortOrder
+    coachingBonus?: SortOrder
+    trainerBonus?: SortOrder
+    _count?: PlayerDevelopmentHistoryCountOrderByAggregateInput
+    _avg?: PlayerDevelopmentHistoryAvgOrderByAggregateInput
+    _max?: PlayerDevelopmentHistoryMaxOrderByAggregateInput
+    _min?: PlayerDevelopmentHistoryMinOrderByAggregateInput
+    _sum?: PlayerDevelopmentHistorySumOrderByAggregateInput
+  }
+
+  export type PlayerDevelopmentHistoryScalarWhereWithAggregatesInput = {
+    AND?: PlayerDevelopmentHistoryScalarWhereWithAggregatesInput | PlayerDevelopmentHistoryScalarWhereWithAggregatesInput[]
+    OR?: PlayerDevelopmentHistoryScalarWhereWithAggregatesInput[]
+    NOT?: PlayerDevelopmentHistoryScalarWhereWithAggregatesInput | PlayerDevelopmentHistoryScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PlayerDevelopmentHistory"> | number
+    playerId?: IntWithAggregatesFilter<"PlayerDevelopmentHistory"> | number
+    developmentDate?: DateTimeWithAggregatesFilter<"PlayerDevelopmentHistory"> | Date | string
+    developmentType?: StringWithAggregatesFilter<"PlayerDevelopmentHistory"> | string
+    statChanges?: JsonWithAggregatesFilter<"PlayerDevelopmentHistory">
+    previousValues?: JsonWithAggregatesFilter<"PlayerDevelopmentHistory">
+    newValues?: JsonWithAggregatesFilter<"PlayerDevelopmentHistory">
+    triggerReason?: StringWithAggregatesFilter<"PlayerDevelopmentHistory"> | string
+    activityScore?: FloatWithAggregatesFilter<"PlayerDevelopmentHistory"> | number
+    gamesPlayedFactor?: IntWithAggregatesFilter<"PlayerDevelopmentHistory"> | number
+    potentialModifier?: FloatWithAggregatesFilter<"PlayerDevelopmentHistory"> | number
+    ageModifier?: FloatWithAggregatesFilter<"PlayerDevelopmentHistory"> | number
+    coachingBonus?: FloatWithAggregatesFilter<"PlayerDevelopmentHistory"> | number
+    trainerBonus?: FloatWithAggregatesFilter<"PlayerDevelopmentHistory"> | number
+  }
+
+  export type PlayerMatchStatsWhereInput = {
+    AND?: PlayerMatchStatsWhereInput | PlayerMatchStatsWhereInput[]
+    OR?: PlayerMatchStatsWhereInput[]
+    NOT?: PlayerMatchStatsWhereInput | PlayerMatchStatsWhereInput[]
+    id?: IntFilter<"PlayerMatchStats"> | number
+    playerId?: IntFilter<"PlayerMatchStats"> | number
+    gameId?: IntFilter<"PlayerMatchStats"> | number
+    minutesPlayed?: FloatFilter<"PlayerMatchStats"> | number
+    performanceRating?: FloatNullableFilter<"PlayerMatchStats"> | number | null
+    camaraderieContribution?: FloatFilter<"PlayerMatchStats"> | number
+    scores?: IntFilter<"PlayerMatchStats"> | number
+    assists?: IntFilter<"PlayerMatchStats"> | number
+    passAttempts?: IntFilter<"PlayerMatchStats"> | number
+    passCompletions?: IntFilter<"PlayerMatchStats"> | number
+    passingYards?: IntFilter<"PlayerMatchStats"> | number
+    perfectPasses?: IntFilter<"PlayerMatchStats"> | number
+    rushingYards?: IntFilter<"PlayerMatchStats"> | number
+    breakawayRuns?: IntFilter<"PlayerMatchStats"> | number
+    catches?: IntFilter<"PlayerMatchStats"> | number
+    receivingYards?: IntFilter<"PlayerMatchStats"> | number
+    drops?: IntFilter<"PlayerMatchStats"> | number
+    tackles?: IntFilter<"PlayerMatchStats"> | number
+    tackleAttempts?: IntFilter<"PlayerMatchStats"> | number
+    knockdowns?: IntFilter<"PlayerMatchStats"> | number
+    blocks?: IntFilter<"PlayerMatchStats"> | number
+    injuriesInflicted?: IntFilter<"PlayerMatchStats"> | number
+    interceptions?: IntFilter<"PlayerMatchStats"> | number
+    ballStrips?: IntFilter<"PlayerMatchStats"> | number
+    passDeflections?: IntFilter<"PlayerMatchStats"> | number
+    fumblesLost?: IntFilter<"PlayerMatchStats"> | number
+    ballRetention?: IntFilter<"PlayerMatchStats"> | number
+    distanceCovered?: IntFilter<"PlayerMatchStats"> | number
+    staminaUsed?: IntFilter<"PlayerMatchStats"> | number
+    ballPossessionTime?: IntFilter<"PlayerMatchStats"> | number
+    pressureApplied?: IntFilter<"PlayerMatchStats"> | number
+    injuries?: IntFilter<"PlayerMatchStats"> | number
+    matchDate?: DateTimeFilter<"PlayerMatchStats"> | Date | string
+    matchType?: EnumMatchTypeFilter<"PlayerMatchStats"> | $Enums.MatchType
+    player?: XOR<PlayerScalarRelationFilter, PlayerWhereInput>
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }
+
+  export type PlayerMatchStatsOrderByWithRelationInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    gameId?: SortOrder
+    minutesPlayed?: SortOrder
+    performanceRating?: SortOrderInput | SortOrder
+    camaraderieContribution?: SortOrder
+    scores?: SortOrder
+    assists?: SortOrder
+    passAttempts?: SortOrder
+    passCompletions?: SortOrder
+    passingYards?: SortOrder
+    perfectPasses?: SortOrder
+    rushingYards?: SortOrder
+    breakawayRuns?: SortOrder
+    catches?: SortOrder
+    receivingYards?: SortOrder
+    drops?: SortOrder
+    tackles?: SortOrder
+    tackleAttempts?: SortOrder
+    knockdowns?: SortOrder
+    blocks?: SortOrder
+    injuriesInflicted?: SortOrder
+    interceptions?: SortOrder
+    ballStrips?: SortOrder
+    passDeflections?: SortOrder
+    fumblesLost?: SortOrder
+    ballRetention?: SortOrder
+    distanceCovered?: SortOrder
+    staminaUsed?: SortOrder
+    ballPossessionTime?: SortOrder
+    pressureApplied?: SortOrder
+    injuries?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+    player?: PlayerOrderByWithRelationInput
+    game?: GameOrderByWithRelationInput
+  }
+
+  export type PlayerMatchStatsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    playerId_gameId?: PlayerMatchStatsPlayerIdGameIdCompoundUniqueInput
+    AND?: PlayerMatchStatsWhereInput | PlayerMatchStatsWhereInput[]
+    OR?: PlayerMatchStatsWhereInput[]
+    NOT?: PlayerMatchStatsWhereInput | PlayerMatchStatsWhereInput[]
+    playerId?: IntFilter<"PlayerMatchStats"> | number
+    gameId?: IntFilter<"PlayerMatchStats"> | number
+    minutesPlayed?: FloatFilter<"PlayerMatchStats"> | number
+    performanceRating?: FloatNullableFilter<"PlayerMatchStats"> | number | null
+    camaraderieContribution?: FloatFilter<"PlayerMatchStats"> | number
+    scores?: IntFilter<"PlayerMatchStats"> | number
+    assists?: IntFilter<"PlayerMatchStats"> | number
+    passAttempts?: IntFilter<"PlayerMatchStats"> | number
+    passCompletions?: IntFilter<"PlayerMatchStats"> | number
+    passingYards?: IntFilter<"PlayerMatchStats"> | number
+    perfectPasses?: IntFilter<"PlayerMatchStats"> | number
+    rushingYards?: IntFilter<"PlayerMatchStats"> | number
+    breakawayRuns?: IntFilter<"PlayerMatchStats"> | number
+    catches?: IntFilter<"PlayerMatchStats"> | number
+    receivingYards?: IntFilter<"PlayerMatchStats"> | number
+    drops?: IntFilter<"PlayerMatchStats"> | number
+    tackles?: IntFilter<"PlayerMatchStats"> | number
+    tackleAttempts?: IntFilter<"PlayerMatchStats"> | number
+    knockdowns?: IntFilter<"PlayerMatchStats"> | number
+    blocks?: IntFilter<"PlayerMatchStats"> | number
+    injuriesInflicted?: IntFilter<"PlayerMatchStats"> | number
+    interceptions?: IntFilter<"PlayerMatchStats"> | number
+    ballStrips?: IntFilter<"PlayerMatchStats"> | number
+    passDeflections?: IntFilter<"PlayerMatchStats"> | number
+    fumblesLost?: IntFilter<"PlayerMatchStats"> | number
+    ballRetention?: IntFilter<"PlayerMatchStats"> | number
+    distanceCovered?: IntFilter<"PlayerMatchStats"> | number
+    staminaUsed?: IntFilter<"PlayerMatchStats"> | number
+    ballPossessionTime?: IntFilter<"PlayerMatchStats"> | number
+    pressureApplied?: IntFilter<"PlayerMatchStats"> | number
+    injuries?: IntFilter<"PlayerMatchStats"> | number
+    matchDate?: DateTimeFilter<"PlayerMatchStats"> | Date | string
+    matchType?: EnumMatchTypeFilter<"PlayerMatchStats"> | $Enums.MatchType
+    player?: XOR<PlayerScalarRelationFilter, PlayerWhereInput>
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }, "id" | "playerId_gameId">
+
+  export type PlayerMatchStatsOrderByWithAggregationInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    gameId?: SortOrder
+    minutesPlayed?: SortOrder
+    performanceRating?: SortOrderInput | SortOrder
+    camaraderieContribution?: SortOrder
+    scores?: SortOrder
+    assists?: SortOrder
+    passAttempts?: SortOrder
+    passCompletions?: SortOrder
+    passingYards?: SortOrder
+    perfectPasses?: SortOrder
+    rushingYards?: SortOrder
+    breakawayRuns?: SortOrder
+    catches?: SortOrder
+    receivingYards?: SortOrder
+    drops?: SortOrder
+    tackles?: SortOrder
+    tackleAttempts?: SortOrder
+    knockdowns?: SortOrder
+    blocks?: SortOrder
+    injuriesInflicted?: SortOrder
+    interceptions?: SortOrder
+    ballStrips?: SortOrder
+    passDeflections?: SortOrder
+    fumblesLost?: SortOrder
+    ballRetention?: SortOrder
+    distanceCovered?: SortOrder
+    staminaUsed?: SortOrder
+    ballPossessionTime?: SortOrder
+    pressureApplied?: SortOrder
+    injuries?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+    _count?: PlayerMatchStatsCountOrderByAggregateInput
+    _avg?: PlayerMatchStatsAvgOrderByAggregateInput
+    _max?: PlayerMatchStatsMaxOrderByAggregateInput
+    _min?: PlayerMatchStatsMinOrderByAggregateInput
+    _sum?: PlayerMatchStatsSumOrderByAggregateInput
+  }
+
+  export type PlayerMatchStatsScalarWhereWithAggregatesInput = {
+    AND?: PlayerMatchStatsScalarWhereWithAggregatesInput | PlayerMatchStatsScalarWhereWithAggregatesInput[]
+    OR?: PlayerMatchStatsScalarWhereWithAggregatesInput[]
+    NOT?: PlayerMatchStatsScalarWhereWithAggregatesInput | PlayerMatchStatsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    playerId?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    gameId?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    minutesPlayed?: FloatWithAggregatesFilter<"PlayerMatchStats"> | number
+    performanceRating?: FloatNullableWithAggregatesFilter<"PlayerMatchStats"> | number | null
+    camaraderieContribution?: FloatWithAggregatesFilter<"PlayerMatchStats"> | number
+    scores?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    assists?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    passAttempts?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    passCompletions?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    passingYards?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    perfectPasses?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    rushingYards?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    breakawayRuns?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    catches?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    receivingYards?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    drops?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    tackles?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    tackleAttempts?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    knockdowns?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    blocks?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    injuriesInflicted?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    interceptions?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    ballStrips?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    passDeflections?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    fumblesLost?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    ballRetention?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    distanceCovered?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    staminaUsed?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    ballPossessionTime?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    pressureApplied?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    injuries?: IntWithAggregatesFilter<"PlayerMatchStats"> | number
+    matchDate?: DateTimeWithAggregatesFilter<"PlayerMatchStats"> | Date | string
+    matchType?: EnumMatchTypeWithAggregatesFilter<"PlayerMatchStats"> | $Enums.MatchType
+  }
+
+  export type TeamMatchStatsWhereInput = {
+    AND?: TeamMatchStatsWhereInput | TeamMatchStatsWhereInput[]
+    OR?: TeamMatchStatsWhereInput[]
+    NOT?: TeamMatchStatsWhereInput | TeamMatchStatsWhereInput[]
+    id?: IntFilter<"TeamMatchStats"> | number
+    teamId?: IntFilter<"TeamMatchStats"> | number
+    gameId?: IntFilter<"TeamMatchStats"> | number
+    timeOfPossession?: IntFilter<"TeamMatchStats"> | number
+    possessionPercentage?: FloatFilter<"TeamMatchStats"> | number
+    averageFieldPosition?: FloatFilter<"TeamMatchStats"> | number
+    territoryGained?: IntFilter<"TeamMatchStats"> | number
+    totalScore?: IntFilter<"TeamMatchStats"> | number
+    totalPassingYards?: IntFilter<"TeamMatchStats"> | number
+    totalRushingYards?: IntFilter<"TeamMatchStats"> | number
+    totalOffensiveYards?: IntFilter<"TeamMatchStats"> | number
+    passingAccuracy?: FloatFilter<"TeamMatchStats"> | number
+    ballRetentionRate?: FloatFilter<"TeamMatchStats"> | number
+    scoringOpportunities?: IntFilter<"TeamMatchStats"> | number
+    scoringEfficiency?: FloatFilter<"TeamMatchStats"> | number
+    totalTackles?: IntFilter<"TeamMatchStats"> | number
+    totalKnockdowns?: IntFilter<"TeamMatchStats"> | number
+    totalBlocks?: IntFilter<"TeamMatchStats"> | number
+    totalInjuriesInflicted?: IntFilter<"TeamMatchStats"> | number
+    totalInterceptions?: IntFilter<"TeamMatchStats"> | number
+    totalBallStrips?: IntFilter<"TeamMatchStats"> | number
+    passDeflections?: IntFilter<"TeamMatchStats"> | number
+    defensiveStops?: IntFilter<"TeamMatchStats"> | number
+    totalFumbles?: IntFilter<"TeamMatchStats"> | number
+    turnoverDifferential?: IntFilter<"TeamMatchStats"> | number
+    physicalDominance?: IntFilter<"TeamMatchStats"> | number
+    ballSecurityRating?: FloatFilter<"TeamMatchStats"> | number
+    homeFieldAdvantage?: FloatFilter<"TeamMatchStats"> | number
+    crowdIntensity?: FloatFilter<"TeamMatchStats"> | number
+    domeReverberation?: FloatFilter<"TeamMatchStats"> | number
+    camaraderieTeamBonus?: FloatFilter<"TeamMatchStats"> | number
+    tacticalEffectiveness?: FloatFilter<"TeamMatchStats"> | number
+    equipmentAdvantage?: FloatFilter<"TeamMatchStats"> | number
+    physicalConditioning?: FloatFilter<"TeamMatchStats"> | number
+    matchDate?: DateTimeFilter<"TeamMatchStats"> | Date | string
+    matchType?: EnumMatchTypeFilter<"TeamMatchStats"> | $Enums.MatchType
+    team?: XOR<TeamScalarRelationFilter, TeamWhereInput>
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }
+
+  export type TeamMatchStatsOrderByWithRelationInput = {
+    id?: SortOrder
+    teamId?: SortOrder
+    gameId?: SortOrder
+    timeOfPossession?: SortOrder
+    possessionPercentage?: SortOrder
+    averageFieldPosition?: SortOrder
+    territoryGained?: SortOrder
+    totalScore?: SortOrder
+    totalPassingYards?: SortOrder
+    totalRushingYards?: SortOrder
+    totalOffensiveYards?: SortOrder
+    passingAccuracy?: SortOrder
+    ballRetentionRate?: SortOrder
+    scoringOpportunities?: SortOrder
+    scoringEfficiency?: SortOrder
+    totalTackles?: SortOrder
+    totalKnockdowns?: SortOrder
+    totalBlocks?: SortOrder
+    totalInjuriesInflicted?: SortOrder
+    totalInterceptions?: SortOrder
+    totalBallStrips?: SortOrder
+    passDeflections?: SortOrder
+    defensiveStops?: SortOrder
+    totalFumbles?: SortOrder
+    turnoverDifferential?: SortOrder
+    physicalDominance?: SortOrder
+    ballSecurityRating?: SortOrder
+    homeFieldAdvantage?: SortOrder
+    crowdIntensity?: SortOrder
+    domeReverberation?: SortOrder
+    camaraderieTeamBonus?: SortOrder
+    tacticalEffectiveness?: SortOrder
+    equipmentAdvantage?: SortOrder
+    physicalConditioning?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+    team?: TeamOrderByWithRelationInput
+    game?: GameOrderByWithRelationInput
+  }
+
+  export type TeamMatchStatsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    teamId_gameId?: TeamMatchStatsTeamIdGameIdCompoundUniqueInput
+    AND?: TeamMatchStatsWhereInput | TeamMatchStatsWhereInput[]
+    OR?: TeamMatchStatsWhereInput[]
+    NOT?: TeamMatchStatsWhereInput | TeamMatchStatsWhereInput[]
+    teamId?: IntFilter<"TeamMatchStats"> | number
+    gameId?: IntFilter<"TeamMatchStats"> | number
+    timeOfPossession?: IntFilter<"TeamMatchStats"> | number
+    possessionPercentage?: FloatFilter<"TeamMatchStats"> | number
+    averageFieldPosition?: FloatFilter<"TeamMatchStats"> | number
+    territoryGained?: IntFilter<"TeamMatchStats"> | number
+    totalScore?: IntFilter<"TeamMatchStats"> | number
+    totalPassingYards?: IntFilter<"TeamMatchStats"> | number
+    totalRushingYards?: IntFilter<"TeamMatchStats"> | number
+    totalOffensiveYards?: IntFilter<"TeamMatchStats"> | number
+    passingAccuracy?: FloatFilter<"TeamMatchStats"> | number
+    ballRetentionRate?: FloatFilter<"TeamMatchStats"> | number
+    scoringOpportunities?: IntFilter<"TeamMatchStats"> | number
+    scoringEfficiency?: FloatFilter<"TeamMatchStats"> | number
+    totalTackles?: IntFilter<"TeamMatchStats"> | number
+    totalKnockdowns?: IntFilter<"TeamMatchStats"> | number
+    totalBlocks?: IntFilter<"TeamMatchStats"> | number
+    totalInjuriesInflicted?: IntFilter<"TeamMatchStats"> | number
+    totalInterceptions?: IntFilter<"TeamMatchStats"> | number
+    totalBallStrips?: IntFilter<"TeamMatchStats"> | number
+    passDeflections?: IntFilter<"TeamMatchStats"> | number
+    defensiveStops?: IntFilter<"TeamMatchStats"> | number
+    totalFumbles?: IntFilter<"TeamMatchStats"> | number
+    turnoverDifferential?: IntFilter<"TeamMatchStats"> | number
+    physicalDominance?: IntFilter<"TeamMatchStats"> | number
+    ballSecurityRating?: FloatFilter<"TeamMatchStats"> | number
+    homeFieldAdvantage?: FloatFilter<"TeamMatchStats"> | number
+    crowdIntensity?: FloatFilter<"TeamMatchStats"> | number
+    domeReverberation?: FloatFilter<"TeamMatchStats"> | number
+    camaraderieTeamBonus?: FloatFilter<"TeamMatchStats"> | number
+    tacticalEffectiveness?: FloatFilter<"TeamMatchStats"> | number
+    equipmentAdvantage?: FloatFilter<"TeamMatchStats"> | number
+    physicalConditioning?: FloatFilter<"TeamMatchStats"> | number
+    matchDate?: DateTimeFilter<"TeamMatchStats"> | Date | string
+    matchType?: EnumMatchTypeFilter<"TeamMatchStats"> | $Enums.MatchType
+    team?: XOR<TeamScalarRelationFilter, TeamWhereInput>
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+  }, "id" | "teamId_gameId">
+
+  export type TeamMatchStatsOrderByWithAggregationInput = {
+    id?: SortOrder
+    teamId?: SortOrder
+    gameId?: SortOrder
+    timeOfPossession?: SortOrder
+    possessionPercentage?: SortOrder
+    averageFieldPosition?: SortOrder
+    territoryGained?: SortOrder
+    totalScore?: SortOrder
+    totalPassingYards?: SortOrder
+    totalRushingYards?: SortOrder
+    totalOffensiveYards?: SortOrder
+    passingAccuracy?: SortOrder
+    ballRetentionRate?: SortOrder
+    scoringOpportunities?: SortOrder
+    scoringEfficiency?: SortOrder
+    totalTackles?: SortOrder
+    totalKnockdowns?: SortOrder
+    totalBlocks?: SortOrder
+    totalInjuriesInflicted?: SortOrder
+    totalInterceptions?: SortOrder
+    totalBallStrips?: SortOrder
+    passDeflections?: SortOrder
+    defensiveStops?: SortOrder
+    totalFumbles?: SortOrder
+    turnoverDifferential?: SortOrder
+    physicalDominance?: SortOrder
+    ballSecurityRating?: SortOrder
+    homeFieldAdvantage?: SortOrder
+    crowdIntensity?: SortOrder
+    domeReverberation?: SortOrder
+    camaraderieTeamBonus?: SortOrder
+    tacticalEffectiveness?: SortOrder
+    equipmentAdvantage?: SortOrder
+    physicalConditioning?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+    _count?: TeamMatchStatsCountOrderByAggregateInput
+    _avg?: TeamMatchStatsAvgOrderByAggregateInput
+    _max?: TeamMatchStatsMaxOrderByAggregateInput
+    _min?: TeamMatchStatsMinOrderByAggregateInput
+    _sum?: TeamMatchStatsSumOrderByAggregateInput
+  }
+
+  export type TeamMatchStatsScalarWhereWithAggregatesInput = {
+    AND?: TeamMatchStatsScalarWhereWithAggregatesInput | TeamMatchStatsScalarWhereWithAggregatesInput[]
+    OR?: TeamMatchStatsScalarWhereWithAggregatesInput[]
+    NOT?: TeamMatchStatsScalarWhereWithAggregatesInput | TeamMatchStatsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    teamId?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    gameId?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    timeOfPossession?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    possessionPercentage?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    averageFieldPosition?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    territoryGained?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalScore?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalPassingYards?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalRushingYards?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalOffensiveYards?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    passingAccuracy?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    ballRetentionRate?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    scoringOpportunities?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    scoringEfficiency?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    totalTackles?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalKnockdowns?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalBlocks?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalInjuriesInflicted?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalInterceptions?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalBallStrips?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    passDeflections?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    defensiveStops?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    totalFumbles?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    turnoverDifferential?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    physicalDominance?: IntWithAggregatesFilter<"TeamMatchStats"> | number
+    ballSecurityRating?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    homeFieldAdvantage?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    crowdIntensity?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    domeReverberation?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    camaraderieTeamBonus?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    tacticalEffectiveness?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    equipmentAdvantage?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    physicalConditioning?: FloatWithAggregatesFilter<"TeamMatchStats"> | number
+    matchDate?: DateTimeWithAggregatesFilter<"TeamMatchStats"> | Date | string
+    matchType?: EnumMatchTypeWithAggregatesFilter<"TeamMatchStats"> | $Enums.MatchType
+  }
+
+  export type PlayerCareerMilestoneWhereInput = {
+    AND?: PlayerCareerMilestoneWhereInput | PlayerCareerMilestoneWhereInput[]
+    OR?: PlayerCareerMilestoneWhereInput[]
+    NOT?: PlayerCareerMilestoneWhereInput | PlayerCareerMilestoneWhereInput[]
+    id?: IntFilter<"PlayerCareerMilestone"> | number
+    playerId?: IntFilter<"PlayerCareerMilestone"> | number
+    milestoneType?: StringFilter<"PlayerCareerMilestone"> | string
+    description?: StringFilter<"PlayerCareerMilestone"> | string
+    achievedAt?: DateTimeFilter<"PlayerCareerMilestone"> | Date | string
+    seasonId?: StringNullableFilter<"PlayerCareerMilestone"> | string | null
+    metadata?: JsonNullableFilter<"PlayerCareerMilestone">
+    player?: XOR<PlayerScalarRelationFilter, PlayerWhereInput>
+  }
+
+  export type PlayerCareerMilestoneOrderByWithRelationInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    milestoneType?: SortOrder
+    description?: SortOrder
+    achievedAt?: SortOrder
+    seasonId?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    player?: PlayerOrderByWithRelationInput
+  }
+
+  export type PlayerCareerMilestoneWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: PlayerCareerMilestoneWhereInput | PlayerCareerMilestoneWhereInput[]
+    OR?: PlayerCareerMilestoneWhereInput[]
+    NOT?: PlayerCareerMilestoneWhereInput | PlayerCareerMilestoneWhereInput[]
+    playerId?: IntFilter<"PlayerCareerMilestone"> | number
+    milestoneType?: StringFilter<"PlayerCareerMilestone"> | string
+    description?: StringFilter<"PlayerCareerMilestone"> | string
+    achievedAt?: DateTimeFilter<"PlayerCareerMilestone"> | Date | string
+    seasonId?: StringNullableFilter<"PlayerCareerMilestone"> | string | null
+    metadata?: JsonNullableFilter<"PlayerCareerMilestone">
+    player?: XOR<PlayerScalarRelationFilter, PlayerWhereInput>
+  }, "id">
+
+  export type PlayerCareerMilestoneOrderByWithAggregationInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    milestoneType?: SortOrder
+    description?: SortOrder
+    achievedAt?: SortOrder
+    seasonId?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    _count?: PlayerCareerMilestoneCountOrderByAggregateInput
+    _avg?: PlayerCareerMilestoneAvgOrderByAggregateInput
+    _max?: PlayerCareerMilestoneMaxOrderByAggregateInput
+    _min?: PlayerCareerMilestoneMinOrderByAggregateInput
+    _sum?: PlayerCareerMilestoneSumOrderByAggregateInput
+  }
+
+  export type PlayerCareerMilestoneScalarWhereWithAggregatesInput = {
+    AND?: PlayerCareerMilestoneScalarWhereWithAggregatesInput | PlayerCareerMilestoneScalarWhereWithAggregatesInput[]
+    OR?: PlayerCareerMilestoneScalarWhereWithAggregatesInput[]
+    NOT?: PlayerCareerMilestoneScalarWhereWithAggregatesInput | PlayerCareerMilestoneScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PlayerCareerMilestone"> | number
+    playerId?: IntWithAggregatesFilter<"PlayerCareerMilestone"> | number
+    milestoneType?: StringWithAggregatesFilter<"PlayerCareerMilestone"> | string
+    description?: StringWithAggregatesFilter<"PlayerCareerMilestone"> | string
+    achievedAt?: DateTimeWithAggregatesFilter<"PlayerCareerMilestone"> | Date | string
+    seasonId?: StringNullableWithAggregatesFilter<"PlayerCareerMilestone"> | string | null
+    metadata?: JsonNullableWithAggregatesFilter<"PlayerCareerMilestone">
+  }
+
   export type UserProfileCreateInput = {
     userId: string
     email?: string | null
@@ -53003,6 +59916,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateInput = {
@@ -53040,6 +59954,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUpdateInput = {
@@ -53076,6 +59991,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateInput = {
@@ -53113,6 +60029,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamCreateManyInput = {
@@ -53214,6 +60131,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateInput = {
@@ -53256,6 +60176,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUpdateInput = {
@@ -53297,6 +60220,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateInput = {
@@ -53339,6 +60265,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerCreateManyInput = {
@@ -54840,6 +61769,8 @@ export namespace Prisma {
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateInput = {
@@ -54857,6 +61788,8 @@ export namespace Prisma {
     round?: number | null
     status?: $Enums.GameStatus
     createdAt?: Date | string
+    playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameUpdateInput = {
@@ -54873,6 +61806,8 @@ export namespace Prisma {
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateInput = {
@@ -54890,6 +61825,8 @@ export namespace Prisma {
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameCreateManyInput = {
@@ -55952,6 +62889,709 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PlayerDevelopmentHistoryCreateInput = {
+    developmentDate?: Date | string
+    developmentType: string
+    statChanges: JsonNullValueInput | InputJsonValue
+    previousValues: JsonNullValueInput | InputJsonValue
+    newValues: JsonNullValueInput | InputJsonValue
+    triggerReason: string
+    activityScore?: number
+    gamesPlayedFactor?: number
+    potentialModifier?: number
+    ageModifier?: number
+    coachingBonus?: number
+    trainerBonus?: number
+    player: PlayerCreateNestedOneWithoutDevelopmentHistoryInput
+  }
+
+  export type PlayerDevelopmentHistoryUncheckedCreateInput = {
+    id?: number
+    playerId: number
+    developmentDate?: Date | string
+    developmentType: string
+    statChanges: JsonNullValueInput | InputJsonValue
+    previousValues: JsonNullValueInput | InputJsonValue
+    newValues: JsonNullValueInput | InputJsonValue
+    triggerReason: string
+    activityScore?: number
+    gamesPlayedFactor?: number
+    potentialModifier?: number
+    ageModifier?: number
+    coachingBonus?: number
+    trainerBonus?: number
+  }
+
+  export type PlayerDevelopmentHistoryUpdateInput = {
+    developmentDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    developmentType?: StringFieldUpdateOperationsInput | string
+    statChanges?: JsonNullValueInput | InputJsonValue
+    previousValues?: JsonNullValueInput | InputJsonValue
+    newValues?: JsonNullValueInput | InputJsonValue
+    triggerReason?: StringFieldUpdateOperationsInput | string
+    activityScore?: FloatFieldUpdateOperationsInput | number
+    gamesPlayedFactor?: IntFieldUpdateOperationsInput | number
+    potentialModifier?: FloatFieldUpdateOperationsInput | number
+    ageModifier?: FloatFieldUpdateOperationsInput | number
+    coachingBonus?: FloatFieldUpdateOperationsInput | number
+    trainerBonus?: FloatFieldUpdateOperationsInput | number
+    player?: PlayerUpdateOneRequiredWithoutDevelopmentHistoryNestedInput
+  }
+
+  export type PlayerDevelopmentHistoryUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    playerId?: IntFieldUpdateOperationsInput | number
+    developmentDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    developmentType?: StringFieldUpdateOperationsInput | string
+    statChanges?: JsonNullValueInput | InputJsonValue
+    previousValues?: JsonNullValueInput | InputJsonValue
+    newValues?: JsonNullValueInput | InputJsonValue
+    triggerReason?: StringFieldUpdateOperationsInput | string
+    activityScore?: FloatFieldUpdateOperationsInput | number
+    gamesPlayedFactor?: IntFieldUpdateOperationsInput | number
+    potentialModifier?: FloatFieldUpdateOperationsInput | number
+    ageModifier?: FloatFieldUpdateOperationsInput | number
+    coachingBonus?: FloatFieldUpdateOperationsInput | number
+    trainerBonus?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type PlayerDevelopmentHistoryCreateManyInput = {
+    id?: number
+    playerId: number
+    developmentDate?: Date | string
+    developmentType: string
+    statChanges: JsonNullValueInput | InputJsonValue
+    previousValues: JsonNullValueInput | InputJsonValue
+    newValues: JsonNullValueInput | InputJsonValue
+    triggerReason: string
+    activityScore?: number
+    gamesPlayedFactor?: number
+    potentialModifier?: number
+    ageModifier?: number
+    coachingBonus?: number
+    trainerBonus?: number
+  }
+
+  export type PlayerDevelopmentHistoryUpdateManyMutationInput = {
+    developmentDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    developmentType?: StringFieldUpdateOperationsInput | string
+    statChanges?: JsonNullValueInput | InputJsonValue
+    previousValues?: JsonNullValueInput | InputJsonValue
+    newValues?: JsonNullValueInput | InputJsonValue
+    triggerReason?: StringFieldUpdateOperationsInput | string
+    activityScore?: FloatFieldUpdateOperationsInput | number
+    gamesPlayedFactor?: IntFieldUpdateOperationsInput | number
+    potentialModifier?: FloatFieldUpdateOperationsInput | number
+    ageModifier?: FloatFieldUpdateOperationsInput | number
+    coachingBonus?: FloatFieldUpdateOperationsInput | number
+    trainerBonus?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type PlayerDevelopmentHistoryUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    playerId?: IntFieldUpdateOperationsInput | number
+    developmentDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    developmentType?: StringFieldUpdateOperationsInput | string
+    statChanges?: JsonNullValueInput | InputJsonValue
+    previousValues?: JsonNullValueInput | InputJsonValue
+    newValues?: JsonNullValueInput | InputJsonValue
+    triggerReason?: StringFieldUpdateOperationsInput | string
+    activityScore?: FloatFieldUpdateOperationsInput | number
+    gamesPlayedFactor?: IntFieldUpdateOperationsInput | number
+    potentialModifier?: FloatFieldUpdateOperationsInput | number
+    ageModifier?: FloatFieldUpdateOperationsInput | number
+    coachingBonus?: FloatFieldUpdateOperationsInput | number
+    trainerBonus?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type PlayerMatchStatsCreateInput = {
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+    player: PlayerCreateNestedOneWithoutMatchStatsInput
+    game: GameCreateNestedOneWithoutPlayerStatsInput
+  }
+
+  export type PlayerMatchStatsUncheckedCreateInput = {
+    id?: number
+    playerId: number
+    gameId: number
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsUpdateInput = {
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    player?: PlayerUpdateOneRequiredWithoutMatchStatsNestedInput
+    game?: GameUpdateOneRequiredWithoutPlayerStatsNestedInput
+  }
+
+  export type PlayerMatchStatsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    playerId?: IntFieldUpdateOperationsInput | number
+    gameId?: IntFieldUpdateOperationsInput | number
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsCreateManyInput = {
+    id?: number
+    playerId: number
+    gameId: number
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsUpdateManyMutationInput = {
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    playerId?: IntFieldUpdateOperationsInput | number
+    gameId?: IntFieldUpdateOperationsInput | number
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type TeamMatchStatsCreateInput = {
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+    team: TeamCreateNestedOneWithoutTeamMatchStatsInput
+    game: GameCreateNestedOneWithoutTeamStatsInput
+  }
+
+  export type TeamMatchStatsUncheckedCreateInput = {
+    id?: number
+    teamId: number
+    gameId: number
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type TeamMatchStatsUpdateInput = {
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    team?: TeamUpdateOneRequiredWithoutTeamMatchStatsNestedInput
+    game?: GameUpdateOneRequiredWithoutTeamStatsNestedInput
+  }
+
+  export type TeamMatchStatsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    teamId?: IntFieldUpdateOperationsInput | number
+    gameId?: IntFieldUpdateOperationsInput | number
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type TeamMatchStatsCreateManyInput = {
+    id?: number
+    teamId: number
+    gameId: number
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type TeamMatchStatsUpdateManyMutationInput = {
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type TeamMatchStatsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    teamId?: IntFieldUpdateOperationsInput | number
+    gameId?: IntFieldUpdateOperationsInput | number
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type PlayerCareerMilestoneCreateInput = {
+    milestoneType: string
+    description: string
+    achievedAt?: Date | string
+    seasonId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    player: PlayerCreateNestedOneWithoutCareerMilestonesInput
+  }
+
+  export type PlayerCareerMilestoneUncheckedCreateInput = {
+    id?: number
+    playerId: number
+    milestoneType: string
+    description: string
+    achievedAt?: Date | string
+    seasonId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type PlayerCareerMilestoneUpdateInput = {
+    milestoneType?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    achievedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    player?: PlayerUpdateOneRequiredWithoutCareerMilestonesNestedInput
+  }
+
+  export type PlayerCareerMilestoneUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    playerId?: IntFieldUpdateOperationsInput | number
+    milestoneType?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    achievedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type PlayerCareerMilestoneCreateManyInput = {
+    id?: number
+    playerId: number
+    milestoneType: string
+    description: string
+    achievedAt?: Date | string
+    seasonId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type PlayerCareerMilestoneUpdateManyMutationInput = {
+    milestoneType?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    achievedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type PlayerCareerMilestoneUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    playerId?: IntFieldUpdateOperationsInput | number
+    milestoneType?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    achievedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -56384,6 +64024,12 @@ export namespace Prisma {
     none?: GameWhereInput
   }
 
+  export type TeamMatchStatsListRelationFilter = {
+    every?: TeamMatchStatsWhereInput
+    some?: TeamMatchStatsWhereInput
+    none?: TeamMatchStatsWhereInput
+  }
+
   export type PlayerOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -56425,6 +64071,10 @@ export namespace Prisma {
   }
 
   export type GameOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type TeamMatchStatsOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -56622,11 +64272,41 @@ export namespace Prisma {
     none?: PlayerEquipmentWhereInput
   }
 
+  export type PlayerDevelopmentHistoryListRelationFilter = {
+    every?: PlayerDevelopmentHistoryWhereInput
+    some?: PlayerDevelopmentHistoryWhereInput
+    none?: PlayerDevelopmentHistoryWhereInput
+  }
+
+  export type PlayerMatchStatsListRelationFilter = {
+    every?: PlayerMatchStatsWhereInput
+    some?: PlayerMatchStatsWhereInput
+    none?: PlayerMatchStatsWhereInput
+  }
+
+  export type PlayerCareerMilestoneListRelationFilter = {
+    every?: PlayerCareerMilestoneWhereInput
+    some?: PlayerCareerMilestoneWhereInput
+    none?: PlayerCareerMilestoneWhereInput
+  }
+
   export type PlayerSkillLinkOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type PlayerEquipmentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PlayerDevelopmentHistoryOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PlayerMatchStatsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PlayerCareerMilestoneOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -58924,6 +66604,525 @@ export namespace Prisma {
     gemsAmount?: SortOrder
   }
 
+  export type PlayerDevelopmentHistoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    developmentDate?: SortOrder
+    developmentType?: SortOrder
+    statChanges?: SortOrder
+    previousValues?: SortOrder
+    newValues?: SortOrder
+    triggerReason?: SortOrder
+    activityScore?: SortOrder
+    gamesPlayedFactor?: SortOrder
+    potentialModifier?: SortOrder
+    ageModifier?: SortOrder
+    coachingBonus?: SortOrder
+    trainerBonus?: SortOrder
+  }
+
+  export type PlayerDevelopmentHistoryAvgOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    activityScore?: SortOrder
+    gamesPlayedFactor?: SortOrder
+    potentialModifier?: SortOrder
+    ageModifier?: SortOrder
+    coachingBonus?: SortOrder
+    trainerBonus?: SortOrder
+  }
+
+  export type PlayerDevelopmentHistoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    developmentDate?: SortOrder
+    developmentType?: SortOrder
+    triggerReason?: SortOrder
+    activityScore?: SortOrder
+    gamesPlayedFactor?: SortOrder
+    potentialModifier?: SortOrder
+    ageModifier?: SortOrder
+    coachingBonus?: SortOrder
+    trainerBonus?: SortOrder
+  }
+
+  export type PlayerDevelopmentHistoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    developmentDate?: SortOrder
+    developmentType?: SortOrder
+    triggerReason?: SortOrder
+    activityScore?: SortOrder
+    gamesPlayedFactor?: SortOrder
+    potentialModifier?: SortOrder
+    ageModifier?: SortOrder
+    coachingBonus?: SortOrder
+    trainerBonus?: SortOrder
+  }
+
+  export type PlayerDevelopmentHistorySumOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    activityScore?: SortOrder
+    gamesPlayedFactor?: SortOrder
+    potentialModifier?: SortOrder
+    ageModifier?: SortOrder
+    coachingBonus?: SortOrder
+    trainerBonus?: SortOrder
+  }
+
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type GameScalarRelationFilter = {
+    is?: GameWhereInput
+    isNot?: GameWhereInput
+  }
+
+  export type PlayerMatchStatsPlayerIdGameIdCompoundUniqueInput = {
+    playerId: number
+    gameId: number
+  }
+
+  export type PlayerMatchStatsCountOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    gameId?: SortOrder
+    minutesPlayed?: SortOrder
+    performanceRating?: SortOrder
+    camaraderieContribution?: SortOrder
+    scores?: SortOrder
+    assists?: SortOrder
+    passAttempts?: SortOrder
+    passCompletions?: SortOrder
+    passingYards?: SortOrder
+    perfectPasses?: SortOrder
+    rushingYards?: SortOrder
+    breakawayRuns?: SortOrder
+    catches?: SortOrder
+    receivingYards?: SortOrder
+    drops?: SortOrder
+    tackles?: SortOrder
+    tackleAttempts?: SortOrder
+    knockdowns?: SortOrder
+    blocks?: SortOrder
+    injuriesInflicted?: SortOrder
+    interceptions?: SortOrder
+    ballStrips?: SortOrder
+    passDeflections?: SortOrder
+    fumblesLost?: SortOrder
+    ballRetention?: SortOrder
+    distanceCovered?: SortOrder
+    staminaUsed?: SortOrder
+    ballPossessionTime?: SortOrder
+    pressureApplied?: SortOrder
+    injuries?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+  }
+
+  export type PlayerMatchStatsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    gameId?: SortOrder
+    minutesPlayed?: SortOrder
+    performanceRating?: SortOrder
+    camaraderieContribution?: SortOrder
+    scores?: SortOrder
+    assists?: SortOrder
+    passAttempts?: SortOrder
+    passCompletions?: SortOrder
+    passingYards?: SortOrder
+    perfectPasses?: SortOrder
+    rushingYards?: SortOrder
+    breakawayRuns?: SortOrder
+    catches?: SortOrder
+    receivingYards?: SortOrder
+    drops?: SortOrder
+    tackles?: SortOrder
+    tackleAttempts?: SortOrder
+    knockdowns?: SortOrder
+    blocks?: SortOrder
+    injuriesInflicted?: SortOrder
+    interceptions?: SortOrder
+    ballStrips?: SortOrder
+    passDeflections?: SortOrder
+    fumblesLost?: SortOrder
+    ballRetention?: SortOrder
+    distanceCovered?: SortOrder
+    staminaUsed?: SortOrder
+    ballPossessionTime?: SortOrder
+    pressureApplied?: SortOrder
+    injuries?: SortOrder
+  }
+
+  export type PlayerMatchStatsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    gameId?: SortOrder
+    minutesPlayed?: SortOrder
+    performanceRating?: SortOrder
+    camaraderieContribution?: SortOrder
+    scores?: SortOrder
+    assists?: SortOrder
+    passAttempts?: SortOrder
+    passCompletions?: SortOrder
+    passingYards?: SortOrder
+    perfectPasses?: SortOrder
+    rushingYards?: SortOrder
+    breakawayRuns?: SortOrder
+    catches?: SortOrder
+    receivingYards?: SortOrder
+    drops?: SortOrder
+    tackles?: SortOrder
+    tackleAttempts?: SortOrder
+    knockdowns?: SortOrder
+    blocks?: SortOrder
+    injuriesInflicted?: SortOrder
+    interceptions?: SortOrder
+    ballStrips?: SortOrder
+    passDeflections?: SortOrder
+    fumblesLost?: SortOrder
+    ballRetention?: SortOrder
+    distanceCovered?: SortOrder
+    staminaUsed?: SortOrder
+    ballPossessionTime?: SortOrder
+    pressureApplied?: SortOrder
+    injuries?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+  }
+
+  export type PlayerMatchStatsMinOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    gameId?: SortOrder
+    minutesPlayed?: SortOrder
+    performanceRating?: SortOrder
+    camaraderieContribution?: SortOrder
+    scores?: SortOrder
+    assists?: SortOrder
+    passAttempts?: SortOrder
+    passCompletions?: SortOrder
+    passingYards?: SortOrder
+    perfectPasses?: SortOrder
+    rushingYards?: SortOrder
+    breakawayRuns?: SortOrder
+    catches?: SortOrder
+    receivingYards?: SortOrder
+    drops?: SortOrder
+    tackles?: SortOrder
+    tackleAttempts?: SortOrder
+    knockdowns?: SortOrder
+    blocks?: SortOrder
+    injuriesInflicted?: SortOrder
+    interceptions?: SortOrder
+    ballStrips?: SortOrder
+    passDeflections?: SortOrder
+    fumblesLost?: SortOrder
+    ballRetention?: SortOrder
+    distanceCovered?: SortOrder
+    staminaUsed?: SortOrder
+    ballPossessionTime?: SortOrder
+    pressureApplied?: SortOrder
+    injuries?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+  }
+
+  export type PlayerMatchStatsSumOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    gameId?: SortOrder
+    minutesPlayed?: SortOrder
+    performanceRating?: SortOrder
+    camaraderieContribution?: SortOrder
+    scores?: SortOrder
+    assists?: SortOrder
+    passAttempts?: SortOrder
+    passCompletions?: SortOrder
+    passingYards?: SortOrder
+    perfectPasses?: SortOrder
+    rushingYards?: SortOrder
+    breakawayRuns?: SortOrder
+    catches?: SortOrder
+    receivingYards?: SortOrder
+    drops?: SortOrder
+    tackles?: SortOrder
+    tackleAttempts?: SortOrder
+    knockdowns?: SortOrder
+    blocks?: SortOrder
+    injuriesInflicted?: SortOrder
+    interceptions?: SortOrder
+    ballStrips?: SortOrder
+    passDeflections?: SortOrder
+    fumblesLost?: SortOrder
+    ballRetention?: SortOrder
+    distanceCovered?: SortOrder
+    staminaUsed?: SortOrder
+    ballPossessionTime?: SortOrder
+    pressureApplied?: SortOrder
+    injuries?: SortOrder
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type TeamMatchStatsTeamIdGameIdCompoundUniqueInput = {
+    teamId: number
+    gameId: number
+  }
+
+  export type TeamMatchStatsCountOrderByAggregateInput = {
+    id?: SortOrder
+    teamId?: SortOrder
+    gameId?: SortOrder
+    timeOfPossession?: SortOrder
+    possessionPercentage?: SortOrder
+    averageFieldPosition?: SortOrder
+    territoryGained?: SortOrder
+    totalScore?: SortOrder
+    totalPassingYards?: SortOrder
+    totalRushingYards?: SortOrder
+    totalOffensiveYards?: SortOrder
+    passingAccuracy?: SortOrder
+    ballRetentionRate?: SortOrder
+    scoringOpportunities?: SortOrder
+    scoringEfficiency?: SortOrder
+    totalTackles?: SortOrder
+    totalKnockdowns?: SortOrder
+    totalBlocks?: SortOrder
+    totalInjuriesInflicted?: SortOrder
+    totalInterceptions?: SortOrder
+    totalBallStrips?: SortOrder
+    passDeflections?: SortOrder
+    defensiveStops?: SortOrder
+    totalFumbles?: SortOrder
+    turnoverDifferential?: SortOrder
+    physicalDominance?: SortOrder
+    ballSecurityRating?: SortOrder
+    homeFieldAdvantage?: SortOrder
+    crowdIntensity?: SortOrder
+    domeReverberation?: SortOrder
+    camaraderieTeamBonus?: SortOrder
+    tacticalEffectiveness?: SortOrder
+    equipmentAdvantage?: SortOrder
+    physicalConditioning?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+  }
+
+  export type TeamMatchStatsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    teamId?: SortOrder
+    gameId?: SortOrder
+    timeOfPossession?: SortOrder
+    possessionPercentage?: SortOrder
+    averageFieldPosition?: SortOrder
+    territoryGained?: SortOrder
+    totalScore?: SortOrder
+    totalPassingYards?: SortOrder
+    totalRushingYards?: SortOrder
+    totalOffensiveYards?: SortOrder
+    passingAccuracy?: SortOrder
+    ballRetentionRate?: SortOrder
+    scoringOpportunities?: SortOrder
+    scoringEfficiency?: SortOrder
+    totalTackles?: SortOrder
+    totalKnockdowns?: SortOrder
+    totalBlocks?: SortOrder
+    totalInjuriesInflicted?: SortOrder
+    totalInterceptions?: SortOrder
+    totalBallStrips?: SortOrder
+    passDeflections?: SortOrder
+    defensiveStops?: SortOrder
+    totalFumbles?: SortOrder
+    turnoverDifferential?: SortOrder
+    physicalDominance?: SortOrder
+    ballSecurityRating?: SortOrder
+    homeFieldAdvantage?: SortOrder
+    crowdIntensity?: SortOrder
+    domeReverberation?: SortOrder
+    camaraderieTeamBonus?: SortOrder
+    tacticalEffectiveness?: SortOrder
+    equipmentAdvantage?: SortOrder
+    physicalConditioning?: SortOrder
+  }
+
+  export type TeamMatchStatsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    teamId?: SortOrder
+    gameId?: SortOrder
+    timeOfPossession?: SortOrder
+    possessionPercentage?: SortOrder
+    averageFieldPosition?: SortOrder
+    territoryGained?: SortOrder
+    totalScore?: SortOrder
+    totalPassingYards?: SortOrder
+    totalRushingYards?: SortOrder
+    totalOffensiveYards?: SortOrder
+    passingAccuracy?: SortOrder
+    ballRetentionRate?: SortOrder
+    scoringOpportunities?: SortOrder
+    scoringEfficiency?: SortOrder
+    totalTackles?: SortOrder
+    totalKnockdowns?: SortOrder
+    totalBlocks?: SortOrder
+    totalInjuriesInflicted?: SortOrder
+    totalInterceptions?: SortOrder
+    totalBallStrips?: SortOrder
+    passDeflections?: SortOrder
+    defensiveStops?: SortOrder
+    totalFumbles?: SortOrder
+    turnoverDifferential?: SortOrder
+    physicalDominance?: SortOrder
+    ballSecurityRating?: SortOrder
+    homeFieldAdvantage?: SortOrder
+    crowdIntensity?: SortOrder
+    domeReverberation?: SortOrder
+    camaraderieTeamBonus?: SortOrder
+    tacticalEffectiveness?: SortOrder
+    equipmentAdvantage?: SortOrder
+    physicalConditioning?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+  }
+
+  export type TeamMatchStatsMinOrderByAggregateInput = {
+    id?: SortOrder
+    teamId?: SortOrder
+    gameId?: SortOrder
+    timeOfPossession?: SortOrder
+    possessionPercentage?: SortOrder
+    averageFieldPosition?: SortOrder
+    territoryGained?: SortOrder
+    totalScore?: SortOrder
+    totalPassingYards?: SortOrder
+    totalRushingYards?: SortOrder
+    totalOffensiveYards?: SortOrder
+    passingAccuracy?: SortOrder
+    ballRetentionRate?: SortOrder
+    scoringOpportunities?: SortOrder
+    scoringEfficiency?: SortOrder
+    totalTackles?: SortOrder
+    totalKnockdowns?: SortOrder
+    totalBlocks?: SortOrder
+    totalInjuriesInflicted?: SortOrder
+    totalInterceptions?: SortOrder
+    totalBallStrips?: SortOrder
+    passDeflections?: SortOrder
+    defensiveStops?: SortOrder
+    totalFumbles?: SortOrder
+    turnoverDifferential?: SortOrder
+    physicalDominance?: SortOrder
+    ballSecurityRating?: SortOrder
+    homeFieldAdvantage?: SortOrder
+    crowdIntensity?: SortOrder
+    domeReverberation?: SortOrder
+    camaraderieTeamBonus?: SortOrder
+    tacticalEffectiveness?: SortOrder
+    equipmentAdvantage?: SortOrder
+    physicalConditioning?: SortOrder
+    matchDate?: SortOrder
+    matchType?: SortOrder
+  }
+
+  export type TeamMatchStatsSumOrderByAggregateInput = {
+    id?: SortOrder
+    teamId?: SortOrder
+    gameId?: SortOrder
+    timeOfPossession?: SortOrder
+    possessionPercentage?: SortOrder
+    averageFieldPosition?: SortOrder
+    territoryGained?: SortOrder
+    totalScore?: SortOrder
+    totalPassingYards?: SortOrder
+    totalRushingYards?: SortOrder
+    totalOffensiveYards?: SortOrder
+    passingAccuracy?: SortOrder
+    ballRetentionRate?: SortOrder
+    scoringOpportunities?: SortOrder
+    scoringEfficiency?: SortOrder
+    totalTackles?: SortOrder
+    totalKnockdowns?: SortOrder
+    totalBlocks?: SortOrder
+    totalInjuriesInflicted?: SortOrder
+    totalInterceptions?: SortOrder
+    totalBallStrips?: SortOrder
+    passDeflections?: SortOrder
+    defensiveStops?: SortOrder
+    totalFumbles?: SortOrder
+    turnoverDifferential?: SortOrder
+    physicalDominance?: SortOrder
+    ballSecurityRating?: SortOrder
+    homeFieldAdvantage?: SortOrder
+    crowdIntensity?: SortOrder
+    domeReverberation?: SortOrder
+    camaraderieTeamBonus?: SortOrder
+    tacticalEffectiveness?: SortOrder
+    equipmentAdvantage?: SortOrder
+    physicalConditioning?: SortOrder
+  }
+
+  export type PlayerCareerMilestoneCountOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    milestoneType?: SortOrder
+    description?: SortOrder
+    achievedAt?: SortOrder
+    seasonId?: SortOrder
+    metadata?: SortOrder
+  }
+
+  export type PlayerCareerMilestoneAvgOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+  }
+
+  export type PlayerCareerMilestoneMaxOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    milestoneType?: SortOrder
+    description?: SortOrder
+    achievedAt?: SortOrder
+    seasonId?: SortOrder
+  }
+
+  export type PlayerCareerMilestoneMinOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+    milestoneType?: SortOrder
+    description?: SortOrder
+    achievedAt?: SortOrder
+    seasonId?: SortOrder
+  }
+
+  export type PlayerCareerMilestoneSumOrderByAggregateInput = {
+    id?: SortOrder
+    playerId?: SortOrder
+  }
+
   export type TeamCreateNestedOneWithoutUserInput = {
     create?: XOR<TeamCreateWithoutUserInput, TeamUncheckedCreateWithoutUserInput>
     connectOrCreate?: TeamCreateOrConnectWithoutUserInput
@@ -59179,6 +67378,13 @@ export namespace Prisma {
     connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
   }
 
+  export type TeamMatchStatsCreateNestedManyWithoutTeamInput = {
+    create?: XOR<TeamMatchStatsCreateWithoutTeamInput, TeamMatchStatsUncheckedCreateWithoutTeamInput> | TeamMatchStatsCreateWithoutTeamInput[] | TeamMatchStatsUncheckedCreateWithoutTeamInput[]
+    connectOrCreate?: TeamMatchStatsCreateOrConnectWithoutTeamInput | TeamMatchStatsCreateOrConnectWithoutTeamInput[]
+    createMany?: TeamMatchStatsCreateManyTeamInputEnvelope
+    connect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+  }
+
   export type PlayerUncheckedCreateNestedManyWithoutTeamInput = {
     create?: XOR<PlayerCreateWithoutTeamInput, PlayerUncheckedCreateWithoutTeamInput> | PlayerCreateWithoutTeamInput[] | PlayerUncheckedCreateWithoutTeamInput[]
     connectOrCreate?: PlayerCreateOrConnectWithoutTeamInput | PlayerCreateOrConnectWithoutTeamInput[]
@@ -59286,6 +67492,13 @@ export namespace Prisma {
     connectOrCreate?: GameCreateOrConnectWithoutAwayTeamInput | GameCreateOrConnectWithoutAwayTeamInput[]
     createMany?: GameCreateManyAwayTeamInputEnvelope
     connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+  }
+
+  export type TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput = {
+    create?: XOR<TeamMatchStatsCreateWithoutTeamInput, TeamMatchStatsUncheckedCreateWithoutTeamInput> | TeamMatchStatsCreateWithoutTeamInput[] | TeamMatchStatsUncheckedCreateWithoutTeamInput[]
+    connectOrCreate?: TeamMatchStatsCreateOrConnectWithoutTeamInput | TeamMatchStatsCreateOrConnectWithoutTeamInput[]
+    createMany?: TeamMatchStatsCreateManyTeamInputEnvelope
+    connect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
   }
 
   export type FloatFieldUpdateOperationsInput = {
@@ -59542,6 +67755,20 @@ export namespace Prisma {
     deleteMany?: GameScalarWhereInput | GameScalarWhereInput[]
   }
 
+  export type TeamMatchStatsUpdateManyWithoutTeamNestedInput = {
+    create?: XOR<TeamMatchStatsCreateWithoutTeamInput, TeamMatchStatsUncheckedCreateWithoutTeamInput> | TeamMatchStatsCreateWithoutTeamInput[] | TeamMatchStatsUncheckedCreateWithoutTeamInput[]
+    connectOrCreate?: TeamMatchStatsCreateOrConnectWithoutTeamInput | TeamMatchStatsCreateOrConnectWithoutTeamInput[]
+    upsert?: TeamMatchStatsUpsertWithWhereUniqueWithoutTeamInput | TeamMatchStatsUpsertWithWhereUniqueWithoutTeamInput[]
+    createMany?: TeamMatchStatsCreateManyTeamInputEnvelope
+    set?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    disconnect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    delete?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    connect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    update?: TeamMatchStatsUpdateWithWhereUniqueWithoutTeamInput | TeamMatchStatsUpdateWithWhereUniqueWithoutTeamInput[]
+    updateMany?: TeamMatchStatsUpdateManyWithWhereWithoutTeamInput | TeamMatchStatsUpdateManyWithWhereWithoutTeamInput[]
+    deleteMany?: TeamMatchStatsScalarWhereInput | TeamMatchStatsScalarWhereInput[]
+  }
+
   export type PlayerUncheckedUpdateManyWithoutTeamNestedInput = {
     create?: XOR<PlayerCreateWithoutTeamInput, PlayerUncheckedCreateWithoutTeamInput> | PlayerCreateWithoutTeamInput[] | PlayerUncheckedCreateWithoutTeamInput[]
     connectOrCreate?: PlayerCreateOrConnectWithoutTeamInput | PlayerCreateOrConnectWithoutTeamInput[]
@@ -59754,6 +67981,20 @@ export namespace Prisma {
     deleteMany?: GameScalarWhereInput | GameScalarWhereInput[]
   }
 
+  export type TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput = {
+    create?: XOR<TeamMatchStatsCreateWithoutTeamInput, TeamMatchStatsUncheckedCreateWithoutTeamInput> | TeamMatchStatsCreateWithoutTeamInput[] | TeamMatchStatsUncheckedCreateWithoutTeamInput[]
+    connectOrCreate?: TeamMatchStatsCreateOrConnectWithoutTeamInput | TeamMatchStatsCreateOrConnectWithoutTeamInput[]
+    upsert?: TeamMatchStatsUpsertWithWhereUniqueWithoutTeamInput | TeamMatchStatsUpsertWithWhereUniqueWithoutTeamInput[]
+    createMany?: TeamMatchStatsCreateManyTeamInputEnvelope
+    set?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    disconnect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    delete?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    connect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    update?: TeamMatchStatsUpdateWithWhereUniqueWithoutTeamInput | TeamMatchStatsUpdateWithWhereUniqueWithoutTeamInput[]
+    updateMany?: TeamMatchStatsUpdateManyWithWhereWithoutTeamInput | TeamMatchStatsUpdateManyWithWhereWithoutTeamInput[]
+    deleteMany?: TeamMatchStatsScalarWhereInput | TeamMatchStatsScalarWhereInput[]
+  }
+
   export type TeamCreateNestedOneWithoutPlayersInput = {
     create?: XOR<TeamCreateWithoutPlayersInput, TeamUncheckedCreateWithoutPlayersInput>
     connectOrCreate?: TeamCreateOrConnectWithoutPlayersInput
@@ -59806,6 +68047,27 @@ export namespace Prisma {
     connect?: PlayerEquipmentWhereUniqueInput | PlayerEquipmentWhereUniqueInput[]
   }
 
+  export type PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput = {
+    create?: XOR<PlayerDevelopmentHistoryCreateWithoutPlayerInput, PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput> | PlayerDevelopmentHistoryCreateWithoutPlayerInput[] | PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput | PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput[]
+    createMany?: PlayerDevelopmentHistoryCreateManyPlayerInputEnvelope
+    connect?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+  }
+
+  export type PlayerMatchStatsCreateNestedManyWithoutPlayerInput = {
+    create?: XOR<PlayerMatchStatsCreateWithoutPlayerInput, PlayerMatchStatsUncheckedCreateWithoutPlayerInput> | PlayerMatchStatsCreateWithoutPlayerInput[] | PlayerMatchStatsUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutPlayerInput | PlayerMatchStatsCreateOrConnectWithoutPlayerInput[]
+    createMany?: PlayerMatchStatsCreateManyPlayerInputEnvelope
+    connect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+  }
+
+  export type PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput = {
+    create?: XOR<PlayerCareerMilestoneCreateWithoutPlayerInput, PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput> | PlayerCareerMilestoneCreateWithoutPlayerInput[] | PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput | PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput[]
+    createMany?: PlayerCareerMilestoneCreateManyPlayerInputEnvelope
+    connect?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+  }
+
   export type ContractUncheckedCreateNestedOneWithoutPlayerInput = {
     create?: XOR<ContractCreateWithoutPlayerInput, ContractUncheckedCreateWithoutPlayerInput>
     connectOrCreate?: ContractCreateOrConnectWithoutPlayerInput
@@ -59850,6 +68112,27 @@ export namespace Prisma {
     connectOrCreate?: PlayerEquipmentCreateOrConnectWithoutPlayerInput | PlayerEquipmentCreateOrConnectWithoutPlayerInput[]
     createMany?: PlayerEquipmentCreateManyPlayerInputEnvelope
     connect?: PlayerEquipmentWhereUniqueInput | PlayerEquipmentWhereUniqueInput[]
+  }
+
+  export type PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput = {
+    create?: XOR<PlayerDevelopmentHistoryCreateWithoutPlayerInput, PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput> | PlayerDevelopmentHistoryCreateWithoutPlayerInput[] | PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput | PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput[]
+    createMany?: PlayerDevelopmentHistoryCreateManyPlayerInputEnvelope
+    connect?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+  }
+
+  export type PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput = {
+    create?: XOR<PlayerMatchStatsCreateWithoutPlayerInput, PlayerMatchStatsUncheckedCreateWithoutPlayerInput> | PlayerMatchStatsCreateWithoutPlayerInput[] | PlayerMatchStatsUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutPlayerInput | PlayerMatchStatsCreateOrConnectWithoutPlayerInput[]
+    createMany?: PlayerMatchStatsCreateManyPlayerInputEnvelope
+    connect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+  }
+
+  export type PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput = {
+    create?: XOR<PlayerCareerMilestoneCreateWithoutPlayerInput, PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput> | PlayerCareerMilestoneCreateWithoutPlayerInput[] | PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput | PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput[]
+    createMany?: PlayerCareerMilestoneCreateManyPlayerInputEnvelope
+    connect?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
   }
 
   export type EnumRaceFieldUpdateOperationsInput = {
@@ -59958,6 +68241,48 @@ export namespace Prisma {
     deleteMany?: PlayerEquipmentScalarWhereInput | PlayerEquipmentScalarWhereInput[]
   }
 
+  export type PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput = {
+    create?: XOR<PlayerDevelopmentHistoryCreateWithoutPlayerInput, PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput> | PlayerDevelopmentHistoryCreateWithoutPlayerInput[] | PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput | PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput[]
+    upsert?: PlayerDevelopmentHistoryUpsertWithWhereUniqueWithoutPlayerInput | PlayerDevelopmentHistoryUpsertWithWhereUniqueWithoutPlayerInput[]
+    createMany?: PlayerDevelopmentHistoryCreateManyPlayerInputEnvelope
+    set?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+    disconnect?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+    delete?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+    connect?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+    update?: PlayerDevelopmentHistoryUpdateWithWhereUniqueWithoutPlayerInput | PlayerDevelopmentHistoryUpdateWithWhereUniqueWithoutPlayerInput[]
+    updateMany?: PlayerDevelopmentHistoryUpdateManyWithWhereWithoutPlayerInput | PlayerDevelopmentHistoryUpdateManyWithWhereWithoutPlayerInput[]
+    deleteMany?: PlayerDevelopmentHistoryScalarWhereInput | PlayerDevelopmentHistoryScalarWhereInput[]
+  }
+
+  export type PlayerMatchStatsUpdateManyWithoutPlayerNestedInput = {
+    create?: XOR<PlayerMatchStatsCreateWithoutPlayerInput, PlayerMatchStatsUncheckedCreateWithoutPlayerInput> | PlayerMatchStatsCreateWithoutPlayerInput[] | PlayerMatchStatsUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutPlayerInput | PlayerMatchStatsCreateOrConnectWithoutPlayerInput[]
+    upsert?: PlayerMatchStatsUpsertWithWhereUniqueWithoutPlayerInput | PlayerMatchStatsUpsertWithWhereUniqueWithoutPlayerInput[]
+    createMany?: PlayerMatchStatsCreateManyPlayerInputEnvelope
+    set?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    disconnect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    delete?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    connect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    update?: PlayerMatchStatsUpdateWithWhereUniqueWithoutPlayerInput | PlayerMatchStatsUpdateWithWhereUniqueWithoutPlayerInput[]
+    updateMany?: PlayerMatchStatsUpdateManyWithWhereWithoutPlayerInput | PlayerMatchStatsUpdateManyWithWhereWithoutPlayerInput[]
+    deleteMany?: PlayerMatchStatsScalarWhereInput | PlayerMatchStatsScalarWhereInput[]
+  }
+
+  export type PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput = {
+    create?: XOR<PlayerCareerMilestoneCreateWithoutPlayerInput, PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput> | PlayerCareerMilestoneCreateWithoutPlayerInput[] | PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput | PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput[]
+    upsert?: PlayerCareerMilestoneUpsertWithWhereUniqueWithoutPlayerInput | PlayerCareerMilestoneUpsertWithWhereUniqueWithoutPlayerInput[]
+    createMany?: PlayerCareerMilestoneCreateManyPlayerInputEnvelope
+    set?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+    disconnect?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+    delete?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+    connect?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+    update?: PlayerCareerMilestoneUpdateWithWhereUniqueWithoutPlayerInput | PlayerCareerMilestoneUpdateWithWhereUniqueWithoutPlayerInput[]
+    updateMany?: PlayerCareerMilestoneUpdateManyWithWhereWithoutPlayerInput | PlayerCareerMilestoneUpdateManyWithWhereWithoutPlayerInput[]
+    deleteMany?: PlayerCareerMilestoneScalarWhereInput | PlayerCareerMilestoneScalarWhereInput[]
+  }
+
   export type ContractUncheckedUpdateOneWithoutPlayerNestedInput = {
     create?: XOR<ContractCreateWithoutPlayerInput, ContractUncheckedCreateWithoutPlayerInput>
     connectOrCreate?: ContractCreateOrConnectWithoutPlayerInput
@@ -60042,6 +68367,48 @@ export namespace Prisma {
     update?: PlayerEquipmentUpdateWithWhereUniqueWithoutPlayerInput | PlayerEquipmentUpdateWithWhereUniqueWithoutPlayerInput[]
     updateMany?: PlayerEquipmentUpdateManyWithWhereWithoutPlayerInput | PlayerEquipmentUpdateManyWithWhereWithoutPlayerInput[]
     deleteMany?: PlayerEquipmentScalarWhereInput | PlayerEquipmentScalarWhereInput[]
+  }
+
+  export type PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput = {
+    create?: XOR<PlayerDevelopmentHistoryCreateWithoutPlayerInput, PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput> | PlayerDevelopmentHistoryCreateWithoutPlayerInput[] | PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput | PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput[]
+    upsert?: PlayerDevelopmentHistoryUpsertWithWhereUniqueWithoutPlayerInput | PlayerDevelopmentHistoryUpsertWithWhereUniqueWithoutPlayerInput[]
+    createMany?: PlayerDevelopmentHistoryCreateManyPlayerInputEnvelope
+    set?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+    disconnect?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+    delete?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+    connect?: PlayerDevelopmentHistoryWhereUniqueInput | PlayerDevelopmentHistoryWhereUniqueInput[]
+    update?: PlayerDevelopmentHistoryUpdateWithWhereUniqueWithoutPlayerInput | PlayerDevelopmentHistoryUpdateWithWhereUniqueWithoutPlayerInput[]
+    updateMany?: PlayerDevelopmentHistoryUpdateManyWithWhereWithoutPlayerInput | PlayerDevelopmentHistoryUpdateManyWithWhereWithoutPlayerInput[]
+    deleteMany?: PlayerDevelopmentHistoryScalarWhereInput | PlayerDevelopmentHistoryScalarWhereInput[]
+  }
+
+  export type PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput = {
+    create?: XOR<PlayerMatchStatsCreateWithoutPlayerInput, PlayerMatchStatsUncheckedCreateWithoutPlayerInput> | PlayerMatchStatsCreateWithoutPlayerInput[] | PlayerMatchStatsUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutPlayerInput | PlayerMatchStatsCreateOrConnectWithoutPlayerInput[]
+    upsert?: PlayerMatchStatsUpsertWithWhereUniqueWithoutPlayerInput | PlayerMatchStatsUpsertWithWhereUniqueWithoutPlayerInput[]
+    createMany?: PlayerMatchStatsCreateManyPlayerInputEnvelope
+    set?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    disconnect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    delete?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    connect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    update?: PlayerMatchStatsUpdateWithWhereUniqueWithoutPlayerInput | PlayerMatchStatsUpdateWithWhereUniqueWithoutPlayerInput[]
+    updateMany?: PlayerMatchStatsUpdateManyWithWhereWithoutPlayerInput | PlayerMatchStatsUpdateManyWithWhereWithoutPlayerInput[]
+    deleteMany?: PlayerMatchStatsScalarWhereInput | PlayerMatchStatsScalarWhereInput[]
+  }
+
+  export type PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput = {
+    create?: XOR<PlayerCareerMilestoneCreateWithoutPlayerInput, PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput> | PlayerCareerMilestoneCreateWithoutPlayerInput[] | PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput[]
+    connectOrCreate?: PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput | PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput[]
+    upsert?: PlayerCareerMilestoneUpsertWithWhereUniqueWithoutPlayerInput | PlayerCareerMilestoneUpsertWithWhereUniqueWithoutPlayerInput[]
+    createMany?: PlayerCareerMilestoneCreateManyPlayerInputEnvelope
+    set?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+    disconnect?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+    delete?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+    connect?: PlayerCareerMilestoneWhereUniqueInput | PlayerCareerMilestoneWhereUniqueInput[]
+    update?: PlayerCareerMilestoneUpdateWithWhereUniqueWithoutPlayerInput | PlayerCareerMilestoneUpdateWithWhereUniqueWithoutPlayerInput[]
+    updateMany?: PlayerCareerMilestoneUpdateManyWithWhereWithoutPlayerInput | PlayerCareerMilestoneUpdateManyWithWhereWithoutPlayerInput[]
+    deleteMany?: PlayerCareerMilestoneScalarWhereInput | PlayerCareerMilestoneScalarWhereInput[]
   }
 
   export type PlayerCreateNestedOneWithoutCurrentEquipmentInput = {
@@ -60936,6 +69303,34 @@ export namespace Prisma {
     connect?: TournamentWhereUniqueInput
   }
 
+  export type PlayerMatchStatsCreateNestedManyWithoutGameInput = {
+    create?: XOR<PlayerMatchStatsCreateWithoutGameInput, PlayerMatchStatsUncheckedCreateWithoutGameInput> | PlayerMatchStatsCreateWithoutGameInput[] | PlayerMatchStatsUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutGameInput | PlayerMatchStatsCreateOrConnectWithoutGameInput[]
+    createMany?: PlayerMatchStatsCreateManyGameInputEnvelope
+    connect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+  }
+
+  export type TeamMatchStatsCreateNestedManyWithoutGameInput = {
+    create?: XOR<TeamMatchStatsCreateWithoutGameInput, TeamMatchStatsUncheckedCreateWithoutGameInput> | TeamMatchStatsCreateWithoutGameInput[] | TeamMatchStatsUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: TeamMatchStatsCreateOrConnectWithoutGameInput | TeamMatchStatsCreateOrConnectWithoutGameInput[]
+    createMany?: TeamMatchStatsCreateManyGameInputEnvelope
+    connect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+  }
+
+  export type PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput = {
+    create?: XOR<PlayerMatchStatsCreateWithoutGameInput, PlayerMatchStatsUncheckedCreateWithoutGameInput> | PlayerMatchStatsCreateWithoutGameInput[] | PlayerMatchStatsUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutGameInput | PlayerMatchStatsCreateOrConnectWithoutGameInput[]
+    createMany?: PlayerMatchStatsCreateManyGameInputEnvelope
+    connect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+  }
+
+  export type TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput = {
+    create?: XOR<TeamMatchStatsCreateWithoutGameInput, TeamMatchStatsUncheckedCreateWithoutGameInput> | TeamMatchStatsCreateWithoutGameInput[] | TeamMatchStatsUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: TeamMatchStatsCreateOrConnectWithoutGameInput | TeamMatchStatsCreateOrConnectWithoutGameInput[]
+    createMany?: TeamMatchStatsCreateManyGameInputEnvelope
+    connect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+  }
+
   export type EnumGameStatusFieldUpdateOperationsInput = {
     set?: $Enums.GameStatus
   }
@@ -60974,6 +69369,62 @@ export namespace Prisma {
     delete?: TournamentWhereInput | boolean
     connect?: TournamentWhereUniqueInput
     update?: XOR<XOR<TournamentUpdateToOneWithWhereWithoutGamesInput, TournamentUpdateWithoutGamesInput>, TournamentUncheckedUpdateWithoutGamesInput>
+  }
+
+  export type PlayerMatchStatsUpdateManyWithoutGameNestedInput = {
+    create?: XOR<PlayerMatchStatsCreateWithoutGameInput, PlayerMatchStatsUncheckedCreateWithoutGameInput> | PlayerMatchStatsCreateWithoutGameInput[] | PlayerMatchStatsUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutGameInput | PlayerMatchStatsCreateOrConnectWithoutGameInput[]
+    upsert?: PlayerMatchStatsUpsertWithWhereUniqueWithoutGameInput | PlayerMatchStatsUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: PlayerMatchStatsCreateManyGameInputEnvelope
+    set?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    disconnect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    delete?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    connect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    update?: PlayerMatchStatsUpdateWithWhereUniqueWithoutGameInput | PlayerMatchStatsUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: PlayerMatchStatsUpdateManyWithWhereWithoutGameInput | PlayerMatchStatsUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: PlayerMatchStatsScalarWhereInput | PlayerMatchStatsScalarWhereInput[]
+  }
+
+  export type TeamMatchStatsUpdateManyWithoutGameNestedInput = {
+    create?: XOR<TeamMatchStatsCreateWithoutGameInput, TeamMatchStatsUncheckedCreateWithoutGameInput> | TeamMatchStatsCreateWithoutGameInput[] | TeamMatchStatsUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: TeamMatchStatsCreateOrConnectWithoutGameInput | TeamMatchStatsCreateOrConnectWithoutGameInput[]
+    upsert?: TeamMatchStatsUpsertWithWhereUniqueWithoutGameInput | TeamMatchStatsUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: TeamMatchStatsCreateManyGameInputEnvelope
+    set?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    disconnect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    delete?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    connect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    update?: TeamMatchStatsUpdateWithWhereUniqueWithoutGameInput | TeamMatchStatsUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: TeamMatchStatsUpdateManyWithWhereWithoutGameInput | TeamMatchStatsUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: TeamMatchStatsScalarWhereInput | TeamMatchStatsScalarWhereInput[]
+  }
+
+  export type PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput = {
+    create?: XOR<PlayerMatchStatsCreateWithoutGameInput, PlayerMatchStatsUncheckedCreateWithoutGameInput> | PlayerMatchStatsCreateWithoutGameInput[] | PlayerMatchStatsUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutGameInput | PlayerMatchStatsCreateOrConnectWithoutGameInput[]
+    upsert?: PlayerMatchStatsUpsertWithWhereUniqueWithoutGameInput | PlayerMatchStatsUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: PlayerMatchStatsCreateManyGameInputEnvelope
+    set?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    disconnect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    delete?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    connect?: PlayerMatchStatsWhereUniqueInput | PlayerMatchStatsWhereUniqueInput[]
+    update?: PlayerMatchStatsUpdateWithWhereUniqueWithoutGameInput | PlayerMatchStatsUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: PlayerMatchStatsUpdateManyWithWhereWithoutGameInput | PlayerMatchStatsUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: PlayerMatchStatsScalarWhereInput | PlayerMatchStatsScalarWhereInput[]
+  }
+
+  export type TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput = {
+    create?: XOR<TeamMatchStatsCreateWithoutGameInput, TeamMatchStatsUncheckedCreateWithoutGameInput> | TeamMatchStatsCreateWithoutGameInput[] | TeamMatchStatsUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: TeamMatchStatsCreateOrConnectWithoutGameInput | TeamMatchStatsCreateOrConnectWithoutGameInput[]
+    upsert?: TeamMatchStatsUpsertWithWhereUniqueWithoutGameInput | TeamMatchStatsUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: TeamMatchStatsCreateManyGameInputEnvelope
+    set?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    disconnect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    delete?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    connect?: TeamMatchStatsWhereUniqueInput | TeamMatchStatsWhereUniqueInput[]
+    update?: TeamMatchStatsUpdateWithWhereUniqueWithoutGameInput | TeamMatchStatsUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: TeamMatchStatsUpdateManyWithWhereWithoutGameInput | TeamMatchStatsUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: TeamMatchStatsScalarWhereInput | TeamMatchStatsScalarWhereInput[]
   }
 
   export type LeagueCreateNestedManyWithoutSeasonInput = {
@@ -61346,6 +69797,98 @@ export namespace Prisma {
     upsert?: TeamUpsertWithoutTournamentEntriesInput
     connect?: TeamWhereUniqueInput
     update?: XOR<XOR<TeamUpdateToOneWithWhereWithoutTournamentEntriesInput, TeamUpdateWithoutTournamentEntriesInput>, TeamUncheckedUpdateWithoutTournamentEntriesInput>
+  }
+
+  export type PlayerCreateNestedOneWithoutDevelopmentHistoryInput = {
+    create?: XOR<PlayerCreateWithoutDevelopmentHistoryInput, PlayerUncheckedCreateWithoutDevelopmentHistoryInput>
+    connectOrCreate?: PlayerCreateOrConnectWithoutDevelopmentHistoryInput
+    connect?: PlayerWhereUniqueInput
+  }
+
+  export type PlayerUpdateOneRequiredWithoutDevelopmentHistoryNestedInput = {
+    create?: XOR<PlayerCreateWithoutDevelopmentHistoryInput, PlayerUncheckedCreateWithoutDevelopmentHistoryInput>
+    connectOrCreate?: PlayerCreateOrConnectWithoutDevelopmentHistoryInput
+    upsert?: PlayerUpsertWithoutDevelopmentHistoryInput
+    connect?: PlayerWhereUniqueInput
+    update?: XOR<XOR<PlayerUpdateToOneWithWhereWithoutDevelopmentHistoryInput, PlayerUpdateWithoutDevelopmentHistoryInput>, PlayerUncheckedUpdateWithoutDevelopmentHistoryInput>
+  }
+
+  export type PlayerCreateNestedOneWithoutMatchStatsInput = {
+    create?: XOR<PlayerCreateWithoutMatchStatsInput, PlayerUncheckedCreateWithoutMatchStatsInput>
+    connectOrCreate?: PlayerCreateOrConnectWithoutMatchStatsInput
+    connect?: PlayerWhereUniqueInput
+  }
+
+  export type GameCreateNestedOneWithoutPlayerStatsInput = {
+    create?: XOR<GameCreateWithoutPlayerStatsInput, GameUncheckedCreateWithoutPlayerStatsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutPlayerStatsInput
+    connect?: GameWhereUniqueInput
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type PlayerUpdateOneRequiredWithoutMatchStatsNestedInput = {
+    create?: XOR<PlayerCreateWithoutMatchStatsInput, PlayerUncheckedCreateWithoutMatchStatsInput>
+    connectOrCreate?: PlayerCreateOrConnectWithoutMatchStatsInput
+    upsert?: PlayerUpsertWithoutMatchStatsInput
+    connect?: PlayerWhereUniqueInput
+    update?: XOR<XOR<PlayerUpdateToOneWithWhereWithoutMatchStatsInput, PlayerUpdateWithoutMatchStatsInput>, PlayerUncheckedUpdateWithoutMatchStatsInput>
+  }
+
+  export type GameUpdateOneRequiredWithoutPlayerStatsNestedInput = {
+    create?: XOR<GameCreateWithoutPlayerStatsInput, GameUncheckedCreateWithoutPlayerStatsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutPlayerStatsInput
+    upsert?: GameUpsertWithoutPlayerStatsInput
+    connect?: GameWhereUniqueInput
+    update?: XOR<XOR<GameUpdateToOneWithWhereWithoutPlayerStatsInput, GameUpdateWithoutPlayerStatsInput>, GameUncheckedUpdateWithoutPlayerStatsInput>
+  }
+
+  export type TeamCreateNestedOneWithoutTeamMatchStatsInput = {
+    create?: XOR<TeamCreateWithoutTeamMatchStatsInput, TeamUncheckedCreateWithoutTeamMatchStatsInput>
+    connectOrCreate?: TeamCreateOrConnectWithoutTeamMatchStatsInput
+    connect?: TeamWhereUniqueInput
+  }
+
+  export type GameCreateNestedOneWithoutTeamStatsInput = {
+    create?: XOR<GameCreateWithoutTeamStatsInput, GameUncheckedCreateWithoutTeamStatsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutTeamStatsInput
+    connect?: GameWhereUniqueInput
+  }
+
+  export type TeamUpdateOneRequiredWithoutTeamMatchStatsNestedInput = {
+    create?: XOR<TeamCreateWithoutTeamMatchStatsInput, TeamUncheckedCreateWithoutTeamMatchStatsInput>
+    connectOrCreate?: TeamCreateOrConnectWithoutTeamMatchStatsInput
+    upsert?: TeamUpsertWithoutTeamMatchStatsInput
+    connect?: TeamWhereUniqueInput
+    update?: XOR<XOR<TeamUpdateToOneWithWhereWithoutTeamMatchStatsInput, TeamUpdateWithoutTeamMatchStatsInput>, TeamUncheckedUpdateWithoutTeamMatchStatsInput>
+  }
+
+  export type GameUpdateOneRequiredWithoutTeamStatsNestedInput = {
+    create?: XOR<GameCreateWithoutTeamStatsInput, GameUncheckedCreateWithoutTeamStatsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutTeamStatsInput
+    upsert?: GameUpsertWithoutTeamStatsInput
+    connect?: GameWhereUniqueInput
+    update?: XOR<XOR<GameUpdateToOneWithWhereWithoutTeamStatsInput, GameUpdateWithoutTeamStatsInput>, GameUncheckedUpdateWithoutTeamStatsInput>
+  }
+
+  export type PlayerCreateNestedOneWithoutCareerMilestonesInput = {
+    create?: XOR<PlayerCreateWithoutCareerMilestonesInput, PlayerUncheckedCreateWithoutCareerMilestonesInput>
+    connectOrCreate?: PlayerCreateOrConnectWithoutCareerMilestonesInput
+    connect?: PlayerWhereUniqueInput
+  }
+
+  export type PlayerUpdateOneRequiredWithoutCareerMilestonesNestedInput = {
+    create?: XOR<PlayerCreateWithoutCareerMilestonesInput, PlayerUncheckedCreateWithoutCareerMilestonesInput>
+    connectOrCreate?: PlayerCreateOrConnectWithoutCareerMilestonesInput
+    upsert?: PlayerUpsertWithoutCareerMilestonesInput
+    connect?: PlayerWhereUniqueInput
+    update?: XOR<XOR<PlayerUpdateToOneWithWhereWithoutCareerMilestonesInput, PlayerUpdateWithoutCareerMilestonesInput>, PlayerUncheckedUpdateWithoutCareerMilestonesInput>
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -62022,6 +70565,22 @@ export namespace Prisma {
     _max?: NestedEnumTournamentStatusFilter<$PrismaModel>
   }
 
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type TeamCreateWithoutUserInput = {
     name: string
     logoUrl?: string | null
@@ -62055,6 +70614,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutUserInput = {
@@ -62091,6 +70651,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutUserInput = {
@@ -62181,6 +70742,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutUserInput = {
@@ -62217,6 +70779,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type RedeemCodeRecordUpsertWithWhereUniqueWithoutUserProfileInput = {
@@ -62349,6 +70912,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateWithoutTeamInput = {
@@ -62390,6 +70956,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerCreateOrConnectWithoutTeamInput = {
@@ -62869,6 +71438,8 @@ export namespace Prisma {
     league?: LeagueCreateNestedOneWithoutScheduleInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutHomeTeamInput = {
@@ -62885,6 +71456,8 @@ export namespace Prisma {
     round?: number | null
     status?: $Enums.GameStatus
     createdAt?: Date | string
+    playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutHomeTeamInput = {
@@ -62910,6 +71483,8 @@ export namespace Prisma {
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutAwayTeamInput = {
@@ -62926,6 +71501,8 @@ export namespace Prisma {
     round?: number | null
     status?: $Enums.GameStatus
     createdAt?: Date | string
+    playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutAwayTeamInput = {
@@ -62935,6 +71512,91 @@ export namespace Prisma {
 
   export type GameCreateManyAwayTeamInputEnvelope = {
     data: GameCreateManyAwayTeamInput | GameCreateManyAwayTeamInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TeamMatchStatsCreateWithoutTeamInput = {
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+    game: GameCreateNestedOneWithoutTeamStatsInput
+  }
+
+  export type TeamMatchStatsUncheckedCreateWithoutTeamInput = {
+    id?: number
+    gameId: number
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type TeamMatchStatsCreateOrConnectWithoutTeamInput = {
+    where: TeamMatchStatsWhereUniqueInput
+    create: XOR<TeamMatchStatsCreateWithoutTeamInput, TeamMatchStatsUncheckedCreateWithoutTeamInput>
+  }
+
+  export type TeamMatchStatsCreateManyTeamInputEnvelope = {
+    data: TeamMatchStatsCreateManyTeamInput | TeamMatchStatsCreateManyTeamInput[]
     skipDuplicates?: boolean
   }
 
@@ -63519,6 +72181,64 @@ export namespace Prisma {
     data: XOR<GameUpdateManyMutationInput, GameUncheckedUpdateManyWithoutAwayTeamInput>
   }
 
+  export type TeamMatchStatsUpsertWithWhereUniqueWithoutTeamInput = {
+    where: TeamMatchStatsWhereUniqueInput
+    update: XOR<TeamMatchStatsUpdateWithoutTeamInput, TeamMatchStatsUncheckedUpdateWithoutTeamInput>
+    create: XOR<TeamMatchStatsCreateWithoutTeamInput, TeamMatchStatsUncheckedCreateWithoutTeamInput>
+  }
+
+  export type TeamMatchStatsUpdateWithWhereUniqueWithoutTeamInput = {
+    where: TeamMatchStatsWhereUniqueInput
+    data: XOR<TeamMatchStatsUpdateWithoutTeamInput, TeamMatchStatsUncheckedUpdateWithoutTeamInput>
+  }
+
+  export type TeamMatchStatsUpdateManyWithWhereWithoutTeamInput = {
+    where: TeamMatchStatsScalarWhereInput
+    data: XOR<TeamMatchStatsUpdateManyMutationInput, TeamMatchStatsUncheckedUpdateManyWithoutTeamInput>
+  }
+
+  export type TeamMatchStatsScalarWhereInput = {
+    AND?: TeamMatchStatsScalarWhereInput | TeamMatchStatsScalarWhereInput[]
+    OR?: TeamMatchStatsScalarWhereInput[]
+    NOT?: TeamMatchStatsScalarWhereInput | TeamMatchStatsScalarWhereInput[]
+    id?: IntFilter<"TeamMatchStats"> | number
+    teamId?: IntFilter<"TeamMatchStats"> | number
+    gameId?: IntFilter<"TeamMatchStats"> | number
+    timeOfPossession?: IntFilter<"TeamMatchStats"> | number
+    possessionPercentage?: FloatFilter<"TeamMatchStats"> | number
+    averageFieldPosition?: FloatFilter<"TeamMatchStats"> | number
+    territoryGained?: IntFilter<"TeamMatchStats"> | number
+    totalScore?: IntFilter<"TeamMatchStats"> | number
+    totalPassingYards?: IntFilter<"TeamMatchStats"> | number
+    totalRushingYards?: IntFilter<"TeamMatchStats"> | number
+    totalOffensiveYards?: IntFilter<"TeamMatchStats"> | number
+    passingAccuracy?: FloatFilter<"TeamMatchStats"> | number
+    ballRetentionRate?: FloatFilter<"TeamMatchStats"> | number
+    scoringOpportunities?: IntFilter<"TeamMatchStats"> | number
+    scoringEfficiency?: FloatFilter<"TeamMatchStats"> | number
+    totalTackles?: IntFilter<"TeamMatchStats"> | number
+    totalKnockdowns?: IntFilter<"TeamMatchStats"> | number
+    totalBlocks?: IntFilter<"TeamMatchStats"> | number
+    totalInjuriesInflicted?: IntFilter<"TeamMatchStats"> | number
+    totalInterceptions?: IntFilter<"TeamMatchStats"> | number
+    totalBallStrips?: IntFilter<"TeamMatchStats"> | number
+    passDeflections?: IntFilter<"TeamMatchStats"> | number
+    defensiveStops?: IntFilter<"TeamMatchStats"> | number
+    totalFumbles?: IntFilter<"TeamMatchStats"> | number
+    turnoverDifferential?: IntFilter<"TeamMatchStats"> | number
+    physicalDominance?: IntFilter<"TeamMatchStats"> | number
+    ballSecurityRating?: FloatFilter<"TeamMatchStats"> | number
+    homeFieldAdvantage?: FloatFilter<"TeamMatchStats"> | number
+    crowdIntensity?: FloatFilter<"TeamMatchStats"> | number
+    domeReverberation?: FloatFilter<"TeamMatchStats"> | number
+    camaraderieTeamBonus?: FloatFilter<"TeamMatchStats"> | number
+    tacticalEffectiveness?: FloatFilter<"TeamMatchStats"> | number
+    equipmentAdvantage?: FloatFilter<"TeamMatchStats"> | number
+    physicalConditioning?: FloatFilter<"TeamMatchStats"> | number
+    matchDate?: DateTimeFilter<"TeamMatchStats"> | Date | string
+    matchType?: EnumMatchTypeFilter<"TeamMatchStats"> | $Enums.MatchType
+  }
+
   export type TeamCreateWithoutPlayersInput = {
     name: string
     logoUrl?: string | null
@@ -63552,6 +72272,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutPlayersInput = {
@@ -63588,6 +72309,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutPlayersInput = {
@@ -63793,6 +72515,155 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PlayerDevelopmentHistoryCreateWithoutPlayerInput = {
+    developmentDate?: Date | string
+    developmentType: string
+    statChanges: JsonNullValueInput | InputJsonValue
+    previousValues: JsonNullValueInput | InputJsonValue
+    newValues: JsonNullValueInput | InputJsonValue
+    triggerReason: string
+    activityScore?: number
+    gamesPlayedFactor?: number
+    potentialModifier?: number
+    ageModifier?: number
+    coachingBonus?: number
+    trainerBonus?: number
+  }
+
+  export type PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput = {
+    id?: number
+    developmentDate?: Date | string
+    developmentType: string
+    statChanges: JsonNullValueInput | InputJsonValue
+    previousValues: JsonNullValueInput | InputJsonValue
+    newValues: JsonNullValueInput | InputJsonValue
+    triggerReason: string
+    activityScore?: number
+    gamesPlayedFactor?: number
+    potentialModifier?: number
+    ageModifier?: number
+    coachingBonus?: number
+    trainerBonus?: number
+  }
+
+  export type PlayerDevelopmentHistoryCreateOrConnectWithoutPlayerInput = {
+    where: PlayerDevelopmentHistoryWhereUniqueInput
+    create: XOR<PlayerDevelopmentHistoryCreateWithoutPlayerInput, PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput>
+  }
+
+  export type PlayerDevelopmentHistoryCreateManyPlayerInputEnvelope = {
+    data: PlayerDevelopmentHistoryCreateManyPlayerInput | PlayerDevelopmentHistoryCreateManyPlayerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PlayerMatchStatsCreateWithoutPlayerInput = {
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+    game: GameCreateNestedOneWithoutPlayerStatsInput
+  }
+
+  export type PlayerMatchStatsUncheckedCreateWithoutPlayerInput = {
+    id?: number
+    gameId: number
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsCreateOrConnectWithoutPlayerInput = {
+    where: PlayerMatchStatsWhereUniqueInput
+    create: XOR<PlayerMatchStatsCreateWithoutPlayerInput, PlayerMatchStatsUncheckedCreateWithoutPlayerInput>
+  }
+
+  export type PlayerMatchStatsCreateManyPlayerInputEnvelope = {
+    data: PlayerMatchStatsCreateManyPlayerInput | PlayerMatchStatsCreateManyPlayerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PlayerCareerMilestoneCreateWithoutPlayerInput = {
+    milestoneType: string
+    description: string
+    achievedAt?: Date | string
+    seasonId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput = {
+    id?: number
+    milestoneType: string
+    description: string
+    achievedAt?: Date | string
+    seasonId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type PlayerCareerMilestoneCreateOrConnectWithoutPlayerInput = {
+    where: PlayerCareerMilestoneWhereUniqueInput
+    create: XOR<PlayerCareerMilestoneCreateWithoutPlayerInput, PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput>
+  }
+
+  export type PlayerCareerMilestoneCreateManyPlayerInputEnvelope = {
+    data: PlayerCareerMilestoneCreateManyPlayerInput | PlayerCareerMilestoneCreateManyPlayerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TeamUpsertWithoutPlayersInput = {
     update: XOR<TeamUpdateWithoutPlayersInput, TeamUncheckedUpdateWithoutPlayersInput>
     create: XOR<TeamCreateWithoutPlayersInput, TeamUncheckedCreateWithoutPlayersInput>
@@ -63837,6 +72708,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutPlayersInput = {
@@ -63873,6 +72745,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type ContractUpsertWithoutPlayerInput = {
@@ -64076,6 +72949,127 @@ export namespace Prisma {
     equippedAt?: DateTimeFilter<"PlayerEquipment"> | Date | string
   }
 
+  export type PlayerDevelopmentHistoryUpsertWithWhereUniqueWithoutPlayerInput = {
+    where: PlayerDevelopmentHistoryWhereUniqueInput
+    update: XOR<PlayerDevelopmentHistoryUpdateWithoutPlayerInput, PlayerDevelopmentHistoryUncheckedUpdateWithoutPlayerInput>
+    create: XOR<PlayerDevelopmentHistoryCreateWithoutPlayerInput, PlayerDevelopmentHistoryUncheckedCreateWithoutPlayerInput>
+  }
+
+  export type PlayerDevelopmentHistoryUpdateWithWhereUniqueWithoutPlayerInput = {
+    where: PlayerDevelopmentHistoryWhereUniqueInput
+    data: XOR<PlayerDevelopmentHistoryUpdateWithoutPlayerInput, PlayerDevelopmentHistoryUncheckedUpdateWithoutPlayerInput>
+  }
+
+  export type PlayerDevelopmentHistoryUpdateManyWithWhereWithoutPlayerInput = {
+    where: PlayerDevelopmentHistoryScalarWhereInput
+    data: XOR<PlayerDevelopmentHistoryUpdateManyMutationInput, PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerInput>
+  }
+
+  export type PlayerDevelopmentHistoryScalarWhereInput = {
+    AND?: PlayerDevelopmentHistoryScalarWhereInput | PlayerDevelopmentHistoryScalarWhereInput[]
+    OR?: PlayerDevelopmentHistoryScalarWhereInput[]
+    NOT?: PlayerDevelopmentHistoryScalarWhereInput | PlayerDevelopmentHistoryScalarWhereInput[]
+    id?: IntFilter<"PlayerDevelopmentHistory"> | number
+    playerId?: IntFilter<"PlayerDevelopmentHistory"> | number
+    developmentDate?: DateTimeFilter<"PlayerDevelopmentHistory"> | Date | string
+    developmentType?: StringFilter<"PlayerDevelopmentHistory"> | string
+    statChanges?: JsonFilter<"PlayerDevelopmentHistory">
+    previousValues?: JsonFilter<"PlayerDevelopmentHistory">
+    newValues?: JsonFilter<"PlayerDevelopmentHistory">
+    triggerReason?: StringFilter<"PlayerDevelopmentHistory"> | string
+    activityScore?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    gamesPlayedFactor?: IntFilter<"PlayerDevelopmentHistory"> | number
+    potentialModifier?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    ageModifier?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    coachingBonus?: FloatFilter<"PlayerDevelopmentHistory"> | number
+    trainerBonus?: FloatFilter<"PlayerDevelopmentHistory"> | number
+  }
+
+  export type PlayerMatchStatsUpsertWithWhereUniqueWithoutPlayerInput = {
+    where: PlayerMatchStatsWhereUniqueInput
+    update: XOR<PlayerMatchStatsUpdateWithoutPlayerInput, PlayerMatchStatsUncheckedUpdateWithoutPlayerInput>
+    create: XOR<PlayerMatchStatsCreateWithoutPlayerInput, PlayerMatchStatsUncheckedCreateWithoutPlayerInput>
+  }
+
+  export type PlayerMatchStatsUpdateWithWhereUniqueWithoutPlayerInput = {
+    where: PlayerMatchStatsWhereUniqueInput
+    data: XOR<PlayerMatchStatsUpdateWithoutPlayerInput, PlayerMatchStatsUncheckedUpdateWithoutPlayerInput>
+  }
+
+  export type PlayerMatchStatsUpdateManyWithWhereWithoutPlayerInput = {
+    where: PlayerMatchStatsScalarWhereInput
+    data: XOR<PlayerMatchStatsUpdateManyMutationInput, PlayerMatchStatsUncheckedUpdateManyWithoutPlayerInput>
+  }
+
+  export type PlayerMatchStatsScalarWhereInput = {
+    AND?: PlayerMatchStatsScalarWhereInput | PlayerMatchStatsScalarWhereInput[]
+    OR?: PlayerMatchStatsScalarWhereInput[]
+    NOT?: PlayerMatchStatsScalarWhereInput | PlayerMatchStatsScalarWhereInput[]
+    id?: IntFilter<"PlayerMatchStats"> | number
+    playerId?: IntFilter<"PlayerMatchStats"> | number
+    gameId?: IntFilter<"PlayerMatchStats"> | number
+    minutesPlayed?: FloatFilter<"PlayerMatchStats"> | number
+    performanceRating?: FloatNullableFilter<"PlayerMatchStats"> | number | null
+    camaraderieContribution?: FloatFilter<"PlayerMatchStats"> | number
+    scores?: IntFilter<"PlayerMatchStats"> | number
+    assists?: IntFilter<"PlayerMatchStats"> | number
+    passAttempts?: IntFilter<"PlayerMatchStats"> | number
+    passCompletions?: IntFilter<"PlayerMatchStats"> | number
+    passingYards?: IntFilter<"PlayerMatchStats"> | number
+    perfectPasses?: IntFilter<"PlayerMatchStats"> | number
+    rushingYards?: IntFilter<"PlayerMatchStats"> | number
+    breakawayRuns?: IntFilter<"PlayerMatchStats"> | number
+    catches?: IntFilter<"PlayerMatchStats"> | number
+    receivingYards?: IntFilter<"PlayerMatchStats"> | number
+    drops?: IntFilter<"PlayerMatchStats"> | number
+    tackles?: IntFilter<"PlayerMatchStats"> | number
+    tackleAttempts?: IntFilter<"PlayerMatchStats"> | number
+    knockdowns?: IntFilter<"PlayerMatchStats"> | number
+    blocks?: IntFilter<"PlayerMatchStats"> | number
+    injuriesInflicted?: IntFilter<"PlayerMatchStats"> | number
+    interceptions?: IntFilter<"PlayerMatchStats"> | number
+    ballStrips?: IntFilter<"PlayerMatchStats"> | number
+    passDeflections?: IntFilter<"PlayerMatchStats"> | number
+    fumblesLost?: IntFilter<"PlayerMatchStats"> | number
+    ballRetention?: IntFilter<"PlayerMatchStats"> | number
+    distanceCovered?: IntFilter<"PlayerMatchStats"> | number
+    staminaUsed?: IntFilter<"PlayerMatchStats"> | number
+    ballPossessionTime?: IntFilter<"PlayerMatchStats"> | number
+    pressureApplied?: IntFilter<"PlayerMatchStats"> | number
+    injuries?: IntFilter<"PlayerMatchStats"> | number
+    matchDate?: DateTimeFilter<"PlayerMatchStats"> | Date | string
+    matchType?: EnumMatchTypeFilter<"PlayerMatchStats"> | $Enums.MatchType
+  }
+
+  export type PlayerCareerMilestoneUpsertWithWhereUniqueWithoutPlayerInput = {
+    where: PlayerCareerMilestoneWhereUniqueInput
+    update: XOR<PlayerCareerMilestoneUpdateWithoutPlayerInput, PlayerCareerMilestoneUncheckedUpdateWithoutPlayerInput>
+    create: XOR<PlayerCareerMilestoneCreateWithoutPlayerInput, PlayerCareerMilestoneUncheckedCreateWithoutPlayerInput>
+  }
+
+  export type PlayerCareerMilestoneUpdateWithWhereUniqueWithoutPlayerInput = {
+    where: PlayerCareerMilestoneWhereUniqueInput
+    data: XOR<PlayerCareerMilestoneUpdateWithoutPlayerInput, PlayerCareerMilestoneUncheckedUpdateWithoutPlayerInput>
+  }
+
+  export type PlayerCareerMilestoneUpdateManyWithWhereWithoutPlayerInput = {
+    where: PlayerCareerMilestoneScalarWhereInput
+    data: XOR<PlayerCareerMilestoneUpdateManyMutationInput, PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerInput>
+  }
+
+  export type PlayerCareerMilestoneScalarWhereInput = {
+    AND?: PlayerCareerMilestoneScalarWhereInput | PlayerCareerMilestoneScalarWhereInput[]
+    OR?: PlayerCareerMilestoneScalarWhereInput[]
+    NOT?: PlayerCareerMilestoneScalarWhereInput | PlayerCareerMilestoneScalarWhereInput[]
+    id?: IntFilter<"PlayerCareerMilestone"> | number
+    playerId?: IntFilter<"PlayerCareerMilestone"> | number
+    milestoneType?: StringFilter<"PlayerCareerMilestone"> | string
+    description?: StringFilter<"PlayerCareerMilestone"> | string
+    achievedAt?: DateTimeFilter<"PlayerCareerMilestone"> | Date | string
+    seasonId?: StringNullableFilter<"PlayerCareerMilestone"> | string | null
+    metadata?: JsonNullableFilter<"PlayerCareerMilestone">
+  }
+
   export type PlayerCreateWithoutCurrentEquipmentInput = {
     firstName: string
     lastName: string
@@ -64114,6 +73108,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueCreateNestedOneWithoutPlayerInput
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateWithoutCurrentEquipmentInput = {
@@ -64155,6 +73152,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUncheckedCreateNestedOneWithoutPlayerInput
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerCreateOrConnectWithoutCurrentEquipmentInput = {
@@ -64249,6 +73249,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUpdateOneWithoutPlayerNestedInput
     tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateWithoutCurrentEquipmentInput = {
@@ -64290,6 +73293,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUncheckedUpdateOneWithoutPlayerNestedInput
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type ItemUpsertWithoutPlayerEquipmentInput = {
@@ -64374,6 +73380,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateWithoutContractInput = {
@@ -64415,6 +73424,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerCreateOrConnectWithoutContractInput = {
@@ -64511,6 +73523,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateWithoutContractInput = {
@@ -64552,6 +73567,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type StaffUpsertWithoutContractInput = {
@@ -64677,6 +73695,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateWithoutSkillsInput = {
@@ -64718,6 +73739,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerCreateOrConnectWithoutSkillsInput = {
@@ -64796,6 +73820,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateWithoutSkillsInput = {
@@ -64837,6 +73864,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type SkillUpsertWithoutPlayerLinksInput = {
@@ -64900,6 +73930,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutStaffInput = {
@@ -64936,6 +73967,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutStaffInput = {
@@ -65009,6 +74041,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutStaffInput = {
@@ -65045,6 +74078,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type ContractUpsertWithoutStaffInput = {
@@ -65108,6 +74142,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutFinancesInput = {
@@ -65144,6 +74179,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutFinancesInput = {
@@ -65195,6 +74231,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutFinancesInput = {
@@ -65231,6 +74268,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamCreateWithoutStadiumInput = {
@@ -65266,6 +74304,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutStadiumInput = {
@@ -65302,6 +74341,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutStadiumInput = {
@@ -65353,6 +74393,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutStadiumInput = {
@@ -65389,6 +74430,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type InventoryItemCreateWithoutItemInput = {
@@ -65593,6 +74635,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutInventoryItemsInput = {
@@ -65629,6 +74672,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutInventoryItemsInput = {
@@ -65718,6 +74762,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutInventoryItemsInput = {
@@ -65754,6 +74799,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type ItemUpsertWithoutInventoryItemsInput = {
@@ -65833,6 +74879,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutActiveBoostsInput = {
@@ -65869,6 +74916,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutActiveBoostsInput = {
@@ -65914,6 +74962,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueCreateNestedOneWithoutPlayerInput
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateWithoutActiveBoostsInput = {
@@ -65955,6 +75006,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUncheckedCreateNestedOneWithoutPlayerInput
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerCreateOrConnectWithoutActiveBoostsInput = {
@@ -66044,6 +75098,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutActiveBoostsInput = {
@@ -66080,6 +75135,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type PlayerUpsertWithoutActiveBoostsInput = {
@@ -66131,6 +75187,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUpdateOneWithoutPlayerNestedInput
     tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateWithoutActiveBoostsInput = {
@@ -66172,6 +75231,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUncheckedUpdateOneWithoutPlayerNestedInput
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type ItemUpsertWithoutActiveBoostsInput = {
@@ -66256,6 +75318,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateWithoutMarketplaceListingInput = {
@@ -66297,6 +75362,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerCreateOrConnectWithoutMarketplaceListingInput = {
@@ -66337,6 +75405,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutMarketplaceListingsInput = {
@@ -66373,6 +75442,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutMarketplaceListingsInput = {
@@ -66413,6 +75483,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutHighBidderOnListingsInput = {
@@ -66449,6 +75520,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutHighBidderOnListingsInput = {
@@ -66565,6 +75637,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateWithoutMarketplaceListingInput = {
@@ -66606,6 +75681,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type TeamUpsertWithoutMarketplaceListingsInput = {
@@ -66652,6 +75730,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutMarketplaceListingsInput = {
@@ -66688,6 +75767,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUpsertWithoutHighBidderOnListingsInput = {
@@ -66734,6 +75814,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutHighBidderOnListingsInput = {
@@ -66770,6 +75851,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type BidUpsertWithWhereUniqueWithoutListingInput = {
@@ -66889,6 +75971,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutBidsInput = {
@@ -66925,6 +76008,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutBidsInput = {
@@ -67034,6 +76118,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutBidsInput = {
@@ -67070,6 +76155,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type MarketplaceListingCreateWithoutHistoryInput = {
@@ -67157,6 +76243,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutListingHistoryInput = {
@@ -67193,6 +76280,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutListingHistoryInput = {
@@ -67302,6 +76390,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutListingHistoryInput = {
@@ -67338,6 +76427,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type PlayerCreateWithoutMarketValueInput = {
@@ -67378,6 +76468,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateWithoutMarketValueInput = {
@@ -67419,6 +76512,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
     activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerCreateOrConnectWithoutMarketValueInput = {
@@ -67475,6 +76571,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateWithoutMarketValueInput = {
@@ -67516,6 +76615,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type TeamCreateWithoutStrategyInput = {
@@ -67551,6 +76653,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutStrategyInput = {
@@ -67587,6 +76690,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutStrategyInput = {
@@ -67638,6 +76742,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutStrategyInput = {
@@ -67674,6 +76779,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamCreateWithoutLeagueInput = {
@@ -67709,6 +76815,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutLeagueInput = {
@@ -67745,6 +76852,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutLeagueInput = {
@@ -67770,6 +76878,8 @@ export namespace Prisma {
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutLeagueInput = {
@@ -67786,6 +76896,8 @@ export namespace Prisma {
     round?: number | null
     status?: $Enums.GameStatus
     createdAt?: Date | string
+    playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutLeagueInput = {
@@ -68093,6 +77205,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryCreateNestedManyWithoutTeamInput
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutHomeTeamGamesInput = {
@@ -68129,6 +77242,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUncheckedCreateNestedManyWithoutTeamInput
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutHomeTeamGamesInput = {
@@ -68169,6 +77283,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryCreateNestedManyWithoutTeamInput
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutAwayTeamGamesInput = {
@@ -68205,6 +77320,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUncheckedCreateNestedManyWithoutTeamInput
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutAwayTeamGamesInput = {
@@ -68252,6 +77368,172 @@ export namespace Prisma {
   export type TournamentCreateOrConnectWithoutGamesInput = {
     where: TournamentWhereUniqueInput
     create: XOR<TournamentCreateWithoutGamesInput, TournamentUncheckedCreateWithoutGamesInput>
+  }
+
+  export type PlayerMatchStatsCreateWithoutGameInput = {
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+    player: PlayerCreateNestedOneWithoutMatchStatsInput
+  }
+
+  export type PlayerMatchStatsUncheckedCreateWithoutGameInput = {
+    id?: number
+    playerId: number
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsCreateOrConnectWithoutGameInput = {
+    where: PlayerMatchStatsWhereUniqueInput
+    create: XOR<PlayerMatchStatsCreateWithoutGameInput, PlayerMatchStatsUncheckedCreateWithoutGameInput>
+  }
+
+  export type PlayerMatchStatsCreateManyGameInputEnvelope = {
+    data: PlayerMatchStatsCreateManyGameInput | PlayerMatchStatsCreateManyGameInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TeamMatchStatsCreateWithoutGameInput = {
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+    team: TeamCreateNestedOneWithoutTeamMatchStatsInput
+  }
+
+  export type TeamMatchStatsUncheckedCreateWithoutGameInput = {
+    id?: number
+    teamId: number
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type TeamMatchStatsCreateOrConnectWithoutGameInput = {
+    where: TeamMatchStatsWhereUniqueInput
+    create: XOR<TeamMatchStatsCreateWithoutGameInput, TeamMatchStatsUncheckedCreateWithoutGameInput>
+  }
+
+  export type TeamMatchStatsCreateManyGameInputEnvelope = {
+    data: TeamMatchStatsCreateManyGameInput | TeamMatchStatsCreateManyGameInput[]
+    skipDuplicates?: boolean
   }
 
   export type LeagueUpsertWithoutScheduleInput = {
@@ -68326,6 +77608,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUpdateManyWithoutTeamNestedInput
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutHomeTeamGamesInput = {
@@ -68362,6 +77645,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUncheckedUpdateManyWithoutTeamNestedInput
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUpsertWithoutAwayTeamGamesInput = {
@@ -68408,6 +77692,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUpdateManyWithoutTeamNestedInput
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutAwayTeamGamesInput = {
@@ -68444,6 +77729,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUncheckedUpdateManyWithoutTeamNestedInput
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TournamentUpsertWithoutGamesInput = {
@@ -68492,6 +77778,38 @@ export namespace Prisma {
     seasonDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     entries?: TournamentEntryUncheckedUpdateManyWithoutTournamentNestedInput
+  }
+
+  export type PlayerMatchStatsUpsertWithWhereUniqueWithoutGameInput = {
+    where: PlayerMatchStatsWhereUniqueInput
+    update: XOR<PlayerMatchStatsUpdateWithoutGameInput, PlayerMatchStatsUncheckedUpdateWithoutGameInput>
+    create: XOR<PlayerMatchStatsCreateWithoutGameInput, PlayerMatchStatsUncheckedCreateWithoutGameInput>
+  }
+
+  export type PlayerMatchStatsUpdateWithWhereUniqueWithoutGameInput = {
+    where: PlayerMatchStatsWhereUniqueInput
+    data: XOR<PlayerMatchStatsUpdateWithoutGameInput, PlayerMatchStatsUncheckedUpdateWithoutGameInput>
+  }
+
+  export type PlayerMatchStatsUpdateManyWithWhereWithoutGameInput = {
+    where: PlayerMatchStatsScalarWhereInput
+    data: XOR<PlayerMatchStatsUpdateManyMutationInput, PlayerMatchStatsUncheckedUpdateManyWithoutGameInput>
+  }
+
+  export type TeamMatchStatsUpsertWithWhereUniqueWithoutGameInput = {
+    where: TeamMatchStatsWhereUniqueInput
+    update: XOR<TeamMatchStatsUpdateWithoutGameInput, TeamMatchStatsUncheckedUpdateWithoutGameInput>
+    create: XOR<TeamMatchStatsCreateWithoutGameInput, TeamMatchStatsUncheckedCreateWithoutGameInput>
+  }
+
+  export type TeamMatchStatsUpdateWithWhereUniqueWithoutGameInput = {
+    where: TeamMatchStatsWhereUniqueInput
+    data: XOR<TeamMatchStatsUpdateWithoutGameInput, TeamMatchStatsUncheckedUpdateWithoutGameInput>
+  }
+
+  export type TeamMatchStatsUpdateManyWithWhereWithoutGameInput = {
+    where: TeamMatchStatsScalarWhereInput
+    data: XOR<TeamMatchStatsUpdateManyMutationInput, TeamMatchStatsUncheckedUpdateManyWithoutGameInput>
   }
 
   export type LeagueCreateWithoutSeasonInput = {
@@ -68625,6 +77943,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutNotificationsInput = {
@@ -68661,6 +77980,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutNotificationsInput = {
@@ -68712,6 +78032,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutNotificationsInput = {
@@ -68748,6 +78069,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamCreateWithoutTryoutHistoryInput = {
@@ -68783,6 +78105,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutTryoutHistoryInput = {
@@ -68819,6 +78142,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutTryoutHistoryInput = {
@@ -68891,6 +78215,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueCreateNestedOneWithoutPlayerInput
     activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerUncheckedCreateWithoutTryoutHistoryInput = {
@@ -68932,6 +78259,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUncheckedCreateNestedOneWithoutPlayerInput
     activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
     currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
   }
 
   export type PlayerCreateOrConnectWithoutTryoutHistoryInput = {
@@ -68983,6 +78313,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutTryoutHistoryInput = {
@@ -69019,6 +78350,7 @@ export namespace Prisma {
     tournamentEntries?: TournamentEntryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type SeasonUpsertWithoutTryoutHistoryInput = {
@@ -69103,6 +78435,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUpdateOneWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateWithoutTryoutHistoryInput = {
@@ -69144,6 +78479,9 @@ export namespace Prisma {
     marketValue?: PlayerMarketValueUncheckedUpdateOneWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type RedeemCodeRecordCreateWithoutRedeemCodeInput = {
@@ -69522,6 +78860,8 @@ export namespace Prisma {
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
+    playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutTournamentInput = {
@@ -69538,6 +78878,8 @@ export namespace Prisma {
     round?: number | null
     status?: $Enums.GameStatus
     createdAt?: Date | string
+    playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutTournamentInput = {
@@ -69682,6 +79024,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsCreateNestedManyWithoutTeamInput
   }
 
   export type TeamUncheckedCreateWithoutTournamentEntriesInput = {
@@ -69718,6 +79061,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
     homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
     awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+    teamMatchStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutTeamInput
   }
 
   export type TeamCreateOrConnectWithoutTournamentEntriesInput = {
@@ -69817,6 +79161,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutTournamentEntriesInput = {
@@ -69853,6 +79198,911 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
+  }
+
+  export type PlayerCreateWithoutDevelopmentHistoryInput = {
+    firstName: string
+    lastName: string
+    race: $Enums.Race
+    age: number
+    role: $Enums.PlayerRole
+    speed: number
+    power: number
+    throwing: number
+    catching: number
+    kicking: number
+    staminaAttribute: number
+    leadership: number
+    agility: number
+    potentialRating: number
+    dailyStaminaLevel?: number
+    injuryStatus?: $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: number
+    injuryRecoveryPointsCurrent?: number
+    dailyItemsUsed?: number
+    careerInjuries?: number
+    gamesPlayedLastSeason?: number
+    seasonMinutesLeague?: number
+    seasonMinutesTournament?: number
+    seasonMinutesExhibition?: number
+    seasonMinutesTotal?: number
+    isOnMarket?: boolean
+    isRetired?: boolean
+    camaraderieScore?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    team: TeamCreateNestedOneWithoutPlayersInput
+    contract?: ContractCreateNestedOneWithoutPlayerInput
+    skills?: PlayerSkillLinkCreateNestedManyWithoutPlayerInput
+    MarketplaceListing?: MarketplaceListingCreateNestedOneWithoutPlayerInput
+    marketValue?: PlayerMarketValueCreateNestedOneWithoutPlayerInput
+    tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
+    activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
+    currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
+  }
+
+  export type PlayerUncheckedCreateWithoutDevelopmentHistoryInput = {
+    id?: number
+    teamId: number
+    firstName: string
+    lastName: string
+    race: $Enums.Race
+    age: number
+    role: $Enums.PlayerRole
+    speed: number
+    power: number
+    throwing: number
+    catching: number
+    kicking: number
+    staminaAttribute: number
+    leadership: number
+    agility: number
+    potentialRating: number
+    dailyStaminaLevel?: number
+    injuryStatus?: $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: number
+    injuryRecoveryPointsCurrent?: number
+    dailyItemsUsed?: number
+    careerInjuries?: number
+    gamesPlayedLastSeason?: number
+    seasonMinutesLeague?: number
+    seasonMinutesTournament?: number
+    seasonMinutesExhibition?: number
+    seasonMinutesTotal?: number
+    isOnMarket?: boolean
+    isRetired?: boolean
+    camaraderieScore?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    contract?: ContractUncheckedCreateNestedOneWithoutPlayerInput
+    skills?: PlayerSkillLinkUncheckedCreateNestedManyWithoutPlayerInput
+    MarketplaceListing?: MarketplaceListingUncheckedCreateNestedOneWithoutPlayerInput
+    marketValue?: PlayerMarketValueUncheckedCreateNestedOneWithoutPlayerInput
+    tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
+    currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
+  }
+
+  export type PlayerCreateOrConnectWithoutDevelopmentHistoryInput = {
+    where: PlayerWhereUniqueInput
+    create: XOR<PlayerCreateWithoutDevelopmentHistoryInput, PlayerUncheckedCreateWithoutDevelopmentHistoryInput>
+  }
+
+  export type PlayerUpsertWithoutDevelopmentHistoryInput = {
+    update: XOR<PlayerUpdateWithoutDevelopmentHistoryInput, PlayerUncheckedUpdateWithoutDevelopmentHistoryInput>
+    create: XOR<PlayerCreateWithoutDevelopmentHistoryInput, PlayerUncheckedCreateWithoutDevelopmentHistoryInput>
+    where?: PlayerWhereInput
+  }
+
+  export type PlayerUpdateToOneWithWhereWithoutDevelopmentHistoryInput = {
+    where?: PlayerWhereInput
+    data: XOR<PlayerUpdateWithoutDevelopmentHistoryInput, PlayerUncheckedUpdateWithoutDevelopmentHistoryInput>
+  }
+
+  export type PlayerUpdateWithoutDevelopmentHistoryInput = {
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    race?: EnumRaceFieldUpdateOperationsInput | $Enums.Race
+    age?: IntFieldUpdateOperationsInput | number
+    role?: EnumPlayerRoleFieldUpdateOperationsInput | $Enums.PlayerRole
+    speed?: IntFieldUpdateOperationsInput | number
+    power?: IntFieldUpdateOperationsInput | number
+    throwing?: IntFieldUpdateOperationsInput | number
+    catching?: IntFieldUpdateOperationsInput | number
+    kicking?: IntFieldUpdateOperationsInput | number
+    staminaAttribute?: IntFieldUpdateOperationsInput | number
+    leadership?: IntFieldUpdateOperationsInput | number
+    agility?: IntFieldUpdateOperationsInput | number
+    potentialRating?: FloatFieldUpdateOperationsInput | number
+    dailyStaminaLevel?: IntFieldUpdateOperationsInput | number
+    injuryStatus?: EnumInjuryStatusFieldUpdateOperationsInput | $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: IntFieldUpdateOperationsInput | number
+    injuryRecoveryPointsCurrent?: IntFieldUpdateOperationsInput | number
+    dailyItemsUsed?: IntFieldUpdateOperationsInput | number
+    careerInjuries?: IntFieldUpdateOperationsInput | number
+    gamesPlayedLastSeason?: IntFieldUpdateOperationsInput | number
+    seasonMinutesLeague?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTournament?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesExhibition?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTotal?: FloatFieldUpdateOperationsInput | number
+    isOnMarket?: BoolFieldUpdateOperationsInput | boolean
+    isRetired?: BoolFieldUpdateOperationsInput | boolean
+    camaraderieScore?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    team?: TeamUpdateOneRequiredWithoutPlayersNestedInput
+    contract?: ContractUpdateOneWithoutPlayerNestedInput
+    skills?: PlayerSkillLinkUpdateManyWithoutPlayerNestedInput
+    MarketplaceListing?: MarketplaceListingUpdateOneWithoutPlayerNestedInput
+    marketValue?: PlayerMarketValueUpdateOneWithoutPlayerNestedInput
+    tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
+    activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
+    currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
+  }
+
+  export type PlayerUncheckedUpdateWithoutDevelopmentHistoryInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    teamId?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    race?: EnumRaceFieldUpdateOperationsInput | $Enums.Race
+    age?: IntFieldUpdateOperationsInput | number
+    role?: EnumPlayerRoleFieldUpdateOperationsInput | $Enums.PlayerRole
+    speed?: IntFieldUpdateOperationsInput | number
+    power?: IntFieldUpdateOperationsInput | number
+    throwing?: IntFieldUpdateOperationsInput | number
+    catching?: IntFieldUpdateOperationsInput | number
+    kicking?: IntFieldUpdateOperationsInput | number
+    staminaAttribute?: IntFieldUpdateOperationsInput | number
+    leadership?: IntFieldUpdateOperationsInput | number
+    agility?: IntFieldUpdateOperationsInput | number
+    potentialRating?: FloatFieldUpdateOperationsInput | number
+    dailyStaminaLevel?: IntFieldUpdateOperationsInput | number
+    injuryStatus?: EnumInjuryStatusFieldUpdateOperationsInput | $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: IntFieldUpdateOperationsInput | number
+    injuryRecoveryPointsCurrent?: IntFieldUpdateOperationsInput | number
+    dailyItemsUsed?: IntFieldUpdateOperationsInput | number
+    careerInjuries?: IntFieldUpdateOperationsInput | number
+    gamesPlayedLastSeason?: IntFieldUpdateOperationsInput | number
+    seasonMinutesLeague?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTournament?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesExhibition?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTotal?: FloatFieldUpdateOperationsInput | number
+    isOnMarket?: BoolFieldUpdateOperationsInput | boolean
+    isRetired?: BoolFieldUpdateOperationsInput | boolean
+    camaraderieScore?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    contract?: ContractUncheckedUpdateOneWithoutPlayerNestedInput
+    skills?: PlayerSkillLinkUncheckedUpdateManyWithoutPlayerNestedInput
+    MarketplaceListing?: MarketplaceListingUncheckedUpdateOneWithoutPlayerNestedInput
+    marketValue?: PlayerMarketValueUncheckedUpdateOneWithoutPlayerNestedInput
+    tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
+    currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
+  }
+
+  export type PlayerCreateWithoutMatchStatsInput = {
+    firstName: string
+    lastName: string
+    race: $Enums.Race
+    age: number
+    role: $Enums.PlayerRole
+    speed: number
+    power: number
+    throwing: number
+    catching: number
+    kicking: number
+    staminaAttribute: number
+    leadership: number
+    agility: number
+    potentialRating: number
+    dailyStaminaLevel?: number
+    injuryStatus?: $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: number
+    injuryRecoveryPointsCurrent?: number
+    dailyItemsUsed?: number
+    careerInjuries?: number
+    gamesPlayedLastSeason?: number
+    seasonMinutesLeague?: number
+    seasonMinutesTournament?: number
+    seasonMinutesExhibition?: number
+    seasonMinutesTotal?: number
+    isOnMarket?: boolean
+    isRetired?: boolean
+    camaraderieScore?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    team: TeamCreateNestedOneWithoutPlayersInput
+    contract?: ContractCreateNestedOneWithoutPlayerInput
+    skills?: PlayerSkillLinkCreateNestedManyWithoutPlayerInput
+    MarketplaceListing?: MarketplaceListingCreateNestedOneWithoutPlayerInput
+    marketValue?: PlayerMarketValueCreateNestedOneWithoutPlayerInput
+    tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
+    activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
+    currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneCreateNestedManyWithoutPlayerInput
+  }
+
+  export type PlayerUncheckedCreateWithoutMatchStatsInput = {
+    id?: number
+    teamId: number
+    firstName: string
+    lastName: string
+    race: $Enums.Race
+    age: number
+    role: $Enums.PlayerRole
+    speed: number
+    power: number
+    throwing: number
+    catching: number
+    kicking: number
+    staminaAttribute: number
+    leadership: number
+    agility: number
+    potentialRating: number
+    dailyStaminaLevel?: number
+    injuryStatus?: $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: number
+    injuryRecoveryPointsCurrent?: number
+    dailyItemsUsed?: number
+    careerInjuries?: number
+    gamesPlayedLastSeason?: number
+    seasonMinutesLeague?: number
+    seasonMinutesTournament?: number
+    seasonMinutesExhibition?: number
+    seasonMinutesTotal?: number
+    isOnMarket?: boolean
+    isRetired?: boolean
+    camaraderieScore?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    contract?: ContractUncheckedCreateNestedOneWithoutPlayerInput
+    skills?: PlayerSkillLinkUncheckedCreateNestedManyWithoutPlayerInput
+    MarketplaceListing?: MarketplaceListingUncheckedCreateNestedOneWithoutPlayerInput
+    marketValue?: PlayerMarketValueUncheckedCreateNestedOneWithoutPlayerInput
+    tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
+    currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedCreateNestedManyWithoutPlayerInput
+  }
+
+  export type PlayerCreateOrConnectWithoutMatchStatsInput = {
+    where: PlayerWhereUniqueInput
+    create: XOR<PlayerCreateWithoutMatchStatsInput, PlayerUncheckedCreateWithoutMatchStatsInput>
+  }
+
+  export type GameCreateWithoutPlayerStatsInput = {
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    round?: number | null
+    status?: $Enums.GameStatus
+    createdAt?: Date | string
+    league?: LeagueCreateNestedOneWithoutScheduleInput
+    homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
+    awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
+    tournament?: TournamentCreateNestedOneWithoutGamesInput
+    teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutPlayerStatsInput = {
+    id?: number
+    leagueId?: number | null
+    homeTeamId: number
+    awayTeamId: number
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    tournamentId?: number | null
+    round?: number | null
+    status?: $Enums.GameStatus
+    createdAt?: Date | string
+    teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutPlayerStatsInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutPlayerStatsInput, GameUncheckedCreateWithoutPlayerStatsInput>
+  }
+
+  export type PlayerUpsertWithoutMatchStatsInput = {
+    update: XOR<PlayerUpdateWithoutMatchStatsInput, PlayerUncheckedUpdateWithoutMatchStatsInput>
+    create: XOR<PlayerCreateWithoutMatchStatsInput, PlayerUncheckedCreateWithoutMatchStatsInput>
+    where?: PlayerWhereInput
+  }
+
+  export type PlayerUpdateToOneWithWhereWithoutMatchStatsInput = {
+    where?: PlayerWhereInput
+    data: XOR<PlayerUpdateWithoutMatchStatsInput, PlayerUncheckedUpdateWithoutMatchStatsInput>
+  }
+
+  export type PlayerUpdateWithoutMatchStatsInput = {
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    race?: EnumRaceFieldUpdateOperationsInput | $Enums.Race
+    age?: IntFieldUpdateOperationsInput | number
+    role?: EnumPlayerRoleFieldUpdateOperationsInput | $Enums.PlayerRole
+    speed?: IntFieldUpdateOperationsInput | number
+    power?: IntFieldUpdateOperationsInput | number
+    throwing?: IntFieldUpdateOperationsInput | number
+    catching?: IntFieldUpdateOperationsInput | number
+    kicking?: IntFieldUpdateOperationsInput | number
+    staminaAttribute?: IntFieldUpdateOperationsInput | number
+    leadership?: IntFieldUpdateOperationsInput | number
+    agility?: IntFieldUpdateOperationsInput | number
+    potentialRating?: FloatFieldUpdateOperationsInput | number
+    dailyStaminaLevel?: IntFieldUpdateOperationsInput | number
+    injuryStatus?: EnumInjuryStatusFieldUpdateOperationsInput | $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: IntFieldUpdateOperationsInput | number
+    injuryRecoveryPointsCurrent?: IntFieldUpdateOperationsInput | number
+    dailyItemsUsed?: IntFieldUpdateOperationsInput | number
+    careerInjuries?: IntFieldUpdateOperationsInput | number
+    gamesPlayedLastSeason?: IntFieldUpdateOperationsInput | number
+    seasonMinutesLeague?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTournament?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesExhibition?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTotal?: FloatFieldUpdateOperationsInput | number
+    isOnMarket?: BoolFieldUpdateOperationsInput | boolean
+    isRetired?: BoolFieldUpdateOperationsInput | boolean
+    camaraderieScore?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    team?: TeamUpdateOneRequiredWithoutPlayersNestedInput
+    contract?: ContractUpdateOneWithoutPlayerNestedInput
+    skills?: PlayerSkillLinkUpdateManyWithoutPlayerNestedInput
+    MarketplaceListing?: MarketplaceListingUpdateOneWithoutPlayerNestedInput
+    marketValue?: PlayerMarketValueUpdateOneWithoutPlayerNestedInput
+    tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
+    activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
+    currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
+  }
+
+  export type PlayerUncheckedUpdateWithoutMatchStatsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    teamId?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    race?: EnumRaceFieldUpdateOperationsInput | $Enums.Race
+    age?: IntFieldUpdateOperationsInput | number
+    role?: EnumPlayerRoleFieldUpdateOperationsInput | $Enums.PlayerRole
+    speed?: IntFieldUpdateOperationsInput | number
+    power?: IntFieldUpdateOperationsInput | number
+    throwing?: IntFieldUpdateOperationsInput | number
+    catching?: IntFieldUpdateOperationsInput | number
+    kicking?: IntFieldUpdateOperationsInput | number
+    staminaAttribute?: IntFieldUpdateOperationsInput | number
+    leadership?: IntFieldUpdateOperationsInput | number
+    agility?: IntFieldUpdateOperationsInput | number
+    potentialRating?: FloatFieldUpdateOperationsInput | number
+    dailyStaminaLevel?: IntFieldUpdateOperationsInput | number
+    injuryStatus?: EnumInjuryStatusFieldUpdateOperationsInput | $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: IntFieldUpdateOperationsInput | number
+    injuryRecoveryPointsCurrent?: IntFieldUpdateOperationsInput | number
+    dailyItemsUsed?: IntFieldUpdateOperationsInput | number
+    careerInjuries?: IntFieldUpdateOperationsInput | number
+    gamesPlayedLastSeason?: IntFieldUpdateOperationsInput | number
+    seasonMinutesLeague?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTournament?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesExhibition?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTotal?: FloatFieldUpdateOperationsInput | number
+    isOnMarket?: BoolFieldUpdateOperationsInput | boolean
+    isRetired?: BoolFieldUpdateOperationsInput | boolean
+    camaraderieScore?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    contract?: ContractUncheckedUpdateOneWithoutPlayerNestedInput
+    skills?: PlayerSkillLinkUncheckedUpdateManyWithoutPlayerNestedInput
+    MarketplaceListing?: MarketplaceListingUncheckedUpdateOneWithoutPlayerNestedInput
+    marketValue?: PlayerMarketValueUncheckedUpdateOneWithoutPlayerNestedInput
+    tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
+    currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
+  }
+
+  export type GameUpsertWithoutPlayerStatsInput = {
+    update: XOR<GameUpdateWithoutPlayerStatsInput, GameUncheckedUpdateWithoutPlayerStatsInput>
+    create: XOR<GameCreateWithoutPlayerStatsInput, GameUncheckedCreateWithoutPlayerStatsInput>
+    where?: GameWhereInput
+  }
+
+  export type GameUpdateToOneWithWhereWithoutPlayerStatsInput = {
+    where?: GameWhereInput
+    data: XOR<GameUpdateWithoutPlayerStatsInput, GameUncheckedUpdateWithoutPlayerStatsInput>
+  }
+
+  export type GameUpdateWithoutPlayerStatsInput = {
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    league?: LeagueUpdateOneWithoutScheduleNestedInput
+    homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
+    awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
+    tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutPlayerStatsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    leagueId?: NullableIntFieldUpdateOperationsInput | number | null
+    homeTeamId?: IntFieldUpdateOperationsInput | number
+    awayTeamId?: IntFieldUpdateOperationsInput | number
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type TeamCreateWithoutTeamMatchStatsInput = {
+    name: string
+    logoUrl?: string | null
+    isAI?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    camaraderie?: number
+    fanLoyalty?: number
+    homeField?: $Enums.FieldSize
+    tacticalFocus?: $Enums.TacticalFocus
+    division?: number | null
+    subdivision?: string | null
+    wins?: number
+    losses?: number
+    draws?: number
+    points?: number
+    user: UserProfileCreateNestedOneWithoutTeamInput
+    players?: PlayerCreateNestedManyWithoutTeamInput
+    staff?: StaffCreateNestedManyWithoutTeamInput
+    finances?: TeamFinancesCreateNestedOneWithoutTeamInput
+    stadium?: StadiumCreateNestedOneWithoutTeamInput
+    inventoryItems?: InventoryItemCreateNestedManyWithoutTeamInput
+    league?: LeagueCreateNestedOneWithoutTeamsInput
+    activeBoosts?: ActiveBoostCreateNestedManyWithoutTeamInput
+    strategy?: StrategyCreateNestedOneWithoutTeamInput
+    marketplaceListings?: MarketplaceListingCreateNestedManyWithoutSellerTeamInput
+    bids?: BidCreateNestedManyWithoutBidderTeamInput
+    highBidderOnListings?: MarketplaceListingCreateNestedManyWithoutCurrentHighBidderTeamInput
+    listingHistory?: ListingHistoryCreateNestedManyWithoutTeamInput
+    notifications?: NotificationCreateNestedManyWithoutTeamInput
+    tournamentEntries?: TournamentEntryCreateNestedManyWithoutTeamInput
+    tryoutHistory?: TryoutHistoryCreateNestedManyWithoutTeamInput
+    homeTeamGames?: GameCreateNestedManyWithoutHomeTeamInput
+    awayTeamGames?: GameCreateNestedManyWithoutAwayTeamInput
+  }
+
+  export type TeamUncheckedCreateWithoutTeamMatchStatsInput = {
+    id?: number
+    userProfileId: number
+    name: string
+    logoUrl?: string | null
+    isAI?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    camaraderie?: number
+    fanLoyalty?: number
+    homeField?: $Enums.FieldSize
+    tacticalFocus?: $Enums.TacticalFocus
+    leagueId?: number | null
+    division?: number | null
+    subdivision?: string | null
+    wins?: number
+    losses?: number
+    draws?: number
+    points?: number
+    players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
+    staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
+    finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
+    stadium?: StadiumUncheckedCreateNestedOneWithoutTeamInput
+    inventoryItems?: InventoryItemUncheckedCreateNestedManyWithoutTeamInput
+    activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutTeamInput
+    strategy?: StrategyUncheckedCreateNestedOneWithoutTeamInput
+    marketplaceListings?: MarketplaceListingUncheckedCreateNestedManyWithoutSellerTeamInput
+    bids?: BidUncheckedCreateNestedManyWithoutBidderTeamInput
+    highBidderOnListings?: MarketplaceListingUncheckedCreateNestedManyWithoutCurrentHighBidderTeamInput
+    listingHistory?: ListingHistoryUncheckedCreateNestedManyWithoutTeamInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTeamInput
+    tournamentEntries?: TournamentEntryUncheckedCreateNestedManyWithoutTeamInput
+    tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutTeamInput
+    homeTeamGames?: GameUncheckedCreateNestedManyWithoutHomeTeamInput
+    awayTeamGames?: GameUncheckedCreateNestedManyWithoutAwayTeamInput
+  }
+
+  export type TeamCreateOrConnectWithoutTeamMatchStatsInput = {
+    where: TeamWhereUniqueInput
+    create: XOR<TeamCreateWithoutTeamMatchStatsInput, TeamUncheckedCreateWithoutTeamMatchStatsInput>
+  }
+
+  export type GameCreateWithoutTeamStatsInput = {
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    round?: number | null
+    status?: $Enums.GameStatus
+    createdAt?: Date | string
+    league?: LeagueCreateNestedOneWithoutScheduleInput
+    homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
+    awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
+    tournament?: TournamentCreateNestedOneWithoutGamesInput
+    playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutTeamStatsInput = {
+    id?: number
+    leagueId?: number | null
+    homeTeamId: number
+    awayTeamId: number
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    tournamentId?: number | null
+    round?: number | null
+    status?: $Enums.GameStatus
+    createdAt?: Date | string
+    playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutTeamStatsInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutTeamStatsInput, GameUncheckedCreateWithoutTeamStatsInput>
+  }
+
+  export type TeamUpsertWithoutTeamMatchStatsInput = {
+    update: XOR<TeamUpdateWithoutTeamMatchStatsInput, TeamUncheckedUpdateWithoutTeamMatchStatsInput>
+    create: XOR<TeamCreateWithoutTeamMatchStatsInput, TeamUncheckedCreateWithoutTeamMatchStatsInput>
+    where?: TeamWhereInput
+  }
+
+  export type TeamUpdateToOneWithWhereWithoutTeamMatchStatsInput = {
+    where?: TeamWhereInput
+    data: XOR<TeamUpdateWithoutTeamMatchStatsInput, TeamUncheckedUpdateWithoutTeamMatchStatsInput>
+  }
+
+  export type TeamUpdateWithoutTeamMatchStatsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isAI?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    camaraderie?: FloatFieldUpdateOperationsInput | number
+    fanLoyalty?: FloatFieldUpdateOperationsInput | number
+    homeField?: EnumFieldSizeFieldUpdateOperationsInput | $Enums.FieldSize
+    tacticalFocus?: EnumTacticalFocusFieldUpdateOperationsInput | $Enums.TacticalFocus
+    division?: NullableIntFieldUpdateOperationsInput | number | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    wins?: IntFieldUpdateOperationsInput | number
+    losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
+    points?: IntFieldUpdateOperationsInput | number
+    user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
+    players?: PlayerUpdateManyWithoutTeamNestedInput
+    staff?: StaffUpdateManyWithoutTeamNestedInput
+    finances?: TeamFinancesUpdateOneWithoutTeamNestedInput
+    stadium?: StadiumUpdateOneWithoutTeamNestedInput
+    inventoryItems?: InventoryItemUpdateManyWithoutTeamNestedInput
+    league?: LeagueUpdateOneWithoutTeamsNestedInput
+    activeBoosts?: ActiveBoostUpdateManyWithoutTeamNestedInput
+    strategy?: StrategyUpdateOneWithoutTeamNestedInput
+    marketplaceListings?: MarketplaceListingUpdateManyWithoutSellerTeamNestedInput
+    bids?: BidUpdateManyWithoutBidderTeamNestedInput
+    highBidderOnListings?: MarketplaceListingUpdateManyWithoutCurrentHighBidderTeamNestedInput
+    listingHistory?: ListingHistoryUpdateManyWithoutTeamNestedInput
+    notifications?: NotificationUpdateManyWithoutTeamNestedInput
+    tournamentEntries?: TournamentEntryUpdateManyWithoutTeamNestedInput
+    tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
+    homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
+    awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+  }
+
+  export type TeamUncheckedUpdateWithoutTeamMatchStatsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userProfileId?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isAI?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    camaraderie?: FloatFieldUpdateOperationsInput | number
+    fanLoyalty?: FloatFieldUpdateOperationsInput | number
+    homeField?: EnumFieldSizeFieldUpdateOperationsInput | $Enums.FieldSize
+    tacticalFocus?: EnumTacticalFocusFieldUpdateOperationsInput | $Enums.TacticalFocus
+    leagueId?: NullableIntFieldUpdateOperationsInput | number | null
+    division?: NullableIntFieldUpdateOperationsInput | number | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    wins?: IntFieldUpdateOperationsInput | number
+    losses?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
+    points?: IntFieldUpdateOperationsInput | number
+    players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
+    staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
+    finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
+    stadium?: StadiumUncheckedUpdateOneWithoutTeamNestedInput
+    inventoryItems?: InventoryItemUncheckedUpdateManyWithoutTeamNestedInput
+    activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutTeamNestedInput
+    strategy?: StrategyUncheckedUpdateOneWithoutTeamNestedInput
+    marketplaceListings?: MarketplaceListingUncheckedUpdateManyWithoutSellerTeamNestedInput
+    bids?: BidUncheckedUpdateManyWithoutBidderTeamNestedInput
+    highBidderOnListings?: MarketplaceListingUncheckedUpdateManyWithoutCurrentHighBidderTeamNestedInput
+    listingHistory?: ListingHistoryUncheckedUpdateManyWithoutTeamNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTeamNestedInput
+    tournamentEntries?: TournamentEntryUncheckedUpdateManyWithoutTeamNestedInput
+    tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
+    homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
+    awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+  }
+
+  export type GameUpsertWithoutTeamStatsInput = {
+    update: XOR<GameUpdateWithoutTeamStatsInput, GameUncheckedUpdateWithoutTeamStatsInput>
+    create: XOR<GameCreateWithoutTeamStatsInput, GameUncheckedCreateWithoutTeamStatsInput>
+    where?: GameWhereInput
+  }
+
+  export type GameUpdateToOneWithWhereWithoutTeamStatsInput = {
+    where?: GameWhereInput
+    data: XOR<GameUpdateWithoutTeamStatsInput, GameUncheckedUpdateWithoutTeamStatsInput>
+  }
+
+  export type GameUpdateWithoutTeamStatsInput = {
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    league?: LeagueUpdateOneWithoutScheduleNestedInput
+    homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
+    awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
+    tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutTeamStatsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    leagueId?: NullableIntFieldUpdateOperationsInput | number | null
+    homeTeamId?: IntFieldUpdateOperationsInput | number
+    awayTeamId?: IntFieldUpdateOperationsInput | number
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type PlayerCreateWithoutCareerMilestonesInput = {
+    firstName: string
+    lastName: string
+    race: $Enums.Race
+    age: number
+    role: $Enums.PlayerRole
+    speed: number
+    power: number
+    throwing: number
+    catching: number
+    kicking: number
+    staminaAttribute: number
+    leadership: number
+    agility: number
+    potentialRating: number
+    dailyStaminaLevel?: number
+    injuryStatus?: $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: number
+    injuryRecoveryPointsCurrent?: number
+    dailyItemsUsed?: number
+    careerInjuries?: number
+    gamesPlayedLastSeason?: number
+    seasonMinutesLeague?: number
+    seasonMinutesTournament?: number
+    seasonMinutesExhibition?: number
+    seasonMinutesTotal?: number
+    isOnMarket?: boolean
+    isRetired?: boolean
+    camaraderieScore?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    team: TeamCreateNestedOneWithoutPlayersInput
+    contract?: ContractCreateNestedOneWithoutPlayerInput
+    skills?: PlayerSkillLinkCreateNestedManyWithoutPlayerInput
+    MarketplaceListing?: MarketplaceListingCreateNestedOneWithoutPlayerInput
+    marketValue?: PlayerMarketValueCreateNestedOneWithoutPlayerInput
+    tryoutHistory?: TryoutHistoryCreateNestedManyWithoutPlayerInput
+    activeBoosts?: ActiveBoostCreateNestedManyWithoutPlayerInput
+    currentEquipment?: PlayerEquipmentCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsCreateNestedManyWithoutPlayerInput
+  }
+
+  export type PlayerUncheckedCreateWithoutCareerMilestonesInput = {
+    id?: number
+    teamId: number
+    firstName: string
+    lastName: string
+    race: $Enums.Race
+    age: number
+    role: $Enums.PlayerRole
+    speed: number
+    power: number
+    throwing: number
+    catching: number
+    kicking: number
+    staminaAttribute: number
+    leadership: number
+    agility: number
+    potentialRating: number
+    dailyStaminaLevel?: number
+    injuryStatus?: $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: number
+    injuryRecoveryPointsCurrent?: number
+    dailyItemsUsed?: number
+    careerInjuries?: number
+    gamesPlayedLastSeason?: number
+    seasonMinutesLeague?: number
+    seasonMinutesTournament?: number
+    seasonMinutesExhibition?: number
+    seasonMinutesTotal?: number
+    isOnMarket?: boolean
+    isRetired?: boolean
+    camaraderieScore?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    contract?: ContractUncheckedCreateNestedOneWithoutPlayerInput
+    skills?: PlayerSkillLinkUncheckedCreateNestedManyWithoutPlayerInput
+    MarketplaceListing?: MarketplaceListingUncheckedCreateNestedOneWithoutPlayerInput
+    marketValue?: PlayerMarketValueUncheckedCreateNestedOneWithoutPlayerInput
+    tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    activeBoosts?: ActiveBoostUncheckedCreateNestedManyWithoutPlayerInput
+    currentEquipment?: PlayerEquipmentUncheckedCreateNestedManyWithoutPlayerInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedCreateNestedManyWithoutPlayerInput
+    matchStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutPlayerInput
+  }
+
+  export type PlayerCreateOrConnectWithoutCareerMilestonesInput = {
+    where: PlayerWhereUniqueInput
+    create: XOR<PlayerCreateWithoutCareerMilestonesInput, PlayerUncheckedCreateWithoutCareerMilestonesInput>
+  }
+
+  export type PlayerUpsertWithoutCareerMilestonesInput = {
+    update: XOR<PlayerUpdateWithoutCareerMilestonesInput, PlayerUncheckedUpdateWithoutCareerMilestonesInput>
+    create: XOR<PlayerCreateWithoutCareerMilestonesInput, PlayerUncheckedCreateWithoutCareerMilestonesInput>
+    where?: PlayerWhereInput
+  }
+
+  export type PlayerUpdateToOneWithWhereWithoutCareerMilestonesInput = {
+    where?: PlayerWhereInput
+    data: XOR<PlayerUpdateWithoutCareerMilestonesInput, PlayerUncheckedUpdateWithoutCareerMilestonesInput>
+  }
+
+  export type PlayerUpdateWithoutCareerMilestonesInput = {
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    race?: EnumRaceFieldUpdateOperationsInput | $Enums.Race
+    age?: IntFieldUpdateOperationsInput | number
+    role?: EnumPlayerRoleFieldUpdateOperationsInput | $Enums.PlayerRole
+    speed?: IntFieldUpdateOperationsInput | number
+    power?: IntFieldUpdateOperationsInput | number
+    throwing?: IntFieldUpdateOperationsInput | number
+    catching?: IntFieldUpdateOperationsInput | number
+    kicking?: IntFieldUpdateOperationsInput | number
+    staminaAttribute?: IntFieldUpdateOperationsInput | number
+    leadership?: IntFieldUpdateOperationsInput | number
+    agility?: IntFieldUpdateOperationsInput | number
+    potentialRating?: FloatFieldUpdateOperationsInput | number
+    dailyStaminaLevel?: IntFieldUpdateOperationsInput | number
+    injuryStatus?: EnumInjuryStatusFieldUpdateOperationsInput | $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: IntFieldUpdateOperationsInput | number
+    injuryRecoveryPointsCurrent?: IntFieldUpdateOperationsInput | number
+    dailyItemsUsed?: IntFieldUpdateOperationsInput | number
+    careerInjuries?: IntFieldUpdateOperationsInput | number
+    gamesPlayedLastSeason?: IntFieldUpdateOperationsInput | number
+    seasonMinutesLeague?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTournament?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesExhibition?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTotal?: FloatFieldUpdateOperationsInput | number
+    isOnMarket?: BoolFieldUpdateOperationsInput | boolean
+    isRetired?: BoolFieldUpdateOperationsInput | boolean
+    camaraderieScore?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    team?: TeamUpdateOneRequiredWithoutPlayersNestedInput
+    contract?: ContractUpdateOneWithoutPlayerNestedInput
+    skills?: PlayerSkillLinkUpdateManyWithoutPlayerNestedInput
+    MarketplaceListing?: MarketplaceListingUpdateOneWithoutPlayerNestedInput
+    marketValue?: PlayerMarketValueUpdateOneWithoutPlayerNestedInput
+    tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
+    activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
+    currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+  }
+
+  export type PlayerUncheckedUpdateWithoutCareerMilestonesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    teamId?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
+    lastName?: StringFieldUpdateOperationsInput | string
+    race?: EnumRaceFieldUpdateOperationsInput | $Enums.Race
+    age?: IntFieldUpdateOperationsInput | number
+    role?: EnumPlayerRoleFieldUpdateOperationsInput | $Enums.PlayerRole
+    speed?: IntFieldUpdateOperationsInput | number
+    power?: IntFieldUpdateOperationsInput | number
+    throwing?: IntFieldUpdateOperationsInput | number
+    catching?: IntFieldUpdateOperationsInput | number
+    kicking?: IntFieldUpdateOperationsInput | number
+    staminaAttribute?: IntFieldUpdateOperationsInput | number
+    leadership?: IntFieldUpdateOperationsInput | number
+    agility?: IntFieldUpdateOperationsInput | number
+    potentialRating?: FloatFieldUpdateOperationsInput | number
+    dailyStaminaLevel?: IntFieldUpdateOperationsInput | number
+    injuryStatus?: EnumInjuryStatusFieldUpdateOperationsInput | $Enums.InjuryStatus
+    injuryRecoveryPointsNeeded?: IntFieldUpdateOperationsInput | number
+    injuryRecoveryPointsCurrent?: IntFieldUpdateOperationsInput | number
+    dailyItemsUsed?: IntFieldUpdateOperationsInput | number
+    careerInjuries?: IntFieldUpdateOperationsInput | number
+    gamesPlayedLastSeason?: IntFieldUpdateOperationsInput | number
+    seasonMinutesLeague?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTournament?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesExhibition?: FloatFieldUpdateOperationsInput | number
+    seasonMinutesTotal?: FloatFieldUpdateOperationsInput | number
+    isOnMarket?: BoolFieldUpdateOperationsInput | boolean
+    isRetired?: BoolFieldUpdateOperationsInput | boolean
+    camaraderieScore?: FloatFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    contract?: ContractUncheckedUpdateOneWithoutPlayerNestedInput
+    skills?: PlayerSkillLinkUncheckedUpdateManyWithoutPlayerNestedInput
+    MarketplaceListing?: MarketplaceListingUncheckedUpdateOneWithoutPlayerNestedInput
+    marketValue?: PlayerMarketValueUncheckedUpdateOneWithoutPlayerNestedInput
+    tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
+    currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type RedeemCodeRecordCreateManyUserProfileInput = {
@@ -70069,6 +80319,44 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type TeamMatchStatsCreateManyTeamInput = {
+    id?: number
+    gameId: number
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
   export type PlayerUpdateWithoutTeamInput = {
     firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
@@ -70107,6 +80395,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateWithoutTeamInput = {
@@ -70148,6 +80439,9 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutPlayerNestedInput
     activeBoosts?: ActiveBoostUncheckedUpdateManyWithoutPlayerNestedInput
     currentEquipment?: PlayerEquipmentUncheckedUpdateManyWithoutPlayerNestedInput
+    developmentHistory?: PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerNestedInput
+    matchStats?: PlayerMatchStatsUncheckedUpdateManyWithoutPlayerNestedInput
+    careerMilestones?: PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerNestedInput
   }
 
   export type PlayerUncheckedUpdateManyWithoutTeamInput = {
@@ -70572,6 +80866,8 @@ export namespace Prisma {
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutHomeTeamInput = {
@@ -70588,6 +80884,8 @@ export namespace Prisma {
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateManyWithoutHomeTeamInput = {
@@ -70619,6 +80917,8 @@ export namespace Prisma {
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutAwayTeamInput = {
@@ -70635,6 +80935,8 @@ export namespace Prisma {
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateManyWithoutAwayTeamInput = {
@@ -70651,6 +80953,119 @@ export namespace Prisma {
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TeamMatchStatsUpdateWithoutTeamInput = {
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    game?: GameUpdateOneRequiredWithoutTeamStatsNestedInput
+  }
+
+  export type TeamMatchStatsUncheckedUpdateWithoutTeamInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    gameId?: IntFieldUpdateOperationsInput | number
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type TeamMatchStatsUncheckedUpdateManyWithoutTeamInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    gameId?: IntFieldUpdateOperationsInput | number
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
   }
 
   export type PlayerSkillLinkCreateManyPlayerInput = {
@@ -70683,6 +81098,67 @@ export namespace Prisma {
     id?: number
     itemId: number
     equippedAt?: Date | string
+  }
+
+  export type PlayerDevelopmentHistoryCreateManyPlayerInput = {
+    id?: number
+    developmentDate?: Date | string
+    developmentType: string
+    statChanges: JsonNullValueInput | InputJsonValue
+    previousValues: JsonNullValueInput | InputJsonValue
+    newValues: JsonNullValueInput | InputJsonValue
+    triggerReason: string
+    activityScore?: number
+    gamesPlayedFactor?: number
+    potentialModifier?: number
+    ageModifier?: number
+    coachingBonus?: number
+    trainerBonus?: number
+  }
+
+  export type PlayerMatchStatsCreateManyPlayerInput = {
+    id?: number
+    gameId: number
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type PlayerCareerMilestoneCreateManyPlayerInput = {
+    id?: number
+    milestoneType: string
+    description: string
+    achievedAt?: Date | string
+    seasonId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type PlayerSkillLinkUpdateWithoutPlayerInput = {
@@ -70775,6 +81251,186 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     itemId?: IntFieldUpdateOperationsInput | number
     equippedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlayerDevelopmentHistoryUpdateWithoutPlayerInput = {
+    developmentDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    developmentType?: StringFieldUpdateOperationsInput | string
+    statChanges?: JsonNullValueInput | InputJsonValue
+    previousValues?: JsonNullValueInput | InputJsonValue
+    newValues?: JsonNullValueInput | InputJsonValue
+    triggerReason?: StringFieldUpdateOperationsInput | string
+    activityScore?: FloatFieldUpdateOperationsInput | number
+    gamesPlayedFactor?: IntFieldUpdateOperationsInput | number
+    potentialModifier?: FloatFieldUpdateOperationsInput | number
+    ageModifier?: FloatFieldUpdateOperationsInput | number
+    coachingBonus?: FloatFieldUpdateOperationsInput | number
+    trainerBonus?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type PlayerDevelopmentHistoryUncheckedUpdateWithoutPlayerInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    developmentDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    developmentType?: StringFieldUpdateOperationsInput | string
+    statChanges?: JsonNullValueInput | InputJsonValue
+    previousValues?: JsonNullValueInput | InputJsonValue
+    newValues?: JsonNullValueInput | InputJsonValue
+    triggerReason?: StringFieldUpdateOperationsInput | string
+    activityScore?: FloatFieldUpdateOperationsInput | number
+    gamesPlayedFactor?: IntFieldUpdateOperationsInput | number
+    potentialModifier?: FloatFieldUpdateOperationsInput | number
+    ageModifier?: FloatFieldUpdateOperationsInput | number
+    coachingBonus?: FloatFieldUpdateOperationsInput | number
+    trainerBonus?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type PlayerDevelopmentHistoryUncheckedUpdateManyWithoutPlayerInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    developmentDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    developmentType?: StringFieldUpdateOperationsInput | string
+    statChanges?: JsonNullValueInput | InputJsonValue
+    previousValues?: JsonNullValueInput | InputJsonValue
+    newValues?: JsonNullValueInput | InputJsonValue
+    triggerReason?: StringFieldUpdateOperationsInput | string
+    activityScore?: FloatFieldUpdateOperationsInput | number
+    gamesPlayedFactor?: IntFieldUpdateOperationsInput | number
+    potentialModifier?: FloatFieldUpdateOperationsInput | number
+    ageModifier?: FloatFieldUpdateOperationsInput | number
+    coachingBonus?: FloatFieldUpdateOperationsInput | number
+    trainerBonus?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type PlayerMatchStatsUpdateWithoutPlayerInput = {
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    game?: GameUpdateOneRequiredWithoutPlayerStatsNestedInput
+  }
+
+  export type PlayerMatchStatsUncheckedUpdateWithoutPlayerInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    gameId?: IntFieldUpdateOperationsInput | number
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsUncheckedUpdateManyWithoutPlayerInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    gameId?: IntFieldUpdateOperationsInput | number
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type PlayerCareerMilestoneUpdateWithoutPlayerInput = {
+    milestoneType?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    achievedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type PlayerCareerMilestoneUncheckedUpdateWithoutPlayerInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    milestoneType?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    achievedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type PlayerCareerMilestoneUncheckedUpdateManyWithoutPlayerInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    milestoneType?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    achievedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type PlayerSkillLinkCreateManySkillInput = {
@@ -71082,6 +81738,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateWithoutLeagueInput = {
@@ -71118,6 +81775,7 @@ export namespace Prisma {
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutTeamNestedInput
     homeTeamGames?: GameUncheckedUpdateManyWithoutHomeTeamNestedInput
     awayTeamGames?: GameUncheckedUpdateManyWithoutAwayTeamNestedInput
+    teamMatchStats?: TeamMatchStatsUncheckedUpdateManyWithoutTeamNestedInput
   }
 
   export type TeamUncheckedUpdateManyWithoutLeagueInput = {
@@ -71153,6 +81811,8 @@ export namespace Prisma {
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutLeagueInput = {
@@ -71169,6 +81829,8 @@ export namespace Prisma {
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateManyWithoutLeagueInput = {
@@ -71229,6 +81891,300 @@ export namespace Prisma {
     streak?: StringFieldUpdateOperationsInput | string
     rank?: IntFieldUpdateOperationsInput | number
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlayerMatchStatsCreateManyGameInput = {
+    id?: number
+    playerId: number
+    minutesPlayed?: number
+    performanceRating?: number | null
+    camaraderieContribution?: number
+    scores?: number
+    assists?: number
+    passAttempts?: number
+    passCompletions?: number
+    passingYards?: number
+    perfectPasses?: number
+    rushingYards?: number
+    breakawayRuns?: number
+    catches?: number
+    receivingYards?: number
+    drops?: number
+    tackles?: number
+    tackleAttempts?: number
+    knockdowns?: number
+    blocks?: number
+    injuriesInflicted?: number
+    interceptions?: number
+    ballStrips?: number
+    passDeflections?: number
+    fumblesLost?: number
+    ballRetention?: number
+    distanceCovered?: number
+    staminaUsed?: number
+    ballPossessionTime?: number
+    pressureApplied?: number
+    injuries?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type TeamMatchStatsCreateManyGameInput = {
+    id?: number
+    teamId: number
+    timeOfPossession?: number
+    possessionPercentage?: number
+    averageFieldPosition?: number
+    territoryGained?: number
+    totalScore?: number
+    totalPassingYards?: number
+    totalRushingYards?: number
+    totalOffensiveYards?: number
+    passingAccuracy?: number
+    ballRetentionRate?: number
+    scoringOpportunities?: number
+    scoringEfficiency?: number
+    totalTackles?: number
+    totalKnockdowns?: number
+    totalBlocks?: number
+    totalInjuriesInflicted?: number
+    totalInterceptions?: number
+    totalBallStrips?: number
+    passDeflections?: number
+    defensiveStops?: number
+    totalFumbles?: number
+    turnoverDifferential?: number
+    physicalDominance?: number
+    ballSecurityRating?: number
+    homeFieldAdvantage?: number
+    crowdIntensity?: number
+    domeReverberation?: number
+    camaraderieTeamBonus?: number
+    tacticalEffectiveness?: number
+    equipmentAdvantage?: number
+    physicalConditioning?: number
+    matchDate: Date | string
+    matchType: $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsUpdateWithoutGameInput = {
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    player?: PlayerUpdateOneRequiredWithoutMatchStatsNestedInput
+  }
+
+  export type PlayerMatchStatsUncheckedUpdateWithoutGameInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    playerId?: IntFieldUpdateOperationsInput | number
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type PlayerMatchStatsUncheckedUpdateManyWithoutGameInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    playerId?: IntFieldUpdateOperationsInput | number
+    minutesPlayed?: FloatFieldUpdateOperationsInput | number
+    performanceRating?: NullableFloatFieldUpdateOperationsInput | number | null
+    camaraderieContribution?: FloatFieldUpdateOperationsInput | number
+    scores?: IntFieldUpdateOperationsInput | number
+    assists?: IntFieldUpdateOperationsInput | number
+    passAttempts?: IntFieldUpdateOperationsInput | number
+    passCompletions?: IntFieldUpdateOperationsInput | number
+    passingYards?: IntFieldUpdateOperationsInput | number
+    perfectPasses?: IntFieldUpdateOperationsInput | number
+    rushingYards?: IntFieldUpdateOperationsInput | number
+    breakawayRuns?: IntFieldUpdateOperationsInput | number
+    catches?: IntFieldUpdateOperationsInput | number
+    receivingYards?: IntFieldUpdateOperationsInput | number
+    drops?: IntFieldUpdateOperationsInput | number
+    tackles?: IntFieldUpdateOperationsInput | number
+    tackleAttempts?: IntFieldUpdateOperationsInput | number
+    knockdowns?: IntFieldUpdateOperationsInput | number
+    blocks?: IntFieldUpdateOperationsInput | number
+    injuriesInflicted?: IntFieldUpdateOperationsInput | number
+    interceptions?: IntFieldUpdateOperationsInput | number
+    ballStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    fumblesLost?: IntFieldUpdateOperationsInput | number
+    ballRetention?: IntFieldUpdateOperationsInput | number
+    distanceCovered?: IntFieldUpdateOperationsInput | number
+    staminaUsed?: IntFieldUpdateOperationsInput | number
+    ballPossessionTime?: IntFieldUpdateOperationsInput | number
+    pressureApplied?: IntFieldUpdateOperationsInput | number
+    injuries?: IntFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type TeamMatchStatsUpdateWithoutGameInput = {
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    team?: TeamUpdateOneRequiredWithoutTeamMatchStatsNestedInput
+  }
+
+  export type TeamMatchStatsUncheckedUpdateWithoutGameInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    teamId?: IntFieldUpdateOperationsInput | number
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  }
+
+  export type TeamMatchStatsUncheckedUpdateManyWithoutGameInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    teamId?: IntFieldUpdateOperationsInput | number
+    timeOfPossession?: IntFieldUpdateOperationsInput | number
+    possessionPercentage?: FloatFieldUpdateOperationsInput | number
+    averageFieldPosition?: FloatFieldUpdateOperationsInput | number
+    territoryGained?: IntFieldUpdateOperationsInput | number
+    totalScore?: IntFieldUpdateOperationsInput | number
+    totalPassingYards?: IntFieldUpdateOperationsInput | number
+    totalRushingYards?: IntFieldUpdateOperationsInput | number
+    totalOffensiveYards?: IntFieldUpdateOperationsInput | number
+    passingAccuracy?: FloatFieldUpdateOperationsInput | number
+    ballRetentionRate?: FloatFieldUpdateOperationsInput | number
+    scoringOpportunities?: IntFieldUpdateOperationsInput | number
+    scoringEfficiency?: FloatFieldUpdateOperationsInput | number
+    totalTackles?: IntFieldUpdateOperationsInput | number
+    totalKnockdowns?: IntFieldUpdateOperationsInput | number
+    totalBlocks?: IntFieldUpdateOperationsInput | number
+    totalInjuriesInflicted?: IntFieldUpdateOperationsInput | number
+    totalInterceptions?: IntFieldUpdateOperationsInput | number
+    totalBallStrips?: IntFieldUpdateOperationsInput | number
+    passDeflections?: IntFieldUpdateOperationsInput | number
+    defensiveStops?: IntFieldUpdateOperationsInput | number
+    totalFumbles?: IntFieldUpdateOperationsInput | number
+    turnoverDifferential?: IntFieldUpdateOperationsInput | number
+    physicalDominance?: IntFieldUpdateOperationsInput | number
+    ballSecurityRating?: FloatFieldUpdateOperationsInput | number
+    homeFieldAdvantage?: FloatFieldUpdateOperationsInput | number
+    crowdIntensity?: FloatFieldUpdateOperationsInput | number
+    domeReverberation?: FloatFieldUpdateOperationsInput | number
+    camaraderieTeamBonus?: FloatFieldUpdateOperationsInput | number
+    tacticalEffectiveness?: FloatFieldUpdateOperationsInput | number
+    equipmentAdvantage?: FloatFieldUpdateOperationsInput | number
+    physicalConditioning?: FloatFieldUpdateOperationsInput | number
+    matchDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
   }
 
   export type LeagueCreateManySeasonInput = {
@@ -71359,6 +82315,8 @@ export namespace Prisma {
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
+    playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutTournamentInput = {
@@ -71375,6 +82333,8 @@ export namespace Prisma {
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateManyWithoutTournamentInput = {

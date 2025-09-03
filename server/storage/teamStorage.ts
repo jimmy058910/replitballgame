@@ -1,5 +1,5 @@
 import { getPrismaClient } from '../database.js';
-import { PrismaClient, Team, Race } from "@prisma/client";
+import { PrismaClient, Team, Race } from "../db";
 import { PaymentHistoryService } from '../services/paymentHistoryService.js';
 
 // Greek alphabet subdivision names for proper subdivision assignment
