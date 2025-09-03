@@ -535,4 +535,43 @@ router.get('/check-tournament-games', async (req: Request, res: Response) => {
   }
 });
 
+// CRITICAL FIX: Repair corrupted game data
+router.post('/fix-corrupted-games', async (req: Request, res: Response) => {
+  try {
+    const { getPrismaClient } = await import('../database');
+    const prisma = await getPrismaClient();
+    
+    // Fix games 10117, 10118, 10120 - they should be LEAGUE games, not tournament games
+    const corruptedGameIds = [10117, 10118, 10120];
+    
+    console.log(`🔧 [DATA FIX] Fixing corrupted games: ${corruptedGameIds.join(', ')}`);
+    
+    const updateResult = await prisma.game.updateMany({
+      where: {
+        id: { in: corruptedGameIds }
+      },
+      data: {
+        matchType: 'LEAGUE',
+        tournamentId: null
+      }
+    });
+    
+    console.log(`✅ [DATA FIX] Updated ${updateResult.count} games to LEAGUE type with no tournament ID`);
+    
+    res.json({ 
+      success: true, 
+      message: `Fixed ${updateResult.count} corrupted games`,
+      gameIds: corruptedGameIds,
+      changes: {
+        matchType: 'LEAGUE',
+        tournamentId: null
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ [DATA FIX] Error fixing corrupted games:', error);
+    res.status(500).json({ message: 'Failed to fix corrupted games' });
+  }
+});
+
 export default router;
