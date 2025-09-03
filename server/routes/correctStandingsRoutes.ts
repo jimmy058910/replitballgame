@@ -518,7 +518,170 @@ router.post('/fix-standings-completely', requireAuth, async (req, res) => {
   }
 });
 
-export default router;
-    const teamStandings = new Map();
+/**
+ * DEBUG DIVISION 7 ALPHA STANDINGS
+ * Comprehensive analysis of Division 7 Alpha teams and their completed games
+ */
+router.get('/debug-division-7-alpha', requireAuth, async (req, res) => {
+  console.log('🔍 DEBUG DIVISION 7 ALPHA - Analyzing teams and completed games');
+  console.log('=====================================================================');
+  
+  try {
+    const prisma = await getPrismaClient();
     
-    // Initialize all teams with zero records
+    // Get Division 7 Alpha teams
+    const teams = await prisma.team.findMany({
+      where: { 
+        division: 7,
+        subdivision: 'alpha'
+      },
+      select: { 
+        id: true, 
+        name: true, 
+        wins: true, 
+        losses: true, 
+        draws: true, 
+        points: true 
+      },
+      orderBy: { name: 'asc' }
+    });
+    
+    console.log(`🔍 Found ${teams.length} Division 7 Alpha teams:`);
+    teams.forEach(team => {
+      console.log(`  - ${team.name} (ID: ${team.id}): ${team.wins}W-${team.losses}L-${team.draws}D = ${team.points} pts`);
+    });
+    
+    // Get ALL completed league games involving these teams
+    const teamIds = teams.map(t => t.id);
+    const completedGames = await prisma.game.findMany({
+      where: {
+        matchType: 'LEAGUE',
+        homeScore: { not: null },
+        awayScore: { not: null },
+        OR: [
+          { homeTeamId: { in: teamIds } },
+          { awayTeamId: { in: teamIds } }
+        ]
+      },
+      include: {
+        homeTeam: { select: { id: true, name: true } },
+        awayTeam: { select: { id: true, name: true } }
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+    
+    console.log(`\n📋 Found ${completedGames.length} completed league games involving Division 7 Alpha teams:`);
+    
+    // Calculate expected records from scratch
+    const expectedRecords = new Map();
+    teams.forEach(team => {
+      expectedRecords.set(team.id, {
+        name: team.name,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        gamesPlayed: 0
+      });
+    });
+    
+    completedGames.forEach((game, index) => {
+      const homeScore = game.homeScore || 0;
+      const awayScore = game.awayScore || 0;
+      
+      console.log(`${index + 1}. ${game.homeTeam.name} ${homeScore} - ${awayScore} ${game.awayTeam.name} (Game ${game.id})`);
+      
+      // Only count if both teams are in Division 7 Alpha
+      const homeInDiv7Alpha = teamIds.includes(game.homeTeamId);
+      const awayInDiv7Alpha = teamIds.includes(game.awayTeamId);
+      
+      if (homeInDiv7Alpha) {
+        const homeRecord = expectedRecords.get(game.homeTeamId);
+        homeRecord.gamesPlayed++;
+        if (homeScore > awayScore) {
+          homeRecord.wins++;
+        } else if (homeScore < awayScore) {
+          homeRecord.losses++;
+        } else {
+          homeRecord.draws++;
+        }
+      }
+      
+      if (awayInDiv7Alpha) {
+        const awayRecord = expectedRecords.get(game.awayTeamId);
+        awayRecord.gamesPlayed++;
+        if (awayScore > homeScore) {
+          awayRecord.wins++;
+        } else if (awayScore < homeScore) {
+          awayRecord.losses++;
+        } else {
+          awayRecord.draws++;
+        }
+      }
+    });
+    
+    console.log('\n📊 EXPECTED RECORDS vs CURRENT RECORDS:');
+    console.log('===========================================');
+    
+    const analysis = [];
+    for (const team of teams) {
+      const expected = expectedRecords.get(team.id);
+      const expectedPoints = (expected.wins * 3) + (expected.draws * 1);
+      
+      const discrepancy = {
+        team: team.name,
+        expected: {
+          wins: expected.wins,
+          losses: expected.losses,
+          draws: expected.draws,
+          gamesPlayed: expected.gamesPlayed,
+          points: expectedPoints
+        },
+        current: {
+          wins: team.wins,
+          losses: team.losses,
+          draws: team.draws,
+          gamesPlayed: team.wins + team.losses + team.draws,
+          points: team.points
+        },
+        correct: false
+      };
+      
+      discrepancy.correct = (
+        discrepancy.expected.wins === discrepancy.current.wins &&
+        discrepancy.expected.losses === discrepancy.current.losses &&
+        discrepancy.expected.draws === discrepancy.current.draws &&
+        discrepancy.expected.points === discrepancy.current.points
+      );
+      
+      console.log(`${discrepancy.correct ? '✅' : '❌'} ${team.name}:`);
+      console.log(`   Expected: ${expected.wins}W-${expected.losses}L-${expected.draws}D = ${expectedPoints} pts (${expected.gamesPlayed} games)`);
+      console.log(`   Current:  ${team.wins}W-${team.losses}L-${team.draws}D = ${team.points} pts (${team.wins + team.losses + team.draws} games)`);
+      
+      analysis.push(discrepancy);
+    }
+    
+    const correctCount = analysis.filter(a => a.correct).length;
+    const totalCount = analysis.length;
+    
+    console.log(`\n📈 SUMMARY: ${correctCount}/${totalCount} teams have correct standings`);
+    
+    return res.json({
+      success: true,
+      teams: analysis,
+      completedGames: completedGames.length,
+      correctStandings: correctCount,
+      totalTeams: totalCount,
+      summary: `${correctCount}/${totalCount} teams have correct standings`
+    });
+    
+  } catch (error) {
+    console.error('❌ Error analyzing Division 7 Alpha:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to analyze Division 7 Alpha',
+      details: error.message
+    });
+  }
+});
+
+export default router;
