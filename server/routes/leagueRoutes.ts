@@ -510,10 +510,10 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     
     // Get all completed league matches for standings calculation
     
-    // FIRST: Get ALL games for these teams (ANY matchType) to catch Day 2 games
-    // CRITICAL FIX: Include ALL games regardless of matchType to find Day 2 games
+    // FIXED: Only include LEAGUE games for standings calculation (exclude tournaments)
     const allLeagueGames = await prisma.game.findMany({
       where: {
+        matchType: 'LEAGUE', // Only league games for standings
         OR: [
           { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
           { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
