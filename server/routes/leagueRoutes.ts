@@ -396,6 +396,7 @@ function calculateTeamPower(players: any[]): number {
 
 // League routes  
 router.get('/:division/standings', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  console.log(`\n🚨🚨🚨 [CRITICAL DEBUG] LEAGUE STANDINGS ROUTE HIT!!! 🚨🚨🚨`);
   console.log(`\n🚨 [ROUTE DEBUG] ENHANCED ROUTE HIT - LINE 399!`);
   console.log(`\n🏆 [STANDINGS API] ========== REQUEST RECEIVED ==========`);
   console.log(`🔍 [STANDINGS API] Division: ${req.params.division}`);
@@ -541,12 +542,34 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     console.log(`🔍 [ALL GAMES BREAKDOWN]:`, allGamesByStatus);
     console.log(`🔍 [FIRST 5 GAMES DETAILS]:`, allLeagueGames.slice(0, 5).map(g => `Game ${g.id}: ${g.status || 'NO_STATUS'}, ${g.homeScore}-${g.awayScore}, Date: ${g.gameDate}`));
     
-    // Now get completed games using simplified criteria
+    // CRITICAL DEBUG: Show more games to find Day 2 games
+    console.log(`🔍 [FIRST 10 GAMES DETAILS]:`, allLeagueGames.slice(0, 10).map(g => `Game ${g.id}: ${g.status || 'NO_STATUS'}, ${g.homeScore}-${g.awayScore}, Date: ${new Date(g.gameDate).toDateString()}`));
+    
+    // CRITICAL: Look specifically for Oakland Cougars Day 2 game
+    const oaklandDay2Games = allLeagueGames.filter(g => 
+      (g.homeTeamId === 4 || g.awayTeamId === 4) && 
+      new Date(g.gameDate).getDate() === 3  // September 3rd = Day 2
+    );
+    console.log(`🔍 [OAKLAND DAY 2 DEBUG]:`, oaklandDay2Games.map(g => 
+      `Game ${g.id}: ${g.status || 'NO_STATUS'}, Scores: ${g.homeScore}-${g.awayScore}, Date: ${new Date(g.gameDate).toLocaleString()}`
+    ));
+    
+    // CRITICAL FIX: Get completed games with more flexible criteria for Day 2 games
     const completedMatches = allLeagueGames.filter((match: any) => {
-      // Game is completed if it has COMPLETED status OR has both scores
+      // Game is completed if it has COMPLETED status OR has both scores OR is marked as simulated
       const hasCompletedStatus = match.status === 'COMPLETED';
       const hasScores = (match.homeScore !== null && match.awayScore !== null);
-      return hasCompletedStatus || hasScores;
+      const isSimulated = match.simulated === true;
+      
+      // EXPANDED CRITERIA: Include simulated games and games with any valid scores
+      const isCompleted = hasCompletedStatus || hasScores || isSimulated;
+      
+      // CRITICAL DEBUG: Log each game filtering decision
+      if ((match.homeTeamId === 4 || match.awayTeamId === 4)) {
+        console.log(`🔍 [FIXED GAME FILTER] Game ${match.id}: status='${match.status}', homeScore=${match.homeScore}, awayScore=${match.awayScore}, simulated=${match.simulated}, isCompleted=${isCompleted}, date=${new Date(match.gameDate).toDateString()}`);
+      }
+      
+      return isCompleted;
     });
     
     console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores`);
