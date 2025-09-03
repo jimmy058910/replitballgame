@@ -465,29 +465,39 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     
     console.log(`🔧 [STANDINGS FIX] Getting all completed league matches for Division 8 Alpha teams`);
     
-    const completedMatches = await prisma.game.findMany({
+    // FIRST: Get ALL league games for these teams to understand what exists
+    const allLeagueGames = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
         OR: [
-          // FIXED: Include games with 'COMPLETED' status OR games with actual scores
-          { status: 'COMPLETED' },
-          {
-            AND: [
-              { homeScore: { not: null } },
-              { awayScore: { not: null } }
-            ]
-          }
-        ],
-        AND: [
-          {
-            OR: [
-              { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
-              { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
-            ]
-          }
+          { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
+          { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
         ]
       },
       orderBy: { gameDate: 'asc' }
+    });
+    
+    console.log(`🔍 [ALL LEAGUE GAMES] Found ${allLeagueGames.length} total league games for Division 8 Alpha teams`);
+    console.log(`🔍 [ALL LEAGUE GAMES] DETAILED COUNT: ${allLeagueGames.length} games found`);
+    
+    // Debug: Show breakdown of all games by status and scores
+    const allGamesByStatus = allLeagueGames.reduce((acc: any, match: any) => {
+      const status = match.status || 'NULL_STATUS';
+      const hasScores = (match.homeScore !== null && match.awayScore !== null);
+      const key = `${status}_${hasScores ? 'WITH_SCORES' : 'NO_SCORES'}`;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+    
+    console.log(`🔍 [ALL GAMES BREAKDOWN]:`, allGamesByStatus);
+    console.log(`🔍 [FIRST 5 GAMES DETAILS]:`, allLeagueGames.slice(0, 5).map(g => `Game ${g.id}: ${g.status || 'NO_STATUS'}, ${g.homeScore}-${g.awayScore}, Date: ${g.gameDate}`));
+    
+    // Now get completed games using simplified criteria
+    const completedMatches = allLeagueGames.filter((match: any) => {
+      // Game is completed if it has COMPLETED status OR has both scores
+      const hasCompletedStatus = match.status === 'COMPLETED';
+      const hasScores = (match.homeScore !== null && match.awayScore !== null);
+      return hasCompletedStatus || hasScores;
     });
     
     console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores`);
