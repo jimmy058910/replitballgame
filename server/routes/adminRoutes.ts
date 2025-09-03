@@ -420,4 +420,87 @@ router.post('/fix-division-7-schedule', async (req: Request, res: Response) => {
   }
 });
 
+// Fix stuck tournament - advance to next round
+router.post('/advance-tournament/:id', async (req: Request, res: Response) => {
+  try {
+    const tournamentId = parseInt(req.params.id);
+    const { currentRound } = req.body;
+    
+    console.log(`🏆 [ADMIN] Manually advancing tournament ${tournamentId} from round ${currentRound}...`);
+    
+    // Import the automation service
+    const { UnifiedTournamentAutomation } = await import('../services/unifiedTournamentAutomation.js');
+    
+    // Check and advance the current round
+    await UnifiedTournamentAutomation.checkRoundCompletion(tournamentId, currentRound || 1);
+    
+    console.log(`✅ [ADMIN] Tournament ${tournamentId} advancement triggered`);
+    
+    res.json({
+      success: true,
+      message: `Tournament ${tournamentId} advancement triggered for round ${currentRound || 1}`,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error advancing tournament:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Check tournament games and find the correct tournament ID
+router.get('/check-tournament-games', async (req: Request, res: Response) => {
+  try {
+    console.log('🔍 [ADMIN] Checking tournament games...');
+    
+    const { getPrismaClient } = await import('../database');
+    const prisma = await getPrismaClient();
+    
+    // Find games with the IDs from the screenshot (10117, 10118, etc.)
+    const tournamentGames = await prisma.game.findMany({
+      where: {
+        id: {
+          in: [10117, 10118, 10119, 10120]
+        }
+      },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      }
+    });
+    
+    // Find all tournament games for analysis (check for games with tournamentId)
+    const allTournamentGames = await prisma.game.findMany({
+      where: {
+        tournamentId: {
+          not: null
+        }
+      },
+      orderBy: [{ tournamentId: 'asc' }, { round: 'asc' }]
+    });
+    
+    res.json({
+      success: true,
+      screenshotGames: tournamentGames,
+      allTournamentGames: allTournamentGames.length,
+      tournamentBreakdown: allTournamentGames.reduce((acc: any, game: any) => {
+        const key = `tournament_${game.tournamentId}_round_${game.round}`;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {}),
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error checking tournament games:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

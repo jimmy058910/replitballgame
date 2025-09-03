@@ -80,6 +80,7 @@ export class UnifiedTournamentAutomation {
     console.log(`Checking round completion for tournament ${tournamentId}, round ${completedRound}`);
     
     try {
+      const prisma = await getPrismaClient();
       // Get all matches for this round
       const roundMatches = await prisma.game.findMany({
         where: {
@@ -130,6 +131,7 @@ export class UnifiedTournamentAutomation {
     console.log(`Generating round ${completedRound + 1} matches for tournament ${tournamentId}`);
     
     try {
+      const prisma = await getPrismaClient();
       const nextRound = completedRound + 1;
       
       // Check if next round matches already exist (prevent duplicates)
