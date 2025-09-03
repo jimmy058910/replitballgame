@@ -48,6 +48,9 @@ RUN echo "🔥 Firebase Build Config Check:" && \
 # Build frontend for production with Firebase configuration
 RUN npm run build
 
+# Build server TypeScript to JavaScript  
+RUN npm run build:server
+
 # ===================================
 # STAGE 2: Production Runtime Stage  
 # ===================================
@@ -72,16 +75,11 @@ COPY package*.json ./
 RUN npm ci --only=production --no-audit --prefer-offline \
     && npm cache clean --force
 
-# Copy built frontend from previous stage
+# Copy built frontend and server from previous stage  
 COPY --from=frontend-builder /app/dist ./dist
 
-# Copy server files and necessary project structure
-COPY server-step7-unified.js ./
-COPY shared ./shared/
-COPY server/storage ./server/storage/
-
-# Copy required directories and files
-RUN mkdir -p ./server ./prisma
+# Copy prisma schema for client generation
+COPY prisma ./prisma/
 
 # Generate Prisma client if schema exists
 RUN if [ -f "./prisma/schema.prisma" ]; then npx prisma generate; fi
@@ -89,9 +87,6 @@ RUN if [ -f "./prisma/schema.prisma" ]; then npx prisma generate; fi
 # Create necessary directories with proper permissions
 RUN mkdir -p logs tmp \
     && chown -R nodeuser:nodeuser /app
-
-# Set executable permissions
-RUN chmod +x server-step7-unified.js
 
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
@@ -111,4 +106,4 @@ ENV PORT=8080
 ENTRYPOINT ["dumb-init", "--"]
 
 # Start the unified application
-CMD ["node", "server-step7-unified.js"]
+CMD ["node", "dist/server/index.js"]
