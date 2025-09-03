@@ -282,6 +282,8 @@ export class UnifiedTournamentAutomation {
     console.log(`Completing tournament ${tournamentId}...`);
     
     try {
+      const prisma = await getPrismaClient();
+      
       // Get tournament to determine type and find finals round
       const tournament = await prisma.tournament.findUnique({
         where: { id: tournamentId }
@@ -470,7 +472,7 @@ export class UnifiedTournamentAutomation {
       // Check for active tournaments needing progression
       const activeTournaments = await prisma.tournament.findMany({
         where: {
-          status: 'RUNNING'
+          status: 'IN_PROGRESS'
         }
       });
       
@@ -497,7 +499,7 @@ export class UnifiedTournamentAutomation {
       // Update tournament status
       await prisma.tournament.update({
         where: { id: tournamentId },
-        data: { status: 'RUNNING' }
+        data: { status: 'IN_PROGRESS' }
       });
       
       console.log(`🎯 [AUTOMATION] Tournament ${tournamentId} started - beginning quarterfinals`);
