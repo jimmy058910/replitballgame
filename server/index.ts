@@ -256,6 +256,16 @@ async function startServer() {
       } catch (error) {
         console.error('⚠️ Season timing automation failed:', error);
       }
+
+      // Initialize tournament automation 
+      try {
+        console.log('🚀 Starting tournament automation for fully automated tournaments...');
+        const { UnifiedTournamentAutomation } = await import('./services/unifiedTournamentAutomation.js');
+        UnifiedTournamentAutomation.initializeAutomation();
+        console.log('✅ Tournament automation initialized - tournaments will start, progress, and complete automatically');
+      } catch (error) {
+        console.error('⚠️ Tournament automation failed:', error);
+      }
     });
 
     // Graceful shutdown

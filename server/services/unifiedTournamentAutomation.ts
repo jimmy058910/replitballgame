@@ -9,6 +9,54 @@ import { QuickMatchSimulation } from './quickMatchSimulation.js';
 export class UnifiedTournamentAutomation {
   
   /**
+   * Schedule recurring round completion checks
+   */
+  static scheduleRoundCompletionCheck(tournamentId: number, roundNumber: number): void {
+    console.log(`⏰ [AUTOMATION] Scheduling completion checks for tournament ${tournamentId} round ${roundNumber}`);
+    
+    // Check every 30 seconds for round completion
+    const checkInterval = setInterval(async () => {
+      try {
+        await this.checkRoundCompletion(tournamentId, roundNumber);
+        
+        // Check if tournament is complete or round has advanced
+        const prisma = await getPrismaClient();
+        const tournament = await prisma.tournament.findUnique({
+          where: { id: tournamentId }
+        });
+        
+        if (tournament?.status === 'COMPLETED') {
+          console.log(`✅ [AUTOMATION] Tournament ${tournamentId} completed, clearing interval`);
+          clearInterval(checkInterval);
+          return;
+        }
+        
+        // Check if next round exists (means this round completed)
+        const nextRoundGames = await prisma.game.findMany({
+          where: {
+            tournamentId: tournamentId,
+            round: roundNumber + 1
+          }
+        });
+        
+        if (nextRoundGames.length > 0) {
+          console.log(`✅ [AUTOMATION] Round ${roundNumber} completed, clearing interval`);
+          clearInterval(checkInterval);
+        }
+        
+      } catch (error) {
+        console.error(`❌ [AUTOMATION] Error in completion check:`, error);
+      }
+    }, 30000); // Check every 30 seconds
+    
+    // Safety timeout - clear after 10 minutes max
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      console.log(`⚠️ [AUTOMATION] Cleared completion check timeout for tournament ${tournamentId} round ${roundNumber}`);
+    }, 600000);
+  }
+
+  /**
    * Start live simulation for all matches in a tournament round
    */
   static async startTournamentRound(tournamentId: number, roundNumber: number): Promise<void> {
@@ -67,9 +115,18 @@ export class UnifiedTournamentAutomation {
       const results = await Promise.all(startPromises);
       const successful = results.filter(id => id !== null);
       
-      console.log(`Tournament ${tournamentId} round ${roundNumber}: ${successful.length}/${matches.length} matches started`);
+      console.log(`🎮 [AUTOMATION] Tournament ${tournamentId} round ${roundNumber}: ${successful.length}/${matches.length} matches started and simulated`);
+      
+      // Immediately trigger completion check after all games are simulated
+      if (successful.length === matches.length) {
+        console.log(`🔄 [AUTOMATION] All round ${roundNumber} games simulated, checking for progression...`);
+        // Schedule completion check with slight delay to ensure DB is updated
+        setTimeout(() => {
+          this.checkRoundCompletion(tournamentId, roundNumber);
+        }, 5000);
+      }
     } catch (error) {
-      console.error(`Error starting tournament round ${tournamentId}-${roundNumber}:`, error);
+      console.error(`❌ [AUTOMATION] Error starting tournament round ${tournamentId}-${roundNumber}:`, error);
     }
   }
 
@@ -112,10 +169,25 @@ export class UnifiedTournamentAutomation {
             // Generate next round matches
             await this.generateNextRoundMatches(tournamentId, completedRound);
             
-            // Start next round with delay
-            setTimeout(() => {
-              this.startTournamentRound(tournamentId, nextRound);
-            }, 120000); // 2 minute delay between rounds
+            // Queue next round for immediate processing
+            console.log(`🎯 [AUTOMATION] Queuing round ${nextRound} for tournament ${tournamentId}`);
+            
+            // Use immediate scheduling instead of unreliable setTimeout
+            setImmediate(async () => {
+              try {
+                console.log(`🚀 [AUTOMATION] Starting round ${nextRound} for tournament ${tournamentId}`);
+                await this.startTournamentRound(tournamentId, nextRound);
+                
+                // After starting round, schedule completion check
+                this.scheduleRoundCompletionCheck(tournamentId, nextRound);
+              } catch (error) {
+                console.error(`❌ [AUTOMATION] Failed to start round ${nextRound}:`, error);
+                // Retry once after 30 seconds
+                setTimeout(() => {
+                  this.startTournamentRound(tournamentId, nextRound);
+                }, 30000);
+              }
+            });
           }
         }
       }
@@ -371,5 +443,92 @@ export class UnifiedTournamentAutomation {
     } catch (error) {
       console.error(`Error handling tournament match completion:`, error);
     }
+  }
+
+  /**
+   * Master automation controller - monitors all tournament states
+   */
+  static async runTournamentAutomation(): Promise<void> {
+    try {
+      const prisma = await getPrismaClient();
+      
+      // Check for tournaments that need to start
+      const tournamentsToStart = await prisma.tournament.findMany({
+        where: {
+          status: 'REGISTRATION_OPEN',
+          startTime: {
+            lte: new Date()
+          }
+        }
+      });
+      
+      for (const tournament of tournamentsToStart) {
+        console.log(`🚀 [AUTOMATION] Auto-starting tournament ${tournament.id}`);
+        await this.startTournament(tournament.id);
+      }
+      
+      // Check for active tournaments needing progression
+      const activeTournaments = await prisma.tournament.findMany({
+        where: {
+          status: 'RUNNING'
+        }
+      });
+      
+      for (const tournament of activeTournaments) {
+        // Check each round for completion
+        for (let round = 1; round <= 3; round++) {
+          await this.checkRoundCompletion(tournament.id, round);
+        }
+      }
+      
+      console.log(`🔄 [AUTOMATION] Checked ${tournamentsToStart.length} tournaments to start, ${activeTournaments.length} active tournaments`);
+    } catch (error) {
+      console.error(`❌ [AUTOMATION] Error in master automation:`, error);
+    }
+  }
+  
+  /**
+   * Start a tournament (transition from ACTIVE to IN_PROGRESS)
+   */
+  static async startTournament(tournamentId: number): Promise<void> {
+    try {
+      const prisma = await getPrismaClient();
+      
+      // Update tournament status
+      await prisma.tournament.update({
+        where: { id: tournamentId },
+        data: { status: 'RUNNING' }
+      });
+      
+      console.log(`🎯 [AUTOMATION] Tournament ${tournamentId} started - beginning quarterfinals`);
+      
+      // Start quarterfinals immediately
+      await this.startTournamentRound(tournamentId, 1);
+      
+      // Schedule completion monitoring
+      this.scheduleRoundCompletionCheck(tournamentId, 1);
+      
+    } catch (error) {
+      console.error(`❌ [AUTOMATION] Error starting tournament ${tournamentId}:`, error);
+    }
+  }
+  
+  /**
+   * Initialize continuous tournament automation
+   */
+  static initializeAutomation(): void {
+    console.log(`🚀 [AUTOMATION] Initializing continuous tournament automation`);
+    
+    // Run automation check every 60 seconds
+    setInterval(async () => {
+      await this.runTournamentAutomation();
+    }, 60000);
+    
+    // Run immediate check on startup
+    setImmediate(() => {
+      this.runTournamentAutomation();
+    });
+    
+    console.log(`✅ [AUTOMATION] Tournament automation initialized - checking every 60 seconds`);
   }
 }
