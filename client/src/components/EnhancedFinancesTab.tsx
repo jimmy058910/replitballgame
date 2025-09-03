@@ -140,6 +140,11 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
   // Calculate income/expense breakdowns from transaction data
   const calculateTransactionBreakdowns = (transactions: any[]) => {
     const income = {
+      ticketSales: 0,
+      concessions: 0,
+      parking: 0,
+      vipSuites: 0,
+      merchandising: 0,
       exhibitionFees: 0,
       tournamentRewards: 0,
       seasonBonuses: 0,
@@ -158,7 +163,16 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
       
       if (isIncome) {
         // Categorize income based on transaction type and item type
-        if (t.transactionType === 'reward' && t.itemType === 'exhibition') {
+        if (t.transactionType === 'stadium_revenue' || (t.transactionType === 'STADIUM_REVENUE')) {
+          // Break down stadium revenue into proper categories based on standard ratios
+          // Based on typical stadium revenue distribution:
+          // ~60% Ticket Sales, ~20% Concessions, ~8% Parking, ~7% VIP Suites, ~5% Merchandising
+          income.ticketSales += Math.floor(amount * 0.60);
+          income.concessions += Math.floor(amount * 0.20);
+          income.parking += Math.floor(amount * 0.08);
+          income.vipSuites += Math.floor(amount * 0.07);
+          income.merchandising += Math.floor(amount * 0.05);
+        } else if (t.transactionType === 'reward' && t.itemType === 'exhibition') {
           income.exhibitionFees += amount;
         } else if (t.transactionType === 'reward' && t.itemType === 'tournament') {
           income.tournamentRewards += amount;
@@ -203,11 +217,11 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     gems: parseInt(rawFinancialData?.gems || '0'),
     netIncome: rawFinancialData?.netIncome || 0,
     incomeStreams: {
-      ticketSales: rawFinancialData?.ticketSales || 0,
-      concessions: rawFinancialData?.concessions || 0,
-      parking: rawFinancialData?.parking || 0,
-      vipSuites: rawFinancialData?.vipSuites || 0,
-      merchandising: rawFinancialData?.merchandising || 0,
+      ticketSales: transactionBreakdowns.income.ticketSales,
+      concessions: transactionBreakdowns.income.concessions,
+      parking: transactionBreakdowns.income.parking,
+      vipSuites: transactionBreakdowns.income.vipSuites,
+      merchandising: transactionBreakdowns.income.merchandising,
       exhibitionFees: transactionBreakdowns.income.exhibitionFees,
       tournamentRewards: transactionBreakdowns.income.tournamentRewards,
       seasonBonuses: transactionBreakdowns.income.seasonBonuses,
