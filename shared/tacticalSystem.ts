@@ -129,22 +129,23 @@ export const TACTICAL_FOCUS_CONFIG: Record<TacticalFocus, {
 
 /**
  * Determines current game situation based on score and time
+ * UPDATED: Late game = final 5 minutes, close = within 2 points, big lead = 6+ points
  */
 export function determineGameSituation(gameState: GameState): GameSituation {
   const { homeScore, awayScore, gameTime, maxTime, currentHalf } = gameState;
   const scoreDifference = Math.abs(homeScore - awayScore);
   const timeRemaining = maxTime - gameTime;
   const isSecondHalf = currentHalf === 2;
-  const isLateInGame = timeRemaining <= 180; // Final 3 minutes
-  const isCloseGame = scoreDifference <= 1;
+  const isLateInGame = timeRemaining <= 300; // Final 5 minutes (was 3)
+  const isCloseGame = scoreDifference <= 2; // Within 2 points (was 1)
   
-  // Late & Close Game (final 3 minutes, within 1 point)
+  // Late & Close Game (final 5 minutes, within 2 points)
   if (isLateInGame && isCloseGame) {
     return "late_close";
   }
   
-  // Winning/Losing Big (2+ score difference in second half)
-  if (isSecondHalf && scoreDifference >= 2) {
+  // Winning/Losing Big (6+ score difference in second half)
+  if (isSecondHalf && scoreDifference >= 6) {
     return homeScore > awayScore ? "winning_big" : "losing_big";
   }
   

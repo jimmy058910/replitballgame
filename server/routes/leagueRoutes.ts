@@ -311,7 +311,7 @@ async function createAITeamsForDivision(division: number) {
       name: teamName,
       userId: aiUser.userId,
       division: division,
-      subdivision: "main", // AI teams default to main subdivision
+      subdivision: "alpha", // AI teams default to alpha subdivision
     });
 
     // storage.teams.createTeam should handle default finances, but if specific AI finances
@@ -1289,7 +1289,7 @@ router.post('/create-additional-teams', requireAuth, async (req: Request, res: R
   try {
     const { count, subdivision } = req.body;
     const teamsToCreate = count || 5;
-    const targetSubdivision = subdivision || "main";
+    const targetSubdivision = subdivision || "alpha";
     
     const aiTeamNames = gameConfig.aiTeamNames;
     const races = ["Human", "Sylvan", "Gryll", "Lumina", "Umbra"];

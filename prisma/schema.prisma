@@ -86,6 +86,7 @@ model Team {
   tryoutHistory        TryoutHistory[]
   homeTeamGames        Game[]           @relation("HomeTeamGames")
   awayTeamGames        Game[]           @relation("AwayTeamGames")
+  teamMatchStats       TeamMatchStats[]
   
   // Performance indexes
   @@index([userProfileId])
@@ -149,6 +150,9 @@ model Player {
   tryoutHistory               TryoutHistory[]
   activeBoosts                ActiveBoost[]
   currentEquipment            PlayerEquipment[]
+  developmentHistory          PlayerDevelopmentHistory[]
+  matchStats                  PlayerMatchStats[]
+  careerMilestones            PlayerCareerMilestone[]
   
   // Performance indexes
   @@index([teamId])
@@ -568,6 +572,8 @@ model Game {
   round         Int?
   status        GameStatus  @default(SCHEDULED)
   createdAt     DateTime    @default(now())
+  playerStats   PlayerMatchStats[]
+  teamStats     TeamMatchStats[]
 
   // Performance indexes
   @@index([homeTeamId])
@@ -834,4 +840,174 @@ model PaymentTransaction {
   @@index([teamId])
   @@index([transactionType])
   @@index([status])
+}
+
+// Player Development Tracking Tables
+model PlayerDevelopmentHistory {
+  id                 Int      @id @default(autoincrement())
+  playerId           Int
+  player             Player   @relation(fields: [playerId], references: [id])
+  developmentDate    DateTime @default(now())
+  developmentType    String   // "daily", "seasonal", "training", "coaching"
+  statChanges        Json     // { "speed": +1, "power": -1, etc. }
+  previousValues     Json     // Stat values before change
+  newValues          Json     // Stat values after change
+  triggerReason      String   // "age_decline", "potential_growth", "usage_bonus", etc.
+  activityScore      Float    @default(0)
+  gamesPlayedFactor  Int      @default(0)
+  potentialModifier  Float    @default(0)
+  ageModifier        Float    @default(0)
+  coachingBonus      Float    @default(0)
+  trainerBonus       Float    @default(0)
+  
+  @@index([playerId])
+  @@index([developmentDate])
+  @@index([developmentType])
+}
+
+model PlayerMatchStats {
+  id               Int      @id @default(autoincrement())
+  playerId         Int
+  player           Player   @relation(fields: [playerId], references: [id])
+  gameId           Int
+  game             Game     @relation(fields: [gameId], references: [id])
+  
+  // Core performance metrics
+  minutesPlayed         Float    @default(0)
+  performanceRating     Float?   // Overall performance score 0-100
+  camaraderieContribution Float  @default(0) // -5 to +5 team chemistry impact
+  
+  // Scoring
+  scores               Int      @default(0)  // Points scored
+  assists              Int      @default(0)  // Passes/actions leading to scores
+  
+  // Passing in continuous dome ball action
+  passAttempts         Int      @default(0)  // Any pass thrown during flow
+  passCompletions      Int      @default(0)  // Successful catches by teammate
+  passingYards         Int      @default(0)  // Total distance of completed passes
+  perfectPasses        Int      @default(0)  // High-accuracy passes under pressure
+  
+  // Rushing in continuous flow
+  rushingYards         Int      @default(0)  // Distance covered while carrying ball
+  breakawayRuns        Int      @default(0)  // Long runs that break through defense (15+ yards)
+  
+  // Receiving (all positions can catch)
+  catches              Int      @default(0)  // Successful receptions
+  receivingYards       Int      @default(0)  // Yards gained after catch
+  drops                Int      @default(0)  // Failed to secure passed ball
+  
+  // Physical defense in continuous action
+  tackles              Int      @default(0)  // Successful takedowns/stops
+  tackleAttempts       Int      @default(0)  // Defensive contact attempts
+  knockdowns           Int      @default(0)  // Players physically knocked down
+  blocks               Int      @default(0)  // Offensive blocks made (pancakes)
+  injuriesInflicted    Int      @default(0)  // Opponents injured by this player's actions
+  
+  // Ball disruption
+  interceptions        Int      @default(0)  // Passes stolen/intercepted
+  ballStrips           Int      @default(0)  // Forced fumbles during tackles
+  passDeflections      Int      @default(0)  // Passes knocked away/disrupted
+  
+  // Ball control errors
+  fumblesLost          Int      @default(0)  // Lost possession due to hits/mistakes
+  ballRetention        Int      @default(0)  // Successful ball security under pressure
+  
+  // Continuous action metrics
+  distanceCovered      Int      @default(0)  // Total yards moved during game
+  staminaUsed          Int      @default(0)  // Physical exertion/fatigue
+  ballPossessionTime   Int      @default(0)  // Seconds holding the ball
+  pressureApplied      Int      @default(0)  // Times pressured opposing ball carrier
+  
+  // Physical toll
+  injuries             Int      @default(0)  // Injuries sustained during game
+  
+  // Match metadata
+  matchDate            DateTime
+  matchType            MatchType
+  
+  @@index([playerId])
+  @@index([gameId])
+  @@index([matchDate])
+  @@index([matchType])
+  @@unique([playerId, gameId])
+}
+
+model TeamMatchStats {
+  id                      Int      @id @default(autoincrement())
+  teamId                  Int
+  team                    Team     @relation(fields: [teamId], references: [id])
+  gameId                  Int
+  game                    Game     @relation(fields: [gameId], references: [id])
+  
+  // Possession & Territory Control (continuous dome ball)
+  timeOfPossession        Int      @default(0)  // Total seconds with ball control
+  possessionPercentage    Float    @default(0)  // 0-100% of game time
+  averageFieldPosition    Float    @default(0)  // Average position when gaining possession
+  territoryGained         Int      @default(0)  // Net field position improvement
+  
+  // Offensive Flow
+  totalScore              Int      @default(0)
+  totalPassingYards       Int      @default(0)
+  totalRushingYards       Int      @default(0)
+  totalOffensiveYards     Int      @default(0)  // All yardage gained
+  
+  // Efficiency in dome ball flow
+  passingAccuracy         Float    @default(0)  // Team completion percentage
+  ballRetentionRate       Float    @default(0)  // Percentage of possessions kept
+  scoringOpportunities    Int      @default(0)  // Times in scoring position
+  scoringEfficiency       Float    @default(0)  // Conversion rate of opportunities
+  
+  // Physical Defense
+  totalTackles            Int      @default(0)
+  totalKnockdowns         Int      @default(0)
+  totalBlocks             Int      @default(0)  // Pancakes/devastating blocks
+  totalInjuriesInflicted  Int      @default(0)  // Opponents taken out
+  
+  // Ball Disruption
+  totalInterceptions      Int      @default(0)
+  totalBallStrips         Int      @default(0)  // Forced fumbles
+  passDeflections         Int      @default(0)
+  defensiveStops          Int      @default(0)  // Drives ended by defense
+  
+  // Physical & Flow Metrics (continuous action)
+  totalFumbles            Int      @default(0)
+  turnoverDifferential    Int      @default(0)  // (Forced - Lost)
+  physicalDominance       Int      @default(0)  // Net knockdowns inflicted vs received
+  ballSecurityRating      Float    @default(0)  // How well team maintains possession
+  
+  // Dome Environment Effects
+  homeFieldAdvantage      Float    @default(0)  // Stadium atmosphere bonus
+  crowdIntensity          Float    @default(0)  // Fan noise/energy impact
+  domeReverberation       Float    @default(0)  // Enclosed stadium sound effects
+  
+  // Team Chemistry & Strategy
+  camaraderieTeamBonus    Float    @default(0)  // Team chemistry effect on performance
+  tacticalEffectiveness  Float    @default(0)  // Coach strategy success
+  equipmentAdvantage      Float    @default(0)  // Gear performance bonuses
+  physicalConditioning    Float    @default(0)  // Team stamina/endurance rating
+  
+  // Match metadata
+  matchDate               DateTime
+  matchType               MatchType
+  
+  @@index([teamId])
+  @@index([gameId])
+  @@index([matchDate])
+  @@index([matchType])
+  @@unique([teamId, gameId])
+}
+
+model PlayerCareerMilestone {
+  id             Int      @id @default(autoincrement())
+  playerId       Int
+  player         Player   @relation(fields: [playerId], references: [id])
+  milestoneType  String   // "first_game", "100_games", "stat_milestone", "championship", etc.
+  description    String
+  achievedAt     DateTime @default(now())
+  seasonId       String?
+  metadata       Json?    // Additional milestone data
+  
+  @@index([playerId])
+  @@index([milestoneType])
+  @@index([achievedAt])
 }

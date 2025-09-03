@@ -90,16 +90,35 @@
       "gameDuration": {
         "league": {
           "totalMinutes": 40,
-          "halfMinutes": 20
+          "halfMinutes": 20,
+          "overtimeEnabled": false
         },
         "tournament": {
           "totalMinutes": 40,
           "halfMinutes": 20,
-          "overtimeEnabled": true
+          "overtimeEnabled": true,
+          "overtime": {
+            "type": "timed_then_sudden_death",
+            "timedPeriodMinutes": 10,
+            "maxTimedPeriods": 1,
+            "suddenDeathAfterTied": true
+          }
+        },
+        "playoff": {
+          "totalMinutes": 40,
+          "halfMinutes": 20,
+          "overtimeEnabled": true,
+          "overtime": {
+            "type": "timed_then_sudden_death", 
+            "timedPeriodMinutes": 10,
+            "maxTimedPeriods": 1,
+            "suddenDeathAfterTied": true
+          }
         },
         "exhibition": {
           "totalMinutes": 30,
-          "halfMinutes": 15
+          "halfMinutes": 15,
+          "overtimeEnabled": false
         },
         "staggerMinutes": 5
       },

@@ -2,6 +2,8 @@ import { getPrismaClient } from "../database.js";
 import type { Prisma } from '@prisma/client';
 import { getEasternTime } from '../../shared/timezone.js';
 
+const prisma = getPrismaClient();
+
 /**
  * Daily Player Progression & Development System
  * 
@@ -223,26 +225,23 @@ export class DailyPlayerProgressionService {
           data: { [randomStat]: newValue }
         });
         
-        // Record development history
-        const developmentRecord = {
-          playerId,
-          season: 0, // Default season for daily progression
-          developmentType: 'daily_progression',
-          statChanged: randomStat,
-          oldValue: currentValue,
-          newValue,
-          progressionChance,
-          actualRoll: roll,
-          success: true,
-          ageAtTime: player.age || 20,
-          gamesPlayedLastSeason: 0, // Daily system doesn't use this
-          potentialAtTime: player.potentialRating ? Number(player.potentialRating) : 0
-        };
-        
-        // Note: playerDevelopmentLog table doesn't exist in current schema
-        // await prisma.playerDevelopmentLog.create({
-        //   data: developmentRecord
-        // });
+        // Record development history in database
+        await prisma.playerDevelopmentHistory.create({
+          data: {
+            playerId,
+            developmentType: 'daily',
+            statChanges: { [randomStat]: 1 },
+            previousValues: { [randomStat]: currentValue },
+            newValues: { [randomStat]: newValue },
+            triggerReason: 'daily_activity_progression',
+            activityScore: activityData.activityScore,
+            potentialModifier: player.potentialRating ? Number(player.potentialRating) : 0,
+            ageModifier: this.getAgeModifier(player.age || 20),
+            // Additional progression details stored for analysis
+            coachingBonus: 0, // Will be populated when staff system is integrated
+            trainerBonus: 0
+          }
+        });
         
         progressions.push({
           stat: randomStat,
@@ -281,9 +280,23 @@ export class DailyPlayerProgressionService {
     const yesterdayStart = yesterday.clone().startOf('day').toDate();
     const yesterdayEnd = yesterday.clone().endOf('day').toDate();
     
-    // Since playerMatchStats table doesn't exist, return default values
-    // This is a placeholder until proper match statistics are implemented
-    const matchStats: any[] = [];
+    // Get player's match statistics from yesterday
+    const matchStats = await prisma.playerMatchStats.findMany({
+      where: {
+        playerId: playerId,
+        matchDate: {
+          gte: yesterdayStart,
+          lte: yesterdayEnd
+        }
+      },
+      include: {
+        game: {
+          select: {
+            matchType: true
+          }
+        }
+      }
+    });
     
     // Count games by type
     const gamesBreakdown = {
@@ -296,21 +309,23 @@ export class DailyPlayerProgressionService {
     
     for (const stat of matchStats) {
       // Count game types
-      if (stat.game.matchType === 'league') {
+      if (stat.game.matchType === 'LEAGUE') {
         gamesBreakdown.leagueGames++;
-      } else if (stat.game.matchType === 'tournament') {
+      } else if (stat.game.matchType === 'TOURNAMENT') {
         gamesBreakdown.tournamentGames++;
-      } else if (stat.game.matchType === 'exhibition') {
+      } else if (stat.game.matchType === 'EXHIBITION') {
         gamesBreakdown.exhibitionGames++;
       }
       
-      // Check for standout performance
+      // Check for standout performance using available stats
+      // Note: Some performance metrics may need to be calculated from available data
       if (
-        (stat.scores || 0) >= this.CONFIG.PERFORMANCE_THRESHOLDS.MULTIPLE_SCORES ||
-        (stat.knockdownsInflicted || 0) >= this.CONFIG.PERFORMANCE_THRESHOLDS.HIGH_KNOCKDOWNS ||
         (stat.tackles || 0) >= this.CONFIG.PERFORMANCE_THRESHOLDS.HIGH_TACKLES ||
-        (stat.passingYards || 0) >= this.CONFIG.PERFORMANCE_THRESHOLDS.HIGH_PASSING_YARDS ||
-        (stat.rushingYards || 0) >= this.CONFIG.PERFORMANCE_THRESHOLDS.HIGH_RUSHING_YARDS
+        (stat.interceptions || 0) >= 2 || // 2+ interceptions is standout
+        (stat.blocks || 0) >= this.CONFIG.PERFORMANCE_THRESHOLDS.HIGH_KNOCKDOWNS ||
+        (stat.passes || 0) >= 15 && (stat.fumbles || 0) === 0 || // 15+ passes with no fumbles
+        (stat.runs || 0) >= 10 && (stat.fumbles || 0) === 0 || // 10+ runs with no fumbles
+        (stat.performanceRating || 0) >= 8.5 // Overall performance rating ≥ 8.5/10
       ) {
         hasStandoutPerformance = true;
       }
@@ -453,6 +468,20 @@ export class DailyPlayerProgressionService {
     const headCoachMultiplier = 1 + (headCoachDevelopment * this.CONFIG.STAFF_MODIFIERS.HEAD_COACH_AMPLIFIER);
     
     return baseTrainerBonus * headCoachMultiplier;
+  }
+
+  /**
+   * Get age modifier for progression calculations
+   */
+  private static getAgeModifier(age: number): number {
+    if (age >= this.CONFIG.AGE_MODIFIERS.YOUTH_MIN && age <= this.CONFIG.AGE_MODIFIERS.YOUTH_MAX) {
+      return this.CONFIG.AGE_MODIFIERS.YOUTH_BONUS;
+    } else if (age >= this.CONFIG.AGE_MODIFIERS.PRIME_MIN && age <= this.CONFIG.AGE_MODIFIERS.PRIME_MAX) {
+      return this.CONFIG.AGE_MODIFIERS.PRIME_BONUS;
+    } else if (age >= this.CONFIG.AGE_MODIFIERS.VETERAN_MIN) {
+      return this.CONFIG.AGE_MODIFIERS.VETERAN_PENALTY;
+    }
+    return 0;
   }
 
   /**

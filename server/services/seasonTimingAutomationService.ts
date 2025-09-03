@@ -10,6 +10,7 @@ import { logInfo } from './errorService.js';
 import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
 import { QuickMatchSimulation } from './quickMatchSimulation.js';
 import { dailyTournamentAutoFillService } from './dailyTournamentAutoFillService.js';
+import { DynamicPlayoffService } from './dynamicPlayoffService.js';
 
 // Prisma client will be accessed via await getPrismaClient() in each method
 
@@ -872,7 +873,7 @@ export class SeasonTimingAutomationService {
           name: teamName,
           userId: aiUser.userId,
           division: division,
-          subdivision: "main"
+          subdivision: "alpha"
         });
         
         // Create 12 players with proper position distribution
@@ -921,13 +922,12 @@ export class SeasonTimingAutomationService {
       
       const { LateSignupService } = await import('./lateSignupService.js');
       
+      // Process late signups and AI filling for all days (1-9)
+      await LateSignupService.processDailyLateSignups(currentDay);
+      
       if (currentDay === 9) {
-        // Final day - fill any incomplete subdivisions with AI teams and close signup
-        await LateSignupService.fillLateSignupSubdivisionsWithAI();
-        logInfo('Day 9: Final AI team filling completed - late signup window now CLOSED');
+        logInfo('Day 9: Final late signup processing completed - window now CLOSED');
       } else {
-        // Days 1-8: Process new signups and create subdivisions as needed
-        await LateSignupService.processDailyLateSignups(currentDay);
         logInfo(`Day ${currentDay}: Daily late signup processing completed`);
       }
       
@@ -1618,13 +1618,25 @@ export class SeasonTimingAutomationService {
       
       console.log(`✅ [DAY ADVANCEMENT] Season day successfully updated: Day ${currentDayFromDB} → Day ${nextDay}`);
       logInfo(`CRITICAL FIX: Season day advanced from Day ${currentDayFromDB} to Day ${nextDay}`);
+      
+      // CRITICAL: Generate playoff brackets when advancing from Day 14 to Day 15
+      if (nextDay === 15) {
+        console.log('🏆 [PLAYOFF GENERATION] Day 15 reached - Generating playoff brackets for all leagues...');
+        try {
+          const playoffResult = await SeasonalFlowService.generatePlayoffBrackets(currentSeason.seasonNumber);
+          console.log(`✅ [PLAYOFF GENERATION] Successfully generated ${playoffResult.totalPlayoffMatches} playoff matches across ${playoffResult.bracketsByLeague.length} leagues`);
+          logInfo(`Playoff brackets generated for Day 15: ${playoffResult.totalPlayoffMatches} matches created`);
+        } catch (error) {
+          console.error('❌ [PLAYOFF GENERATION] Error generating playoff brackets:', error);
+        }
+      }
     } catch (error) {
       console.error('❌ [DAY ADVANCEMENT] Error updating season day:', error);
     }
   }
 
   /**
-   * Check for tournaments that need to be auto-started
+   * Check for tournaments that need to be auto-started and playoff rounds that need advancement
    */
   private async checkTournamentAutoStart(): Promise<void> {
     try {
@@ -1637,6 +1649,9 @@ export class SeasonTimingAutomationService {
       
       // Also check for tournament advancement
       await this.checkTournamentAdvancement();
+      
+      // CRITICAL: Check for dynamic playoff round advancement during Day 15
+      await this.checkPlayoffRoundAdvancement();
       
       logInfo('Tournament auto-start check completed');
     } catch (error) {
@@ -1707,6 +1722,34 @@ export class SeasonTimingAutomationService {
     const now = new Date();
     const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     return (daysSinceStart % 17) + 1;
+  }
+
+  /**
+   * Check for dynamic playoff round advancement during Day 15
+   */
+  private async checkPlayoffRoundAdvancement(): Promise<void> {
+    try {
+      // Only check playoff advancement on Day 15
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      if (!currentSeason || currentSeason.currentDay !== 15) {
+        return; // Not Day 15, skip playoff checks
+      }
+
+      logInfo('🏆 [PLAYOFF ADVANCEMENT] Checking for completed playoff rounds that need advancement...');
+      
+      const result = await DynamicPlayoffService.checkAndAdvancePlayoffRounds();
+      
+      if (result.roundsAdvanced > 0) {
+        logInfo(`🏆 [PLAYOFF ADVANCEMENT] Advanced ${result.roundsAdvanced} playoff rounds, scheduled ${result.newMatchesScheduled} new matches`);
+      }
+      
+      if (result.errors.length > 0) {
+        console.error('❌ [PLAYOFF ADVANCEMENT] Errors during playoff advancement:', result.errors);
+      }
+      
+    } catch (error) {
+      console.error('❌ [PLAYOFF ADVANCEMENT] Error checking playoff advancement:', error);
+    }
   }
 
   /**

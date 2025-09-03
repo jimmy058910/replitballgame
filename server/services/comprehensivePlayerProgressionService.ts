@@ -2,17 +2,21 @@ import { getPrismaClient } from "../database.js";
 import type { Player, Staff } from "@prisma/client";
 
 /**
- * Comprehensive Player Aging and Progression System
+ * Comprehensive Player Aging and Seasonal Progression System
+ * Handles seasonal progression events including aging, retirement, and major stat changes.
  * Based on detailed specifications for minutes-played progression, 
  * staff effects, camaraderie integration, and organic career arcs.
+ * 
+ * NOTE: This is for SEASONAL progression (end-of-season aging, retirement).
+ * For daily progression, use DailyPlayerProgressionService.
  */
 export class ComprehensivePlayerProgressionService {
   
   // Core configuration constants
   private static readonly CONFIG = {
-    // Daily Progression
-    DAILY_BASE_CHANCE: 5, // Base 5% chance per roll
-    ACTIVITY_SCORE_DIVISOR: 5, // Divide activity score by 5 to get number of rolls
+    // Seasonal Progression (not daily)
+    SEASONAL_BASE_CHANCE: 5, // Base 5% chance per roll for seasonal events
+    ACTIVITY_SCORE_DIVISOR: 5, // Divide seasonal activity score by 5 to get number of rolls
     
     // Match type activity score multipliers
     LEAGUE_MINUTES_MULTIPLIER: 10, // (LeagueMinutes/40) * 10
@@ -194,7 +198,7 @@ export class ComprehensivePlayerProgressionService {
    * Calculate comprehensive progression chance including all modifiers
    */
   private static async calculateProgressionChance(player: Player & { team: any }, attribute: string): Promise<number> {
-    let chance = this.CONFIG.DAILY_BASE_CHANCE;
+    let chance = this.CONFIG.SEASONAL_BASE_CHANCE;
 
     // 1. Age Modifier
     const ageModifier = this.getAgeModifier(player.age);

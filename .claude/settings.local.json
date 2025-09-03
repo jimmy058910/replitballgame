@@ -10,7 +10,9 @@
       "Bash(git commit:*)",
       "Bash(dir:*)",
       "Bash(powershell:*)",
-      "WebFetch(domain:docs.google.com)"
+      "WebFetch(domain:docs.google.com)",
+      "Bash(grep:*)",
+      "Bash(npx prisma:*)"
     ],
     "deny": [],
     "ask": []

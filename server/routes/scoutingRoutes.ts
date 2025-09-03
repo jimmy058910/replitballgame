@@ -131,7 +131,7 @@ router.get("/:teamId/scout", requireAuth, async (req: any, res: Response, next: 
         salary: scoutingLevel >= 3 ? getSalaryRange(s.salary, scoutingLevel) : "Confidential",
         ratings: scoutingLevel >= 4 ? { offense: s.offenseRating, defense: s.defenseRating, /* ... other ratings */ } : "Specific Ratings Obscured",
       })),
-      finances: scoutingLevel >= 3 ? { estimatedBudget: getFinancialRange(targetFinances?.credits, scoutingLevel), salaryCapDetails: "Partially Known" } : "Financial Details Obscured",
+      finances: scoutingLevel >= 3 ? { estimatedBudget: getFinancialRange(targetFinances?.credits, scoutingLevel) } : "Financial Details Obscured",
       notes: generateScoutingNotes(targetTeam, targetPlayers, scoutingLevel),
       generatedAt: new Date().toISOString()
     };

@@ -78,7 +78,6 @@ interface ClientScoutingReportStadium {
 
 interface ClientScoutingReportFinances {
   estimatedBudget: string;
-  salaryCapUsage: string;
 }
 interface ClientScoutingReport {
   teamInfo: ClientScoutingReportTeamInfo;
@@ -539,10 +538,6 @@ export default function Scouting() {
                               <div>
                                 <span className="text-gray-400">Estimated Budget:</span>
                                 <span className="ml-2 text-yellow-400">{scoutingReport.finances.estimatedBudget}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-400">Salary Cap Usage:</span>
-                                <span className="ml-2 text-yellow-400">{scoutingReport.finances.salaryCapUsage}</span>
                               </div>
                             </div>
                           </div>

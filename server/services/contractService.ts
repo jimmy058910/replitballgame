@@ -279,46 +279,10 @@ export class ContractService {
       }
     });
 
-    // Update team salary cap based on all active player contracts
-    await this.updateTeamSalaryCap(player.teamId);
     
     return updatedPlayer || null;
   }
 
-  /**
-   * Update team salary cap based on all active player contracts
-   */
-  static async updateTeamSalaryCap(teamId: number): Promise<void> {
-    // Calculate total salary from all active player contracts
-    const prisma = await getPrismaClient();
-    const activeContracts = await prisma.contract.findMany({
-      where: {
-        playerId: { not: null },
-        player: {
-          teamId: teamId
-        }
-      },
-      include: {
-        player: true
-      }
-    });
-
-    const totalSalary = activeContracts.reduce((sum: any, contract: any) => sum + Number(contract.salary), 0);
-    const salaryCap = 5000000; // 5M salary cap
-    const capSpace = salaryCap - totalSalary;
-
-    // Update team finances with new salary cap information
-    const { storage } = await import("../storage");
-    const teamFinances = await storage.teamFinances.getTeamFinances(teamId);
-    
-    if (teamFinances) {
-      await storage.teamFinances.updateTeamFinances(teamId, {
-        salaryCap: BigInt(salaryCap),
-        totalSalary: BigInt(totalSalary),
-        capSpace: BigInt(capSpace)
-      });
-    }
-  }
   
   /**
    * Update staff contract after successful negotiation

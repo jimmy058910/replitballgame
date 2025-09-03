@@ -105,13 +105,64 @@ export function supportsOvertime(matchType: any): boolean {
   
   switch (matchType) {
     case 'PLAYOFF':
+      return durations?.playoff?.overtimeEnabled ?? true;
     case 'TOURNAMENT':
       return durations?.tournament?.overtimeEnabled ?? true;
     case 'EXHIBITION':
     case 'LEAGUE':
     default:
+      return durations?.league?.overtimeEnabled ?? false;
+  }
+}
+
+/**
+ * Get overtime duration in minutes
+ */
+export function getOvertimeDurationMinutes(matchType: any): number | null {
+  const durations = gameConfig?.gameParameters?.matchSettings?.gameDuration;
+  
+  switch (matchType) {
+    case 'PLAYOFF':
+      return durations?.playoff?.overtime?.timedPeriodMinutes ?? 10;
+    case 'TOURNAMENT':
+      return durations?.tournament?.overtime?.timedPeriodMinutes ?? 10;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Check if match supports sudden death after timed overtime
+ */
+export function supportsSuddenDeath(matchType: any): boolean {
+  const durations = gameConfig?.gameParameters?.matchSettings?.gameDuration;
+  
+  switch (matchType) {
+    case 'PLAYOFF':
+      return durations?.playoff?.overtime?.suddenDeathAfterTied ?? true;
+    case 'TOURNAMENT':
+      return durations?.tournament?.overtime?.suddenDeathAfterTied ?? true;
+    default:
       return false;
   }
+}
+
+/**
+ * Get overtime type description
+ */
+export function getOvertimeTypeDisplay(matchType: any): string | null {
+  if (!supportsOvertime(matchType)) return null;
+  
+  const overtimeMinutes = getOvertimeDurationMinutes(matchType);
+  const hasSuddenDeath = supportsSuddenDeath(matchType);
+  
+  if (overtimeMinutes && hasSuddenDeath) {
+    return `${overtimeMinutes}-minute overtime, then sudden death`;
+  } else if (overtimeMinutes) {
+    return `${overtimeMinutes}-minute overtime`;
+  }
+  
+  return 'sudden death';
 }
 
 /**
@@ -123,8 +174,9 @@ export function getMatchDurationDisplay(matchType: any): string {
   
   let display = `${totalMinutes} minutes (${halfMinutes}×2)`;
   
-  if (supportsOvertime(matchType)) {
-    display += ' + overtime';
+  const overtimeDisplay = getOvertimeTypeDisplay(matchType);
+  if (overtimeDisplay) {
+    display += ` + ${overtimeDisplay}`;
   }
   
   return display;

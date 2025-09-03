@@ -64,16 +64,6 @@ interface PlayerContract {
   };
 }
 
-interface SalaryCap {
-  id: string;
-  teamId: string;
-  season: number;
-  totalSalary: number;
-  capLimit: number;
-  capSpace: number;
-  luxuryTax: number;
-  penalties: number;
-}
 
 export default function ContractManagement() {
   const { toast } = useToast();
@@ -100,10 +90,6 @@ export default function ContractManagement() {
     enabled: !!team?.id,
   });
 
-  const { data: salaryCap } = useQuery<SalaryCap>({
-    queryKey: ["/api/salary-cap", team?.id],
-    enabled: !!team?.id,
-  });
 
   const { data: players } = useQuery<PlayerData[]>({
     queryKey: ["/api/players/team", team?.id], // Assuming this endpoint returns PlayerData[]
@@ -119,7 +105,6 @@ export default function ContractManagement() {
       apiRequest<{ success: boolean; message: string }>(`/api/contracts/negotiate`, "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/salary-cap"] });
       setShowNegotiationDialog(false);
       toast({
         title: "Contract Negotiated!",
@@ -145,7 +130,6 @@ export default function ContractManagement() {
       apiRequest<{ success: boolean; message: string }>(`/api/contracts/${contractId}/release`, "DELETE"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/salary-cap"] });
       toast({
         title: "Player Released",
         description: "Player has been released from their contract.",
@@ -159,17 +143,6 @@ export default function ContractManagement() {
     return "default";
   };
 
-  const calculateSalaryCapUtilization = () => {
-    if (!salaryCap) return 0;
-    return ((salaryCap.totalSalary ?? 0) / (salaryCap.capLimit ?? 1)) * 100; // Added nullish coalescing
-  };
-
-  const getCapSpaceColor = () => {
-    const utilization = calculateSalaryCapUtilization();
-    if (utilization >= 95) return "text-red-500";
-    if (utilization >= 85) return "text-yellow-500";
-    return "text-green-500";
-  };
 
   const handleNegotiateContract = () => {
     if (!selectedPlayer || !team?.id) return; // Added check for team.id
@@ -202,56 +175,8 @@ export default function ContractManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Salary Cap Overview */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <HoverCard className="col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-5 w-5 text-green-500" />
-                Salary Cap Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">Cap Utilization</span>
-                <span className={`font-bold ${getCapSpaceColor()}`}>
-                  {calculateSalaryCapUtilization().toFixed(1)}%
-                </span>
-              </div>
-              <Progress value={calculateSalaryCapUtilization()} className="h-3" />
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-400">Total Salary:</span>
-                  <AnimatedCounter 
-                    value={salaryCap?.totalSalary || 0} 
-                    prefix="$" 
-                    suffix="M"
-                    // decimals={1} // Removed decimals
-                  />
-                </div>
-                <div>
-                  <span className="text-gray-400">Cap Space:</span>
-                  <AnimatedCounter 
-                    value={salaryCap?.capSpace || 0} 
-                    prefix="$" 
-                    suffix="M"
-                    // decimals={1} // Removed decimals
-                  />
-                </div>
-              </div>
-              {salaryCap?.luxuryTax && salaryCap.luxuryTax > 0 && ( // Added check for salaryCap.luxuryTax
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                  <div className="flex items-center gap-2 text-red-400">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span className="text-sm font-medium">Luxury Tax: ${salaryCap.luxuryTax.toLocaleString()}</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </HoverCard>
-
+      {/* Contract Overview */}
+      <div className="grid gap-6 md:grid-cols-1">
         <PulseWrapper pulse={(contracts?.filter((c: PlayerContract) => c.remainingYears <= 1)?.length ?? 0) > 0}>
           <Card>
             <CardHeader>
@@ -573,13 +498,15 @@ export default function ContractManagement() {
                     const positionSalary = contracts
                       ?.filter((c: PlayerContract) => c.player?.role === position)
                       ?.reduce((sum: number, c: PlayerContract) => sum + c.salary, 0) || 0;
-                    const percentage = salaryCap?.totalSalary ? (positionSalary / salaryCap.totalSalary) * 100 : 0; // Added null check for salaryCap.totalSalary
+                    const totalSalary = contracts
+                      ?.reduce((sum: number, c: PlayerContract) => sum + c.salary, 0) || 1;
+                    const percentage = (positionSalary / totalSalary) * 100;
                     
                     return (
                       <div key={position} className="space-y-1">
                         <div className="flex justify-between text-sm">
                           <span>{position}</span>
-                          <span>${(positionSalary / 1000000).toFixed(1)}M ({percentage.toFixed(1)}%)</span>
+                          <span>${(positionSalary / 1000).toFixed(0)}k ({percentage.toFixed(1)}%)</span>
                         </div>
                         <Progress value={percentage} className="h-2" />
                       </div>

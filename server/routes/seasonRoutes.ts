@@ -270,53 +270,6 @@ router.get('/contracts/:teamId', requireAuth, async (req: any, res: Response, ne
   }
 });
 
-router.get('/salary-cap/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
-  try {
-    const { teamId } = req.params;
-    // Simplified implementation - calculate from team's current contracts
-    const { prisma } = await import('../db.js');
-    
-    const team = await prisma.team.findUnique({
-      where: { id: parseInt(teamId) },
-      include: {
-        players: {
-          include: {
-            contract: {
-              where: {
-                startDate: { lte: new Date() }
-              }
-            }
-          }
-        }
-      }
-    });
-    
-    if (!team) {
-      return res.status(404).json({ message: "Team not found." });
-    }
-    
-    const totalSalary = (team as any).players?.reduce((sum: number, player: any) => {
-      const latestContract = player.contract[0];
-      return sum + (latestContract?.salary || 0);
-    }, 0) || 0;
-    
-    // Division-based salary cap
-    const capLimit = (team.division ?? 8) <= 3 ? 65000 : 45000;
-    
-    const capInfo = {
-      teamId,
-      totalSalary,
-      capLimit,
-      capSpace: capLimit - totalSalary,
-      division: team.division
-    };
-    
-    res.json(capInfo);
-  } catch (error) {
-    console.error("Error fetching salary cap:", error);
-    next(error);
-  }
-});
 
 router.post('/contracts/negotiate', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {

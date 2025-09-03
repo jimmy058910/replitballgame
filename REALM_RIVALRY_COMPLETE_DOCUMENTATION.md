@@ -1,11 +1,31 @@
 # Realm Rivalry - Complete Game Documentation
 ## The Ultimate Fantasy Sports Management Experience
 
-*Last Updated: September 1st, 2025*  
+*Last Updated: September 3rd, 2025*  
 *Version: Pre-Alpha*  
 *Live at: https://realmrivalry.com*
 
 **This is the definitive unified documentation combining all technical specifications, game design documents, and operational procedures for Realm Rivalry.**
+
+## 🔥 Latest Session Updates (September 3rd, 2025)
+
+### **Major System Implementations Completed**
+- ✅ **Comprehensive Dome Ball Statistics System**: Complete overhaul of player and team statistics tracking to reflect continuous action gameplay
+- ✅ **Dynamic Playoff Scheduling**: Implemented real-time playoff round scheduling based on match completion times
+- ✅ **Late Signup System Validation**: Bulletproof Greek alphabet subdivision system for Division 8 late registrations
+- ✅ **Database Schema Updates**: Added comprehensive `PlayerMatchStats` and `TeamMatchStats` models
+- ✅ **Statistics Persistence**: Full integration between match simulation and database storage
+
+### **Systems Removed (Unintended Features)**
+- ❌ **Equipment Enhancement System**: Removed upgrade mechanics with enhancement stones
+- ❌ **Equipment Durability System**: Removed durability degradation and repair mechanics  
+- ❌ **Salary Cap & Financial Fair Play**: Removed luxury tax, cap limits, and contract restrictions
+
+### **Key Technical Achievements**
+- 🎯 **Greek Alphabet Subdivisions**: Consistent naming throughout (alpha, beta, gamma, etc.)
+- 🏟️ **Dome Ball Statistics**: 25+ individual player stats, 20+ team stats reflecting continuous action
+- ⚽ **Match Simulation Enhancement**: Role-based stat generation with realistic dome ball mechanics
+- 📊 **StatsService Overhaul**: Real database queries replacing placeholder data
 
 ## Key Unifications Made
 
@@ -47,12 +67,13 @@ This unified documentation resolves several inconsistencies between the original
 10. [Player Development & Management](#player-development--management)
 11. [Stadium & Revenue Systems](#stadium--revenue-systems)
 12. [Real-Time Match Engine](#real-time-match-engine)
-13. [Tournament Systems](#tournament-systems)
-14. [Equipment & Item Systems](#equipment--item-systems)
-15. [Advanced Features](#advanced-features)
-16. [Mobile & PWA Features](#mobile--pwa-features)
-17. [Deployment & Production](#deployment--production)
-18. [Development Guidelines](#development-guidelines)
+13. [Dome Ball Statistics System](#dome-ball-statistics-system)
+14. [Tournament Systems](#tournament-systems)
+15. [Equipment & Item Systems](#equipment--item-systems)
+16. [Advanced Features](#advanced-features)
+17. [Mobile & PWA Features](#mobile--pwa-features)
+18. [Deployment & Production](#deployment--production)
+19. [Development Guidelines](#development-guidelines)
 19. [API Reference](#api-reference)
 20. [Game Balance & Economics](#game-balance--economics)
 21. [Commentary & Narrative Systems](#commentary--narrative-systems)
@@ -120,7 +141,10 @@ Dome Ball is a fantasy sport played by two teams of 6 players each in specialize
    - Potential for breakthrough performance in any role
 
 **Match Duration & Structure:**
-- Standard match: 17 minutes real-time simulation
+- **Exhibition**: 30 minutes (15×2 halves), no overtime
+- **League**: 40 minutes (20×2 halves), no overtime  
+- **Tournament**: 40 minutes (20×2 halves) + 10-minute overtime + sudden death
+- **Playoff**: 40 minutes (20×2 halves) + 10-minute overtime + sudden death
 - Quick simulation available for development/testing
 - Instant results with detailed statistics and commentary
 
@@ -301,6 +325,74 @@ enum FieldSize {
 }
 ```
 
+#### Dynamic Game Situations
+The tactical system recognizes four distinct game situations that trigger different AI behaviors and modifiers:
+
+```typescript
+type GameSituation = 'normal' | 'late_close' | 'winning_big' | 'losing_big';
+
+// Updated game situation parameters:
+interface GameSituationRules {
+  late_close: {
+    timing: 'final_5_minutes';           // Last 5 minutes of regulation (was 3)
+    scoreRange: 'within_2_points';       // 0-2 point difference (was 1)
+    effects: 'clutch_performance_based_on_camaraderie';
+    tacticalImpact: '±30%_performance_modifier';
+  };
+  
+  winning_big: {
+    timing: 'second_half_only';          // After halftime
+    scoreRange: '6_or_more_points_ahead'; // Leading by 6+ (was 2+)
+    effects: 'conservative_play_clock_management';
+    tacticalImpact: '+50%_conservative_-40%_risk';
+  };
+  
+  losing_big: {
+    timing: 'second_half_only';          // After halftime  
+    scoreRange: '6_or_more_points_behind'; // Trailing by 6+ (was 2+)
+    effects: 'desperation_mode_overrides_tactics';
+    tacticalImpact: '+80%_aggression_+100%_risk';
+  };
+  
+  normal: {
+    condition: 'all_other_situations';
+    effects: 'standard_tactical_focus_applied';
+    tacticalImpact: 'base_tactical_system_modifiers';
+  };
+}
+
+// Match duration context for game situations:
+interface MatchDurations {
+  exhibition: {
+    total: '30_minutes';
+    late_game_trigger: 'final_5_minutes'; // 25:00+ 
+    second_half: '15:00+';
+  };
+  
+  league: {
+    total: '40_minutes';  
+    late_game_trigger: 'final_5_minutes'; // 35:00+
+    second_half: '20:00+';
+  };
+  
+  tournament_playoff: {
+    total: '40_minutes + overtime';
+    late_game_trigger: 'final_5_minutes'; // 35:00+ (regulation)
+    second_half: '20:00+';
+    overtime: '10_minute_period + sudden_death';
+  };
+}
+```
+
+**Game Situation Examples:**
+
+| Situation | Time | Score | Result |
+|-----------|------|--------|---------|
+| `normal` | 15:00 | 12-10 | Standard tactical focus |
+| `late_close` | 37:00 | 18-17 | Clutch performance effects |
+| `winning_big` | 25:00 | 21-12 | Conservative play, protect lead |
+| `losing_big` | 32:00 | 8-20 | Desperation mode, all-out attack |
+
 ### 2. Player Development System
 
 #### Core Attributes (8 Primary)
@@ -368,13 +460,13 @@ enum StaffType {
 ```
 
 #### Staff Attributes (7 Core Skills)
-1. **Motivation** (1-10) - Player morale and effort
-2. **Development** (1-10) - Training effectiveness
-3. **Teaching** (1-10) - Skill transfer ability
-4. **Physiology** (1-10) - Physical conditioning
-5. **Talent Identification** (1-10) - Scouting accuracy
-6. **Potential Assessment** (1-10) - Development ceiling recognition
-7. **Tactics** (1-10) - Strategic planning (Head Coach specific)
+1. **Motivation** (1-40) - Player morale and effort
+2. **Development** (1-40) - Training effectiveness
+3. **Teaching** (1-40) - Skill transfer ability
+4. **Physiology** (1-40) - Physical conditioning
+5. **Talent Identification** (1-40) - Scouting accuracy
+6. **Potential Assessment** (1-40) - Development ceiling recognition
+7. **Tactics** (1-40) - Strategic planning (Head Coach specific)
 
 ---
 
@@ -684,7 +776,7 @@ enum Division {
 }
 
 interface DivisionConfig {
-  subdivision: 'main' | 'east' | 'west' | 'north' | 'south';
+  subdivision: 'alpha' | 'beta' | 'gamma' | 'delta' | string; // Greek alphabet naming with numbered extensions (e.g., 'alpha_1', 'beta_2')
   maxTeams: number;
   minTeams: number;
   promotionSlots: number;
@@ -692,19 +784,77 @@ interface DivisionConfig {
 }
 ```
 
-#### Playoff System (Day 15)
-- **Day 15**: All rounds (semifinals, and final - quarterfinals if needed)
+#### Playoff System (Day 15) - Dynamic Scheduling
+
+**Division Bracket Structure:**
+- **Divisions 1-2**: 8-team brackets (Quarterfinals → Semifinals → Finals)
+- **Divisions 3-8**: 4-team brackets (Semifinals → Finals)
+
+**Dynamic Round Scheduling:**
+- **First Round**: Scheduled at season start for Day 15 (3:00PM EDT base time)
+- **Subsequent Rounds**: Dynamically scheduled 30 minutes after previous round completion
+- **Example**: If semifinals end at 5:22PM and 5:26PM, finals automatically start at 5:56PM
+- **Round Buffers**: 30-minute gaps between all rounds for strategy/preparation
+
+```typescript
+interface DynamicPlayoffScheduling {
+  // Only first round scheduled initially
+  initialScheduling: 'first_round_only';
+  
+  // Dynamic scheduling system monitors completed rounds
+  roundCompletion: {
+    monitoring: 'real_time_match_completion';
+    nextRoundDelay: '30_minutes';
+    calculationMethod: 'latest_match_completion_time + 15min_duration + 30min_buffer';
+  };
+  
+  // Example progression
+  example: {
+    quarterfinals: '3:00PM EDT (fixed)',
+    semifinals: '4:12PM EDT (dynamic - latest QF ended at 3:27PM)',
+    finals: '5:45PM EDT (dynamic - latest SF ended at 5:00PM)'
+  };
+}
 
 #### Late Signup System (Division 8 Only)
+
+The Late Signup System allows new teams to join Division 8 after the season starts, providing a complete competitive experience with shortened seasons.
+
 ```typescript
 interface LateSignupConfig {
   eligibleDivision: 8;               // Stone division only
-  cutoffDay: 9;                      // Can join through Day 3
+  signupWindow: {
+    start: "Day 1, 3:00 PM EDT";    // Opens after initial season starts
+    end: "Day 9, 3:00 PM EDT";      // Hard cutoff for late registrations
+  };
+  dailyProcessing: "3:00 PM EDT";   // AI fill and schedule generation
+  subdivisionSize: 8;                // Teams per subdivision  
   shortenedSeason: true;             // Reduced game count
-  regularSeasonDays: 6-13;             // Dynamic based on when registered
+  regularSeasonDays: "Dynamic";      // Formula: 14 - signupDay + 1
   playoffEligible: true;             // Full playoff participation
 }
 ```
+
+**Daily Processing Flow (3:00 PM EDT)**
+1. Check all Division 8 subdivisions using **Greek alphabet naming** (alpha, beta, gamma, delta, epsilon, zeta, eta, theta, iota, kappa, lambda, mu, nu, xi, omicron, pi, rho, sigma, tau, upsilon, phi, chi, psi, omega)
+2. If subdivision has 1-7 teams, fill with AI teams to reach exactly 8 teams
+3. Generate shortened schedule for Days [currentDay] through 14
+4. Teams begin playing immediately with balanced home/away games
+
+**Subdivision Naming Convention:**
+- **Base Names**: Greek alphabet (alpha, beta, gamma, etc.)
+- **Extensions**: Numbered when Greek alphabet exhausted (alpha_1, beta_2, gamma_3)
+- **NO "main/east/west"**: System exclusively uses Greek alphabet naming
+
+**Example Scenarios:**
+- **Day 4 Signup**: 4 users join 1PM-2:45PM → AI fills at 3PM → 11 games (Days 4-14)
+- **Day 7 Signup**: 2 users join morning → AI fills at 3PM → 8 games (Days 7-14)
+- **Day 9 Signup**: Last chance signups → AI fills at 3PM → 6 games (Days 9-14)
+
+**Matchup Balancing:**
+- Each team plays exactly once per day (4 matches per day with 8 teams)
+- Home/away games balanced using rotation patterns
+- Round-robin base with 7 unique patterns cycled for variety
 
 ### League Generation Algorithm
 
@@ -1096,51 +1246,160 @@ interface QuickSimMode {
 }
 ```
 
-### Match Statistics Tracking
+---
+
+## Dome Ball Statistics System
+
+### Match Statistics Tracking (Dome Ball Continuous Action)
 
 #### Comprehensive Stat Categories
 ```typescript
-interface MatchStatistics {
-  team: {
-    possession: number;         // Ball control percentage
-    scores: number;             // Total points scored
-    completions: number;        // Successful passes
-    turnovers: number;          // Ball losses
-    tackles: number;            // Times tackled opponents
-  };
-  
+interface DomeBallMatchStatistics {
+  // Individual Player Stats
   individual: {
+    // Core performance metrics
     playerId: number;
-    minutesPlayed: number;
-    scores: number;
-    assists: number;
-    tackles: number;
-    interceptions: number;
-    staminaUsed: number;        // Fatigue accumulation
+    minutesPlayed: number;          // Time on field during continuous action
+    performanceRating: number;      // Overall 0-100 rating
+    camaraderieContribution: number; // -5 to +5 team chemistry impact
+    
+    // Scoring
+    scores: number;                 // Points scored
+    assists: number;                // Passes/actions leading to scores
+    
+    // Passing in continuous dome ball action
+    passAttempts: number;           // Any pass thrown during flow
+    passCompletions: number;        // Successful catches by teammate
+    passingYards: number;           // Total distance of completed passes
+    perfectPasses: number;          // High-accuracy passes under pressure
+    
+    // Rushing in continuous flow
+    rushingYards: number;           // Distance covered while carrying ball
+    breakawayRuns: number;          // Long runs that break through defense (15+ yards)
+    
+    // Receiving (all positions can catch in dome ball)
+    catches: number;                // Successful receptions
+    receivingYards: number;         // Yards gained after catch
+    drops: number;                  // Failed to secure passed ball
+    
+    // Physical defense in continuous action
+    tackles: number;                // Successful takedowns/stops
+    tackleAttempts: number;         // Defensive contact attempts
+    knockdowns: number;             // Players physically knocked down
+    blocks: number;                 // Offensive blocks made (pancakes)
+    injuriesInflicted: number;      // Opponents injured by this player's actions
+    
+    // Ball disruption
+    interceptions: number;          // Passes stolen/intercepted
+    ballStrips: number;             // Forced fumbles during tackles
+    passDeflections: number;        // Passes knocked away/disrupted
+    
+    // Ball control errors
+    fumblesLost: number;            // Lost possession due to hits/mistakes
+    ballRetention: number;          // Successful ball security under pressure
+    
+    // Continuous action metrics
+    distanceCovered: number;        // Total yards moved during game
+    staminaUsed: number;            // Physical exertion/fatigue
+    ballPossessionTime: number;     // Seconds holding the ball
+    pressureApplied: number;        // Times pressured opposing ball carrier
+    
+    // Physical toll
+    injuries: number;               // Injuries sustained during game
   }[];
+  
+  // Team-Level Statistics
+  team: {
+    // Possession & Territory Control (continuous dome ball)
+    timeOfPossession: number;        // Total seconds with ball control
+    possessionPercentage: number;    // 0-100% of game time
+    averageFieldPosition: number;    // Average position when gaining possession
+    territoryGained: number;         // Net field position improvement
+    
+    // Offensive Production
+    totalScore: number;
+    totalPassingYards: number;
+    totalRushingYards: number;
+    totalOffensiveYards: number;     // All yardage gained
+    passingAccuracy: number;         // Team completion percentage
+    ballRetentionRate: number;       // Percentage of possessions kept
+    scoringOpportunities: number;    // Times in scoring position
+    scoringEfficiency: number;       // Conversion rate of opportunities
+    
+    // Physical Defense
+    totalTackles: number;
+    totalKnockdowns: number;
+    totalBlocks: number;             // Pancakes/devastating blocks
+    totalInjuriesInflicted: number;  // Opponents taken out
+    
+    // Ball Disruption
+    totalInterceptions: number;
+    totalBallStrips: number;         // Forced fumbles
+    passDeflections: number;
+    defensiveStops: number;          // Drives ended by defense
+    
+    // Physical & Flow Metrics (continuous action)
+    totalFumbles: number;
+    turnoverDifferential: number;    // (Forced - Lost)
+    physicalDominance: number;       // Net knockdowns inflicted vs received
+    ballSecurityRating: number;      // How well team maintains possession
+    
+    // Dome Environment Effects
+    homeFieldAdvantage: number;      // Stadium atmosphere bonus
+    crowdIntensity: number;          // Fan noise/energy impact
+    domeReverberation: number;       // Enclosed stadium sound effects
+    
+    // Team Chemistry & Strategy
+    camaraderieTeamBonus: number;    // Team chemistry effect on performance
+    tacticalEffectiveness: number;   // Coach strategy success
+    equipmentAdvantage: number;      // Gear performance bonuses
+    physicalConditioning: number;    // Team stamina/endurance rating
+  };
 }
 ```
 
+#### Key Dome Ball Differences from Traditional Sports
+- **No Penalties**: Continuous action with no fouls or stoppages
+- **No Downs System**: Free-flowing gameplay without structured plays
+- **Universal Receiving**: All positions can catch passes
+- **Physical Dominance**: Knockdowns and injuries are tracked as legitimate game metrics
+- **Ball Strips**: Forced fumbles during tackles are distinct from accidental fumbles
+- **Breakaway Runs**: 15+ yard rushes that break through defense
+- **Perfect Passes**: High-accuracy throws under pressure
+- **Continuous Action**: Minutes played reflects time in flowing gameplay
+
+#### Statistical Significance Levels
+- **Exhibition Matches**: Statistics NOT tracked (practice/friendly games)
+- **League Matches**: Full statistics tracking (regular season)
+- **Playoff/Tournament**: Enhanced statistics tracking with additional context
+
 #### Historical Stat Aggregation
 ```typescript
-interface CareerStatistics {
-  regularSeason: StatLine;
-  tournaments: StatLine;
-  playoffs: StatLine;
-  exhibitions: StatLine;
+interface DomeBallCareerStatistics {
+  regularSeason: DomeBallStatLine;
+  tournaments: DomeBallStatLine;
+  playoffs: DomeBallStatLine;
+  exhibitions: null; // Not tracked
   
-  // Advanced metrics
-  averagePerGame: StatLine;
+  // Advanced dome ball metrics
+  averagePerGame: DomeBallStatLine;
+  physicalDominanceRating: number;    // Career knockdown vs fumble ratio
+  ballSecurityRating: number;         // Career ball retention percentage
+  clutchPerformanceIndex: number;     // Performance in high-intensity matches
+  
+  // Dome ball career highlights
   careerHighlights: {
-    mostPointsGame: number;
-    longestStreak: number;
-    clutchPerformances: number;
+    mostScoresInMatch: number;
+    longestRushingStreak: number;
+    mostKnockdownsInMatch: number;
+    perfectPassStreak: number;
+    injuriesSurvived: number;
   };
   
   // Trending analysis
-  last5Games: StatLine;
-  seasonProgression: StatLine[];
-  yearOverYear: StatLine[];
+  last5Games: DomeBallStatLine;
+  seasonProgression: DomeBallStatLine[];
+  intensityTolerance: number;         // Performance under physical pressure
 }
 ```
 
@@ -1150,30 +1409,62 @@ interface CareerStatistics {
 
 ### Daily Divisional Tournaments
 
-#### Division-Specific Competitions
+#### Automated Tournament System
+Daily Divisional Tournaments are fully automated competitions that run continuously throughout each game day. **Division 1 (Diamond) does not participate** - only Divisions 2-8.
+
 ```typescript
 interface DailyTournament {
-  divisions: {
-    [key: number]: {
-      name: string;
-      entryFee: number;           // Credits required
-      gemFee?: number;            // Premium entry option
-      maxParticipants: number;
-      prizeStructure: PrizePool;
-    }
+  eligibility: 'divisions_2_through_8';    // Diamond division excluded
+  entryFee: 0;                            // FREE entry for all divisions
+  exactParticipants: 8;                   // Precisely 8 teams per tournament
+  tournamentFormat: 'single_elimination'; // Quarterfinals → Semifinals → Finals
+  
+  // Automated registration and start system
+  registrationWindow: {
+    opens: '7:00_AM_EDT',                 // Daily window start
+    closes: '1:00_AM_EDT_next_day',       // 18-hour registration period
+    autoStart: 'immediate_on_8_teams',    // No waiting when full
+    timerFallback: '60_minutes_from_first' // Auto-fill if not full
   };
   
-  // Example: Platinum Division (Div 2)
-  division2: {
-    name: "Platinum Daily Championship",
-    entryFee: 5000,              // 5,000₡ to enter
-    gemFee: 10,                 // OR 10 gems
-    maxParticipants: 16,
-    prizeStructure: {
-      champion: { credits: 16000, gems: 8 },
-      runnerUp: { credits: 6000, gems: 0 },
-      semifinalists: { credits: 2000, gems: 0 }
-    }
+  // Multiple concurrent tournaments per division/day
+  concurrentInstances: true;              // New tournament ID when 8 teams register
+  tournamentIdFormat: 'SDDT';            // Season-Division-Day-Sequential (e.g. "0841")
+  
+  // Prize structure by division
+  rewards: {
+    division2_platinum: { champion: { credits: 16000, gems: 8 }, runnerUp: { credits: 6000, gems: 0 }},
+    division3_gold:     { champion: { credits: 12000, gems: 5 }, runnerUp: { credits: 4500, gems: 0 }},
+    division4_silver:   { champion: { credits: 9000,  gems: 3 }, runnerUp: { credits: 3000, gems: 0 }},
+    division5_bronze:   { champion: { credits: 6000,  gems: 0 }, runnerUp: { credits: 2000, gems: 0 }},
+    division6_copper:   { champion: { credits: 4000,  gems: 0 }, runnerUp: { credits: 1500, gems: 0 }},
+    division7_iron:     { champion: { credits: 2500,  gems: 0 }, runnerUp: { credits: 1000, gems: 0 }},
+    division8_stone:    { champion: { credits: 1500,  gems: 0 }, runnerUp: { credits: 500,  gems: 0 }}
+  };
+}
+```
+
+#### AI Team Management System
+```typescript
+interface AITournamentFilling {
+  // Intelligent AI team selection
+  priorityOrder: [
+    'existing_ai_teams_same_division',     // Use existing AI teams first
+    'create_new_ai_teams_if_needed'       // Generate new ones only when required
+  ];
+  
+  // AI team characteristics
+  newAITeams: {
+    balancedStats: '65_85_range',         // Competitive but not overpowered
+    fullRoster: '12_players_per_team',    // Complete team with all positions
+    basicFinances: '50000_credits_10_gems', // Reasonable starting resources
+    stadiumLevel: 'tier_1_facilities'     // Standard stadium configuration
+  };
+  
+  // Auto-fill trigger conditions
+  autoFillTrigger: {
+    timer_expires: '60_minutes_after_first_registration',
+    registration_cutoff: '1:00_AM_EDT_enforcement'
   };
 }
 ```
@@ -1181,32 +1472,172 @@ interface DailyTournament {
 #### Tournament Scheduling
 ```typescript
 interface TournamentSchedule {
-  registrationOpen: 'season_day_start';    // When season day begins
-  registrationClose: '2_hours_before';     // Tournament start
-  tournamentStart: 'daily_8pm_edt';       // Consistent timing
-  expectedDuration: '2_hours';             // Including bracket play
+  registrationOpen: '7am_edt';             // Daily registration window opens
+  registrationClose: '1am_edt';            // Registration cutoff (next day)
+  tournamentStart: 'auto_on_8_teams';      // OR 60-minute timer expires
+  expectedDuration: 'instant_simulation';   // Uses QuickMatchSimulation
   
-  // Registration cutoffs
-  lateRegistration: false;                 // No late entries
-  waitlistSystem: true;                    // Backup participants
+  // Multiple concurrent tournaments per division
+  multipleInstances: true;                 // New tournament when 8 teams fill
+  uniqueTournamentIds: 'SDDT_format';      // Season-Division-Day-Sequential
+  autoFillTimer: '60_minutes';             // From first registration
+  
+  // AI team management
+  useExistingAI: true;                     // Prioritize existing AI teams
+  createAIIfNeeded: true;                  // Generate new AI if insufficient
+  
+  // Timing buffers
+  bufferTimes: {
+    preStart: '2_minutes';                 // Before tournament begins
+    betweenRounds: '2_minutes';            // Between each round
+  };
+  
   minimumParticipants: 8;                  // Tournament viability
+  maximumParticipants: 8;                  // Exact tournament size
 }
 ```
  
+#### Tournament Flow & Automation
+```typescript
+interface TournamentFlow {
+  // Complete automation from start to finish
+  automationLevel: 'fully_automated';
+  
+  // Tournament progression
+  rounds: {
+    quarterfinals: {
+      matchCount: 4,               // 8 teams → 4 matches
+      roundNumber: 1,
+      bufferBefore: '2_minutes',
+      simulationType: 'instant'    // QuickMatchSimulation
+    },
+    semifinals: {
+      matchCount: 2,               // 4 winners → 2 matches  
+      roundNumber: 2,
+      bufferBefore: '2_minutes',
+      generatedAutomatically: true // From quarterfinal winners
+    },
+    finals: {
+      matchCount: 1,               // 2 winners → 1 match
+      roundNumber: 3,
+      bufferBefore: '2_minutes',
+      generatedAutomatically: true // From semifinal winners
+    }
+  };
+  
+  // Prize distribution
+  automaticRewards: {
+    champion: 'immediate_upon_completion',
+    runnerUp: 'immediate_upon_completion',
+    semifinalists: 'automatic_ranking',     // 3rd place
+    quarterfinalists: 'automatic_ranking'   // 5th place
+  };
+  
+  // Post-completion cleanup
+  postTournament: {
+    moveToHistory: 'automatic',
+    cleanupTimers: 'automatic', 
+    updateTeamRecords: 'automatic'
+  };
+}
+```
+
 #### Bracket Generation
 ```typescript
 interface BracketSystem {
-  format: 'single_elimination';
-  seeding: 'random';                      // Fair competition
+  format: 'single_elimination_8_team';
+  seeding: 'global_rankings_based';        // Competitive seeding using True Strength Rating
+  exactParticipants: 8;                   // No byes, no odd numbers
+  
+  bracketStructure: {
+    // Round 1: Quarterfinals (4 matches) - Seeded matchups
+    quarterfinals: [
+      'seed_1_vs_seed_2',    // Highest vs 2nd highest
+      'seed_3_vs_seed_4',    // 3rd vs 4th  
+      'seed_5_vs_seed_6',    // 5th vs 6th
+      'seed_7_vs_seed_8'     // 7th vs 8th (lowest ranked)
+    ],
+    
+    // Round 2: Semifinals (2 matches) - Generated from QF winners
+    semifinals: ['QF1_winner v QF2_winner', 'QF3_winner v QF4_winner'],
+    
+    // Round 3: Finals (1 match) - Generated from SF winners  
+    finals: ['SF1_winner v SF2_winner']
+  };
+  
+  // Global Ranking-based seeding algorithm
+  seedingCriteria: {
+    algorithm: 'true_strength_rating';     // Same as Global Rankings endpoint
+    components: {
+      baseTeamPower: '40%_weight',         // Primary team strength
+      divisionMultiplier: '15%_weight',    // Division competitive level
+      winPercentage: '18%_weight',         // Win-loss record
+      strengthOfSchedule: '15%_weight',    // Opponent quality
+      teamCamaraderie: '12%_weight',       // Team chemistry factor
+      recentForm: 'situational_bias',      // Recent performance
+      healthFactor: 'injury_impact'        // Team health status
+    };
+    
+    // Calculated moments before bracket creation
+    seedingTiming: 'just_before_bracket_generation';
+    fallback: 'random_shuffle_on_calculation_error';
+  };
   
   generateBracket(participants: Team[]): TournamentBracket {
-    const powerOfTwo = this.nextPowerOfTwo(participants.length);
-    const bracket = this.createEmptyBracket(powerOfTwo);
+    if (participants.length !== 8 && participants.length !== 16) {
+      throw new Error(`Tournament requires exactly 8 or 16 teams, found ${participants.length}`);
+    }
     
-    // Randomize seeding for fairness
-    const shuffled = this.shuffle(participants);
-    return this.populateBracket(bracket, shuffled);
+    // Calculate Global Rankings for seeding
+    const seededTeams = await this.seedByGlobalRankings(participants);
+    
+    // Create competitive matchups based on seeding
+    return this.createSeededMatches(seededTeams);
   }
+}
+```
+
+#### Tournament Seeding Examples
+```typescript
+interface SeedingExamples {
+  // Example scenario: Division 7 Daily Tournament
+  scenario: {
+    registeredTeams: [
+      { name: "Iron Eagles", globalRank: 3, trueStrengthRating: 847 },      // Seed #1
+      { name: "Stone Hawks", globalRank: 12, trueStrengthRating: 723 },     // Seed #2  
+      { name: "Thunder Bolts", globalRank: 455, trueStrengthRating: 534 },  // Seed #3
+      { name: "Storm Riders", globalRank: 1000, trueStrengthRating: 421 },  // Seed #4
+      { name: "Fire Wolves", globalRank: 1205, trueStrengthRating: 398 },   // Seed #5
+      { name: "AI Team Alpha", globalRank: 1890, trueStrengthRating: 287 }, // Seed #6
+      { name: "AI Team Beta", globalRank: 2001, trueStrengthRating: 276 },  // Seed #7
+      { name: "AI Team Gamma", globalRank: 2156, trueStrengthRating: 251 }  // Seed #8
+    ];
+    
+    // Generated quarterfinal matchups
+    quarterfinals: [
+      "Iron Eagles (Seed #1) vs Stone Hawks (Seed #2)",        // Top matchup
+      "Thunder Bolts (Seed #3) vs Storm Riders (Seed #4)",     // Second tier
+      "Fire Wolves (Seed #5) vs AI Team Alpha (Seed #6)",      // Third tier  
+      "AI Team Beta (Seed #7) vs AI Team Gamma (Seed #8)"      // Bottom matchup
+    ];
+  };
+  
+  // Tournament creates compelling narratives
+  competitiveBalance: {
+    topTier: "Global rank #3 vs #12 creates elite competition",
+    midTier: "Rank #455 vs #1000 represents divisional average", 
+    bottomTier: "AI teams fill remaining spots with balanced stats",
+    fairness: "Higher seeds face lower seeds for competitive balance"
+  };
+  
+  // Benefits of Global Ranking seeding
+  improvements: [
+    "Eliminates pure randomness that could create unbalanced brackets",
+    "Rewards teams with better records and performance", 
+    "Creates compelling David vs Goliath storylines",
+    "Ensures strongest teams don't meet until later rounds",
+    "AI teams are properly positioned based on their strength"
+  ];
 }
 ```
 
@@ -1303,6 +1734,13 @@ interface PrizeDistribution {
 ---
 
 ## Equipment & Item Systems
+
+**⚠️ Systems Removed During September 3rd, 2025 Session:**
+- ❌ **Equipment Enhancement System**: No upgrade mechanics with enhancement stones
+- ❌ **Equipment Durability**: No durability degradation or repair mechanics
+- ❌ **Salary Cap Integration**: Equipment costs no longer restricted by salary caps
+
+**Current System Focus**: Basic equipment with stat bonuses only - clean, straightforward implementation.
 
 ### Equipment Categories & Slots
 
@@ -1453,53 +1891,6 @@ interface ConsumableBalance {
     preventPayToWin: true,      // Limits on premium consumables
     creditSinks: 'moderate',    // Remove credits from economy
     strategicChoices: true      // Force decisions on usage timing
-  };
-}
-```
-
-### Equipment Enhancement System
-
-#### Upgrade Mechanics
-```typescript
-interface EquipmentUpgrade {
-  upgradeSystem: 'enhancement_stones';
-  maxUpgradeLevel: 5;
-  
-  upgradeCosts: {
-    level1to2: { credits: 5000, materials: 'basic_stones' },
-    level2to3: { credits: 12000, materials: 'refined_stones' },
-    level3to4: { credits: 25000, materials: 'superior_stones' },
-    level4to5: { credits: 50000, materials: 'legendary_stones' }
-  };
-  
-  upgradeEffects: {
-    statMultiplier: 1.2,        // 20% increase per level
-    durabilityBoost: 'extended_usage',
-    specialEffectEnhancement: 'improved_proc_rates'
-  };
-}
-```
-
-#### Equipment Durability
-```typescript
-interface DurabilitySystem {
-  usageBased: true;
-  degradation: {
-    matchUsage: -1,             // Durability loss per match
-    practiceUsage: -0.5,        // Less loss in exhibitions
-    criticalFailure: 'rare'     // Catastrophic equipment failure
-  };
-  
-  repairSystem: {
-    repairCosts: 'percentage_of_original',
-    repairTime: 'immediate',
-    preventiveMaintenance: 'available'
-  };
-  
-  replacementEconomics: {
-    tradeInValue: '25%_of_purchase',
-    upgradeDiscount: '10%_for_same_slot',
-    insuranceOptions: 'premium_feature'
   };
 }
 ```
@@ -1662,28 +2053,6 @@ interface PlayerContract {
 }
 ```
 
-#### Salary Cap & Financial Fair Play
-```typescript
-interface SalaryCap {
-  hardCap: false;             // No absolute spending limit
-  luxuryTax: {
-    threshold: 200000,        // 200k₡ annual payroll
-    taxRate: 0.5,             // 50% penalty on excess spending
-    purpose: 'competitive_balance'
-  };
-  
-  minimumSpending: {
-    threshold: 50000,         // Must spend at least 50k₡ on players
-    purpose: 'prevent_tanking'
-  };
-  
-  contractGuidelines: {
-    maximumLength: 5,         // 5-season contracts max
-    minimumWage: 2000,        // Rookie minimum salary
-    veteranMinimum: 5000      // Experienced player minimum
-  };
-}
-```
 
 ### Scouting & Player Discovery
 

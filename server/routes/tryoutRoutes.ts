@@ -3,11 +3,12 @@ import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
 import { Race, PlayerRole, SeasonPhase } from "@prisma/client";
 import { generateRandomName } from "../../shared/names.js";
+import { generatePotential } from "../../shared/potentialSystem.js";
 
 const router = Router();
 
 // Generate a random player for tryouts
-function generateRandomPlayer() {
+function generateRandomPlayer(tryoutType: 'basic' | 'advanced' = 'basic') {
   const races: Race[] = [Race.HUMAN, Race.SYLVAN, Race.GRYLL, Race.LUMINA, Race.UMBRA];
   const roles: PlayerRole[] = [PlayerRole.PASSER, PlayerRole.RUNNER, PlayerRole.BLOCKER];
   
@@ -50,8 +51,12 @@ function generateRandomPlayer() {
     agility: Math.min(40, Math.max(1, baseStats.agility + modifiers.agility)),
   };
   
-  // Generate potential (1.5 to 3.5 stars to match new weaker balance)
-  const potentialRating = Math.random() * 2.0 + 1.5;
+  // Generate potential using unified system based on tryout type
+  const potentialType = tryoutType === 'advanced' ? 'advanced_tryout' : 'basic_tryout';
+  const potentialRating = generatePotential({
+    type: potentialType,
+    ageModifier: age
+  });
   
   // Calculate market value based on stats and potential
   const avgStat = Object.values(finalStats).reduce((a, b) => a + b, 0) / 8;
@@ -80,7 +85,7 @@ router.get('/candidates', requireAuth, async (req: Request, res: Response, next:
     const candidates = [];
     
     for (let i = 0; i < candidateCount; i++) {
-      candidates.push(generateRandomPlayer());
+      candidates.push(generateRandomPlayer('basic')); // Generate candidates for basic tryouts
     }
     
     res.json(candidates);

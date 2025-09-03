@@ -377,7 +377,7 @@ export class TournamentService {
             name: teamName,
             userProfileId: aiUser.id,
             division: division,
-            subdivision: "main",
+            subdivision: "alpha",
             isAI: true,
             wins: Math.floor(Math.random() * 3),
             losses: Math.floor(Math.random() * 3),
@@ -1195,8 +1195,8 @@ export class TournamentService {
       throw new Error(`Tournament must have exactly ${expectedTeams} teams, found ${teams.length}`);
     }
 
-    // Shuffle teams randomly for fair bracket
-    const shuffledTeams = [...teams].sort(() => Math.random() - 0.5);
+    // Seed teams based on Global Rankings for competitive balance
+    const seededTeams = await this.seedTeamsByGlobalRankings(teams);
 
     let round1Matches = [];
     let startingRound = 1;
@@ -1208,8 +1208,8 @@ export class TournamentService {
       matchType = "LEAGUE"; // Keep same match type
       
       for (let i = 0; i < 8; i++) {
-        const homeTeam = shuffledTeams[i * 2];
-        const awayTeam = shuffledTeams[i * 2 + 1];
+        const homeTeam = seededTeams[i * 2];
+        const awayTeam = seededTeams[i * 2 + 1];
         
         const match = await prisma.game.create({
           data: {
@@ -1231,8 +1231,8 @@ export class TournamentService {
       startingRound = 1; // Quarterfinals
       
       for (let i = 0; i < 4; i++) {
-        const homeTeam = shuffledTeams[i * 2];
-        const awayTeam = shuffledTeams[i * 2 + 1];
+        const homeTeam = seededTeams[i * 2];
+        const awayTeam = seededTeams[i * 2 + 1];
         
         const match = await prisma.game.create({
           data: {
@@ -1249,6 +1249,133 @@ export class TournamentService {
         round1Matches.push(match);
       }
       console.log(`Generated Daily Division Tournament bracket for tournament ${tournamentId} with ${teams.length} teams - Quarterfinals created (${round1Matches.length} matches)`);
+    }
+  }
+
+  // Seed teams based on Global Rankings for fair tournament brackets
+  private async seedTeamsByGlobalRankings(teams: any[]): Promise<any[]> {
+    try {
+      // Calculate True Strength Rating for each team (same algorithm as Global Rankings)
+      const teamsWithRankings = await Promise.all(teams.map(async (team) => {
+        const divisionMultiplier = this.getDivisionMultiplier(team.division);
+        
+        // Enhanced calculations with safe fallbacks
+        const strengthOfSchedule = this.calculateSimpleStrengthOfSchedule(team);
+        const recentFormBias = this.calculateSimpleRecentForm(team);
+        const healthFactor = this.calculateSimpleHealthFactor(team);
+        const winPercentage = (team.wins || 0) / ((team.wins || 0) + (team.losses || 0) + (team.draws || 0) || 1);
+        
+        // Enhanced True Strength Rating Algorithm (same as Global Rankings)
+        const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
+        const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight (200 max)
+        const recordBonus = winPercentage * 120;                 // Record: 18% weight (120 max)
+        const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight (~75 avg)
+        const camaraderieBonus = (team.camaraderie || 0) * 2;    // Chemistry: 12% weight (200 max)
+        const recentFormBonus = recentFormBias * 30;             // Recent Form: ±30 range
+        const healthBonus = healthFactor * 50;                   // Health: 50 max
+        
+        const trueStrengthRating = Math.round(
+          baseRating + divisionBonus + recordBonus + sosBonus + 
+          camaraderieBonus + recentFormBonus + healthBonus
+        );
+
+        return {
+          ...team,
+          trueStrengthRating,
+          tournamentSeed: 0 // Will be assigned after sorting
+        };
+      }));
+
+      // Sort by True Strength Rating (descending - best teams first)
+      teamsWithRankings.sort((a: any, b: any) => b.trueStrengthRating - a.trueStrengthRating);
+      
+      // Assign seeds (1 = highest ranked, 8/16 = lowest ranked)
+      teamsWithRankings.forEach((team, index) => {
+        team.tournamentSeed = index + 1;
+      });
+
+      console.log(`🏆 Tournament seeding completed:`);
+      teamsWithRankings.forEach(team => {
+        console.log(`  Seed #${team.tournamentSeed}: ${team.name} (Rating: ${team.trueStrengthRating}, Global Rank: ~${team.tournamentSeed})`);
+      });
+
+      return teamsWithRankings;
+    } catch (error) {
+      console.error('Error calculating tournament seeding, falling back to random:', error);
+      // Fallback to random seeding if ranking calculation fails
+      return [...teams].sort(() => Math.random() - 0.5);
+    }
+  }
+
+  // Helper functions for seeding calculations (mirrored from worldRoutes.ts)
+  private getDivisionMultiplier(division: number): number {
+    switch (division) {
+      case 1: return 2.0; // Diamond League (most competitive)
+      case 2: return 1.8; // Platinum League
+      case 3: return 1.6; // Gold League
+      case 4: return 1.4; // Silver League
+      case 5: return 1.2; // Bronze League
+      case 6: return 1.1; // Iron League
+      case 7: return 1.0; // Stone League
+      case 8: return 0.9; // Copper League (least competitive)
+      default: return 1.0;
+    }
+  }
+
+  private calculateSimpleStrengthOfSchedule(team: any): number {
+    // Simplified SOS calculation for tournament seeding
+    const expectedPowerForDivision = this.getExpectedPowerForDivision(team.division);
+    const actualPower = team.teamPower || expectedPowerForDivision;
+    
+    // Teams performing above division average likely faced stronger opponents
+    return Math.max(10, Math.min(40, expectedPowerForDivision + (actualPower - expectedPowerForDivision) * 0.5));
+  }
+
+  private calculateSimpleRecentForm(team: any): number {
+    // Simple calculation based on win percentage vs expected performance
+    const totalGames = (team.wins || 0) + (team.losses || 0) + (team.draws || 0);
+    if (totalGames === 0) return 0;
+    
+    const winPct = (team.wins || 0) / totalGames;
+    const expectedWinPct = this.getDivisionExpectedWinRate(team.division);
+    
+    return Math.max(-1, Math.min(1, winPct - expectedWinPct));
+  }
+
+  private calculateSimpleHealthFactor(team: any): number {
+    // Simplified health factor based on team power maintenance
+    const expectedPower = this.getExpectedPowerForDivision(team.division);
+    const actualPower = team.teamPower || expectedPower;
+    
+    // Factor assumes healthy teams maintain higher power levels
+    return Math.max(0.5, Math.min(1.5, actualPower / expectedPower));
+  }
+
+  private getExpectedPowerForDivision(division: number): number {
+    switch (division) {
+      case 1: return 32; // Diamond League
+      case 2: return 28; // Platinum
+      case 3: return 26; // Gold
+      case 4: return 24; // Silver
+      case 5: return 22; // Bronze
+      case 6: return 20; // Iron
+      case 7: return 18; // Stone
+      case 8: return 16; // Copper
+      default: return 24; // Default
+    }
+  }
+
+  private getDivisionExpectedWinRate(division: number): number {
+    switch (division) {
+      case 1: return 0.65; // Diamond teams expected to win more
+      case 2: return 0.58; // Platinum
+      case 3: return 0.52; // Gold  
+      case 4: return 0.50; // Silver (neutral)
+      case 5: return 0.48; // Bronze
+      case 6: return 0.42; // Iron
+      case 7: return 0.38; // Stone
+      case 8: return 0.35; // Copper
+      default: return 0.50; // Neutral
     }
   }
 

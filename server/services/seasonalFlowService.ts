@@ -976,7 +976,8 @@ export class SeasonalFlowService {
       const division = league.division;
       
       // Determine qualifier count based on division
-      const qualifierCount = division === 1 
+      // Division 1 and 2 use 8-team brackets, Divisions 3-8 use 4-team brackets
+      const qualifierCount = (division === 1 || division === 2)
         ? this.SEASON_CONFIG.DIVISION_1_TOURNAMENT_QUALIFIERS 
         : this.SEASON_CONFIG.STANDARD_TOURNAMENT_QUALIFIERS;
       
@@ -985,72 +986,115 @@ export class SeasonalFlowService {
       if (playoffTeams.length >= qualifierCount) {
         let playoffMatches = [];
         
-        if (division === 1) {
-          // Division 1: 8-team single elimination tournament
-          // Quarterfinals: 1v8, 2v7, 3v6, 4v5
-          // Create specific date for Day 15 playoff matches: Aug 31, 2025 at 1:00 AM and 1:15 AM EDT
-          const playoffTime1 = new Date('2025-08-31T05:00:00.000Z'); // 1:00 AM EDT (5:00 UTC)
-          const playoffTime2 = new Date('2025-08-31T05:15:00.000Z'); // 1:15 AM EDT (5:15 UTC)
+        if (division === 1 || division === 2) {
+          // Division 1 & 2: 8-team single elimination tournament (Quarterfinals, Semifinals, Finals)
+          // Schedule all rounds with 30-minute buffers during simulation window (4PM-10PM EDT)
           
-          playoffMatches = [
-            {
-              leagueId: parseInt(league.id.toString()),
-              homeTeamId: playoffTeams[0].team.id, // Seed 1
-              awayTeamId: playoffTeams[7].team.id, // Seed 8
-              gameDate: playoffTime1,
-              status: 'SCHEDULED' as const,
-              matchType: 'PLAYOFF' as const
-            },
-            {
-              leagueId: parseInt(league.id.toString()),
-              homeTeamId: playoffTeams[1].team.id, // Seed 2
-              awayTeamId: playoffTeams[6].team.id, // Seed 7
-              gameDate: playoffTime1,
-              status: 'SCHEDULED' as const,
-              matchType: 'PLAYOFF' as const
-            },
-            {
-              leagueId: parseInt(league.id.toString()),
-              homeTeamId: playoffTeams[2].team.id, // Seed 3
-              awayTeamId: playoffTeams[5].team.id, // Seed 6
-              gameDate: playoffTime2,
-              status: 'SCHEDULED' as const,
-              matchType: 'PLAYOFF' as const
-            },
-            {
-              leagueId: parseInt(league.id.toString()),
-              homeTeamId: playoffTeams[3].team.id, // Seed 4
-              awayTeamId: playoffTeams[4].team.id, // Seed 5
-              gameDate: playoffTime2,
-              status: 'SCHEDULED' as const,
-              matchType: 'PLAYOFF' as const
-            }
-          ];
+          // Get season start date for Day 15 calculation
+          const currentSeason = await prisma.season.findFirst({
+            where: { seasonNumber: season },
+            orderBy: { createdAt: 'desc' }
+          });
+          
+          if (currentSeason) {
+            const day15Date = new Date(currentSeason.startDate);
+            day15Date.setDate(day15Date.getDate() + 14); // Day 15 (0-indexed, so +14)
+            
+            // Schedule during simulation window with 30-minute round buffers
+            const quarterfinalsTime = new Date(day15Date);
+            quarterfinalsTime.setUTCHours(20, 0, 0, 0); // 4:00 PM EDT (20:00 UTC)
+            
+            const semifinalsTime = new Date(quarterfinalsTime);
+            semifinalsTime.setUTCMinutes(semifinalsTime.getUTCMinutes() + 30); // +30 minutes
+            
+            const finalsTime = new Date(semifinalsTime);
+            finalsTime.setUTCMinutes(finalsTime.getUTCMinutes() + 30); // +30 minutes
+            
+            playoffMatches = [
+              // QUARTERFINALS ONLY (4 matches at 4:00 PM EDT)
+              // Subsequent rounds will be scheduled dynamically after these complete
+              {
+                leagueId: parseInt(league.id.toString()),
+                homeTeamId: playoffTeams[0].team.id, // Seed 1 vs Seed 8
+                awayTeamId: playoffTeams[7].team.id,
+                gameDate: quarterfinalsTime,
+                status: 'SCHEDULED' as const,
+                matchType: 'PLAYOFF' as const,
+                round: 1
+              },
+              {
+                leagueId: parseInt(league.id.toString()),
+                homeTeamId: playoffTeams[1].team.id, // Seed 2 vs Seed 7
+                awayTeamId: playoffTeams[6].team.id,
+                gameDate: quarterfinalsTime,
+                status: 'SCHEDULED' as const,
+                matchType: 'PLAYOFF' as const,
+                round: 1
+              },
+              {
+                leagueId: parseInt(league.id.toString()),
+                homeTeamId: playoffTeams[2].team.id, // Seed 3 vs Seed 6
+                awayTeamId: playoffTeams[5].team.id,
+                gameDate: quarterfinalsTime,
+                status: 'SCHEDULED' as const,
+                matchType: 'PLAYOFF' as const,
+                round: 1
+              },
+              {
+                leagueId: parseInt(league.id.toString()),
+                homeTeamId: playoffTeams[3].team.id, // Seed 4 vs Seed 5
+                awayTeamId: playoffTeams[4].team.id,
+                gameDate: quarterfinalsTime,
+                status: 'SCHEDULED' as const,
+                matchType: 'PLAYOFF' as const,
+                round: 1
+              }
+            ];
+          }
         } else {
-          // Divisions 2-8: 4-team single elimination tournament
-          // Semifinals: 1v4, 2v3
-          // Create specific date for Day 15 playoff matches: Aug 31, 2025 at 1:00 AM and 1:15 AM EDT
-          const playoffTime1 = new Date('2025-08-31T05:00:00.000Z'); // 1:00 AM EDT (5:00 UTC)
-          const playoffTime2 = new Date('2025-08-31T05:15:00.000Z'); // 1:15 AM EDT (5:15 UTC)
+          // Divisions 3-8: 4-team single elimination tournament (Semifinals, Finals)
+          // Schedule both rounds with 30-minute buffers during simulation window (4PM-10PM EDT)
           
-          playoffMatches = [
-            {
-              leagueId: parseInt(league.id.toString()),
-              homeTeamId: playoffTeams[0].team.id, // Seed 1
-              awayTeamId: playoffTeams[3].team.id, // Seed 4
-              gameDate: playoffTime1, // 1:00 AM EDT
-              status: 'SCHEDULED' as const,
-              matchType: 'PLAYOFF' as const
-            },
-            {
-              leagueId: parseInt(league.id.toString()),
-              homeTeamId: playoffTeams[1].team.id, // Seed 2
-              awayTeamId: playoffTeams[2].team.id, // Seed 3
-              gameDate: playoffTime2, // 1:15 AM EDT
-              status: 'SCHEDULED' as const,
-              matchType: 'PLAYOFF' as const
-            }
-          ];
+          // Get season start date for Day 15 calculation
+          const currentSeason = await prisma.season.findFirst({
+            where: { seasonNumber: season },
+            orderBy: { createdAt: 'desc' }
+          });
+          
+          if (currentSeason) {
+            const day15Date = new Date(currentSeason.startDate);
+            day15Date.setDate(day15Date.getDate() + 14); // Day 15 (0-indexed, so +14)
+            
+            // Schedule during simulation window with 30-minute round buffers
+            const semifinalsTime = new Date(day15Date);
+            semifinalsTime.setUTCHours(20, 0, 0, 0); // 4:00 PM EDT (20:00 UTC)
+            
+            const finalsTime = new Date(semifinalsTime);
+            finalsTime.setUTCMinutes(finalsTime.getUTCMinutes() + 30); // +30 minutes
+            
+            playoffMatches = [
+              // SEMIFINALS ONLY (2 matches at 4:00 PM EDT)
+              // Finals will be scheduled dynamically after these complete
+              {
+                leagueId: parseInt(league.id.toString()),
+                homeTeamId: playoffTeams[0].team.id, // Seed 1 vs Seed 4
+                awayTeamId: playoffTeams[3].team.id,
+                gameDate: semifinalsTime,
+                status: 'SCHEDULED' as const,
+                matchType: 'PLAYOFF' as const,
+                round: 1
+              },
+              {
+                leagueId: parseInt(league.id.toString()),
+                homeTeamId: playoffTeams[1].team.id, // Seed 2 vs Seed 3
+                awayTeamId: playoffTeams[2].team.id,
+                gameDate: semifinalsTime,
+                status: 'SCHEDULED' as const,
+                matchType: 'PLAYOFF' as const,
+                round: 1
+              }
+            ];
+          }
         }
         
         // Insert playoff matches

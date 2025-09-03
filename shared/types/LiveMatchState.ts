@@ -110,49 +110,106 @@ export interface EventPriority {
 
 export interface PlayerMatchStats {
   playerId: string;
+  
+  // Core performance metrics
   minutesPlayed: number;
-
+  performanceRating: number;     // Overall performance score 0-100
+  camaraderieContribution: number; // -5 to +5 team chemistry impact
+  
   // Scoring
-  scores: number;
-  assists: number;
-
-  // Passing
-  passAttempts: number;
-  passCompletions: number;
-  passingYards: number;
-  perfectPasses: number;
-
-  // Rushing
-  rushingAttempts: number;
-  rushingYards: number;
-  breakawayRuns: number;
-
-  // Receiving
-  catches: number;
-  receivingYards: number;
-  drops: number;
-
-  // Defense
-  tackles: number;
-  knockdowns: number;
-  interceptions: number;
-
-  // Misc
-  fumblesLost: number;
-  clutchPlays: number;
-  staminaUsed: number;
-  injuries: number;
-  skillsUsed: number;
+  scores: number;                // Points scored
+  assists: number;               // Passes/actions leading to scores
+  
+  // Passing in continuous dome ball action
+  passAttempts: number;          // Any pass thrown during flow
+  passCompletions: number;       // Successful catches by teammate
+  passingYards: number;          // Total distance of completed passes
+  perfectPasses: number;         // High-accuracy passes under pressure
+  
+  // Rushing in continuous flow
+  rushingYards: number;          // Distance covered while carrying ball
+  breakawayRuns: number;         // Long runs that break through defense (15+ yards)
+  
+  // Receiving (all positions can catch)
+  catches: number;               // Successful receptions
+  receivingYards: number;        // Yards gained after catch
+  drops: number;                 // Failed to secure passed ball
+  
+  // Physical defense in continuous action
+  tackles: number;               // Successful takedowns/stops
+  tackleAttempts: number;        // Defensive contact attempts
+  knockdowns: number;            // Players physically knocked down
+  blocks: number;                // Offensive blocks made (pancakes)
+  injuriesInflicted: number;     // Opponents injured by this player's actions
+  
+  // Ball disruption
+  interceptions: number;         // Passes stolen/intercepted
+  ballStrips: number;            // Forced fumbles during tackles
+  passDeflections: number;       // Passes knocked away/disrupted
+  
+  // Ball control errors
+  fumblesLost: number;           // Lost possession due to hits/mistakes
+  ballRetention: number;         // Successful ball security under pressure
+  
+  // Continuous action metrics
+  distanceCovered: number;       // Total yards moved during game
+  staminaUsed: number;           // Physical exertion/fatigue
+  ballPossessionTime: number;    // Seconds holding the ball
+  pressureApplied: number;       // Times pressured opposing ball carrier
+  
+  // Physical toll
+  injuries: number;              // Injuries sustained during game
 }
 
 export interface TeamMatchStats {
   teamId: string;
-  possession: number;
-  fieldPosition: number;
-  passingAccuracy: number;
-  tackles: number;
-  turnovers: number;
-  timeOfPossession: number;
+  
+  // Possession & Territory Control (continuous dome ball)
+  timeOfPossession: number;        // Total seconds with ball control
+  possessionPercentage: number;    // 0-100% of game time
+  averageFieldPosition: number;    // Average position when gaining possession
+  territoryGained: number;         // Net field position improvement
+  
+  // Offensive Flow
+  totalScore: number;
+  totalPassingYards: number;
+  totalRushingYards: number;
+  totalOffensiveYards: number;     // All yardage gained
+  
+  // Efficiency in dome ball flow
+  passingAccuracy: number;         // Team completion percentage
+  ballRetentionRate: number;       // Percentage of possessions kept
+  scoringOpportunities: number;    // Times in scoring position
+  scoringEfficiency: number;       // Conversion rate of opportunities
+  
+  // Physical Defense
+  totalTackles: number;
+  totalKnockdowns: number;
+  totalBlocks: number;             // Pancakes/devastating blocks
+  totalInjuriesInflicted: number;  // Opponents taken out
+  
+  // Ball Disruption
+  totalInterceptions: number;
+  totalBallStrips: number;         // Forced fumbles
+  passDeflections: number;
+  defensiveStops: number;          // Drives ended by defense
+  
+  // Physical & Flow Metrics (continuous action)
+  totalFumbles: number;
+  turnoverDifferential: number;    // (Forced - Lost)
+  physicalDominance: number;       // Net knockdowns inflicted vs received
+  ballSecurityRating: number;      // How well team maintains possession
+  
+  // Dome Environment Effects
+  homeFieldAdvantage: number;      // Stadium atmosphere bonus
+  crowdIntensity: number;          // Fan noise/energy impact
+  domeReverberation: number;       // Enclosed stadium sound effects
+  
+  // Team Chemistry & Strategy
+  camaraderieTeamBonus: number;    // Team chemistry effect on performance
+  tacticalEffectiveness: number;   // Coach strategy success
+  equipmentAdvantage: number;      // Gear performance bonuses
+  physicalConditioning: number;    // Team stamina/endurance rating
 }
 
 export interface MatchCommand {

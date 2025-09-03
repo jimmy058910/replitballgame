@@ -85,6 +85,7 @@ export class AdvancedTacticalEffectsService {
 
   /**
    * Calculate game situation based on score and time
+   * UPDATED: Late game = final 5 minutes, close = within 2 points, big lead = 6+ points
    */
   static calculateGameSituation(
     homeScore: number,
@@ -98,15 +99,15 @@ export class AdvancedTacticalEffectsService {
     const scoreDiff = teamScore - opponentScore;
     const timeElapsed = totalTime - timeRemaining;
     const isSecondHalf = timeElapsed > (totalTime * 0.5);
-    const isLateGame = timeRemaining <= (totalTime * 0.15); // Final 15% of game
+    const isLateGame = timeRemaining <= 300; // Final 5 minutes (was 15% of game)
 
-    // Winning/losing big in second half
-    if (isSecondHalf && Math.abs(scoreDiff) >= 2) {
-      return scoreDiff >= 2 ? 'winning_big' : 'losing_big';
+    // Winning/losing big in second half (6+ point difference)
+    if (isSecondHalf && Math.abs(scoreDiff) >= 6) {
+      return scoreDiff >= 6 ? 'winning_big' : 'losing_big';
     }
 
-    // Late and close game
-    if (isLateGame && Math.abs(scoreDiff) <= 1) {
+    // Late and close game (final 5 minutes, within 2 points)
+    if (isLateGame && Math.abs(scoreDiff) <= 2) {
       return 'late_close';
     }
 

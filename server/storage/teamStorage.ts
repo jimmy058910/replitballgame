@@ -2,6 +2,100 @@ import { getPrismaClient } from '../database.js';
 import { PrismaClient, Team, Race } from "@prisma/client";
 import { PaymentHistoryService } from '../services/paymentHistoryService.js';
 
+// Greek alphabet subdivision names for proper subdivision assignment
+const GREEK_ALPHABET = [
+  "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
+  "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi",
+  "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
+];
+
+/**
+ * Get the default subdivision name for a given division
+ * Uses Greek alphabet naming system instead of hardcoded "main"
+ */
+async function getDefaultSubdivision(division: number): Promise<string> {
+  const prisma = await getPrismaClient();
+  
+  // For late signup system (Division 8), use the late signup logic
+  if (division === 8) {
+    // Check if there are any existing teams and their subdivisions
+    const existingTeams = await prisma.team.findMany({
+      where: { division: 8 },
+      select: { subdivision: true }
+    });
+    
+    if (existingTeams.length === 0) {
+      return "alpha"; // First team gets alpha
+    }
+    
+    // Count teams per subdivision
+    const subdivisionCounts = existingTeams.reduce((acc, team) => {
+      const subdivision = team.subdivision || "alpha";
+      acc[subdivision] = (acc[subdivision] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Find first subdivision with less than 8 teams
+    for (const baseName of GREEK_ALPHABET) {
+      if ((subdivisionCounts[baseName] || 0) < 8) {
+        return baseName;
+      }
+    }
+    
+    // If all base names are full, try numbered extensions
+    for (const baseName of GREEK_ALPHABET) {
+      for (let i = 1; i <= 100; i++) {
+        const numberedName = `${baseName}_${i}`;
+        if ((subdivisionCounts[numberedName] || 0) < 8) {
+          return numberedName;
+        }
+      }
+    }
+    
+    // Fallback to overflow pattern
+    const overflowId = Date.now().toString().slice(-6);
+    return `overflow_${overflowId}`;
+  }
+  
+  // For other divisions, find the first available subdivision
+  const existingTeams = await prisma.team.findMany({
+    where: { division },
+    select: { subdivision: true }
+  });
+  
+  if (existingTeams.length === 0) {
+    return "alpha"; // First team gets alpha
+  }
+  
+  // Count teams per subdivision
+  const subdivisionCounts = existingTeams.reduce((acc, team) => {
+    const subdivision = team.subdivision || "alpha";
+    acc[subdivision] = (acc[subdivision] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  // Find first subdivision with less than 8 teams (standard subdivision size)
+  for (const baseName of GREEK_ALPHABET) {
+    if ((subdivisionCounts[baseName] || 0) < 8) {
+      return baseName;
+    }
+  }
+  
+  // If all base names are full, try numbered extensions
+  for (const baseName of GREEK_ALPHABET) {
+    for (let i = 1; i <= 100; i++) {
+      const numberedName = `${baseName}_${i}`;
+      if ((subdivisionCounts[numberedName] || 0) < 8) {
+        return numberedName;
+      }
+    }
+  }
+  
+  // Fallback to overflow pattern
+  const overflowId = Date.now().toString().slice(-6);
+  return `overflow_${overflowId}`;
+}
+
 // Helper function to serialize BigInt fields to strings for JSON compatibility
 function serializeTeamFinances(finances: any): any {
   if (!finances) return null;
@@ -93,7 +187,7 @@ export class TeamStorage {
         name: teamData.name,
         userProfileId: userProfile.id, // Use the UserProfile's id, not the userId
         division: teamData.division || 8,
-        subdivision: teamData.subdivision || "main",
+        subdivision: teamData.subdivision || await getDefaultSubdivision(teamData.division || 8),
         camaraderie: 50.0,
         fanLoyalty: 50.0,
         isAI: false, // Human team by default
@@ -176,7 +270,7 @@ export class TeamStorage {
         name: teamData.name,
         userProfileId: userProfile.id,
         division: teamData.division || 8,
-        subdivision: teamData.subdivision || "main",
+        subdivision: teamData.subdivision || await getDefaultSubdivision(teamData.division || 8),
         camaraderie: 50.0,
         fanLoyalty: 50.0,
         isAI: true, // Mark as AI team

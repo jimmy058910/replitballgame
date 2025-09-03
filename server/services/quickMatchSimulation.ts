@@ -11,6 +11,14 @@
 import { getPrismaClient } from '../database.js';
 import { CamaraderieService } from './camaraderieService.js';
 import { logInfo, logError } from './errorService.js';
+import { 
+  calculateTacticalModifiers, 
+  determineGameSituation,
+  type TeamTacticalInfo,
+  type GameState,
+  type TacticalModifiers
+} from '../../shared/tacticalSystem.js';
+import { AdvancedTacticalEffectsService } from './advancedTacticalEffectsService.js';
 
 // Constants for simulation configuration
 const DEFAULT_STAT_VALUE = 20;
@@ -42,19 +50,55 @@ export interface PlayerMatchStats {
   playerId: string;
   playerName: string;
   role: string;
-  rushing: number;
-  passing: number;
-  catching: number;
-  blocking: number;
-  tackleAttempts: number;
-  tackleSuccesses: number;
-  fumbles: number;
-  interceptions: number;
-  touchdowns: number;
-  timeOnField: number;
-  staminaUsed: number;
+  
+  // Core performance metrics
+  minutesPlayed: number;
   performanceRating: number;
   camaraderieContribution: number;
+  
+  // Scoring
+  scores: number;
+  assists: number;
+  
+  // Passing in continuous dome ball action
+  passAttempts: number;
+  passCompletions: number;
+  passingYards: number;
+  perfectPasses: number;
+  
+  // Rushing in continuous flow
+  rushingYards: number;
+  breakawayRuns: number;
+  
+  // Receiving (all positions can catch)
+  catches: number;
+  receivingYards: number;
+  drops: number;
+  
+  // Physical defense in continuous action
+  tackles: number;
+  tackleAttempts: number;
+  knockdowns: number;
+  blocks: number;
+  injuriesInflicted: number;
+  
+  // Ball disruption
+  interceptions: number;
+  ballStrips: number;
+  passDeflections: number;
+  
+  // Ball control errors
+  fumblesLost: number;
+  ballRetention: number;
+  
+  // Continuous action metrics
+  distanceCovered: number;
+  staminaUsed: number;
+  ballPossessionTime: number;
+  pressureApplied: number;
+  
+  // Physical toll
+  injuries: number;
 }
 
 export interface PlayerInjury {
@@ -83,6 +127,17 @@ export interface TeamMatchEffects {
   stadiumAtmosphere: number;
   equipmentBonuses: number;
   raceEffectBonuses: number;
+  
+  // Enhanced tactical system integration
+  tacticalModifiers: TacticalModifiers;
+  gameSituation: 'winning_big' | 'losing_big' | 'late_close' | 'normal';
+  fieldSizeEffects: {
+    name: string;
+    passRangeModifier: number;
+    staminaDepletionModifier: number;
+    blockerEngagementModifier: number;
+    powerBonusModifier: number;
+  };
 }
 
 export interface MatchEvent {
@@ -133,9 +188,19 @@ export class QuickMatchSimulation {
         throw new Error(`Match ${matchId} not found`);
       }
 
-      // 2. Calculate team effects (camaraderie, coaching, tactics)
-      const homeEffects = await this.calculateTeamEffects(match.homeTeam);
-      const awayEffects = await this.calculateTeamEffects(match.awayTeam);
+      // 2. Calculate team effects with enhanced tactical system
+      // Create initial game state for tactical calculations
+      // NOTE: Game situation parameters updated - Late game: final 5min, Close: ≤2pts, Big lead: ≥6pts
+      const gameState: GameState = {
+        homeScore: 0,
+        awayScore: 0,
+        gameTime: 0,
+        maxTime: 1200, // 20 minutes default (will be updated based on match type)
+        currentHalf: 1
+      };
+
+      const homeEffects = await this.calculateTeamEffects(match.homeTeam, gameState, true);
+      const awayEffects = await this.calculateTeamEffects(match.awayTeam, gameState, false);
 
       // 3. Simulate match outcome based on team strengths and effects
       const matchResult = await this.calculateMatchOutcome(
@@ -162,11 +227,17 @@ export class QuickMatchSimulation {
         matchResult.intensity
       );
 
-      // 6. Calculate stamina depletion
+      // 6. Calculate enhanced stamina depletion with tactical modifiers
       const staminaChanges = await this.calculateStaminaChanges(
         [...match.homeTeam.players, ...match.awayTeam.players],
         homeEffects.tacticalEffectiveness + awayEffects.tacticalEffectiveness,
-        matchResult.matchDuration
+        matchResult.matchDuration,
+        {
+          homeStaminaModifier: homeEffects.tacticalModifiers.staminaDepletionModifier,
+          awayStaminaModifier: awayEffects.tacticalModifiers.staminaDepletionModifier,
+          homeTeamSize: match.homeTeam.players.length,
+          awayTeamSize: match.awayTeam.players.length
+        }
       );
 
       // 7. Calculate revenue (attendance, atmosphere, performance)
@@ -199,6 +270,9 @@ export class QuickMatchSimulation {
         match.matchType as 'LEAGUE' | 'EXHIBITION' | 'TOURNAMENT'
       );
 
+      // 11. Save comprehensive statistics to database
+      await this.saveMatchStatistics(match, playerStats, homeEffects, awayEffects, matchResult);
+
       const result: QuickSimulationResult = {
         matchId,
         finalScore: { home: matchResult.homeScore, away: matchResult.awayScore },
@@ -219,7 +293,8 @@ export class QuickMatchSimulation {
         matchId, 
         finalScore: result.finalScore,
         injuries: injuries.length,
-        mvp: mvpPlayer
+        mvp: mvpPlayer,
+        statisticsSaved: true
       });
 
       return result;
@@ -233,7 +308,7 @@ export class QuickMatchSimulation {
   /**
    * Calculate comprehensive team effects including camaraderie, coaching, tactics
    */
-  private static async calculateTeamEffects(team: any): Promise<TeamMatchEffects> {
+  private static async calculateTeamEffects(team: any, gameState: GameState, isHomeTeam: boolean): Promise<TeamMatchEffects> {
     // Get camaraderie effects
     const camaraderieEffects = await CamaraderieService.getCamaraderieEffects(team.id.toString());
     
@@ -241,10 +316,50 @@ export class QuickMatchSimulation {
     const headCoach = team.staff.find((s: any) => s.type === 'HEAD_COACH');
     const coachingBonus = headCoach ? (headCoach.tactics || DEFAULT_STAT_VALUE) * 0.5 : 0;
     
-    // Calculate tactical effectiveness (coach tactics + camaraderie)
+    // 🚀 ENHANCED TACTICAL SYSTEM INTEGRATION
+    const teamTacticalInfo: TeamTacticalInfo = {
+      fieldSize: (team.homeField || 'STANDARD').toLowerCase() as any,
+      tacticalFocus: (team.tacticalFocus || 'BALANCED') as any,
+      camaraderie: camaraderieEffects.teamCamaraderie,
+      headCoachTactics: headCoach?.tactics || DEFAULT_STAT_VALUE,
+      isHomeTeam
+    };
+
+    // Calculate sophisticated tactical modifiers
+    const tacticalModifiers = calculateTacticalModifiers(teamTacticalInfo, gameState, isHomeTeam);
+    const gameSituation = determineGameSituation(gameState);
+    
+    // Get field size effects for display/logging
+    const fieldSizeEffects = {
+      name: isHomeTeam ? `${team.homeField || 'STANDARD'} Field` : 'Standard Field (Away)',
+      passRangeModifier: tacticalModifiers.passRangeModifier,
+      staminaDepletionModifier: tacticalModifiers.staminaDepletionModifier,
+      blockerEngagementModifier: tacticalModifiers.blockerRangeModifier,
+      powerBonusModifier: tacticalModifiers.powerBonusModifier
+    };
+
+    // Calculate overall tactical effectiveness from modifiers
     const tacticalEffectiveness = Math.min(100, 
-      (headCoach?.tactics || DEFAULT_STAT_VALUE) + (camaraderieEffects.teamCamaraderie * 0.3)
+      // Base effectiveness from modifiers
+      (tacticalModifiers.passRangeModifier * 25) +
+      (tacticalModifiers.runnerRouteDepthModifier * 20) +
+      (tacticalModifiers.blockerAggressionModifier * 20) +
+      (tacticalModifiers.clutchPerformanceModifier || 1.0) * 20 +
+      // Coach and camaraderie bonus
+      (headCoach?.tactics || DEFAULT_STAT_VALUE) * 0.15
     );
+
+    // 🎯 TACTICAL SYSTEM LOGGING
+    console.log(`🎯 [TACTICS] ${isHomeTeam ? 'HOME' : 'AWAY'} Team: ${team.name}`);
+    console.log(`   Field Size: ${teamTacticalInfo.fieldSize.toUpperCase()} (${fieldSizeEffects.name})`);
+    console.log(`   Tactical Focus: ${teamTacticalInfo.tacticalFocus}`);
+    console.log(`   Game Situation: ${gameSituation}`);
+    console.log(`   Pass Range Modifier: ${tacticalModifiers.passRangeModifier}x`);
+    console.log(`   Stamina Depletion: ${tacticalModifiers.staminaDepletionModifier}x`);
+    console.log(`   Blocker Aggression: ${tacticalModifiers.blockerAggressionModifier}x`);
+    console.log(`   Power Bonus: +${tacticalModifiers.powerBonusModifier}`);
+    console.log(`   Coach Tactics: ${headCoach?.tactics || DEFAULT_STAT_VALUE}`);
+    console.log(`   Final Effectiveness: ${tacticalEffectiveness.toFixed(1)}%\n`);
 
     // Stadium atmosphere (home field advantage)
     const stadium = team.stadium;
@@ -267,7 +382,12 @@ export class QuickMatchSimulation {
       coachingBonus,
       stadiumAtmosphere,
       equipmentBonuses,
-      raceEffectBonuses
+      raceEffectBonuses,
+      
+      // Enhanced tactical system data
+      tacticalModifiers,
+      gameSituation,
+      fieldSizeEffects
     };
   }
 
@@ -289,21 +409,47 @@ export class QuickMatchSimulation {
     const homeStrength = this.calculateTeamStrength(homeTeam.players);
     const awayStrength = this.calculateTeamStrength(awayTeam.players);
 
-    // Apply all modifiers
+    // 🚀 ENHANCED TACTICAL MODIFIERS APPLICATION
+    // Apply comprehensive tactical system modifiers
     const homeModifiedStrength = homeStrength * 
+      // Traditional modifiers
       (1 + homeEffects.tacticalEffectiveness / 100) *
       (1 + homeEffects.coachingBonus / 100) *
       (1 + homeEffects.stadiumAtmosphere / 200) * // Home field advantage
       (1 + homeEffects.equipmentBonuses / 100) *
       (1 + homeEffects.raceEffectBonuses / 100) *
-      (1 + (homeEffects.camaraderieBonus.catching + homeEffects.camaraderieBonus.agility) / 200);
+      (1 + (homeEffects.camaraderieBonus.catching + homeEffects.camaraderieBonus.agility) / 200) *
+      
+      // 🎯 NEW: Field size tactical modifiers
+      homeEffects.tacticalModifiers.passRangeModifier *
+      homeEffects.tacticalModifiers.blockerAggressionModifier *
+      
+      // 🎯 NEW: Tactical focus modifiers
+      homeEffects.tacticalModifiers.runnerRouteDepthModifier *
+      homeEffects.tacticalModifiers.passerRiskToleranceModifier *
+      
+      // 🎯 NEW: Situational modifiers
+      (homeEffects.tacticalModifiers.clutchPerformanceModifier || 1.0) *
+      (homeEffects.tacticalModifiers.conservativePlayModifier || 1.0) *
+      (homeEffects.tacticalModifiers.desperationModifier || 1.0);
 
     const awayModifiedStrength = awayStrength * 
+      // Traditional modifiers (no stadium advantage for away team)
       (1 + awayEffects.tacticalEffectiveness / 100) *
       (1 + awayEffects.coachingBonus / 100) *
       (1 + awayEffects.equipmentBonuses / 100) *
       (1 + awayEffects.raceEffectBonuses / 100) *
-      (1 + (awayEffects.camaraderieBonus.catching + awayEffects.camaraderieBonus.agility) / 200);
+      (1 + (awayEffects.camaraderieBonus.catching + awayEffects.camaraderieBonus.agility) / 200) *
+      
+      // 🎯 NEW: Away team tactical modifiers (no field size benefits)
+      awayEffects.tacticalModifiers.blockerAggressionModifier *
+      awayEffects.tacticalModifiers.runnerRouteDepthModifier *
+      awayEffects.tacticalModifiers.passerRiskToleranceModifier *
+      
+      // 🎯 NEW: Situational modifiers
+      (awayEffects.tacticalModifiers.clutchPerformanceModifier || 1.0) *
+      (awayEffects.tacticalModifiers.conservativePlayModifier || 1.0) *
+      (awayEffects.tacticalModifiers.desperationModifier || 1.0);
 
     // Calculate strength differential and base scores
     const strengthRatio = homeModifiedStrength / awayModifiedStrength;
@@ -385,58 +531,178 @@ export class QuickMatchSimulation {
       // Role-based stat generation
       const roleMultipliers = this.getRoleMultipliers(player.role);
       
-      // Generate stats based on player attributes and effects
-      const rushing = Math.floor((player.rushingAttribute || 20) * roleMultipliers.rushing * effectMultiplier * Math.random() * 0.1);
-      const passing = Math.floor((player.passingAttribute || 20) * roleMultipliers.passing * effectMultiplier * Math.random() * 0.1);
-      const catching = Math.floor((player.catchingAttribute || 20) * roleMultipliers.catching * effectMultiplier * Math.random() * 0.1);
-      const blocking = Math.floor((player.blockingAttribute || 20) * roleMultipliers.blocking * effectMultiplier * Math.random() * 0.05);
-      const tackling = Math.floor((player.tacklingAttribute || 20) * roleMultipliers.tackling * effectMultiplier * Math.random() * 0.05);
-
-      // Calculate performance rating
+      // Generate realistic dome ball statistics based on continuous action
+      const baseIntensity = matchResult.intensity / 100;
+      const playerIntensity = effectMultiplier * baseIntensity;
+      
+      // Core physical metrics
+      const minutesPlayed = 45 + Math.floor(Math.random() * 15); // 45-60 minutes in continuous action
+      const staminaUsed = Math.floor(minutesPlayed * 0.6 + Math.random() * 20); // Stamina correlates with time played
+      const distanceCovered = Math.floor(minutesPlayed * (20 + Math.random() * 15)); // Yards covered during continuous play
+      
+      // Scoring metrics
+      const scores = Math.floor(Math.random() * 3 * roleMultipliers.scoring * playerIntensity); // 0-2 scores typical
+      const assists = Math.floor(Math.random() * 2 * roleMultipliers.playmaking * playerIntensity);
+      
+      // Passing in continuous action
+      const passAttempts = Math.floor((player.passingAttribute || 20) * roleMultipliers.passing * playerIntensity * 0.2);
+      const passCompletions = Math.floor(passAttempts * (0.6 + Math.random() * 0.3)); // 60-90% completion rate
+      const passingYards = Math.floor(passCompletions * (8 + Math.random() * 12)); // 8-20 yards per completion
+      const perfectPasses = Math.floor(passCompletions * (0.1 + Math.random() * 0.2)); // 10-30% perfect passes
+      
+      // Rushing in continuous flow
+      const rushingYards = Math.floor((player.rushingAttribute || 20) * roleMultipliers.rushing * playerIntensity * 0.3);
+      const breakawayRuns = rushingYards > 50 ? Math.floor(rushingYards / 50) : 0; // Long runs of 15+ yards
+      
+      // Receiving (all positions can catch in dome ball)
+      const catches = Math.floor((player.catchingAttribute || 20) * roleMultipliers.receiving * playerIntensity * 0.15);
+      const receivingYards = Math.floor(catches * (6 + Math.random() * 10)); // 6-16 yards per catch
+      const drops = Math.floor(Math.random() * 2 * (1 - playerIntensity)); // Better players drop less
+      
+      // Physical defense in continuous action
+      const tackleAttempts = Math.floor((player.tacklingAttribute || 20) * roleMultipliers.tackling * playerIntensity * 0.2);
+      const tackles = Math.floor(tackleAttempts * (0.7 + Math.random() * 0.2)); // 70-90% success rate
+      const knockdowns = Math.floor(tackles * (0.3 + Math.random() * 0.2)); // 30-50% of tackles result in knockdowns
+      const blocks = Math.floor((player.blockingAttribute || 20) * roleMultipliers.blocking * playerIntensity * 0.1);
+      const injuriesInflicted = Math.floor(Math.random() * 1 * baseIntensity); // Rare but possible
+      
+      // Ball disruption
+      const interceptions = Math.floor(Math.random() * 1 * roleMultipliers.ballHawking * playerIntensity);
+      const ballStrips = Math.floor(Math.random() * 1 * roleMultipliers.tackling * playerIntensity);
+      const passDeflections = Math.floor(tackleAttempts * 0.2 * roleMultipliers.coverage);
+      
+      // Ball control errors
+      const fumblesLost = Math.floor(Math.random() * 2 * (1 - playerIntensity + (player.effects.camaraderieBonus.fumbleRisk || 0)));
+      const ballRetention = Math.floor(Math.random() * 3 * playerIntensity); // Good ball security plays
+      
+      // Continuous action metrics
+      const ballPossessionTime = Math.floor(Math.random() * 120 * roleMultipliers.ballHandling); // Seconds holding ball
+      const pressureApplied = Math.floor(tackleAttempts * 0.5); // Times pressured opposing ball carrier
+      
+      // Physical toll
+      const injuries = Math.floor(Math.random() * 1 * baseIntensity * (1 - (player.effects.camaraderieLevel / 100))); // Injuries rare, camaraderie helps
+      
+      // Calculate comprehensive performance rating (0-100)
+      const offensiveScore = (scores * 10) + (assists * 5) + (passingYards * 0.1) + (rushingYards * 0.15) + (receivingYards * 0.15);
+      const defensiveScore = (tackles * 2) + (knockdowns * 3) + (interceptions * 8) + (ballStrips * 5);
       const performanceRating = Math.min(100, Math.max(0, 
-        (rushing + passing + catching + blocking + tackling) * 2 + 
-        (player.effects.camaraderieLevel - 50) * 0.5
+        (offensiveScore + defensiveScore) * 0.5 + 
+        (player.effects.camaraderieLevel - 50) * 0.3 +
+        (50 * playerIntensity)
+      ));
+      
+      // Camaraderie contribution (-5 to +5)
+      const camaraderieContribution = Math.max(-5, Math.min(5, 
+        ((player.camaraderieScore || 50) - 50) / 10 + 
+        (performanceRating - 50) / 25
       ));
 
       return {
         playerId: player.id.toString(),
         playerName: `${player.firstName} ${player.lastName}`,
         role: player.role,
-        rushing,
-        passing,
-        catching,
-        blocking,
-        tackleAttempts: tackling + Math.floor(Math.random() * 3),
-        tackleSuccesses: tackling,
-        fumbles: Math.floor(Math.random() * 2 + (player.effects.camaraderieBonus.fumbleRisk || 0)),
-        interceptions: Math.floor(Math.random() * 1),
-        touchdowns: Math.floor(Math.random() * 2),
-        timeOnField: 45 + Math.floor(Math.random() * 15), // Minutes
-        staminaUsed: 20 + Math.floor(Math.random() * 30),
-        performanceRating,
-        camaraderieContribution: Math.max(-5, Math.min(5, (player.camaraderieScore || 50) - 50) / 10)
+        
+        // Core performance metrics
+        minutesPlayed,
+        performanceRating: Math.round(performanceRating),
+        camaraderieContribution: Math.round(camaraderieContribution * 10) / 10,
+        
+        // Scoring
+        scores,
+        assists,
+        
+        // Passing in continuous dome ball action
+        passAttempts,
+        passCompletions,
+        passingYards,
+        perfectPasses,
+        
+        // Rushing in continuous flow
+        rushingYards,
+        breakawayRuns,
+        
+        // Receiving (all positions can catch)
+        catches,
+        receivingYards,
+        drops,
+        
+        // Physical defense in continuous action
+        tackles,
+        tackleAttempts,
+        knockdowns,
+        blocks,
+        injuriesInflicted,
+        
+        // Ball disruption
+        interceptions,
+        ballStrips,
+        passDeflections,
+        
+        // Ball control errors
+        fumblesLost,
+        ballRetention,
+        
+        // Continuous action metrics
+        distanceCovered,
+        staminaUsed,
+        ballPossessionTime,
+        pressureApplied,
+        
+        // Physical toll
+        injuries
       };
     });
   }
 
   /**
-   * Get role-specific stat multipliers
+   * Get role-specific stat multipliers for dome ball continuous action
    */
   private static getRoleMultipliers(role: string): {
-    rushing: number;
+    // Offensive
+    scoring: number;
+    playmaking: number;
     passing: number;
-    catching: number;
-    blocking: number;
+    rushing: number;
+    receiving: number;
+    
+    // Defensive
     tackling: number;
+    blocking: number;
+    ballHawking: number;
+    coverage: number;
+    
+    // Utility
+    ballHandling: number;
   } {
     const multipliers = {
-      RUSHER: { rushing: 3.0, passing: 0.2, catching: 1.0, blocking: 0.5, tackling: 0.3 },
-      PASSER: { rushing: 0.5, passing: 3.0, catching: 0.3, blocking: 0.3, tackling: 0.2 },
-      BLOCKER: { rushing: 0.3, passing: 0.1, catching: 0.2, blocking: 3.0, tackling: 2.0 }
+      Runner: { 
+        scoring: 2.0, playmaking: 1.2, passing: 0.3, rushing: 3.0, receiving: 1.5,
+        tackling: 0.8, blocking: 0.5, ballHawking: 0.7, coverage: 0.6,
+        ballHandling: 2.5 
+      },
+      Passer: { 
+        scoring: 1.5, playmaking: 3.0, passing: 3.0, rushing: 0.4, receiving: 0.8,
+        tackling: 0.3, blocking: 0.2, ballHawking: 1.2, coverage: 1.0,
+        ballHandling: 2.0 
+      },
+      Blocker: { 
+        scoring: 0.8, playmaking: 0.5, passing: 0.2, rushing: 0.6, receiving: 0.4,
+        tackling: 2.5, blocking: 3.0, ballHawking: 0.8, coverage: 1.8,
+        ballHandling: 0.5 
+      }
     };
 
-    return multipliers[role as keyof typeof multipliers] || 
-           { rushing: 1.0, passing: 1.0, catching: 1.0, blocking: 1.0, tackling: 1.0 };
+    // Handle legacy role names and normalize
+    const normalizedRole = role === 'RUSHER' ? 'Runner' : 
+                          role === 'PASSER' ? 'Passer' : 
+                          role === 'BLOCKER' ? 'Blocker' : role;
+
+    return multipliers[normalizedRole as keyof typeof multipliers] || 
+           { 
+             scoring: 1.0, playmaking: 1.0, passing: 1.0, rushing: 1.0, receiving: 1.0,
+             tackling: 1.0, blocking: 1.0, ballHawking: 1.0, coverage: 1.0,
+             ballHandling: 1.0 
+           };
   }
 
   /**
@@ -490,19 +756,38 @@ export class QuickMatchSimulation {
   }
 
   /**
-   * Calculate stamina depletion for all players
+   * Calculate stamina depletion for all players with tactical modifiers
    */
   private static async calculateStaminaChanges(
     players: any[],
     avgTacticalEffectiveness: number,
-    matchDuration: number
+    matchDuration: number,
+    tacticalData?: {
+      homeStaminaModifier: number;
+      awayStaminaModifier: number;
+      homeTeamSize: number;
+      awayTeamSize: number;
+    }
   ): Promise<StaminaUpdate[]> {
-    return players.slice(0, 24).map(player => {
+    return players.slice(0, 24).map((player, index) => {
       const baseStamina = player.staminaAttribute || 50;
+      
+      // 🚀 ENHANCED: Apply tactical field size stamina modifiers
+      let tacticalStaminaModifier = 1.0;
+      if (tacticalData) {
+        // Determine if this player is home or away team
+        const isHomeTeamPlayer = index < tacticalData.homeTeamSize;
+        tacticalStaminaModifier = isHomeTeamPlayer ? 
+          tacticalData.homeStaminaModifier : 
+          tacticalData.awayStaminaModifier;
+      }
       
       // Tactical effectiveness reduces stamina drain
       const efficiencyFactor = 1 - (avgTacticalEffectiveness / 200);
-      const staminaUsed = Math.floor(20 + Math.random() * 30 * efficiencyFactor);
+      
+      // Apply field size effects to stamina usage
+      const baseStaminaUsed = 20 + Math.random() * 30;
+      const staminaUsed = Math.floor(baseStaminaUsed * efficiencyFactor * tacticalStaminaModifier);
       
       const staminaAfter = Math.max(0, baseStamina - staminaUsed);
       const recoveryTime = Math.max(2, 24 - Math.floor(avgTacticalEffectiveness / 10));
@@ -628,5 +913,232 @@ export class QuickMatchSimulation {
     }
 
     return summary;
+  }
+
+  /**
+   * Save comprehensive match statistics to database
+   */
+  private static async saveMatchStatistics(
+    match: any, 
+    playerStats: PlayerMatchStats[], 
+    homeEffects: TeamMatchEffects, 
+    awayEffects: TeamMatchEffects, 
+    matchResult: any
+  ): Promise<void> {
+    try {
+      const prisma = await getPrismaClient();
+      const matchDate = new Date();
+
+      logInfo("Saving match statistics to database", { 
+        matchId: match.id, 
+        playerCount: playerStats.length,
+        matchType: match.matchType 
+      });
+
+      // Only save statistics for meaningful matches (not exhibitions)
+      const meaningfulMatch = ['LEAGUE', 'PLAYOFF'].includes(match.matchType);
+      
+      if (!meaningfulMatch) {
+        logInfo("Skipping statistics save for exhibition match", { matchType: match.matchType });
+        return;
+      }
+
+      // Save individual player statistics
+      for (const playerStat of playerStats) {
+        await prisma.playerMatchStats.create({
+          data: {
+            playerId: parseInt(playerStat.playerId),
+            gameId: match.id,
+            matchDate: matchDate,
+            matchType: match.matchType,
+            
+            // Core performance metrics
+            minutesPlayed: playerStat.minutesPlayed,
+            performanceRating: playerStat.performanceRating,
+            camaraderieContribution: playerStat.camaraderieContribution,
+            
+            // Scoring
+            scores: playerStat.scores,
+            assists: playerStat.assists,
+            
+            // Passing in continuous dome ball action
+            passAttempts: playerStat.passAttempts,
+            passCompletions: playerStat.passCompletions,
+            passingYards: playerStat.passingYards,
+            perfectPasses: playerStat.perfectPasses,
+            
+            // Rushing in continuous flow
+            rushingYards: playerStat.rushingYards,
+            breakawayRuns: playerStat.breakawayRuns,
+            
+            // Receiving (all positions can catch)
+            catches: playerStat.catches,
+            receivingYards: playerStat.receivingYards,
+            drops: playerStat.drops,
+            
+            // Physical defense in continuous action
+            tackles: playerStat.tackles,
+            tackleAttempts: playerStat.tackleAttempts,
+            knockdowns: playerStat.knockdowns,
+            blocks: playerStat.blocks,
+            injuriesInflicted: playerStat.injuriesInflicted,
+            
+            // Ball disruption
+            interceptions: playerStat.interceptions,
+            ballStrips: playerStat.ballStrips,
+            passDeflections: playerStat.passDeflections,
+            
+            // Ball control errors
+            fumblesLost: playerStat.fumblesLost,
+            ballRetention: playerStat.ballRetention,
+            
+            // Continuous action metrics
+            distanceCovered: playerStat.distanceCovered,
+            staminaUsed: playerStat.staminaUsed,
+            ballPossessionTime: playerStat.ballPossessionTime,
+            pressureApplied: playerStat.pressureApplied,
+            
+            // Physical toll
+            injuries: playerStat.injuries
+          }
+        });
+      }
+
+      // Calculate and save team statistics
+      await this.saveTeamStatistics(match.homeTeamId, match.id, playerStats, homeEffects, matchResult, true, matchDate, match.matchType);
+      await this.saveTeamStatistics(match.awayTeamId, match.id, playerStats, awayEffects, matchResult, false, matchDate, match.matchType);
+
+      logInfo("Successfully saved all match statistics", { 
+        matchId: match.id,
+        playerStatsCount: playerStats.length,
+        teamStatsCount: 2
+      });
+      
+    } catch (error) {
+      logError(error as Error, undefined, { operation: 'saveMatchStatistics', matchId: match.id });
+      // Don't throw - we don't want to fail the entire match simulation if stats saving fails
+    }
+  }
+
+  /**
+   * Save team-level statistics aggregated from player stats
+   */
+  private static async saveTeamStatistics(
+    teamId: number, 
+    gameId: number, 
+    playerStats: PlayerMatchStats[], 
+    teamEffects: TeamMatchEffects,
+    matchResult: any,
+    isHomeTeam: boolean,
+    matchDate: Date,
+    matchType: string
+  ): Promise<void> {
+    const prisma = await getPrismaClient();
+
+    // Filter player stats for this team
+    const teamPlayerStats = playerStats.filter(stat => {
+      // Determine team membership by checking which half of stats this player is in
+      const playerIndex = playerStats.findIndex(p => p.playerId === stat.playerId);
+      const isHomePlayer = playerIndex < (playerStats.length / 2);
+      return isHomePlayer === isHomeTeam;
+    });
+
+    if (teamPlayerStats.length === 0) {
+      logError(new Error('No player stats found for team'), undefined, { teamId, gameId });
+      return;
+    }
+
+    // Aggregate team statistics from player stats
+    const aggregated = teamPlayerStats.reduce((acc, stat) => ({
+      totalScore: acc.totalScore + stat.scores,
+      totalPassingYards: acc.totalPassingYards + stat.passingYards,
+      totalRushingYards: acc.totalRushingYards + stat.rushingYards,
+      totalTackles: acc.totalTackles + stat.tackles,
+      totalKnockdowns: acc.totalKnockdowns + stat.knockdowns,
+      totalBlocks: acc.totalBlocks + stat.blocks,
+      totalInjuriesInflicted: acc.totalInjuriesInflicted + stat.injuriesInflicted,
+      totalInterceptions: acc.totalInterceptions + stat.interceptions,
+      totalBallStrips: acc.totalBallStrips + stat.ballStrips,
+      passDeflections: acc.passDeflections + stat.passDeflections,
+      totalFumbles: acc.totalFumbles + stat.fumblesLost,
+      totalPassAttempts: acc.totalPassAttempts + stat.passAttempts,
+      totalPassCompletions: acc.totalPassCompletions + stat.passCompletions,
+      totalBallPossessionTime: acc.totalBallPossessionTime + stat.ballPossessionTime,
+      totalDistanceCovered: acc.totalDistanceCovered + stat.distanceCovered,
+    }), {
+      totalScore: 0, totalPassingYards: 0, totalRushingYards: 0, totalTackles: 0,
+      totalKnockdowns: 0, totalBlocks: 0, totalInjuriesInflicted: 0, totalInterceptions: 0,
+      totalBallStrips: 0, passDeflections: 0, totalFumbles: 0, totalPassAttempts: 0,
+      totalPassCompletions: 0, totalBallPossessionTime: 0, totalDistanceCovered: 0
+    });
+
+    // Calculate derived statistics
+    const totalOffensiveYards = aggregated.totalPassingYards + aggregated.totalRushingYards;
+    const passingAccuracy = aggregated.totalPassAttempts > 0 ? 
+      (aggregated.totalPassCompletions / aggregated.totalPassAttempts) * 100 : 0;
+    const ballRetentionRate = teamPlayerStats.length > 0 ? 
+      Math.max(0, 100 - (aggregated.totalFumbles / teamPlayerStats.length) * 10) : 50;
+    
+    // Use match result data
+    const teamScore = isHomeTeam ? matchResult.homeScore : matchResult.awayScore;
+    const opponentScore = isHomeTeam ? matchResult.awayScore : matchResult.homeScore;
+    const scoringEfficiency = aggregated.totalScore > 0 ? (teamScore / Math.max(aggregated.totalScore, 1)) * 100 : 0;
+    
+    // Calculate possession and territory estimates
+    const estimatedPossessionTime = Math.floor(matchResult.matchDuration * 30 + Math.random() * 600); // 30-40 minutes estimated
+    const possessionPercentage = Math.min(100, Math.max(0, 50 + (teamScore - opponentScore) * 2));
+    const averageFieldPosition = 50 + Math.random() * 20 - 10; // 40-60 yard line average
+    
+    await prisma.teamMatchStats.create({
+      data: {
+        teamId: teamId,
+        gameId: gameId,
+        matchDate: matchDate,
+        matchType: matchType,
+        
+        // Possession & Territory Control
+        timeOfPossession: estimatedPossessionTime,
+        possessionPercentage: Math.round(possessionPercentage * 10) / 10,
+        averageFieldPosition: Math.round(averageFieldPosition * 10) / 10,
+        territoryGained: totalOffensiveYards,
+        
+        // Offensive Flow
+        totalScore: teamScore,
+        totalPassingYards: aggregated.totalPassingYards,
+        totalRushingYards: aggregated.totalRushingYards,
+        totalOffensiveYards: totalOffensiveYards,
+        passingAccuracy: Math.round(passingAccuracy * 10) / 10,
+        ballRetentionRate: Math.round(ballRetentionRate * 10) / 10,
+        scoringOpportunities: Math.max(1, Math.floor(totalOffensiveYards / 50)), // Rough estimate
+        scoringEfficiency: Math.round(scoringEfficiency * 10) / 10,
+        
+        // Physical Defense
+        totalTackles: aggregated.totalTackles,
+        totalKnockdowns: aggregated.totalKnockdowns,
+        totalBlocks: aggregated.totalBlocks,
+        totalInjuriesInflicted: aggregated.totalInjuriesInflicted,
+        
+        // Ball Disruption
+        totalInterceptions: aggregated.totalInterceptions,
+        totalBallStrips: aggregated.totalBallStrips,
+        passDeflections: aggregated.passDeflections,
+        defensiveStops: aggregated.totalInterceptions + aggregated.totalBallStrips,
+        
+        // Physical & Flow Metrics
+        totalFumbles: aggregated.totalFumbles,
+        turnoverDifferential: aggregated.totalInterceptions + aggregated.totalBallStrips - aggregated.totalFumbles,
+        physicalDominance: aggregated.totalKnockdowns - aggregated.totalFumbles,
+        ballSecurityRating: ballRetentionRate,
+        
+        // Environment & Strategy Effects
+        homeFieldAdvantage: isHomeTeam ? teamEffects.stadiumAtmosphere / 10 : 0,
+        crowdIntensity: teamEffects.stadiumAtmosphere,
+        domeReverberation: isHomeTeam ? teamEffects.stadiumAtmosphere * 0.8 : teamEffects.stadiumAtmosphere * 0.3,
+        camaraderieTeamBonus: teamEffects.camaraderieLevel,
+        tacticalEffectiveness: teamEffects.tacticalEffectiveness,
+        equipmentAdvantage: teamEffects.equipmentBonuses,
+        physicalConditioning: Math.max(0, 100 - (aggregated.totalDistanceCovered / teamPlayerStats.length / 10))
+      }
+    });
   }
 }
