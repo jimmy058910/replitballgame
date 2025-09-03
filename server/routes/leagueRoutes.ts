@@ -468,11 +468,23 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     const completedMatches = await prisma.game.findMany({
       where: {
         matchType: 'LEAGUE',
-        homeScore: { not: null }, // Games with actual scores
-        awayScore: { not: null },
         OR: [
-          { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
-          { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
+          // FIXED: Include games with 'COMPLETED' status OR games with actual scores
+          { status: 'COMPLETED' },
+          {
+            AND: [
+              { homeScore: { not: null } },
+              { awayScore: { not: null } }
+            ]
+          }
+        ],
+        AND: [
+          {
+            OR: [
+              { homeTeamId: { in: teamsInDivision.map((t: any) => t.id) } },
+              { awayTeamId: { in: teamsInDivision.map((t: any) => t.id) } }
+            ]
+          }
         ]
       },
       orderBy: { gameDate: 'asc' }
@@ -480,12 +492,29 @@ router.get('/:division/standings', requireAuth, async (req: Request, res: Respon
     
     console.log(`🎮 [LEAGUE STANDINGS] Found ${completedMatches.length} completed matches with scores`);
     
-    // DEBUG: Log each team's game count
+    // ENHANCED DEBUG: Show detailed breakdown of completed games
+    const gamesByStatus = completedMatches.reduce((acc: any, match: any) => {
+      const status = match.status || 'NULL_STATUS';
+      const hasScores = (match.homeScore !== null && match.awayScore !== null);
+      const key = `${status}_${hasScores ? 'WITH_SCORES' : 'NO_SCORES'}`;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+    
+    console.log(`🔍 [COMPLETED GAMES BREAKDOWN]:`, gamesByStatus);
+    
+    // DEBUG: Log each team's game count with detailed game info
     teamsInDivision.forEach((team: any) => {
       const teamMatches = completedMatches.filter((match: any) => 
         match.homeTeamId === team.id || match.awayTeamId === team.id
       );
       console.log(`🎮 [TEAM DEBUG] ${team.name}: ${teamMatches.length} games found`);
+      
+      if (teamMatches.length < 6) {
+        console.log(`🔍 [MISSING GAMES] ${team.name} details:`, teamMatches.map(m => 
+          `Game ${m.id}: ${m.status || 'NO_STATUS'}, Scores: ${m.homeScore}-${m.awayScore}, Date: ${new Date(m.gameDate).toDateString()}`
+        ));
+      }
     });
     
     // CRITICAL FIX: Reset all team standings and recalculate from scratch based on actual games
