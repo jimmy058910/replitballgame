@@ -5,6 +5,7 @@ import { Router, Request, Response } from 'express';
 import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
 import { MatchStatusFixer } from '../utils/matchStatusFixer.js';
 import { TournamentBracketGenerator } from '../utils/tournamentBracketGenerator.js';
+import { UnifiedTournamentAutomation } from '../services/unifiedTournamentAutomation';
 // No auth import needed for now - will use simple endpoint
 
 const router = Router();
@@ -191,6 +192,37 @@ router.get('/stuck-games', async (req: Request, res: Response) => {
     
   } catch (error) {
     console.error('❌ [ADMIN] Check stuck games failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Start a specific tournament round
+router.post('/start-tournament-round', async (req: Request, res: Response) => {
+  try {
+    const { tournamentId, roundNumber } = req.body;
+    
+    if (!tournamentId || !roundNumber) {
+      return res.status(400).json({
+        success: false,
+        error: 'tournamentId and roundNumber are required'
+      });
+    }
+    
+    console.log(`🎯 [ADMIN] Starting tournament ${tournamentId} round ${roundNumber}...`);
+    
+    await UnifiedTournamentAutomation.startTournamentRound(tournamentId, roundNumber);
+    
+    res.json({
+      success: true,
+      message: `Tournament ${tournamentId} round ${roundNumber} started`,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Start tournament round failed:', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
