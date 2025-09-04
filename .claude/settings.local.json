@@ -17,7 +17,11 @@
       "Bash(npm install)",
       "Bash(node run-agent-checks.js)",
       "Bash(node:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git reset:*)",
+      "Bash(gcloud auth:*)",
+      "Bash(git pull:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": [],
     "ask": []
