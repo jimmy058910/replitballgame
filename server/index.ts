@@ -76,6 +76,22 @@ async function startServer() {
     });
     app.use(limiter);
 
+    // CRITICAL: Health check endpoints for Cloud Run startup probes
+    app.get('/health', (req, res) => {
+      res.status(200).json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        port: process.env.PORT || (process.env.NODE_ENV === 'production' ? '8080' : '5000')
+      });
+    });
+
+    app.get('/healthz', (req, res) => {
+      res.status(200).json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString()
+      });
+    });
+
     // Session management
     app.use(session({
       secret: process.env.SESSION_SECRET || 'dev-secret-key',
@@ -140,13 +156,14 @@ async function startServer() {
     // Database initialization (lazy - will initialize when first needed)
     console.log('🔄 Database will initialize lazily when first accessed');
     const { getPrismaClient } = await import('./database.js');
-    // Test database connection
-    try {
-      await getPrismaClient();
+    
+    // CRITICAL: Make database connection truly non-blocking for Cloud Run startup
+    // Test connection asynchronously without blocking server startup
+    getPrismaClient().then(() => {
       console.log('✅ Database connection verified');
-    } catch (error) {
-      console.log('⚠️ Database will retry connection when needed:', (error as Error).message);
-    }
+    }).catch((error: Error) => {
+      console.log('⚠️ Database will retry connection when needed:', error.message);
+    });
 
     // CRITICAL FIX: Ensure API routes have absolute precedence over Vite
     app.use('/api', (req, res, next) => {
