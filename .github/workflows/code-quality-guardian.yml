@@ -18,7 +18,7 @@ on:
       auto_fix_safe:
         description: 'Auto-fix safe code quality issues'
         required: false
-        default: 'false'
+        default: 'true'
         type: boolean
 
 env:
