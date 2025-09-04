@@ -11,6 +11,7 @@ export class AwardsService {
    * MVP is awarded based on best overall performance stats
    */
   async awardMatchMVP(matchId: number): Promise<any | null> {
+    const prisma = await getPrismaClient();
     try {
       // Check if MVP already awarded for this match (placeholder - playerAward table needs to be created)
       // const existingMvp = await prisma.playerAward.findFirst({
@@ -118,6 +119,7 @@ export class AwardsService {
    * Calculate and award all season awards after league completion
    */
   async calculateSeasonAwards(seasonId: string): Promise<any[]> {
+    const prisma = await getPrismaClient();
     try {
       // Check if season awards already calculated
       // const existingAwards = await prisma.seasonAward.findMany({ // Placeholder until seasonAward table is created
@@ -304,6 +306,7 @@ export class AwardsService {
    * Get all MVP awards for a player
    */
   async getPlayerMVPAwards(playerId: number): Promise<any[]> {
+    const prisma = await getPrismaClient();
     // return await prisma.playerAward.findMany({ // Table not in schema
     //   where: { playerId },
     //   orderBy: { awardDate: 'desc' }
@@ -315,6 +318,7 @@ export class AwardsService {
    * Get all season awards for a player
    */
   async getPlayerSeasonAwards(playerId: number): Promise<any[]> {
+    const prisma = await getPrismaClient();
     // return await prisma.playerAward.findMany({ // Table not in schema
     //   where: { playerId },
     //   orderBy: { awardDate: 'desc' }
@@ -396,6 +400,7 @@ export class AwardsService {
    * Get team's complete season history
    */
   async getTeamSeasonHistory(teamId: number): Promise<any[]> {
+    const prisma = await getPrismaClient();
     // return await prisma.teamSeasonStats.findMany({ // Table not in schema
     //   where: { teamId },
     //   orderBy: { seasonNumber: 'desc' }

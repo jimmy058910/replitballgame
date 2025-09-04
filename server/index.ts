@@ -173,11 +173,21 @@ async function startServer() {
         return originalJson.call(this, obj);
       };
       
-      res.end = function(chunk, encoding) {
+      res.end = function(chunk?: any, encoding?: BufferEncoding, cb?: (() => void)) {
         if (!this.headersSent && chunk && typeof chunk === 'object') {
           this.setHeader('Content-Type', 'application/json');
         }
-        return originalEnd.call(this, chunk, encoding);
+        if (typeof encoding === 'function') {
+          cb = encoding;
+          encoding = undefined;
+        }
+        if (encoding && cb) {
+          return originalEnd.call(this, chunk, encoding, cb);
+        } else if (cb) {
+          return originalEnd.call(this, chunk, cb);
+        } else {
+          return originalEnd.call(this, chunk);
+        }
       };
       
       next();

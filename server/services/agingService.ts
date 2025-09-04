@@ -250,6 +250,7 @@ export class AgingService {
    * Update career injuries when a player gets injured
    */
   static async incrementCareerInjuries(playerId: string): Promise<void> {
+    const prisma = await getPrismaClient();
     const playerIdNumber = Number(playerId);
     const currentPlayer = await prisma.player.findFirst({
       where: { id: playerIdNumber }
@@ -266,6 +267,7 @@ export class AgingService {
    * Update games played this season
    */
   static async incrementGamesPlayed(playerId: string): Promise<void> {
+    const prisma = await getPrismaClient();
     const playerIdNumber = Number(playerId);
     const currentPlayer = await prisma.player.findFirst({
       where: { id: playerIdNumber }
@@ -288,6 +290,7 @@ export class AgingService {
     averageAge: number;
     ageDistribution: Record<string, number>;
   }> {
+    const prisma = await getPrismaClient();
     const allPlayers = await prisma.player.findMany();
     
     const totalPlayers = allPlayers.length;

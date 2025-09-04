@@ -35,7 +35,7 @@ router.post('/register', requireAuth, async (req: any, res) => {
       include: { Team: true }
     });
 
-    if (existingUserProfile?.Team?.length > 0) {
+    if (existingUserProfile?.Team) {
       return res.status(400).json({
         success: false,
         message: 'You already have a team registered'

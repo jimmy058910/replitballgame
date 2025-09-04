@@ -67,6 +67,7 @@ export class PlayerSkillsService {
    * Get all skills a player currently has with their tiers
    */
   static async getPlayerSkills(playerId: string): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const result = await prisma.playerSkillLink.findMany({
       where: { playerId: parseInt(playerId) },
       include: {
@@ -91,6 +92,7 @@ export class PlayerSkillsService {
    * Count how many skills a player currently has
    */
   static async getPlayerSkillCount(playerId: string): Promise<number> {
+    const prisma = await getPrismaClient();
     const result = await prisma.playerSkillLink.count({
       where: { playerId: parseInt(playerId) }
     });
@@ -102,6 +104,7 @@ export class PlayerSkillsService {
    * Acquire a new skill for a player (Tier 1)
    */
   static async acquireSkill(playerId: string, skillId: number): Promise<boolean> {
+    const prisma = await getPrismaClient();
     try {
       // Check if player already has this skill
       const existing = await prisma.playerSkillLink.findFirst({
@@ -142,6 +145,7 @@ export class PlayerSkillsService {
    * Upgrade an existing skill to the next tier
    */
   static async upgradeSkill(playerId: string, skillId: number): Promise<boolean> {
+    const prisma = await getPrismaClient();
     try {
       // Get current skill data
       const currentSkill = await prisma.playerSkillLink.findFirst({
@@ -341,7 +345,7 @@ export class PlayerSkillsService {
         activeSkills.push({
           name: skill.name,
           effects: statBonus,
-          description: skill[`tier${tier}Effect`],
+          description: skill[`tier${tier}Effect`]
         });
       }
     }
@@ -353,6 +357,7 @@ export class PlayerSkillsService {
    * Get all skills in database
    */
   static async getAllSkills(): Promise<any[]> {
+    const prisma = await getPrismaClient();
     return await prisma.skill.findMany({
       orderBy: [
         { category: 'asc' },

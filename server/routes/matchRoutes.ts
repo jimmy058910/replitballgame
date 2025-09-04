@@ -373,7 +373,7 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
       success: true, 
       message: `Match ${matchId} completed via instant simulation`,
       finalScore: simulationResult.finalScore,
-      simulationSummary: simulationResult.stats
+      simulationSummary: simulationResult.playerStats
     });
   } catch (error) {
     console.error(`Error simulating match ${req.params.matchId}:`, error);
@@ -604,7 +604,7 @@ router.get('/:matchId/enhanced-data-old', requireAuth, async (req: Request, res:
 
     // Get live match state if available
     const { matchStateManager } = await import('../services/matchStateManager');
-    const liveState = await matchStateManager.getLiveMatchState(matchId);
+    const liveState = await matchStateManager.getLiveMatchState(matchIdNum);
     
     console.log(`Live state found: ${liveState ? 'YES' : 'NO'}`);
     console.log(`Match status: ${match.status}`);
@@ -752,7 +752,7 @@ router.get('/:matchId/enhanced-data-old', requireAuth, async (req: Request, res:
 
     // Get player stats from live state
     const playerStats: any = {};
-    liveState.playerStats.forEach((stats, playerId) => {
+    liveState.playerStats.forEach((stats: any, playerId: string) => {
       (playerStats as any)[playerId] = {
         scores: stats.scores,
         passingAttempts: stats.passingAttempts,
@@ -932,7 +932,7 @@ router.post('/:id/simulate', requireAuth, async (req: Request, res: Response, ne
       homeScore: result.finalScore.home, 
       awayScore: result.finalScore.away,
       status: "COMPLETED",
-      simulationLog: result.stats as any,
+      simulationLog: result.playerStats as any,
     });
 
     // Record stadium revenue for home team
@@ -1062,7 +1062,7 @@ router.post('/:matchId/reset', requireAuth, async (req: Request, res: Response, 
       completedAt: null,
     });
     const { matchStateManager } = await import('../services/matchStateManager');
-    matchStateManager.stopMatch(matchId);
+    matchStateManager.stopMatch(parseInt(matchId));
     res.json({ message: "Match reset successfully" });
   } catch (error) {
     console.error("Error resetting match:", error);
@@ -1205,7 +1205,7 @@ router.post('/exhibition/instant', requireAuth, async (req: any, res: Response, 
       message: "Exhibition match completed successfully",
       matchId: newMatch.id,
       finalScore: simulationResult.finalScore,
-      simulationSummary: simulationResult.stats
+      simulationSummary: simulationResult.playerStats
     });
   } catch (error) {
     console.error("Error creating exhibition match:", error);

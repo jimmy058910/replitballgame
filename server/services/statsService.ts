@@ -133,6 +133,7 @@ export class StatsService {
    * Completely excludes exhibition match stats
    */
   static async getPlayerStats(playerId: string, seasonOnly = false): Promise<PlayerStats> {
+    const prisma = await getPrismaClient();
     try {
       // Get player info
       const player = await prisma.player.findUnique({
@@ -296,6 +297,7 @@ export class StatsService {
    * Only includes stats from League matches and Division Tournament matches (PLAYOFF)
    */
   static async getTeamStats(teamId: string, seasonOnly = false): Promise<TeamStats> {
+    const prisma = await getPrismaClient();
     try {
       // Get team info
       const team = await prisma.team.findUnique({
@@ -430,6 +432,7 @@ export class StatsService {
    * Get match-specific stats display for live viewing
    */
   static async getMatchStatsDisplay(matchId: string): Promise<MatchStatsDisplay> {
+    const prisma = await getPrismaClient();
     try {
       // Get match info
       const matchData = await prisma.game.findUnique({
@@ -471,6 +474,7 @@ export class StatsService {
    * Get team stats for a specific match
    */
   private static async getTeamMatchStats(matchId: string, teamIdStr: string): Promise<TeamStats> {
+    const prisma = await getPrismaClient();
     try {
       const teamId = parseInt(teamIdStr);
       

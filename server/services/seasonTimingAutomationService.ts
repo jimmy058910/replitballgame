@@ -11,6 +11,7 @@ import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../sh
 import { QuickMatchSimulation } from './quickMatchSimulation.js';
 import { dailyTournamentAutoFillService } from './dailyTournamentAutoFillService.js';
 import { DynamicPlayoffService } from './dynamicPlayoffService.js';
+import { generateRandomPlayer } from './leagueService.js';
 
 // Prisma client will be accessed via await getPrismaClient() in each method
 
@@ -1667,7 +1668,7 @@ export class SeasonTimingAutomationService {
     const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
     
     // Check if it's Day 7 at 1PM EST
-    const currentDay = this.getCurrentDay();
+    const currentDay = await this.getCurrentDay();
     if (currentDay !== 7 || estNow.getHours() !== 13 || estNow.getMinutes() > 5) {
       return; // Not the right time for Mid-Season Cup start
     }
@@ -1714,15 +1715,6 @@ export class SeasonTimingAutomationService {
     }
   }
 
-  /**
-   * Get current day in the season cycle
-   */
-  private getCurrentDay(): number {
-    const startDate = new Date("2025-07-13");
-    const now = new Date();
-    const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    return (daysSinceStart % 17) + 1;
-  }
 
   /**
    * Check for dynamic playoff round advancement during Day 15

@@ -14,7 +14,10 @@
       "Bash(grep:*)",
       "Bash(npx prisma:*)",
       "Bash(git push:*)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(node run-agent-checks.js)",
+      "Bash(node:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

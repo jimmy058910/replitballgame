@@ -104,6 +104,7 @@ router.get("/:teamId/scout", requireAuth, async (req: any, res: Response, next: 
 
     const scoutingLevel = scoutingPower >= 150 ? 4 : scoutingPower >= 100 ? 3 : scoutingPower >= 50 ? 2 : 1;
 
+    const prisma = await getPrismaClient();
     const [targetPlayers, targetStaffList, targetFinances, targetStadiumInfo] = await Promise.all([
       storage.players.getPlayersByTeamId(parseInt(targetTeamId)),
       storage.staff.getStaffByTeamId(parseInt(targetTeamId)),

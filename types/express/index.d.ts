@@ -17,6 +17,7 @@ declare global {
     interface Request {
       user?: User;
       requestId?: string;
+      requireAuth?: () => boolean;
     }
   }
 }

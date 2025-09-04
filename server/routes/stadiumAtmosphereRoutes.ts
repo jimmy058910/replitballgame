@@ -275,6 +275,7 @@ router.post('/apply-crowd-debuff', requireAuth, async (req, res) => {
  * Get stadium data for current user's team
  */
 router.get('/stadium-data', requireAuth, async (req: any, res) => {
+  const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     
@@ -355,6 +356,7 @@ router.get('/stadium-data', requireAuth, async (req: any, res) => {
  * Get atmosphere data for current user's team
  */
 router.get('/atmosphere-data', requireAuth, async (req: any, res) => {
+  const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     
@@ -504,6 +506,7 @@ router.get('/revenue-breakdown', requireAuth, async (req: any, res) => {
  * Get upgrade costs for current user's team
  */
 router.get('/upgrade-costs', requireAuth, async (req: any, res) => {
+  const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     
@@ -578,6 +581,7 @@ router.get('/upgrade-costs', requireAuth, async (req: any, res) => {
  * Get loyalty factors for current user's team
  */
 router.get('/loyalty-factors', requireAuth, async (req: any, res) => {
+  const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     
@@ -630,6 +634,7 @@ router.get('/loyalty-factors', requireAuth, async (req: any, res) => {
  * Get team power tier for current user's team
  */
 router.get('/team-power-tier', requireAuth, async (req: any, res) => {
+  const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     

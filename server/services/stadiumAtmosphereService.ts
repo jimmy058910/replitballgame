@@ -238,6 +238,7 @@ export class StadiumAtmosphereService {
    * Calculate winning streak bonus for attendance
    */
   static async calculateWinStreakBonus(teamId: string): Promise<number> {
+    const prisma = await getPrismaClient();
     // Get recent completed matches for this team
     const recentMatches = await prisma.game.findMany({
       where: {

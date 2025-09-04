@@ -208,10 +208,7 @@ router.post('/test-schedule-generation', async (req: Request, res: Response, nex
     
     // Test the new schedule generation
     const { ScheduleGenerationService } = await import('../services/scheduleGenerationService.js');
-    const result = await ScheduleGenerationService.generateLeagueSchedule(
-      testLeague.id.toString(), 
-      testLeague.teams
-    );
+    const result = await ScheduleGenerationService.generateCompleteSchedule();
     
     // Get created games for verification
     const createdGames = await prisma.game.findMany({

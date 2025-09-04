@@ -168,6 +168,7 @@ export class EnhancedGameEconomyService {
    * Apply daily stadium revenue to team finances
    */
   static async applyDailyStadiumRevenue(teamId: string, isHomeGameDay: boolean = false): Promise<number> {
+    const prisma = await getPrismaClient();
     const revenue = await this.calculateStadiumRevenue(teamId, isHomeGameDay);
     
     if (revenue.totalRevenue > 0) {
@@ -868,6 +869,7 @@ export class EnhancedGameEconomyService {
    * Apply daily maintenance costs
    */
   static async applyMaintenanceCosts(teamId: string): Promise<number> {
+    const prisma = await getPrismaClient();
     try {
       const maintenanceCost = await this.calculateMaintenanceCosts(teamId);
       
@@ -1262,6 +1264,7 @@ export class EnhancedGameEconomyService {
    * Calculate daily facility maintenance costs
    */
   static async calculateMaintenanceCosts(teamId: string): Promise<number> {
+    const prisma = await getPrismaClient();
     const stadium = await prisma.stadium.findFirst({
       where: { teamId: parseInt(teamId, 10) }
     });

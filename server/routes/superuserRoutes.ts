@@ -99,6 +99,7 @@ router.post('/reset-player-daily-items', RBACService.requirePermission(Permissio
   logInfo("Admin resetting player daily items used", { adminUserId: userId, requestId });
 
   // Reset all players' daily items used to 0
+  const prisma = await getPrismaClient();
   const updateResult = await prisma.player.updateMany({
     data: {
       dailyItemsUsed: 0

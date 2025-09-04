@@ -4,7 +4,7 @@ import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
 import { asyncHandler } from '../services/errorService.js';
 import { storage } from '../storage/index.js';
-import { prisma } from '../database.js';
+import { getPrismaClient } from '../database.js';
 
 const router = Router();
 

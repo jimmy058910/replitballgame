@@ -557,7 +557,7 @@ router.post('/fix-oakland-schedule', asyncHandler(async (req: Request, res: Resp
       const newDate = new Date(currentDate);
       newDate.setDate(currentDate.getDate() - 4); // Move 4 days earlier
       
-      const daysDiff = Math.floor((newDate - seasonStart) / (1000 * 60 * 60 * 24));
+      const daysDiff = Math.floor((newDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24));
       const newGameDay = daysDiff + 1;
       
       await prisma.game.update({

@@ -438,6 +438,7 @@ export class PlayerAgingRetirementService {
    * Retire a player
    */
   static async retirePlayer(playerId: string, season: number, reason: string): Promise<void> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findFirst({
       where: { id: parseInt(playerId, 10) }
     });

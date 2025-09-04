@@ -260,6 +260,7 @@ router.post('/populate-existing-team', async (req: Request, res: Response) => {
 
 // PRODUCTION: Find and populate ALL existing teams without rosters
 router.post('/populate-all-existing-teams', async (req: Request, res: Response) => {
+  const prisma = await getPrismaClient();
   try {
     // Find all teams
     const teams = await prisma.team.findMany({

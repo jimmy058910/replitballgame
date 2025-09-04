@@ -369,6 +369,7 @@ export class InjuryStaminaService {
    * Handles natural recovery for all players
    */
   async performDailyReset(): Promise<void> {
+    const prisma = await getPrismaClient();
     // Reset daily items used for all players
     await prisma.player.updateMany({
       data: { dailyItemsUsed: 0 }

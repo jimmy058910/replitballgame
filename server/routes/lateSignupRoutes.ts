@@ -93,11 +93,23 @@ router.post('/debug-alpha', asyncHandler(async (req: Request, res: Response) => 
       console.log(`  - ${team.name} (${team.isAI ? 'AI' : 'Human'}) [ID: ${team.id}]`);
     });
     
-    // Check existing matches
+    // Check existing matches between teams in Division 8 Alpha
     const existingMatches = await prisma.game.findMany({
       where: {
-        division: 8,
-        subdivision: 'alpha'
+        OR: [
+          {
+            homeTeam: {
+              division: 8,
+              subdivision: 'alpha'
+            }
+          },
+          {
+            awayTeam: {
+              division: 8,
+              subdivision: 'alpha'
+            }
+          }
+        ]
       }
     });
     
@@ -173,9 +185,9 @@ router.get('/debug/db-test', async (req, res) => {
     const prismaModels = allProperties.filter(name => 
       !name.startsWith('$') && 
       !name.startsWith('_') &&
-      typeof prisma[name] === 'object' && 
-      prisma[name] !== null &&
-      'findMany' in prisma[name]
+      typeof (prisma as any)[name] === 'object' && 
+      (prisma as any)[name] !== null &&
+      'findMany' in (prisma as any)[name]
     );
     
     res.json({

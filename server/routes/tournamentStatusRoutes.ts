@@ -131,6 +131,7 @@ router.get('/my-active', requireAuth, async (req: any, res) => {
     // Get participant counts for all tournaments
     const participantCounts = await Promise.all(
       entries.map(async (entry: any) => {
+        const prisma = await getPrismaClient();
         const count = await prisma.tournamentEntry.count({
           where: { tournamentId: entry.tournament.id }
         });
@@ -597,6 +598,7 @@ router.post('/:id/matches/simulate-round', requireAuth, async (req: any, res) =>
 
     // Use instant simulation for all matches in the round
     const matchPromises = matches.map(async (match: any) => {
+      const prisma = await getPrismaClient();
       try {
         // Set match status to IN_PROGRESS
         await prisma.game.update({
@@ -713,6 +715,7 @@ router.post('/:id/matches/manual-start', requireAuth, async (req: any, res) => {
 
     // Use instant simulation for all matches in the round
     const matchPromises = matches.map(async (match: any) => {
+      const prisma = await getPrismaClient();
       try {
         // Run instant simulation directly
         const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
@@ -972,6 +975,7 @@ router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) 
 
     // Use instant simulation for each match
     const matchPromises = matches.map(async (match: any) => {
+      const prisma = await getPrismaClient();
       try {
         // Set match status to IN_PROGRESS
         await prisma.game.update({
@@ -1043,6 +1047,7 @@ router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) 
   } catch (error) {
     console.error("Error starting tournament round:", error);
     res.status(500).json({ message: "Failed to start tournament round", error: error instanceof Error ? error.message : 'Unknown error' });
+  const prisma = await getPrismaClient();
   }
 });
 

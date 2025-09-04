@@ -7,6 +7,7 @@ const router = Router();
 
 // Team Trends API for Product-Led Growth Data Storytelling
 router.get('/trends', requireAuth, asyncHandler(async (req: any, res: Response) => {
+  const prisma = await getPrismaClient();
   const userId = req.user.claims.sub;
   
   // Find user profile
@@ -136,6 +137,7 @@ router.get('/trends', requireAuth, asyncHandler(async (req: any, res: Response) 
 
 // Player Spotlight API for narrative-driven content
 router.get('/player-spotlight', requireAuth, asyncHandler(async (req: any, res: Response) => {
+  const prisma = await getPrismaClient();
   const userId = req.user.claims.sub;
   
   const userProfile = await prisma.userProfile.findUnique({
@@ -206,6 +208,7 @@ router.get('/player-spotlight', requireAuth, asyncHandler(async (req: any, res: 
 
 // Team Storylines API for compelling narrative content
 router.get('/storylines', requireAuth, asyncHandler(async (req: any, res: Response) => {
+  const prisma = await getPrismaClient();
   const userId = req.user.claims.sub;
   
   const userProfile = await prisma.userProfile.findUnique({

@@ -11,6 +11,7 @@ export interface NotificationData {
 
 export class NotificationService {
   static async sendNotification(data: NotificationData) {
+    const prisma = await getPrismaClient();
     try {
       return await prisma.notification.create({
         data: {
@@ -28,6 +29,7 @@ export class NotificationService {
   }
 
   static async markAsRead(notificationId: number) {
+    const prisma = await getPrismaClient();
     return await prisma.notification.update({
       where: { id: notificationId },
       data: { isRead: true }
@@ -35,6 +37,7 @@ export class NotificationService {
   }
 
   static async markAllAsRead(teamId: number) {
+    const prisma = await getPrismaClient();
     return await prisma.notification.updateMany({
       where: { teamId, isRead: false },
       data: { isRead: true }

@@ -142,6 +142,7 @@ router.post('/team/season-progression', requireAuth, async (req, res) => {
     }
 
     // Get user's team
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findFirst({
       where: { userProfileId: userId }
     });
@@ -170,6 +171,7 @@ router.get('/team/progression-summary', requireAuth, async (req, res) => {
     }
 
     // Get user's team
+    const prisma = await getPrismaClient();
     const team = await prisma.team.findFirst({
       where: { userProfileId: userId }
     });

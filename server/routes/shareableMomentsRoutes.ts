@@ -24,6 +24,7 @@ interface ShareableMoment {
  */
 router.get('/:teamId?', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     const userProfile = req.user as any;
     let teamId = req.params.teamId;
     
