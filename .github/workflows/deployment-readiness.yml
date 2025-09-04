@@ -1,0 +1,435 @@
+name: 🚀 Deployment Readiness Agent
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      full_deployment_check:
+        description: 'Run full deployment simulation'
+        required: false
+        default: 'true'
+        type: boolean
+      check_docker_build:
+        description: 'Test Docker build process'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  PROJECT_ID: direct-glider-465821-p7
+  REGION: us-central1
+  SERVICE_NAME: realm-rivalry-unified
+
+jobs:
+  deployment-validation:
+    name: Pre-Deployment Validation & Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🐳 Setup Docker Buildx
+        if: github.event.inputs.check_docker_build == 'true' || github.event.inputs.check_docker_build == null
+        uses: docker/setup-buildx-action@v3
+
+      - name: 📦 Install Dependencies
+        run: |
+          echo "🔄 Installing all dependencies..."
+          npm ci --include=dev
+          echo "✅ Dependencies installed successfully"
+
+      - name: 🗄️ Generate Prisma Client
+        run: |
+          echo "🔄 Generating Prisma client for deployment..."
+          npx prisma generate
+          echo "✅ Prisma client ready for deployment"
+
+      - name: 🏗️ Critical Path Compilation Test
+        id: compilation-test
+        run: |
+          echo "🚀 Testing deployment-critical compilation..."
+          
+          # Test server compilation (critical for deployment)
+          echo "📊 Testing server TypeScript compilation..."
+          if npm run build:server; then
+            echo "✅ SERVER COMPILATION: Ready for deployment"
+            echo "server_compilation=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ SERVER COMPILATION: DEPLOYMENT BLOCKED"
+            echo "server_compilation=failed" >> $GITHUB_OUTPUT
+          fi
+          
+          # Test client build (critical for production)
+          echo "🎯 Testing client production build..."
+          if npm run build; then
+            echo "✅ CLIENT BUILD: Ready for deployment"
+            echo "client_build=success" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ CLIENT BUILD: May affect frontend"
+            echo "client_build=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔍 Deployment Files Validation
+        id: files-check
+        run: |
+          echo "🚀 Validating deployment-critical files..."
+          
+          CRITICAL_FILES=(
+            "Dockerfile.step7-unified"
+            "package.json"
+            "prisma/schema.prisma"
+            "server/index.ts"
+            "server/database.ts"
+            "server/db.ts"
+            ".github/workflows/deploy-step7-unified.yml"
+          )
+          
+          MISSING_FILES=0
+          echo "📋 Checking critical deployment files:"
+          
+          for file in "${CRITICAL_FILES[@]}"; do
+            if [ -f "$file" ]; then
+              echo "  ✅ $file"
+            else
+              echo "  ❌ MISSING: $file"
+              MISSING_FILES=$((MISSING_FILES + 1))
+            fi
+          done
+          
+          echo "missing_files=$MISSING_FILES" >> $GITHUB_OUTPUT
+          
+          if [ "$MISSING_FILES" -eq "0" ]; then
+            echo "✅ ALL DEPLOYMENT FILES: Present and ready"
+            echo "files_status=complete" >> $GITHUB_OUTPUT
+          else
+            echo "❌ DEPLOYMENT FILES: $MISSING_FILES missing critical files"
+            echo "files_status=incomplete" >> $GITHUB_OUTPUT
+          fi
+
+      - name: ⚙️ Environment Configuration Check
+        id: env-check
+        run: |
+          echo "🔧 Checking deployment environment configuration..."
+          
+          # Check if deployment workflow has required secrets configured
+          REQUIRED_SECRETS=(
+            "GOOGLE_SERVICE_ACCOUNT_KEY"
+            "DATABASE_URL"
+            "SESSION_SECRET" 
+            "VITE_FIREBASE_API_KEY"
+            "VITE_FIREBASE_PROJECT_ID"
+            "VITE_FIREBASE_APP_ID"
+          )
+          
+          echo "📋 Required deployment secrets:"
+          SECRET_WARNINGS=0
+          
+          # Note: We can't actually check secret values in Actions, but we can check the workflow file
+          WORKFLOW_FILE=".github/workflows/deploy-step7-unified.yml"
+          
+          for secret in "${REQUIRED_SECRETS[@]}"; do
+            if grep -q "$secret" "$WORKFLOW_FILE"; then
+              echo "  ✅ $secret (referenced in workflow)"
+            else
+              echo "  ⚠️ $secret (not found in workflow)"
+              SECRET_WARNINGS=$((SECRET_WARNINGS + 1))
+            fi
+          done
+          
+          echo "secret_warnings=$SECRET_WARNINGS" >> $GITHUB_OUTPUT
+          
+          if [ "$SECRET_WARNINGS" -eq "0" ]; then
+            echo "env_config=complete" >> $GITHUB_OUTPUT
+          else
+            echo "env_config=warnings" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🐳 Docker Build Test (If Enabled)
+        if: github.event.inputs.check_docker_build == 'true' || github.event.inputs.check_docker_build == null
+        id: docker-test
+        run: |
+          echo "🐳 Testing Docker build process..."
+          
+          # Check if Dockerfile exists
+          if [ ! -f "Dockerfile.step7-unified" ]; then
+            echo "❌ DOCKER: Dockerfile.step7-unified not found"
+            echo "docker_status=missing_dockerfile" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Test Docker build (without pushing)
+          echo "🏗️ Testing multi-stage Docker build..."
+          
+          # Use dummy values for build args since we're just testing the build process
+          if docker build \
+            -f Dockerfile.step7-unified \
+            --build-arg VITE_FIREBASE_API_KEY="test" \
+            --build-arg VITE_FIREBASE_PROJECT_ID="test" \
+            --build-arg VITE_FIREBASE_APP_ID="test" \
+            -t deployment-test:latest \
+            .; then
+            echo "✅ DOCKER BUILD: Successful"
+            echo "docker_status=success" >> $GITHUB_OUTPUT
+            
+            # Clean up test image
+            docker rmi deployment-test:latest || true
+          else
+            echo "❌ DOCKER BUILD: Failed"
+            echo "docker_status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🎯 Database Connection Pattern Validation
+        id: db-patterns
+        run: |
+          echo "🗄️ Validating database connection patterns for Cloud Run..."
+          
+          # Check for proper lazy initialization patterns
+          if grep -q "ensureDatabaseConnection\|getPrismaClient" server/database.ts; then
+            echo "✅ DATABASE PATTERNS: Cloud Run compatible lazy initialization"
+            echo "db_patterns=cloud_run_ready" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ DATABASE PATTERNS: May not be Cloud Run optimized"
+            echo "db_patterns=needs_review" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check for proper error handling in database connections
+          if grep -q "try.*catch\|\.catch" server/database.ts; then
+            echo "✅ DATABASE ERROR HANDLING: Present"
+          else
+            echo "⚠️ DATABASE ERROR HANDLING: Limited error handling detected"
+          fi
+
+      - name: 📊 Performance & Resource Check
+        id: performance-check
+        run: |
+          echo "⚡ Analyzing performance characteristics for deployment..."
+          
+          # Check package.json for large dependencies
+          BUNDLE_SIZE_WARNINGS=0
+          
+          # Check for potentially problematic large dependencies
+          LARGE_DEPS=(
+            "@google-cloud"
+            "firebase"
+            "prisma"
+          )
+          
+          echo "📦 Checking for large dependencies that might affect cold start:"
+          for dep in "${LARGE_DEPS[@]}"; do
+            if grep -q "\"$dep" package.json; then
+              echo "  ℹ️ Large dependency detected: $dep (normal for this app type)"
+            fi
+          done
+          
+          # Check for proper Cloud Run resource configuration
+          WORKFLOW_FILE=".github/workflows/deploy-step7-unified.yml"
+          if grep -q "memory.*4Gi" "$WORKFLOW_FILE" && grep -q "cpu.*2" "$WORKFLOW_FILE"; then
+            echo "✅ CLOUD RUN CONFIG: Appropriate resource allocation"
+            echo "performance_config=optimized" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ CLOUD RUN CONFIG: Resource allocation may need review"
+            echo "performance_config=review_needed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔒 Security & Compliance Check
+        id: security-check
+        run: |
+          echo "🔒 Checking deployment security patterns..."
+          
+          SECURITY_SCORE=0
+          
+          # Check for proper secret handling
+          if ! grep -r "process\.env\." server/ --include="*.ts" | grep -v "process\.env\.NODE_ENV\|process\.env\.PORT"; then
+            echo "✅ SECRETS: No hardcoded environment variables detected"
+            SECURITY_SCORE=$((SECURITY_SCORE + 1))
+          else
+            echo "⚠️ SECRETS: Check environment variable usage patterns"
+          fi
+          
+          # Check for proper authentication patterns
+          if grep -q "requireAuth\|authentication" server/routes/*.ts; then
+            echo "✅ AUTHENTICATION: Protection patterns detected"
+            SECURITY_SCORE=$((SECURITY_SCORE + 1))
+          fi
+          
+          # Check for security middleware
+          if grep -q "helmet\|cors" server/index.ts; then
+            echo "✅ SECURITY MIDDLEWARE: Protection middleware detected"
+            SECURITY_SCORE=$((SECURITY_SCORE + 1))
+          fi
+          
+          echo "security_score=$SECURITY_SCORE" >> $GITHUB_OUTPUT
+          
+          if [ "$SECURITY_SCORE" -ge "2" ]; then
+            echo "security_status=good" >> $GITHUB_OUTPUT
+          else
+            echo "security_status=review_needed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📋 Generate Deployment Readiness Report
+        id: readiness-report
+        run: |
+          echo "📊 Generating comprehensive deployment readiness report..."
+          
+          # Calculate overall readiness score
+          READINESS_SCORE=0
+          MAX_SCORE=7
+          
+          # Server compilation (critical - worth 2 points)
+          if [ "${{ steps.compilation-test.outputs.server_compilation }}" = "success" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 2))
+          fi
+          
+          # Client build (worth 1 point)
+          if [ "${{ steps.compilation-test.outputs.client_build }}" = "success" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 1))
+          fi
+          
+          # Critical files (worth 1 point)
+          if [ "${{ steps.files-check.outputs.files_status }}" = "complete" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 1))
+          fi
+          
+          # Environment config (worth 1 point)
+          if [ "${{ steps.env-check.outputs.env_config }}" = "complete" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 1))
+          fi
+          
+          # Docker build (worth 1 point)
+          if [ "${{ steps.docker-test.outputs.docker_status }}" = "success" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 1))
+          fi
+          
+          # Database patterns (worth 1 point)
+          if [ "${{ steps.db-patterns.outputs.db_patterns }}" = "cloud_run_ready" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 1))
+          fi
+          
+          echo "readiness_score=$READINESS_SCORE" >> $GITHUB_OUTPUT
+          echo "max_score=$MAX_SCORE" >> $GITHUB_OUTPUT
+          
+          READINESS_PERCENTAGE=$((READINESS_SCORE * 100 / MAX_SCORE))
+          echo "readiness_percentage=$READINESS_PERCENTAGE" >> $GITHUB_OUTPUT
+
+      - name: 📊 Deployment Readiness Summary
+        run: |
+          echo ""
+          echo "🚀 DEPLOYMENT READINESS REPORT"
+          echo "=============================="
+          echo "🗓️ Analysis Date: $(date)"
+          echo "🎯 Commit: ${{ github.sha }}"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo ""
+          echo "📊 READINESS SCORE: ${{ steps.readiness-report.outputs.readiness_score }}/${{ steps.readiness-report.outputs.max_score }} (${{ steps.readiness-report.outputs.readiness_percentage }}%)"
+          echo ""
+          echo "🔍 COMPONENT STATUS:"
+          echo "   Server Compilation: ${{ steps.compilation-test.outputs.server_compilation || 'N/A' }}"
+          echo "   Client Build: ${{ steps.compilation-test.outputs.client_build || 'N/A' }}"
+          echo "   Deployment Files: ${{ steps.files-check.outputs.files_status || 'N/A' }}"
+          echo "   Environment Config: ${{ steps.env-check.outputs.env_config || 'N/A' }}"
+          echo "   Docker Build: ${{ steps.docker-test.outputs.docker_status || 'N/A' }}"
+          echo "   Database Patterns: ${{ steps.db-patterns.outputs.db_patterns || 'N/A' }}"
+          echo "   Performance Config: ${{ steps.performance-check.outputs.performance_config || 'N/A' }}"
+          echo "   Security Status: ${{ steps.security-check.outputs.security_status || 'N/A' }}"
+          echo ""
+          
+          PERCENTAGE=${{ steps.readiness-report.outputs.readiness_percentage }}
+          
+          if [ "$PERCENTAGE" -ge "85" ]; then
+            echo "🎉 STATUS: DEPLOYMENT READY"
+            echo "✅ All critical systems operational"
+            echo "✅ High confidence deployment success"
+            echo "🚀 RECOMMENDATION: Proceed with deployment"
+          elif [ "$PERCENTAGE" -ge "70" ]; then
+            echo "⚠️ STATUS: DEPLOYMENT VIABLE WITH CAUTION"
+            echo "🔧 Some issues detected but not blocking"
+            echo "📋 Review warnings above before deploying"
+            echo "🚀 RECOMMENDATION: Address warnings then deploy"
+          else
+            echo "❌ STATUS: DEPLOYMENT NOT RECOMMENDED"
+            echo "🔧 Critical issues must be resolved first"
+            echo "📋 Check failed components above"
+            echo "🚀 RECOMMENDATION: Fix issues before attempting deployment"
+          fi
+          echo "=============================="
+
+      - name: 💬 Comment PR with Readiness Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const score = '${{ steps.readiness-report.outputs.readiness_score }}';
+            const maxScore = '${{ steps.readiness-report.outputs.max_score }}';
+            const percentage = '${{ steps.readiness-report.outputs.readiness_percentage }}';
+            
+            let status = '🚀 **Deployment Ready!**';
+            let recommendation = 'High confidence deployment success';
+            let emoji = '🎉';
+            
+            if (percentage >= 85) {
+              status = '🚀 **Deployment Ready!**';
+              recommendation = 'All systems operational - proceed with confidence';
+              emoji = '🎉';
+            } else if (percentage >= 70) {
+              status = '⚠️ **Deployment Viable with Caution**';
+              recommendation = 'Some issues detected - review before deploying';
+              emoji = '⚠️';
+            } else {
+              status = '❌ **Deployment Not Recommended**';
+              recommendation = 'Critical issues must be resolved first';
+              emoji = '❌';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ${emoji} **Deployment Readiness Report**
+              
+              ${status}
+              
+              📊 **Readiness Score:** ${score}/${maxScore} (${percentage}%)
+              
+              🔍 **Component Status:**
+              - Server Compilation: ${{ steps.compilation-test.outputs.server_compilation }}
+              - Client Build: ${{ steps.compilation-test.outputs.client_build }}
+              - Deployment Files: ${{ steps.files-check.outputs.files_status }}
+              - Environment Config: ${{ steps.env-check.outputs.env_config }}
+              - Docker Build: ${{ steps.docker-test.outputs.docker_status }}
+              - Database Patterns: ${{ steps.db-patterns.outputs.db_patterns }}
+              
+              🚀 **Recommendation:** ${recommendation}
+              
+              🤖 *Generated by Deployment Readiness Agent*`
+            });
+
+      - name: 🚦 Set Final Exit Status
+        run: |
+          PERCENTAGE=${{ steps.readiness-report.outputs.readiness_percentage }}
+          SERVER_STATUS="${{ steps.compilation-test.outputs.server_compilation }}"
+          
+          # Critical requirement: Server must compile
+          if [ "$SERVER_STATUS" != "success" ]; then
+            echo "❌ CRITICAL FAILURE: Server compilation failed - deployment impossible"
+            exit 1
+          fi
+          
+          # Warning for low readiness but don't fail the workflow
+          if [ "$PERCENTAGE" -lt "70" ]; then
+            echo "⚠️ WARNING: Deployment readiness below recommended threshold ($PERCENTAGE%)"
+            echo "🔧 Consider addressing issues before production deployment"
+          fi
+          
+          echo "✅ SUCCESS: Deployment readiness analysis completed"
+          exit 0

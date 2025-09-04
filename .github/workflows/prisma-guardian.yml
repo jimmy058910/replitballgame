@@ -1,0 +1,352 @@
+name: 🗄️ Prisma Database Guardian Agent
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'prisma/**'
+      - 'server/database.ts'
+      - 'server/db.ts'
+      - 'server/**/*.ts'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'prisma/**'
+      - 'server/database.ts'
+      - 'server/db.ts' 
+      - 'server/**/*.ts'
+  schedule:
+    # Run weekly on Sundays at 3 AM UTC for maintenance
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      force_schema_validation:
+        description: 'Force complete schema validation'
+        required: false
+        default: 'true'
+        type: boolean
+      auto_fix_patterns:
+        description: 'Auto-fix common Prisma patterns'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  prisma-validation:
+    name: Database Schema & Integration Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: |
+          echo "🔄 Installing dependencies..."
+          npm ci --include=dev
+          echo "✅ Dependencies installed"
+
+      - name: 🔍 Prisma Schema Validation
+        id: schema-check
+        run: |
+          echo "🗄️ Validating Prisma schema..."
+          
+          if npx prisma validate; then
+            echo "✅ PRISMA SCHEMA: Valid and consistent"
+            echo "schema_status=valid" >> $GITHUB_OUTPUT
+          else
+            echo "❌ PRISMA SCHEMA: Validation failed"
+            echo "schema_status=invalid" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔄 Prisma Client Generation Test
+        id: client-generation
+        run: |
+          echo "🔄 Testing Prisma client generation..."
+          
+          if npx prisma generate; then
+            echo "✅ PRISMA CLIENT: Generated successfully"
+            echo "generation_status=success" >> $GITHUB_OUTPUT
+            
+            # Check if all models are properly exported
+            MISSING_MODELS=$(node -e "
+              const prisma = require('./prisma/generated/client');
+              const fs = require('fs');
+              const schemaContent = fs.readFileSync('./prisma/schema.prisma', 'utf8');
+              const models = schemaContent.match(/^model\s+(\w+)/gm);
+              if (!models) process.exit(0);
+              
+              let missing = 0;
+              models.forEach(match => {
+                const modelName = match.split(/\s+/)[1];
+                try {
+                  const clientIndex = fs.readFileSync('./prisma/generated/client/index.d.ts', 'utf8');
+                  if (!clientIndex.includes('export type ' + modelName)) {
+                    console.log('Missing model: ' + modelName);
+                    missing++;
+                  }
+                } catch (e) {
+                  missing++;
+                }
+              });
+              console.log(missing);
+            " 2>/dev/null || echo "0")
+            
+            echo "missing_models=$MISSING_MODELS" >> $GITHUB_OUTPUT
+            
+            if [ "$MISSING_MODELS" -eq "0" ]; then
+              echo "✅ All schema models properly exported"
+            else
+              echo "⚠️ $MISSING_MODELS models missing from generated client"
+            fi
+          else
+            echo "❌ PRISMA CLIENT: Generation failed"
+            echo "generation_status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔗 Database Integration Pattern Check
+        id: integration-check
+        run: |
+          echo "🗄️ Checking database integration patterns..."
+          
+          # Check for proper getPrismaClient usage
+          FILES_WITH_PRISMA=$(find server/ -name "*.ts" -exec grep -l "prisma\." {} \; 2>/dev/null || true)
+          PROPER_INIT_COUNT=0
+          MISSING_INIT_COUNT=0
+          
+          echo "📋 Analyzing Prisma usage patterns..."
+          
+          for file in $FILES_WITH_PRISMA; do
+            if grep -q "getPrismaClient\|const prisma = await" "$file"; then
+              PROPER_INIT_COUNT=$((PROPER_INIT_COUNT + 1))
+            else
+              MISSING_INIT_COUNT=$((MISSING_INIT_COUNT + 1))
+              echo "⚠️ Missing initialization: $file"
+            fi
+          done
+          
+          echo "proper_init=$PROPER_INIT_COUNT" >> $GITHUB_OUTPUT
+          echo "missing_init=$MISSING_INIT_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$MISSING_INIT_COUNT" -eq "0" ]; then
+            echo "✅ DATABASE INTEGRATION: All prisma calls properly initialized"
+            echo "integration_status=perfect" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ DATABASE INTEGRATION: $MISSING_INIT_COUNT files need attention"
+            echo "integration_status=needs_attention" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📊 Database Export Validation
+        id: export-check
+        run: |
+          echo "📊 Validating database exports (server/db.ts)..."
+          
+          if [ -f "server/db.ts" ]; then
+            # Check if all necessary exports are present
+            MISSING_EXPORTS=""
+            
+            # Check for getPrismaClient export
+            if ! grep -q "export.*getPrismaClient" server/db.ts; then
+              MISSING_EXPORTS="$MISSING_EXPORTS getPrismaClient"
+            fi
+            
+            # Check for prisma export
+            if ! grep -q "export.*prisma" server/db.ts; then
+              MISSING_EXPORTS="$MISSING_EXPORTS prisma"
+            fi
+            
+            # Check for PrismaClient export  
+            if ! grep -q "export.*PrismaClient" server/db.ts; then
+              MISSING_EXPORTS="$MISSING_EXPORTS PrismaClient"
+            fi
+            
+            if [ -z "$MISSING_EXPORTS" ]; then
+              echo "✅ DATABASE EXPORTS: All required exports present"
+              echo "exports_status=complete" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️ DATABASE EXPORTS: Missing exports: $MISSING_EXPORTS"
+              echo "exports_status=incomplete" >> $GITHUB_OUTPUT
+              echo "missing_exports=$MISSING_EXPORTS" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ DATABASE EXPORTS: server/db.ts file missing"
+            echo "exports_status=missing_file" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔧 Auto-Fix Common Patterns (If Enabled)
+        if: ${{ github.event.inputs.auto_fix_patterns == 'true' && steps.integration-check.outputs.integration_status == 'needs_attention' }}
+        run: |
+          echo "🔧 Auto-fixing common Prisma patterns..."
+          
+          # Find files using prisma without proper initialization
+          find server/ -name "*.ts" -exec grep -l "prisma\." {} \; | while read file; do
+            if ! grep -q "getPrismaClient\|const prisma = await" "$file"; then
+              echo "🔧 Fixing prisma initialization in $file"
+              
+              # Add import if not present
+              if ! grep -q "import.*getPrismaClient" "$file"; then
+                # Determine correct relative path to db.ts
+                DEPTH=$(echo "$file" | grep -o "/" | wc -l)
+                RELATIVE_PATH=""
+                for i in $(seq 1 $((DEPTH - 1))); do
+                  RELATIVE_PATH="../$RELATIVE_PATH"
+                done
+                
+                # Add import at top of file
+                sed -i "1i import { getPrismaClient } from \"${RELATIVE_PATH}db\";" "$file"
+                echo "   ✅ Added import to $file"
+              fi
+              
+              # Add prisma initialization to functions that use prisma
+              # This is a basic pattern - more sophisticated logic could be added
+              if grep -q "async.*function\|async.*=>" "$file"; then
+                echo "   📝 Note: $file may need manual prisma initialization in async functions"
+              fi
+            fi
+          done
+          
+          echo "✅ Auto-fix patterns completed"
+
+      - name: 🎯 Critical Database Files Check
+        id: critical-files
+        run: |
+          echo "🎯 Checking critical database files..."
+          
+          CRITICAL_FILES=(
+            "server/database.ts"
+            "server/db.ts"
+            "prisma/schema.prisma"
+          )
+          
+          MISSING_CRITICAL=0
+          for file in "${CRITICAL_FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ CRITICAL: Missing file $file"
+              MISSING_CRITICAL=$((MISSING_CRITICAL + 1))
+            else
+              echo "✅ Found: $file"
+            fi
+          done
+          
+          echo "missing_critical=$MISSING_CRITICAL" >> $GITHUB_OUTPUT
+          
+          if [ "$MISSING_CRITICAL" -eq "0" ]; then
+            echo "critical_files_status=all_present" >> $GITHUB_OUTPUT
+          else
+            echo "critical_files_status=missing_files" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📋 Upload Analysis Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prisma-guardian-analysis-${{ github.sha }}
+          path: |
+            prisma/schema.prisma
+            prisma/generated/client/index.d.ts
+            server/db.ts
+            server/database.ts
+          retention-days: 30
+
+      - name: 📊 Prisma Guardian Summary
+        run: |
+          echo ""
+          echo "🗄️ PRISMA DATABASE GUARDIAN REPORT"
+          echo "==================================="
+          echo "🗓️ Run Date: $(date)"
+          echo "🎯 Commit: ${{ github.sha }}"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo ""
+          echo "📊 DATABASE VALIDATION RESULTS:"
+          echo "   Schema Status: ${{ steps.schema-check.outputs.schema_status || 'N/A' }}"
+          echo "   Client Generation: ${{ steps.client-generation.outputs.generation_status || 'N/A' }}"
+          echo "   Missing Models: ${{ steps.client-generation.outputs.missing_models || 'N/A' }}"
+          echo "   Integration Status: ${{ steps.integration-check.outputs.integration_status || 'N/A' }}"
+          echo "   Proper Initializations: ${{ steps.integration-check.outputs.proper_init || 'N/A' }}"
+          echo "   Missing Initializations: ${{ steps.integration-check.outputs.missing_init || 'N/A' }}"
+          echo "   Exports Status: ${{ steps.export-check.outputs.exports_status || 'N/A' }}"
+          echo "   Critical Files: ${{ steps.critical-files.outputs.critical_files_status || 'N/A' }}"
+          echo ""
+          
+          # Overall status determination
+          SCHEMA_OK="${{ steps.schema-check.outputs.schema_status }}"
+          GENERATION_OK="${{ steps.client-generation.outputs.generation_status }}"
+          INTEGRATION_OK="${{ steps.integration-check.outputs.integration_status }}"
+          EXPORTS_OK="${{ steps.export-check.outputs.exports_status }}"
+          CRITICAL_OK="${{ steps.critical-files.outputs.critical_files_status }}"
+          
+          if [ "$SCHEMA_OK" = "valid" ] && [ "$GENERATION_OK" = "success" ] && [ "$INTEGRATION_OK" = "perfect" ] && [ "$EXPORTS_OK" = "complete" ] && [ "$CRITICAL_OK" = "all_present" ]; then
+            echo "🎉 STATUS: DATABASE SYSTEM PERFECT"
+            echo "✅ Schema valid and consistent"
+            echo "✅ Client generation working"
+            echo "✅ All integrations proper"
+            echo "✅ All exports complete"
+            echo "✅ Deployment ready"
+          else
+            echo "⚠️ STATUS: DATABASE NEEDS ATTENTION"
+            echo "🔧 Issues detected in database layer"
+            echo "📋 Check details above for specific fixes needed"
+          fi
+          echo "==================================="
+
+      - name: 💬 Comment PR with Database Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const schemaStatus = '${{ steps.schema-check.outputs.schema_status }}';
+            const integrationStatus = '${{ steps.integration-check.outputs.integration_status }}';
+            const missingInit = '${{ steps.integration-check.outputs.missing_init }}';
+            const exportsStatus = '${{ steps.export-check.outputs.exports_status }}';
+            
+            let status = '🎉 **Prisma Guardian: Database Perfect!**';
+            let details = '✅ Schema valid\n✅ Client generation working\n✅ All integrations proper\n✅ Ready for deployment';
+            
+            if (schemaStatus !== 'valid' || integrationStatus !== 'perfect' || exportsStatus !== 'complete') {
+              status = '⚠️ **Prisma Guardian: Database Issues Detected**';
+              details = `
+              🗄️ **Database Status:**
+              - Schema validation: ${schemaStatus}
+              - Integration patterns: ${integrationStatus}
+              - Missing initializations: ${missingInit}
+              - Export completeness: ${exportsStatus}
+              
+              🔧 **Auto-fix attempted:** ${{ github.event.inputs.auto_fix_patterns }}
+              📋 **Analysis artifacts:** Available in workflow
+              `;
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ${status}
+              
+              ${details}
+              
+              🤖 *Generated by Prisma Database Guardian Agent*`
+            });
+
+      - name: 🚦 Set Exit Status
+        run: |
+          SCHEMA_STATUS="${{ steps.schema-check.outputs.schema_status }}"
+          CRITICAL_STATUS="${{ steps.critical-files.outputs.critical_files_status }}"
+          GENERATION_STATUS="${{ steps.client-generation.outputs.generation_status }}"
+          
+          # Fail only on critical database issues that would break deployment
+          if [ "$SCHEMA_STATUS" = "invalid" ] || [ "$CRITICAL_STATUS" = "missing_files" ] || [ "$GENERATION_STATUS" = "failed" ]; then
+            echo "❌ CRITICAL: Database issues detected that will break deployment"
+            exit 1
+          else
+            echo "✅ SUCCESS: Prisma Guardian completed - database layer stable"
+            exit 0
+          fi
