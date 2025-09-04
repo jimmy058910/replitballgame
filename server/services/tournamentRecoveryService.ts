@@ -13,6 +13,7 @@ export class TournamentRecoveryService {
    * Start all scheduled matches for a tournament
    */
   async startScheduledMatches(tournamentId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       logInfo(`Starting recovery for tournament ${tournamentId}`);
       
@@ -117,6 +118,7 @@ export class TournamentRecoveryService {
    * Check and recover all stuck tournaments
    */
   async recoverAllStuckTournaments(): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       logInfo('Checking for stuck tournaments...');
       

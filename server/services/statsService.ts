@@ -1,8 +1,5 @@
 import { getPrismaClient } from "../database.js";
 
-// Initialize Prisma client
-const prisma = await getPrismaClient();
-
 // Only track stats from meaningful match types (exclude exhibitions)
 const MEANINGFUL_MATCH_TYPES = ['LEAGUE', 'PLAYOFF'] as const;
 
@@ -712,19 +709,23 @@ export class StatsService {
       // Get all players with meaningful stats
       const players = await prisma.player.findMany({
         where: {
-          PlayerMatchStats: {
+          matchStats: {
             some: {
-              matchType: {
-                in: ['LEAGUE', 'PLAYOFF']
+              game: {
+                matchType: {
+                  in: ['LEAGUE', 'PLAYOFF']
+                }
               }
             }
           }
         },
         include: {
-          PlayerMatchStats: {
+          matchStats: {
             where: {
-              matchType: {
-                in: ['LEAGUE', 'PLAYOFF']
+              game: {
+                matchType: {
+                  in: ['LEAGUE', 'PLAYOFF']
+                }
               }
             }
           }
@@ -734,7 +735,7 @@ export class StatsService {
       const playerStats: PlayerStats[] = [];
 
       for (const player of players) {
-        if (player.PlayerMatchStats.length > 0) {
+        if (player.matchStats.length > 0) {
           const stats = await this.getPlayerStats(player.id.toString());
           playerStats.push(stats);
         }

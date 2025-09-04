@@ -27,6 +27,7 @@ export class TournamentMatchService {
    * Generate tournament matches for an 8-team single elimination tournament
    */
   static async generateTournamentMatches(tournamentId: string): Promise<TournamentMatch[]> {
+    const prisma = await getPrismaClient();
     try {
       // Get tournament and participants
       const tournament = await prisma.tournament.findUnique({
@@ -145,6 +146,7 @@ export class TournamentMatchService {
    * Store tournament matches in database
    */
   private static async storeTournamentMatches(tournamentId: number, matches: TournamentMatch[]) {
+    const prisma = await getPrismaClient();
     try {
       const matchesToStore = matches.map((match: any) => ({
         id: match.id,
@@ -207,6 +209,7 @@ export class TournamentMatchService {
    * Get tournament matches
    */
   static async getTournamentMatches(tournamentId: string): Promise<TournamentMatch[]> {
+    const prisma = await getPrismaClient();
     try {
       const matches = await prisma.$queryRaw<any[]>`
         SELECT * FROM tournament_matches 
@@ -243,6 +246,7 @@ export class TournamentMatchService {
    * Simulate a tournament match (for testing purposes)
    */
   static async simulateTournamentMatch(matchId: string): Promise<{ homeScore: number; awayScore: number; winner: string }> {
+    const prisma = await getPrismaClient();
     try {
       // Get match details
       const match = await prisma.$queryRaw<any[]>`
@@ -279,6 +283,7 @@ export class TournamentMatchService {
    * Start a tournament match (set status to LIVE)
    */
   static async startTournamentMatch(matchId: string): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       await prisma.$executeRaw`
         UPDATE tournament_matches 

@@ -53,7 +53,7 @@ import tournamentHistoryRoutes from "./tournamentHistoryRoutes.js";
 import ndaRoutes from "./ndaRoutes.js";
 import worldRoutes from "./worldRoutes.js";
 import leagueMatchesRoutes from "./leagueMatchesRoutes.js";
-import { manualStandingsFixRouter } from "./manualStandingsFix.js";
+// import { manualStandingsFixRouter } from "./manualStandingsFix.js"; // File not found - commented out
 import teamTrendsRoutes from "./teamTrendsRoutes.js";
 import databaseTestRoutes from "./database-test.js";
 import debugEnvRoutes from "./debug-env.js";

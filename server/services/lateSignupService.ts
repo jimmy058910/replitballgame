@@ -309,7 +309,7 @@ export class LateSignupService {
   /**
    * Generate AI teams for a late signup subdivision
    */
-  private static async generateAITeamsForSubdivision(subdivisionName: string, teamCount: number): Promise<void> {
+  public static async generateAITeamsForSubdivision(subdivisionName: string, teamCount: number): Promise<void> {
     const aiTeamNames = [
       'Iron Wolves', 'Fire Hawks', 'Thunder Eagles', 'Crimson Tide', 
       'Golden Lions', 'Silver Falcons', 'Lightning Bolts', 'Frost Giants', 

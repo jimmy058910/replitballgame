@@ -1,11 +1,5 @@
 import { getPrismaClient } from '../database.js';
 
-// Initialize Prisma client
-const prisma = await getPrismaClient();
-
-// Initialize Prisma client
-const getPrisma = async () => await getPrismaClient();
-
 export class SeasonStorage {
 
   // Season Operations
@@ -16,7 +10,7 @@ export class SeasonStorage {
     startDate?: Date;
     endDate?: Date;
   }): Promise<any> {
-    const prisma = await getPrisma();
+    const prisma = await getPrismaClient();
     const result = await prisma.$executeRaw`
       INSERT INTO "Season" (id, "seasonNumber", phase, "startDate", "endDate", "currentDay", "createdAt")
       VALUES (${`season-${seasonData.year}-${Date.now()}`}, ${seasonData.year}, ${seasonData.phase || 'REGULAR_SEASON'}::"SeasonPhase", ${seasonData.startDate || new Date()}, ${seasonData.endDate}, ${1}, NOW())
@@ -25,7 +19,7 @@ export class SeasonStorage {
   }
 
   async getSeasonById(id: string): Promise<any | null> {
-    const prisma = await getPrisma();
+    const prisma = await getPrismaClient();
     const seasons = await prisma.$queryRaw`
       SELECT * FROM "Season" WHERE id = ${id} LIMIT 1
     `;
@@ -35,7 +29,7 @@ export class SeasonStorage {
   async getCurrentSeason(): Promise<any | null> {
     try {
       console.log('Attempting to find current season with raw SQL...');
-      const prisma = await getPrisma();
+      const prisma = await getPrismaClient();
       const seasons = await prisma.$queryRaw`
         SELECT * FROM "Season" ORDER BY "startDate" DESC LIMIT 1
       `;
@@ -49,7 +43,7 @@ export class SeasonStorage {
   }
 
   async getLatestSeasonOverall(): Promise<any | null> {
-    const prisma = await getPrisma();
+    const prisma = await getPrismaClient();
     const seasons = await prisma.$queryRaw`
       SELECT * FROM "Season" ORDER BY year DESC, start_date DESC LIMIT 1
     `;
@@ -58,7 +52,7 @@ export class SeasonStorage {
 
   async updateSeason(id: string, updates: any): Promise<any | null> {
     try {
-      const prisma = await getPrisma();
+      const prisma = await getPrismaClient();
       const setClause = Object.keys(updates)
         .map(key => `${key} = $${key}`)
         .join(', ');
@@ -75,6 +69,7 @@ export class SeasonStorage {
   }
 
   async getChampionshipHistory(limit: number = 10): Promise<any[]> {
+    const prisma = await getPrismaClient();
     const seasons = await prisma.$queryRaw`
       SELECT * FROM "Season" WHERE status = 'completed' AND end_date < NOW()
       ORDER BY year DESC LIMIT ${limit}

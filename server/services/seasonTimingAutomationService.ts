@@ -845,10 +845,10 @@ export class SeasonTimingAutomationService {
    */
   private async createAITeamsForDivision(division: number, count: number = 8): Promise<void> {
     try {
-      const { gameConfig } = await import('../../shared/gameConfig.js');
-      const { generateRandomName, generateRandomPlayer } = await import('../../shared/names.js');
+      const gameConfig = await import('../config/game_config.json', { with: { type: 'json' } });
+      const { generateRandomName } = await import('../../shared/names.js');
       
-      const aiTeamNames = gameConfig.aiTeamNames;
+      const aiTeamNames = gameConfig.default.aiTeamNames;
       const races = ["Human", "Sylvan", "Gryll", "Lumina", "Umbra"];
       
       for (let i = 0; i < count; i++) {

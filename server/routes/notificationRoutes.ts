@@ -72,6 +72,7 @@ router.delete('/:id', requireAuth, async (req: any, res: Response, next: NextFun
     // const notification = await storage.getNotificationByIdAndUser(notificationId, userId);
     // if (!notification) return res.status(404).json({ message: "Notification not found or not yours." });
 
+    const prisma = await getPrismaClient();
     await prisma.notification.delete({ where: { id: notificationId } });
     res.json({ success: true, message: "Notification deleted." });
   } catch (error) {
@@ -83,6 +84,7 @@ router.delete('/:id', requireAuth, async (req: any, res: Response, next: NextFun
 router.delete('/delete-all', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
+    const prisma = await getPrismaClient();
     await prisma.notification.deleteMany({ where: { teamId: userId } });
     res.json({ success: true, message: "All notifications for the user have been deleted." });
   } catch (error) {
@@ -118,6 +120,7 @@ router.post('/demo', requireAuth, async (req: any, res: Response, next: NextFunc
     ];
 
     let createdCount = 0;
+    const prisma = await getPrismaClient();
     for (const notif of demoNotifications) {
       await prisma.notification.create({
         data: {

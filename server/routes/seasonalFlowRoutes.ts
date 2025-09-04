@@ -173,6 +173,7 @@ router.get('/standings/:leagueId', requireAuth, async (req, res) => {
  */
 router.delete('/playoffs/cleanup', requireAuth, async (req, res) => {
   try {
+    const prisma = await getPrismaClient();
     // Delete playoff games that are NOT on the correct Day 15 times (1:00 AM and 1:15 AM EDT)
     const deletedGames = await prisma.game.deleteMany({
       where: {

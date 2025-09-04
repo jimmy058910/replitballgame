@@ -984,7 +984,7 @@ export class SeasonalFlowService {
       const playoffTeams = standings.standings.slice(0, qualifierCount);
       
       if (playoffTeams.length >= qualifierCount) {
-        let playoffMatches = [];
+        let playoffMatches: any[] = [];
         
         if (division === 1 || division === 2) {
           // Division 1 & 2: 8-team single elimination tournament (Quarterfinals, Semifinals, Finals)

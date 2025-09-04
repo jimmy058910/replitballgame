@@ -212,6 +212,7 @@ export class AuctionStorage {
   }
 
   async getExpiredAuctions(): Promise<MarketplaceListing[]> {
+    const prisma = await getPrismaClient();
     const now = new Date();
     return await prisma.marketplaceListing.findMany({
       where: {

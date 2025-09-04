@@ -426,6 +426,7 @@ export class UnifiedTournamentAutomation {
    * Handle match completion for tournament progression
    */
   static async handleMatchCompletion(matchId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       const match = await prisma.game.findUnique({
         where: { id: matchId },

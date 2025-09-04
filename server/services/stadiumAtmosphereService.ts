@@ -1,8 +1,5 @@
 import { getPrismaClient } from '../database.js';
 
-// Initialize Prisma client
-const prisma = await getPrismaClient();
-
 /**
  * Integrated Stadium, Finance & Atmosphere Service
  * 
@@ -97,6 +94,7 @@ export class StadiumAtmosphereService {
       championshipBonus: number;
     };
   }> {
+    const prisma = await getPrismaClient();
     // Get current team data
     const team = await prisma.team.findFirst({
       where: { id: parseInt(teamId) }

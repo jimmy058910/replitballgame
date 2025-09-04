@@ -80,6 +80,7 @@ export class RBACService {
    */
   static async getUserRole(userId: string): Promise<UserRole> {
     try {
+      const prisma = await getPrismaClient();
       // Check the UserProfile table first, then fall back to users table
       const userProfile = await prisma.userProfile.findUnique({
         where: { userId: userId },
@@ -165,6 +166,7 @@ export class RBACService {
    * Promote user to admin by email (legacy method - renamed to avoid duplicate)
    */
   static async promoteUserToAdmin(email: string): Promise<void> {
+    const prisma = await getPrismaClient();
     const userProfile = await prisma.userProfile.findUnique({
       where: { email: email }
     });

@@ -10,6 +10,7 @@ const router = express.Router();
  */
 router.get('/', requireAuth, async (req: any, res, next) => {
   try {
+    const prisma = await getPrismaClient();
     const userId = req.user.claims.sub;
     const team = await storage.teams.getTeamByUserId(userId);
     if (!team) {

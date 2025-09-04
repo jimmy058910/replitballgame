@@ -77,6 +77,7 @@ router.get('/status/:userId', asyncHandler(async (req: any, res: Response) => {
 // Get all users who have accepted NDAs (admin endpoint)
 router.get('/accepted-users', asyncHandler(async (req: any, res: Response) => {
   try {
+    const prisma = await getPrismaClient();
     const users = await prisma.userProfile.findMany({
       where: { ndaAccepted: true },
       select: {

@@ -94,7 +94,7 @@ router.post('/debug-alpha', asyncHandler(async (req: Request, res: Response) => 
     });
     
     // Check existing matches
-    const existingMatches = await prisma.match.findMany({
+    const existingMatches = await prisma.game.findMany({
       where: {
         division: 8,
         subdivision: 'alpha'

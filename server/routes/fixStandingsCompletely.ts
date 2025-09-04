@@ -153,7 +153,7 @@ router.post('/fix-standings-completely', requireAuth, async (req, res) => {
         });
         
         console.log(`✅ ${stats.name}: ${stats.wins}W-${stats.draws}D-${stats.losses}L = ${stats.points} points (${stats.gamesPlayed} games)`);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ Failed to update ${stats.name}:`, error);
         updateResults.push({
           team: stats.name,

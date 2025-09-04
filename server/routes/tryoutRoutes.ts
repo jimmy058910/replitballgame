@@ -101,6 +101,7 @@ router.post('/:teamId/tryouts', requireAuth, async (req: any, res: Response, nex
     const { teamId } = req.params;
     const { type, selectedPlayers } = req.body;
     const userId = req.user.claims.sub;
+    const prisma = await getPrismaClient();
 
     // Get userProfile to check team ownership
     const userProfile = await prisma.userProfile.findFirst({

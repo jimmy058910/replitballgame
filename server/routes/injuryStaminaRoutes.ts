@@ -90,6 +90,7 @@ router.post('/player/:playerId/use-item', requireAuth, async (req: any, res: Res
     const { itemType, effectValue, itemName } = req.body;
     const userId = req.user.claims.sub;
 
+    const prisma = await getPrismaClient();
     // Verify player ownership through team
     const player = await prisma.player.findFirst({
       where: { id: parseInt(playerId) },
@@ -159,6 +160,7 @@ router.post('/simulate-tackle-injury', requireAuth, async (req: any, res: Respon
     const { playerId, tacklePower, carrierAgility, carrierStamina, gameMode } = req.body;
     const userId = req.user.claims.sub;
 
+    const prisma = await getPrismaClient();
     // Verify player ownership
     const player = await prisma.player.findFirst({
       where: { id: parseInt(playerId) },
@@ -211,6 +213,7 @@ router.post('/team/:teamId/prepare-match', requireAuth, async (req: any, res: Re
     const { gameMode } = req.body;
     const userId = req.user.claims.sub;
 
+    const prisma = await getPrismaClient();
     // Verify team ownership
     const team = await prisma.team.findFirst({
       where: { id: parseInt(teamId) },
@@ -251,6 +254,7 @@ router.post('/team/:teamId/complete-match', requireAuth, async (req: any, res: R
     const { gameMode } = req.body;
     const userId = req.user.claims.sub;
 
+    const prisma = await getPrismaClient();
     // Verify team ownership
     const team = await prisma.team.findFirst({
       where: { id: parseInt(teamId) },
@@ -308,6 +312,7 @@ router.post('/admin/daily-reset', requireAuth, async (req: any, res: Response, n
  */
 router.get('/system/stats', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
+    const prisma = await getPrismaClient();
     // Get overall system statistics
     const totalPlayers = await prisma.player.findMany();
     

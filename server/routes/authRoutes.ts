@@ -1,5 +1,9 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { requireAuth } from "../middleware/firebaseAuth.js";
+import { UserStorage } from "../storage/userStorage.js";
+import { RBACService, Permission, UserRole } from "../services/rbacService.js";
+
+const userStorage = new UserStorage();
 
 const router = Router();
 

@@ -1094,7 +1094,7 @@ export class QuickMatchSimulation {
         teamId: teamId,
         gameId: gameId,
         matchDate: matchDate,
-        matchType: matchType,
+        matchType: matchType as any,
         
         // Possession & Territory Control
         timeOfPossession: estimatedPossessionTime,

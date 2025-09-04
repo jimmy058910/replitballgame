@@ -1,8 +1,5 @@
 import { getPrismaClient } from "../database.js";
 
-// Initialize Prisma client
-const prisma = await getPrismaClient();
-
 /**
  * Tournament Bracket Validator
  * Validates tournament bracket progression and fixes issues

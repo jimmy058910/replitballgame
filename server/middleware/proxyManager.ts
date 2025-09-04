@@ -51,7 +51,7 @@ export class CloudSqlProxyManager {
         processDetails: isRunning ? stdout.trim() : 'No process found'
       });
       return isRunning;
-    } catch (error) {
+    } catch (error: any) {
       console.log('🔍 Proxy process check failed:', error.message);
       return false;
     }

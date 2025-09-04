@@ -38,6 +38,7 @@ export class PlayerSkillsService {
    * Get all skills a player is eligible for but doesn't have
    */
   static async getEligibleSkills(playerId: string): Promise<any[]> {
+    const prisma = await getPrismaClient();
     // Get player data
     const player = await prisma.player.findFirst({
       where: { id: parseInt(playerId) }

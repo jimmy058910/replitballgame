@@ -38,6 +38,7 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req: Req
       
       // Update payment transaction status
       try {
+        const prisma = await getPrismaClient();
         const transaction = await prisma.paymentTransaction.findFirst({ where: { id: parseInt(paymentIntent.id) } });
         if (transaction) {
           await prisma.paymentTransaction.update({
@@ -72,6 +73,7 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req: Req
       
       // Update payment transaction status
       try {
+        const prisma = await getPrismaClient();
         const transaction = await prisma.paymentTransaction.findFirst({ where: { id: parseInt(failedPayment.id) } });
         if (transaction) {
             await prisma.paymentTransaction.update({
@@ -177,6 +179,7 @@ router.post("/purchase-gems", requireAuth, async (req: any, res: Response, next:
       return res.status(404).json({ message: "Gem package not found." });
     }
 
+    const prisma = await getPrismaClient();
     const user = await prisma.userProfile.findUnique({ where: { id: parseInt(userId) } });
     if (!user) return res.status(404).json({ message: "User not found." });
 
@@ -240,6 +243,7 @@ router.post("/create-subscription", requireAuth, async (req: any, res: Response,
     const storeConfig = await import("../config/store_config.json", { with: { type: "json" } });
     const realmPassConfig = storeConfig.default.realmPassSubscription;
     
+    const prisma = await getPrismaClient();
     const user = await prisma.userProfile.findUnique({ where: { id: parseInt(userId) } });
     if (!user) return res.status(404).json({ message: "User not found." });
 
@@ -322,6 +326,7 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
     console.log(`PaymentIntent ${paymentIntent.id} succeeded.`);
 
     try {
+      const prisma = await getPrismaClient();
       const transaction = await prisma.paymentTransaction.findFirst({ where: { id: parseInt(paymentIntent.id) } });
       if (!transaction) {
         console.error(`Transaction not found in DB for successful PaymentIntent: ${paymentIntent.id}`);
@@ -362,6 +367,7 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     console.log(`PaymentIntent ${paymentIntent.id} failed.`);
     try {
+        const prisma = await getPrismaClient();
         const transaction = await prisma.paymentTransaction.findFirst({ where: { id: parseInt(paymentIntent.id) } });
         if (transaction && transaction.status !== 'failed') {
              await prisma.paymentTransaction.update({
@@ -385,6 +391,7 @@ router.post("/webhook", express.raw({type: 'application/json'}), async (req: Req
 router.get('/history', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.claims.sub;
+    const prisma = await getPrismaClient();
     const history = await prisma.paymentTransaction.findMany({ where: { userId: userId } });
     res.json(history);
   } catch (error) {

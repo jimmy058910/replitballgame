@@ -41,17 +41,19 @@ export class CachedUserStorage {
   /**
    * Upsert user and invalidate cache
    */
-  async upsertUser(userData: any): Promise<UserProfile> {
+  async upsertUser(userData: any): Promise<UserProfile | null> {
     const user = await userStorage.upsertUser(userData);
     
     // Invalidate related cache entries
-    memoryCache.delete(`user:${user.userId}`);
-    if (user.email) {
-      memoryCache.delete(`user:email:${user.email}`);
+    if (user) {
+      memoryCache.delete(`user:${user.userId}`);
+      if (user.email) {
+        memoryCache.delete(`user:email:${user.email}`);
+      }
+      memoryCache.delete(`nda:${user.userId}`);
+      
+      console.log(`🧠 [CACHE] Invalidated cache for user: ${user.userId}`);
     }
-    memoryCache.delete(`nda:${user.userId}`);
-    
-    console.log(`🧠 [CACHE] Invalidated cache for user: ${user.userId}`);
     return user;
   }
   

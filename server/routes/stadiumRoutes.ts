@@ -111,10 +111,10 @@ const upgradeSchema = z.object({
 });
 
 router.post('/upgrade', requireAuth, async (req: any, res: Response, next: NextFunction) => {
-    const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     const { facilityType, upgradeLevel } = upgradeSchema.parse(req.body);
+    const prisma = await getPrismaClient();
 
     // Get user's team
     const userProfile = await prisma.userProfile.findFirst({
@@ -230,10 +230,10 @@ const fieldSizeSchema = z.object({
 });
 
 router.post('/field-size', requireAuth, async (req: any, res: Response, next: NextFunction) => {
-    const prisma = await getPrismaClient();
   try {
     const userId = req.user.claims.sub;
     const { fieldSize } = fieldSizeSchema.parse(req.body);
+    const prisma = await getPrismaClient();
 
     // Get user's team
     const userProfile = await prisma.userProfile.findFirst({
@@ -324,9 +324,9 @@ router.post('/field-size', requireAuth, async (req: any, res: Response, next: Ne
 
 // Revenue calculation route
 router.get('/revenue/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
-    const prisma = await getPrismaClient();
   try {
     const teamId = req.params.teamId;
+    const prisma = await getPrismaClient();
     
     // Get stadium
     const stadium = await prisma.stadium.findFirst({

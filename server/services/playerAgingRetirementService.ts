@@ -72,6 +72,7 @@ export class PlayerAgingRetirementService {
     statName: string,
     gamesPlayedLastSeason: number = 0
   ): Promise<number> {
+    const prisma = await getPrismaClient();
     const baseChance = this.DEVELOPMENT_CONFIG.BASE_PROGRESSION_CHANCE;
     
     // Get potential modifier based on stat's potential rating
@@ -192,6 +193,7 @@ export class PlayerAgingRetirementService {
     progressions: Array<{ stat: string; oldValue: number; newValue: number; chance: number; roll: number }>;
     milestones: Array<{ type: string; description: string }>;
   }> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findFirst({
       where: { id: parseInt(playerId, 10) }
     });
@@ -286,6 +288,7 @@ export class PlayerAgingRetirementService {
   ): Promise<{
     declines: Array<{ stat: string; oldValue: number; newValue: number; chance: number; roll: number }>;
   }> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findFirst({
       where: { id: parseInt(playerId, 10) }
     });
@@ -364,6 +367,7 @@ export class PlayerAgingRetirementService {
     roll: number;
     reason?: string;
   }> {
+    const prisma = await getPrismaClient();
     const player = await prisma.player.findFirst({
       where: { id: parseInt(playerId, 10) }
     });

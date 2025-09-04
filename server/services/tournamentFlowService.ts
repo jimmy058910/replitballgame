@@ -1,8 +1,8 @@
 import { getPrismaClient } from "../database.js";
 import { QuickMatchSimulation } from './quickMatchSimulation.js';
+import { MatchType } from "../db";
 
-// Initialize Prisma client
-const prisma = await getPrismaClient();
+// Remove top-level await - Prisma will be initialized in each method
 
 // Simple logging function for now
 function logInfo(message: string) {
@@ -56,13 +56,14 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    * Start tournament round with live simulation
    */
   private async startTournamentRound(tournamentId: number, roundNumber: number): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       // Get matches for this round
       const matches = await prisma.game.findMany({
         where: { 
           tournamentId: tournamentId,
           round: roundNumber,
-          status: 'SCHEDULED'
+          status: 'SCHEDULED' as any
         }
       });
 
@@ -167,6 +168,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    * Handle match completion and check for round advancement
    */
   async handleMatchCompletion(matchId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       const match = await prisma.game.findUnique({
         where: { id: matchId },
@@ -198,6 +200,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    * Apply stamina and injury logic after each game
    */
   private async applyPostMatchEffects(homeTeamId: number, awayTeamId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       // Get all players from both teams
       const players = await prisma.player.findMany({
@@ -248,6 +251,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    * Check if round is complete and advance to next round
    */
   private async checkAndAdvanceRound(tournamentId: number, completedRound: number): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       logInfo(`Checking round advancement for tournament ${tournamentId}, round ${completedRound}`);
       
@@ -314,6 +318,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    * Generate matches for the next tournament round based on winners from current round
    */
   private async generateNextRoundMatches(tournamentId: number, completedRound: number, nextRound: number): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       // Get completed matches from current round
       const currentRoundMatches = await prisma.game.findMany({
@@ -351,10 +356,10 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
               awayTeamId: winners[i + 1],
               homeScore: 0,
               awayScore: 0,
-              status: 'SCHEDULED',
+              status: 'SCHEDULED' as any as any,
               round: nextRound,
               gameDate: new Date(), // Schedule immediately for visibility
-              matchType: 'TOURNAMENT_DAILY',
+              matchType: 'TOURNAMENT_DAILY' as MatchType,
               simulated: false
             });
           }
@@ -368,10 +373,10 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
             awayTeamId: winners[1],
             homeScore: 0,
             awayScore: 0,
-            status: 'SCHEDULED',
+            status: 'SCHEDULED' as any,
             round: nextRound,
             gameDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
-            matchType: 'TOURNAMENT_DAILY',
+            matchType: 'TOURNAMENT_DAILY' as MatchType,
             simulated: false
           });
         }
@@ -397,6 +402,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    * Complete tournament and distribute prizes
    */
   private async completeTournament(tournamentId: number): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       // Get the finals match to determine winner
       const finalsMatch = await prisma.game.findFirst({
@@ -539,6 +545,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
    * Award tournament prize to team
    */
   private async awardTournamentPrize(teamId: number, prize: { credits: number, gems: number }): Promise<void> {
+    const prisma = await getPrismaClient();
     try {
       const teamFinances = await prisma.teamFinances.findUnique({
         where: { teamId }

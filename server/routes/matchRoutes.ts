@@ -335,6 +335,7 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
 
     // Record stadium revenue for home team
     if (simulationResult.revenueGenerated > 0) {
+      const prisma = await getPrismaClient();
       const match = await prisma.game.findUnique({
         where: { id: parseInt(matchId) }
       });
@@ -936,6 +937,7 @@ router.post('/:id/simulate', requireAuth, async (req: Request, res: Response, ne
 
     // Record stadium revenue for home team
     if (result.revenueGenerated > 0) {
+      const prisma = await getPrismaClient();
       const homeTeam = await prisma.team.findUnique({
         where: { id: match.homeTeamId }
       });
