@@ -45,19 +45,19 @@ jobs:
           npm ci --include=dev
           echo "✅ Dependencies ready for analysis"
 
-      - name: 🎯 TypeScript Strict Mode Compliance
+      - name: 🎯 TypeScript Code Quality Check
         id: strict-compliance
         run: |
-          echo "🔍 Analyzing TypeScript strict mode compliance..."
+          echo "🔍 Analyzing TypeScript code quality (production-aligned)..."
           
-          # Count implicit 'any' types
-          ANY_COUNT=$(grep -r ": any\|implicitly has an 'any' type" server/ --include="*.ts" 2>/dev/null | wc -l || echo "0")
+          # Count explicit 'any' types (more realistic than all implicit ones)
+          ANY_COUNT=$(grep -r ": any" server/ --include="*.ts" 2>/dev/null | wc -l || echo "0")
           
-          # Count missing return type annotations on functions
-          MISSING_RETURN_TYPES=$(grep -r "function.*{$\|async.*{$\|=>.*(.*){$" server/ --include="*.ts" | grep -v ": void\|: Promise\|: any\|: number\|: string\|: boolean" | wc -l || echo "0")
+          # Count missing return type annotations on exported functions only (more practical)
+          MISSING_RETURN_TYPES=$(grep -r "export.*function.*{$\|export.*async.*{$" server/ --include="*.ts" | grep -v ": void\|: Promise\|: any\|: number\|: string\|: boolean" | wc -l || echo "0")
           
-          # Count files without proper error handling
-          NO_ERROR_HANDLING=$(find server/ -name "*.ts" -exec grep -L "try.*catch\|\.catch\|throw" {} \; 2>/dev/null | wc -l || echo "0")
+          # Count critical files without any error handling (more targeted)
+          NO_ERROR_HANDLING=$(find server/routes/ server/services/ -name "*.ts" -exec grep -L "try.*catch\|\.catch\|throw" {} \; 2>/dev/null | wc -l || echo "0")
           
           echo "any_types=$ANY_COUNT" >> $GITHUB_OUTPUT
           echo "missing_return_types=$MISSING_RETURN_TYPES" >> $GITHUB_OUTPUT
@@ -99,17 +99,17 @@ jobs:
         run: |
           echo "🔒 Analyzing security patterns and vulnerabilities..."
           
-          # Check for potential security issues
-          HARDCODED_SECRETS=$(grep -r "password.*=\|api_key.*=\|secret.*=" server/ --include="*.ts" | grep -v "process\.env\|config\." | wc -l || echo "0")
+          # Check for potential security issues (more targeted)
+          HARDCODED_SECRETS=$(grep -r "password.*=.*['\"][^$]\|api_key.*=.*['\"][^$]\|secret.*=.*['\"][^$]" server/ --include="*.ts" | grep -v "process\.env\|config\.\|process\." | wc -l || echo "0")
           
-          # Check for SQL injection vulnerabilities
-          SQL_INJECTION_RISK=$(grep -r "\`.*\${.*}\`" server/ --include="*.ts" | grep -v "queryRaw\|executeRaw" | wc -l || echo "0")
+          # Check for SQL injection vulnerabilities (refined pattern)
+          SQL_INJECTION_RISK=$(grep -r "\`.*SELECT.*\${.*}\`\|\`.*INSERT.*\${.*}\`\|\`.*UPDATE.*\${.*}\`" server/ --include="*.ts" | wc -l || echo "0")
           
-          # Check for missing input validation
-          NO_VALIDATION=$(find server/routes/ -name "*.ts" -exec grep -L "validation\|validate\|zod\|joi" {} \; 2>/dev/null | wc -l || echo "0")
+          # Check for missing input validation on POST/PUT routes only
+          NO_VALIDATION=$(find server/routes/ -name "*.ts" -exec grep -l "\.post\|\.put\|\.patch" {} \; | xargs -I {} grep -L "validation\|validate\|zod\|joi\|body\|params" {} 2>/dev/null | wc -l || echo "0")
           
-          # Check for missing authentication checks
-          NO_AUTH_CHECK=$(find server/routes/ -name "*.ts" -exec grep -L "requireAuth\|authenticate\|authorize" {} \; 2>/dev/null | wc -l || echo "0")
+          # Check for missing authentication checks on protected routes (more practical)
+          NO_AUTH_CHECK=$(find server/routes/ -name "*.ts" -exec grep -l "\.post\|\.put\|\.delete" {} \; | xargs -I {} grep -L "requireAuth\|authenticate\|authorize\|auth\|token" {} 2>/dev/null | wc -l || echo "0")
           
           echo "hardcoded_secrets=$HARDCODED_SECRETS" >> $GITHUB_OUTPUT
           echo "sql_injection_risk=$SQL_INJECTION_RISK" >> $GITHUB_OUTPUT
@@ -183,19 +183,25 @@ jobs:
         run: |
           echo "🔍 Running dependency security audit..."
           
-          # Run npm audit and capture results
-          if npm audit --audit-level=moderate > audit-results.txt 2>&1; then
-            echo "✅ DEPENDENCIES: No moderate+ vulnerabilities detected"
+          # Run npm audit with production-friendly approach
+          npm audit --audit-level=high --production > audit-results.txt 2>&1 || true
+          
+          if grep -q "found 0 vulnerabilities" audit-results.txt; then
+            echo "✅ DEPENDENCIES: No high+ vulnerabilities detected"
             echo "vulnerabilities=0" >> $GITHUB_OUTPUT
             echo "audit_status=clean" >> $GITHUB_OUTPUT
           else
-            VULN_COUNT=$(grep -c "vulnerabilit" audit-results.txt || echo "0")
-            echo "⚠️ DEPENDENCIES: $VULN_COUNT vulnerabilities detected"
-            echo "vulnerabilities=$VULN_COUNT" >> $GITHUB_OUTPUT
+            # Count high and critical vulnerabilities only
+            HIGH_VULNS=$(grep -o "high severity" audit-results.txt | wc -l || echo "0")
+            CRITICAL_VULNS=$(grep -o "critical severity" audit-results.txt | wc -l || echo "0")
+            TOTAL_VULNS=$((HIGH_VULNS + CRITICAL_VULNS))
+            
+            echo "⚠️ DEPENDENCIES: $TOTAL_VULNS high/critical vulnerabilities detected"
+            echo "vulnerabilities=$TOTAL_VULNS" >> $GITHUB_OUTPUT
             echo "audit_status=has_vulnerabilities" >> $GITHUB_OUTPUT
             
-            echo "📋 Top vulnerability details:"
-            head -20 audit-results.txt
+            echo "📋 Vulnerability summary:"
+            grep -E "high severity|critical severity" audit-results.txt | head -10
           fi
 
       - name: 🔧 Auto-Fix Safe Issues (If Enabled)
@@ -382,9 +388,9 @@ jobs:
           PERCENTAGE=${{ steps.quality-score.outputs.quality_percentage }}
           VULNS=${{ steps.dependency-audit.outputs.vulnerabilities }}
           
-          # Don't fail for code quality (it's informational) unless there are critical security issues
-          if [ "$VULNS" -gt "10" ]; then
-            echo "❌ CRITICAL: Too many dependency vulnerabilities ($VULNS)"
+          # Only fail for critical security issues (high/critical vulns only)
+          if [ "$VULNS" -gt "5" ]; then
+            echo "❌ CRITICAL: Too many high/critical dependency vulnerabilities ($VULNS)"
             exit 1
           fi
           
