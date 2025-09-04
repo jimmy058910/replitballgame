@@ -51,6 +51,7 @@ RUN npm run build
 # Build server (allowing TypeScript errors for now)
 RUN npm run build:server || echo "TypeScript compilation had errors, continuing..."
 
+
 # ===================================
 # STAGE 2: Production Runtime Stage  
 # ===================================
@@ -75,15 +76,11 @@ COPY package*.json ./
 RUN npm ci --only=production --no-audit --prefer-offline \
     && npm cache clean --force
 
-# Copy built frontend from previous stage
+# Copy built frontend and server from previous stage
 COPY --from=frontend-builder /app/dist ./dist
 
-# Copy server files and necessary project structure
-COPY server-step7-unified.js ./
+# Copy shared files and prisma schema
 COPY shared ./shared/
-COPY server/storage ./server/storage/
-
-# Copy prisma schema if it exists
 COPY prisma ./prisma/
 
 # Generate Prisma client
@@ -92,9 +89,6 @@ RUN npx prisma generate || echo "Prisma generation skipped"
 # Create necessary directories with proper permissions
 RUN mkdir -p logs tmp \
     && chown -R nodeuser:nodeuser /app
-
-# Set executable permissions
-RUN chmod +x server-step7-unified.js
 
 # Switch to non-root user for security
 USER nodeuser
@@ -114,4 +108,4 @@ ENV PORT=8080
 ENTRYPOINT ["dumb-init", "--"]
 
 # Start the application
-CMD ["node", "server-step7-unified.js"]
+CMD ["node", "dist/server/index.js"]
