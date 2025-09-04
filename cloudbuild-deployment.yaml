@@ -20,16 +20,22 @@ steps:
         
         echo "📅 Using build ID: ${SHORT_SHA}"
         
-        # Verify Dockerfile exists
-        if [ ! -f "Dockerfile.step7-unified" ]; then
-          echo "❌ Dockerfile.step7-unified not found!"
+        # Use fixed Dockerfile if available, otherwise fallback to original
+        if [ -f "Dockerfile.step7-unified-fixed" ]; then
+          DOCKERFILE="Dockerfile.step7-unified-fixed"
+          echo "📦 Using fixed Dockerfile"
+        elif [ -f "Dockerfile.step7-unified" ]; then
+          DOCKERFILE="Dockerfile.step7-unified"
+          echo "📦 Using original Dockerfile"
+        else
+          echo "❌ No Dockerfile found!"
           exit 1
         fi
         
         # Build multi-stage Docker image with Firebase environment variables
         echo "🔥 Building with Firebase configuration..."
         docker build \
-          -f Dockerfile.step7-unified \
+          -f $$DOCKERFILE \
           --build-arg VITE_FIREBASE_API_KEY="$$VITE_FIREBASE_API_KEY" \
           --build-arg VITE_FIREBASE_PROJECT_ID="$$VITE_FIREBASE_PROJECT_ID" \
           --build-arg VITE_FIREBASE_APP_ID="$$VITE_FIREBASE_APP_ID" \
