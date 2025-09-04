@@ -217,6 +217,8 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
   
   logInfo("Super admin resetting season", { adminUserId: userId, requestId });
 
+  const prisma = await getPrismaClient();
+
   // Reset all team statistics
   await prisma.team.updateMany({
     data: {
@@ -253,6 +255,7 @@ router.post('/stop-all-games', RBACService.requirePermission(Permission.MANAGE_M
   
   logInfo("Admin stopping all matches", { adminUserId: userId, requestId });
 
+  const prisma = await getPrismaClient();
   const result = await prisma.game.updateMany({
     where: { 
       status: { in: ['IN_PROGRESS', 'SCHEDULED'] }
@@ -280,6 +283,8 @@ router.post('/cleanup-division', RBACService.requireSuperAdmin(), asyncHandler(a
   }
 
   logInfo("Super admin cleaning up division", { adminUserId: userId, division, requestId });
+
+  const prisma = await getPrismaClient();
 
   // Remove AI teams from division
   const divisionTeams = await storage.teams.getTeamsByDivision(division);
@@ -402,6 +407,8 @@ router.post('/create-league-schedule', RBACService.requirePermission(Permission.
   
   logInfo("Admin creating league schedule", { adminUserId: userId, requestId });
 
+  const prisma = await getPrismaClient();
+
   // Get current season and calculate current day
   const currentSeason = await storage.seasons.getCurrentSeason();
   if (!currentSeason) {
@@ -481,6 +488,8 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
   const userId = req.user.claims.sub;
   
   logInfo("Admin starting all scheduled league games", { adminUserId: userId, requestId });
+
+  const prisma = await getPrismaClient();
 
   // Get current season and calculate current day
   const currentSeason = await storage.seasons.getCurrentSeason();
