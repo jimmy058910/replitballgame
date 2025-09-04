@@ -241,7 +241,7 @@ async function startServer() {
     });
 
     // Start server
-    const port = parseInt(process.env.PORT || "5000", 10);
+    const port = parseInt(process.env.PORT || "8080", 10);
     
     httpServer.listen(port, "0.0.0.0", async () => {
       console.log(`✅ Server running on 0.0.0.0:${port}`);

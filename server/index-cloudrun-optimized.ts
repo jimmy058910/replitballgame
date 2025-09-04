@@ -20,7 +20,7 @@ async function startCloudRunOptimizedServer() {
       res.status(200).json({ 
         status: 'healthy', 
         timestamp: new Date().toISOString(),
-        port: process.env.PORT || '5000'
+        port: process.env.PORT || '8080'
       });
     });
     
