@@ -3981,6 +3981,73 @@ interface AlertRules {
 
 ---
 
+## GitHub Actions Guardian Agents (September 4th, 2025)
+
+### Automated Code Quality Monitoring
+
+The platform now features 4 comprehensive Guardian Agents that provide continuous code quality monitoring and automated maintenance:
+
+#### 🛡️ TypeScript Guardian Agent
+- **Purpose**: Ensures TypeScript compilation and type safety
+- **Schedule**: Daily at 2 AM UTC + push/PR events
+- **Key Features**:
+  - Production-aligned server compilation (generates JavaScript despite TypeScript errors)
+  - Client-side TypeScript validation
+  - Prisma integration pattern checking
+  - Auto-fix: Missing Prisma imports and initialization patterns
+
+#### 🔍 Code Quality Guardian Agent  
+- **Purpose**: Comprehensive code quality analysis and scoring
+- **Schedule**: Weekly Sundays at 4 AM UTC + push/PR events
+- **Key Features**:
+  - TypeScript quality metrics (any types, return annotations)
+  - Database code patterns (async/await, transactions)
+  - Security analysis (hardcoded secrets, SQL injection risks)
+  - Performance patterns (N+1 queries, pagination)
+  - Dependency vulnerability scanning
+  - Auto-fix: Console.log removal, semicolon addition, import organization
+
+#### 🗄️ Prisma Database Guardian Agent
+- **Purpose**: Database schema and integration validation
+- **Schedule**: Weekly Sundays at 3 AM UTC + database file changes
+- **Key Features**:
+  - Prisma schema validation (CI environment compatible)
+  - Client generation testing
+  - Database integration pattern analysis
+  - Critical database file verification
+  - Auto-fix: Prisma client import patterns and initialization
+
+#### 🚀 Deployment Readiness Agent
+- **Purpose**: Pre-deployment validation and testing
+- **Schedule**: Push/PR events only (deployment-focused)
+- **Key Features**:
+  - Critical path compilation testing
+  - Deployment file validation
+  - Environment configuration checks
+  - Docker build testing
+  - Database connection pattern validation
+  - Performance and security checks
+
+### Guardian Agent Configuration
+
+All agents feature:
+- **Production-Realistic Thresholds**: Won't fail on issues that don't block deployment
+- **Auto-Fix Capabilities**: Safe, automated fixes for common patterns
+- **Comprehensive Reporting**: Detailed analysis with actionable insights
+- **Pull Request Integration**: Automatic comments with results and recommendations
+- **Artifact Preservation**: 30-day retention of logs and analysis results
+
+### Impact on Development Workflow
+
+The Guardian Agents provide:
+1. **Continuous Quality Assurance**: Automated detection of technical debt and issues
+2. **Deployment Confidence**: Pre-deployment validation ensures stable releases
+3. **Knowledge Transfer**: Comprehensive reports help maintain code quality standards
+4. **Proactive Maintenance**: Scheduled runs catch issues before they impact production
+5. **Developer Productivity**: Auto-fixes handle routine maintenance tasks
+
+---
+
 ## Conclusion
 
 Realm Rivalry represents a comprehensive, production-ready fantasy sports management game that combines sophisticated game mechanics with modern web technologies. The system demonstrates:
@@ -4003,4 +4070,4 @@ Realm Rivalry represents a comprehensive, production-ready fantasy sports manage
 - **Financial Systems**: Secure multi-currency economy with escrow protection
 - **Community Features**: Tournament system fostering competitive community
 
-This documentation serves as the definitive reference for understanding, maintaining, and extending the Realm Rivalry platform. The system's architecture and implementation patterns provide a foundation for continued growth and feature development while maintaining the high quality standards established from the beginning.
+This documentation serves as the definitive reference for understanding, maintaining, and extending the Realm Rivalry platform. The system's architecture, implementation patterns, and automated quality assurance provide a foundation for continued growth and feature development while maintaining the high quality standards established from the beginning.
