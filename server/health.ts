@@ -121,7 +121,7 @@ export function createDetailedHealthCheck() {
       const environmentData = {
         NODE_ENV: process.env.NODE_ENV || 'not-set',
         production: process.env.NODE_ENV === 'production',
-        port: process.env.PORT || 8080,
+        port: process.env.PORT || (process.env.NODE_ENV === 'production' ? 8080 : 5000),
         cloudRun: {
           GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || 'not-set',
           K_SERVICE: process.env.K_SERVICE || 'not-set',

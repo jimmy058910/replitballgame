@@ -240,8 +240,9 @@ async function startServer() {
       res.status(500).json({ error: 'Internal server error' });
     });
 
-    // Start server
-    const port = parseInt(process.env.PORT || "8080", 10);
+    // Start server - Use different default ports for dev vs production
+    const defaultPort = process.env.NODE_ENV === 'production' ? "8080" : "5000";
+    const port = parseInt(process.env.PORT || defaultPort, 10);
     
     httpServer.listen(port, "0.0.0.0", async () => {
       console.log(`✅ Server running on 0.0.0.0:${port}`);
