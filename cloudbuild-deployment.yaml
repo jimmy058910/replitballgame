@@ -63,31 +63,49 @@ steps:
         echo "⏳ Waiting 2 minutes for vulnerability scan to complete..."
         sleep 120
         
-        # Display vulnerability scan results
+        # Display vulnerability scan results with updated gcloud syntax
         echo "📊 Vulnerability scan results for ${_IMAGE_NAME}:${SHORT_SHA}:"
-        gcloud artifacts docker images scan ${_IMAGE_NAME}:${SHORT_SHA} \
-          --format="table(package,vulnerability.severity,vulnerability.cvssScore)" \
-          --filter="vulnerability.severity:(CRITICAL HIGH)" \
-          --limit=50 || echo "⚠️ No high/critical vulnerabilities found or scan still processing"
         
-        # Get vulnerability summary
+        # Try to get scan results using newer gcloud CLI approach
+        SCAN_OUTPUT=$$(gcloud artifacts docker images scan ${_IMAGE_NAME}:${SHORT_SHA} \
+          --format="table(package,vulnerability.severity,vulnerability.cvssScore)" \
+          2>/dev/null || echo "scan-unavailable")
+        
+        if [ "$$SCAN_OUTPUT" != "scan-unavailable" ]; then
+          echo "$$SCAN_OUTPUT" | head -n 20
+        else
+          echo "⚠️ Vulnerability scan results not available or still processing"
+        fi
+        
+        # Get vulnerability summary with improved error handling
         echo ""
         echo "📈 Vulnerability summary:"
-        CRITICAL_COUNT=$$(gcloud artifacts docker images scan ${_IMAGE_NAME}:${SHORT_SHA} \
-          --format="value(vulnerability.severity)" \
-          --filter="vulnerability.severity:CRITICAL" | wc -l || echo "0")
-        HIGH_COUNT=$$(gcloud artifacts docker images scan ${_IMAGE_NAME}:${SHORT_SHA} \
-          --format="value(vulnerability.severity)" \
-          --filter="vulnerability.severity:HIGH" | wc -l || echo "0")
+        
+        # Use list format instead of deprecated filter syntax
+        SCAN_LIST=$$(gcloud artifacts docker images scan ${_IMAGE_NAME}:${SHORT_SHA} \
+          --format="csv[no-heading](vulnerability.severity)" \
+          2>/dev/null || echo "")
+        
+        if [ -n "$$SCAN_LIST" ]; then
+          CRITICAL_COUNT=$$(echo "$$SCAN_LIST" | grep -c "CRITICAL" || echo "0")
+          HIGH_COUNT=$$(echo "$$SCAN_LIST" | grep -c "HIGH" || echo "0")
+        else
+          CRITICAL_COUNT="unknown"
+          HIGH_COUNT="unknown"
+        fi
         
         echo "🔴 Critical vulnerabilities: $$CRITICAL_COUNT"
         echo "🟠 High vulnerabilities: $$HIGH_COUNT"
         
         # Log but don't fail build (can be enabled later if needed)
-        if [ "$$CRITICAL_COUNT" -gt "0" ]; then
+        if [ "$$CRITICAL_COUNT" != "unknown" ] && [ "$$CRITICAL_COUNT" != "0" ] && [ "$$CRITICAL_COUNT" -gt "0" ] 2>/dev/null; then
           echo "⚠️ Found $$CRITICAL_COUNT critical vulnerabilities - consider reviewing before production deployment"
           # Uncomment the next line to fail build on critical vulnerabilities:
           # exit 1
+        elif [ "$$CRITICAL_COUNT" = "unknown" ]; then
+          echo "ℹ️ Vulnerability scan data not available - proceeding with deployment"
+        else
+          echo "✅ No critical vulnerabilities detected"
         fi
         
         echo "✅ Vulnerability scan completed - proceeding with deployment"
