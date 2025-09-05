@@ -2,11 +2,11 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCnxaxQb4dpuOo70LdbpRiuKIMsETImci8",
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "direct-glider-465821-p7"}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "direct-glider-465821-p7",
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || "direct-glider-465821-p7"}.firebasestorage.app`,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef123456",
 };
 
 console.log('🔥 Firebase Config - apiKey exists:', !!firebaseConfig.apiKey);

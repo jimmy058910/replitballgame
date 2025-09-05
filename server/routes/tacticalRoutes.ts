@@ -77,7 +77,7 @@ router.get("/team-tactics", requireAuth, async (req: any, res) => {
     const headCoach = staff.find((s: any) => s.type === "HEAD_COACH");
     
     // Get current season day to check if field size can be changed
-    const currentDay = SeasonalFlowService.getCurrentDay();
+    const currentDay = await SeasonalFlowService.getCurrentDay();
     const canChangeField = canChangeFieldSize(currentDay);
     
     const fieldSize = (team.homeField || "STANDARD").toLowerCase() as any;
@@ -136,7 +136,7 @@ router.post("/update-field-size", requireAuth, async (req: any, res) => {
     }
 
     // Check if field size can be changed
-    const currentDay = SeasonalFlowService.getCurrentDay();
+    const currentDay = await SeasonalFlowService.getCurrentDay();
     if (!canChangeFieldSize(currentDay)) {
       return res.status(400).json({ 
         error: "Field size can only be changed on Day 1 or after Day 14 (off-season)" 

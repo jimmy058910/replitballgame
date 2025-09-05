@@ -8,6 +8,7 @@ import teamRoutes from "./teamRoutes.js";
 import playerRoutes from "./playerRoutes.js";
 import staffRoutes from "./staffRoutes.js";
 import leagueRoutes from "./leagueRoutes.js";
+import leagueManagementRoutes from "./leagueManagementRoutes.js";
 import matchRoutes from "./matchRoutes.js";
 import marketplaceRoutes from "./marketplaceRoutes.js";
 import auctionRoutes from "./auctionRoutes.js";
@@ -72,6 +73,7 @@ import lateRegistrationRoutes from "./lateRegistrationRoutes.js";
 import manualStandingsComplete from "./manualStandingsComplete.js";
 import cleanupTournamentRoutes from "./cleanupTournamentRoutes.js";
 import simpleCleanupRoutes from "./simpleCleanupRoutes.js";
+import integrityRoutes from "./integrityRoutes.js";
 
 
 // This function will be called by server/index.ts to set up all routes.
@@ -141,6 +143,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/players", playerRoutes);
   app.use("/api/staff", staffRoutes);
   app.use("/api/leagues", leagueRoutes); // This will also cover /api/teams/division/:division if it's there
+  app.use("/api/league-management", leagueManagementRoutes); // Enterprise-grade league management system
   app.use("/api/team-trends", teamTrendsRoutes); // Enhanced team trends for product-led growth data storytelling (moved from /api/teams to avoid conflict)
   app.use("/api/matches", matchRoutes);
   app.use("/api/enhanced-matches", enhancedMatchRoutes); // Enhanced match engine API endpoints
@@ -231,6 +234,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/manual-standings", manualStandingsComplete); // Complete comprehensive standings fix
   app.use("/api/tournament-cleanup", cleanupTournamentRoutes); // Emergency cleanup for stuck tournament registrations
   app.use("/api/simple-cleanup", simpleCleanupRoutes); // Simple cleanup using working Prisma patterns
+  app.use("/api/integrity", integrityRoutes); // Data integrity management and team statistics synchronization
 
   // Add missing /api/me endpoint that frontend expects (redirect to auth/user)
   app.get("/api/me", (req, res) => {

@@ -1,0 +1,86 @@
+{
+  "// 🎮 REALM RIVALRY - CURSOR AI DEVELOPMENT CONFIGURATION": "//",
+  "// This configuration optimizes Cursor AI for full-stack development": "//",
+  
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "typescript.suggest.includeAutomaticOptionalChainCompletions": true,
+  
+  "// Database & Prisma": "//",
+  "prisma.showPrismaDataPlatformNotification": false,
+  "prisma.fileWatcher": true,
+  
+  "// React & Frontend": "//",
+  "emmet.includeLanguages": {
+    "typescript": "typescriptreact",
+    "javascript": "javascriptreact"
+  },
+  
+  "// File Associations": "//",
+  "files.associations": {
+    "*.tsx": "typescriptreact",
+    "*.ts": "typescript",
+    "*.prisma": "prisma"
+  },
+  
+  "// Auto-save for live preview": "//",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  
+  "// Formatting": "//",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  
+  "// Terminal Configuration": "//",
+  "terminal.integrated.defaultProfile.windows": "Command Prompt",
+  "terminal.integrated.env.windows": {
+    "NODE_ENV": "development"
+  },
+  
+  "// Debugging": "//",
+  "debug.node.autoAttach": "on",
+  "debug.javascript.autoAttachFilter": "smart",
+  
+  "// File Explorer": "//",
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/.prisma": true
+  },
+  
+  "// Search": "//",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/package-lock.json": true,
+    "**/.prisma": true
+  },
+  
+  "// Live Preview": "//",
+  "livePreview.defaultPreviewPath": "/client/index.html",
+  "liveServer.settings.root": "/client",
+  "liveServer.settings.port": 5174,
+  
+  "// Extensions": "//",
+  "extensions.ignoreRecommendations": false,
+  
+  "// Cursor AI specific": "//",
+  "cursor.chat.model": "claude-3.5-sonnet",
+  "cursor.completions.enabled": true,
+  "cursor.completions.trigger.automatic": true,
+  
+  "// Git": "//",
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  
+  "// Workspace": "//",
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "vs-seti"
+}

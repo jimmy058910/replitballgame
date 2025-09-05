@@ -109,21 +109,42 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
     };
   }
 
-  // CRITICAL FIX: Use correct calculation logic - calculate draws from points, not vice versa
-  // The standings table calculates correctly: draws = points - (wins * 3)
-  const correctDraws = Math.max(0, (serializedTeam.points || 0) - ((serializedTeam.wins || 0) * 3));
-  const correctPoints = serializedTeam.points || 0; // Keep existing points from game results
+  // CRITICAL FIX: Get real-time statistics from completed games instead of stale database values
+  console.log(`🔍 [DEBUG] About to calculate real-time stats for team: ${team.name} (ID: ${team.id})`);
+  console.log(`🔍 [DEBUG] Current database values: ${serializedTeam.wins}W-${serializedTeam.draws}D-${serializedTeam.losses}L-${serializedTeam.points}pts`);
   
-  if (serializedTeam.draws !== correctDraws) {
-    console.log(`🔧 [MY TEAM DRAWS FIX] ${serializedTeam.name}: DB shows ${serializedTeam.draws} draws, should be ${correctDraws} draws (${serializedTeam.points}pts - ${serializedTeam.wins}*3)`);
+  const { TeamStatisticsCalculator } = await import('../utils/teamStatisticsCalculator.js');
+  
+  let correctedSerializedTeam;
+  
+  try {
+    // Calculate real statistics from actual game results
+    const realTimeStats = await TeamStatisticsCalculator.calculateTeamStatisticsFromGames(
+      parseInt(team.id.toString()), 
+      team.name
+    );
+    
+    console.log(`🔧 [REAL-TIME STATS] ${serializedTeam.name}: DB shows ${serializedTeam.wins}W-${serializedTeam.draws}D-${serializedTeam.losses}L, Real: ${realTimeStats.wins}W-${realTimeStats.draws}D-${realTimeStats.losses}L`);
+    
+    // Use real-time statistics instead of stale database values
+    correctedSerializedTeam = {
+      ...serializedTeam,
+      wins: realTimeStats.wins,
+      losses: realTimeStats.losses, 
+      draws: realTimeStats.draws,
+      points: realTimeStats.points,
+      played: realTimeStats.gamesPlayed
+    };
+    
+  } catch (statsError) {
+    console.error('❌ [STATS ERROR] Failed to calculate real-time stats, using database values:', statsError);
+    
+    // Fallback to database values if stats calculation fails
+    correctedSerializedTeam = {
+      ...serializedTeam,
+      played: (serializedTeam.wins || 0) + (serializedTeam.losses || 0) + (serializedTeam.draws || 0)
+    };
   }
-  
-  const correctedSerializedTeam = {
-    ...serializedTeam,
-    points: correctPoints, // Use existing points from game results
-    draws: correctDraws, // Calculate draws from points (same as standings table)
-    played: (serializedTeam.wins || 0) + (serializedTeam.losses || 0) + correctDraws
-  };
 
   return res.json(correctedSerializedTeam);
 }));
@@ -334,9 +355,9 @@ router.get('/:teamId/transactions', requireAuth, asyncHandler(async (req: Reques
     
     // Combine and sort by date
     const allTransactions = [
-      ...teamTransactions.transactions || [],
-      ...userTransactions.transactions || []
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      ...(Array.isArray(teamTransactions) ? teamTransactions : teamTransactions?.transactions || []),
+      ...(Array.isArray(userTransactions) ? userTransactions : userTransactions?.transactions || [])
+    ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
     console.log('✅ [TRANSACTIONS] Successfully returned transactions for teamId:', teamId, 'count:', allTransactions.length);
     res.json({
@@ -346,7 +367,7 @@ router.get('/:teamId/transactions', requireAuth, asyncHandler(async (req: Reques
     });
   } catch (error) {
     console.error('❌ [TRANSACTIONS] Error fetching transactions:', error);
-    throw ErrorCreators.internalServer("Failed to fetch transactions");
+    throw ErrorCreators.internal("Failed to fetch transactions");
   }
 }));
 
@@ -604,8 +625,18 @@ router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: Request, r
   }
 
   const nextMatch = upcomingMatches[0];
-  const isHome = nextMatch.homeTeam.id === team.id;
-  const opponent = isHome ? nextMatch.awayTeam : nextMatch.homeTeam;
+  const isHome = nextMatch.homeTeamId === team.id;
+  const opponentTeamId = isHome ? nextMatch.awayTeamId : nextMatch.homeTeamId;
+  const opponent = await storage.teams.getTeamById(opponentTeamId);
+  
+  if (!opponent) {
+    return res.json({
+      nextOpponent: "Unknown opponent",
+      name: "Unknown",
+      hasMatch: false,
+      timeUntil: "Unable to determine opponent"
+    });
+  }
   
   // Calculate time until match
   const gameDate = new Date(nextMatch.gameDate);
@@ -691,7 +722,8 @@ router.get('/fix-opponent-debug', asyncHandler(async (req: Request, res: Respons
     console.log('🔧 ADMIN: Starting match opponent fix...');
     
     // Find teams by manually querying
-    const allTeams = await storage.db.team.findMany({
+    const prisma = await getPrismaClient();
+    const allTeams = await prisma.team.findMany({
       where: {
         name: {
           in: ['Oakland Cougars', 'Shadow Runners 197', 'Iron Wolves 686']
@@ -718,7 +750,7 @@ router.get('/fix-opponent-debug', asyncHandler(async (req: Request, res: Respons
     const today = new Date('2025-08-21T00:00:00.000Z');
     const tomorrow = new Date('2025-08-22T00:00:00.000Z');
     
-    const todaysMatch = await storage.db.game.findFirst({
+    const todaysMatch = await prisma.game.findFirst({
       where: {
         OR: [
           { homeTeamId: oaklandCougars.id },
@@ -764,7 +796,7 @@ router.get('/fix-opponent-debug', asyncHandler(async (req: Request, res: Respons
     
     if (needsUpdate) {
       // Update the match using Prisma directly
-      const updatedMatch = await storage.db.game.update({
+      const updatedMatch = await prisma.game.update({
         where: { id: todaysMatch.id },
         data: updateData,
         include: {
@@ -802,11 +834,11 @@ router.get('/fix-opponent-debug', asyncHandler(async (req: Request, res: Respons
       });
     }
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error fixing match opponent:', error);
     return res.status(500).json({ 
       error: 'Failed to fix match opponent', 
-      details: error.message 
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 }));
@@ -893,9 +925,9 @@ router.post('/:teamId/fix-financial-balance', requireAuth, asyncHandler(async (r
       }
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [FINANCIAL FIX] Error fixing balance:', error);
-    res.status(500).json({ message: `Failed to fix financial balance: ${error.message}` });
+    res.status(500).json({ message: `Failed to fix financial balance: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
@@ -926,9 +958,9 @@ router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req
       playersUpdated: updateResult.count
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [CAMARADERIE] Error setting camaraderie:', error);
-    res.status(500).json({ message: `Failed to set camaraderie: ${error.message}` });
+    res.status(500).json({ message: `Failed to set camaraderie: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
@@ -1007,9 +1039,9 @@ router.post('/fix-day9-dates', requireAuth, asyncHandler(async (req: Request, re
       remainingOnAug25: aug25Games.length - movedGames.length
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [FIX DAY 9] Error:', error);
-    res.status(500).json({ message: `Failed to fix Day 9 dates: ${error.message}` });
+    res.status(500).json({ message: `Failed to fix Day 9 dates: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
@@ -1078,9 +1110,9 @@ router.post('/reset-test-games', requireAuth, asyncHandler(async (req: Request, 
       resetGames
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [RESET TEST GAMES] Error:', error);
-    res.status(500).json({ message: `Failed to reset test games: ${error.message}` });
+    res.status(500).json({ message: `Failed to reset test games: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
@@ -1228,9 +1260,9 @@ router.post('/fix-day8-status-and-standings', requireAuth, asyncHandler(async (r
       finalStandings
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [FIX DAY 8] Error:', error);
-    res.status(500).json({ message: `Failed to fix Day 8 and standings: ${error.message}` });
+    res.status(500).json({ message: `Failed to fix Day 8 and standings: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
@@ -1283,26 +1315,52 @@ router.post('/debug-games-status', requireAuth, asyncHandler(async (req: Request
       totalGames: allRecentGames.length
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [DEBUG GAMES] Error:', error);
-    res.status(500).json({ message: `Failed to debug games: ${error.message}` });
+    res.status(500).json({ message: `Failed to debug games: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
 // Reset and recalculate all standings from scratch
 router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
+  console.log('🚨 [UNIQUE DEBUG] This is the FIXED reset-all-standings endpoint running!');
   console.log('🔄 [RESET STANDINGS] Resetting all team standings and recalculating from completed games');
+  console.log('🔧 [DEBUG] Using correct Team field name now');
   
   const userId = req.user?.claims?.sub;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
   
+  console.log(`🔍 [DEBUG] Looking for userId: "${userId}"`);
+  
   try {
     const prisma = await getPrismaClient();
     
-    // Step 1: Reset all team standings to 0
+    // Step 0: Get user's team to determine division/subdivision scope
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { userId: userId },
+      include: { Team: true }
+    });
+
+    console.log(`🔍 [DEBUG] UserProfile found:`, userProfile?.id, 'Team count:', userProfile?.Team?.length || 0);
+
+    if (!userProfile || !userProfile.Team[0]) {
+      return res.status(404).json({ error: "User team not found" });
+    }
+
+    const userTeam = userProfile.Team[0];
+    const targetDivision = userTeam.division;
+    const targetSubdivision = userTeam.subdivision;
+
+    console.log(`🎯 [RESET STANDINGS] Resetting standings for Division ${targetDivision} ${targetSubdivision} ONLY`);
+
+    // Step 1: Reset ONLY teams in the same division/subdivision
     await prisma.team.updateMany({
+      where: {
+        division: targetDivision,
+        subdivision: targetSubdivision
+      },
       data: {
         wins: 0,
         losses: 0,
@@ -1310,15 +1368,32 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
       }
     });
     
-    console.log('🔄 [RESET STANDINGS] All team standings reset to 0');
+    console.log(`🔄 [RESET STANDINGS] Division ${targetDivision} ${targetSubdivision} team standings reset to 0`);
     
-    // Step 2: Get all completed league games
+    // Step 2: Get teams in this division/subdivision
+    const subdivisionTeams = await prisma.team.findMany({
+      where: {
+        division: targetDivision,
+        subdivision: targetSubdivision
+      },
+      select: { id: true }
+    });
+
+    const teamIds = subdivisionTeams.map(team => team.id);
+    console.log(`🎯 [RESET STANDINGS] Found ${teamIds.length} teams in Division ${targetDivision} ${targetSubdivision}: ${teamIds.join(', ')}`);
+
+    // Step 3: Get completed league games ONLY within this subdivision
     const completedGames = await prisma.game.findMany({
       where: {
         status: 'COMPLETED',
         matchType: 'LEAGUE',
         homeScore: { not: null },
-        awayScore: { not: null }
+        awayScore: { not: null },
+        // CRITICAL FIX: Only games where BOTH teams are in the same subdivision
+        AND: [
+          { homeTeamId: { in: teamIds } },
+          { awayTeamId: { in: teamIds } }
+        ]
       },
       include: {
         homeTeam: true,
@@ -1327,9 +1402,9 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
       orderBy: { id: 'asc' }
     });
     
-    console.log(`🔄 [RESET STANDINGS] Found ${completedGames.length} completed games to process`);
+    console.log(`🔄 [RESET STANDINGS] Found ${completedGames.length} completed games WITHIN Division ${targetDivision} ${targetSubdivision} to process`);
     
-    // Step 3: Recalculate standings from all games
+    // Step 4: Recalculate standings from subdivision-only games
     const standingsUpdates = [];
     
     for (const game of completedGames) {
@@ -1407,15 +1482,17 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
     
     res.json({
       success: true,
-      message: `Successfully reset and recalculated standings from ${completedGames.length} completed games`,
+      message: `Successfully reset and recalculated standings for Division ${targetDivision} ${targetSubdivision} from ${completedGames.length} completed games`,
+      division: targetDivision,
+      subdivision: targetSubdivision,
       gamesProcessed: completedGames.length,
       standingsUpdates,
       finalStandings
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [RESET STANDINGS] Error:', error);
-    res.status(500).json({ message: `Failed to reset standings: ${error.message}` });
+    res.status(500).json({ message: `Failed to reset standings: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
@@ -1512,9 +1589,9 @@ router.post('/fix-completed-standings', requireAuth, asyncHandler(async (req: Re
       totalGamesFound: completedGames.length
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [STANDINGS FIX] Error:', error);
-    res.status(500).json({ message: `Failed to fix standings: ${error.message}` });
+    res.status(500).json({ message: `Failed to fix standings: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
@@ -1567,35 +1644,29 @@ router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, re
         console.log(`🎮 [DAY 8 FIX] Simulating ${game.homeTeam.name} vs ${game.awayTeam.name}`);
         
         // Import the match simulation function
-        const { simulateEnhancedMatch } = await import('../services/matchSimulation.js');
+        const { QuickMatchSimulation } = await import('../services/quickMatchSimulation.js');
         
         // Run the full match simulation
-        const simulationResult = await simulateEnhancedMatch(
-          game.homeTeam.players,
-          game.awayTeam.players,
-          game.homeTeamId.toString(),
-          game.awayTeamId.toString(),
-          game.homeTeam.stadium,
-          'league',
-          game.id
+        const simulationResult = await QuickMatchSimulation.simulateMatch(
+          game.id.toString()
         );
         
         // Update the game with proper scores and simulation data
         await prisma.game.update({
           where: { id: game.id },
           data: {
-            homeScore: simulationResult.homeScore,
-            awayScore: simulationResult.awayScore,
-            simulationLog: JSON.stringify(simulationResult.gameData),
+            homeScore: simulationResult.finalScore.home,
+            awayScore: simulationResult.finalScore.away,
+            simulationLog: JSON.stringify(simulationResult),
             simulated: true,
             status: 'COMPLETED'
           }
         });
         
         // Update team records
-        const homeWin = simulationResult.homeScore > simulationResult.awayScore;
-        const awayWin = simulationResult.awayScore > simulationResult.homeScore;
-        const isDraw = simulationResult.homeScore === simulationResult.awayScore;
+        const homeWin = simulationResult.finalScore.home > simulationResult.finalScore.away;
+        const awayWin = simulationResult.finalScore.away > simulationResult.finalScore.home;
+        const isDraw = simulationResult.finalScore.home === simulationResult.finalScore.away;
         
         if (homeWin) {
           await prisma.team.update({
@@ -1641,11 +1712,11 @@ router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, re
         fixedGames.push({
           gameId: game.id,
           teams: `${game.homeTeam.name} vs ${game.awayTeam.name}`,
-          score: `${simulationResult.homeScore}-${simulationResult.awayScore}`,
+          score: `${simulationResult.finalScore.home}-${simulationResult.finalScore.away}`,
           result: homeWin ? 'HOME_WIN' : awayWin ? 'AWAY_WIN' : 'DRAW'
         });
         
-        console.log(`✅ [DAY 8 FIX] Fixed: ${game.homeTeam.name} ${simulationResult.homeScore}-${simulationResult.awayScore} ${game.awayTeam.name}`);
+        console.log(`✅ [DAY 8 FIX] Fixed: ${game.homeTeam.name} ${simulationResult.finalScore.home}-${simulationResult.finalScore.away} ${game.awayTeam.name}`);
         
       } catch (gameError) {
         console.error(`❌ [DAY 8 FIX] Failed to fix game ${game.id}:`, gameError);
@@ -1659,9 +1730,9 @@ router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, re
       totalGamesProcessed: brokenDay8Games.length
     });
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ [DAY 8 FIX] Error fixing Day 8 games:', error);
-    res.status(500).json({ message: `Failed to fix Day 8 games: ${error.message}` });
+    res.status(500).json({ message: `Failed to fix Day 8 games: ${error instanceof Error ? error.message : 'Unknown error'}` });
   }
 }));
 
@@ -2612,5 +2683,24 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
 }));
 
 
+
+// Quick fix for Oakland Cougars statistics synchronization
+router.post('/fix-oakland-stats', asyncHandler(async (req: Request, res: Response) => {
+  console.log('🔧 [FIX] Oakland Cougars statistics fix requested');
+  
+  try {
+    const { fixOaklandCougarsStats } = await import('../scripts/quickFix.js');
+    const result = await fixOaklandCougarsStats();
+    
+    console.log('✅ [FIX] Oakland Cougars statistics fix completed');
+    res.json(result);
+  } catch (error) {
+    console.error('❌ [FIX] Oakland Cougars fix failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}));
 
 export default router;

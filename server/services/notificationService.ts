@@ -45,6 +45,7 @@ export class NotificationService {
   }
 
   static async getUserNotifications(teamId: number) {
+    const prisma = await getPrismaClient();
     return await prisma.notification.findMany({
       where: { teamId },
       orderBy: { createdAt: 'desc' }

@@ -1,10 +1,14 @@
 import { getPrismaClient } from '../database.js';
+import { TeamStatisticsIntegrityService } from './teamStatisticsIntegrityService.js';
+import { TeamStatisticsCalculator } from '../utils/teamStatisticsCalculator.js';
+import logger from '../utils/logger.js';
 
 /**
  * Bulletproof Standings Update Service
  * 
  * Automatically updates team standings when league games complete.
- * Simple, reliable, and efficient - only updates affected teams.
+ * Uses comprehensive statistics synchronization to ensure 100% accuracy.
+ * Integrates with TeamStatisticsIntegrityService for enterprise-grade reliability.
  */
 export class StandingsUpdateService {
   
@@ -15,7 +19,7 @@ export class StandingsUpdateService {
   static async updateStandingsForCompletedGame(gameId: number): Promise<void> {
     const prisma = await getPrismaClient();
     
-    console.log(`🏆 [STANDINGS UPDATE] Processing completed game ${gameId}`);
+    logger.info(`[STANDINGS UPDATE] Processing completed game`, { gameId });
     
     // Get the completed game with team info
     const game = await prisma.game.findUnique({
@@ -27,7 +31,7 @@ export class StandingsUpdateService {
     });
     
     if (!game) {
-      console.log(`❌ [STANDINGS UPDATE] Game ${gameId} not found`);
+      logger.warn(`[STANDINGS UPDATE] Game not found`, { gameId });
       return;
     }
     
@@ -36,33 +40,83 @@ export class StandingsUpdateService {
         game.status !== 'COMPLETED' || 
         game.homeScore === null || 
         game.awayScore === null) {
-      console.log(`⏭️ [STANDINGS UPDATE] Game ${gameId} not eligible: matchType=${game.matchType}, status=${game.status}, scores=${game.homeScore}-${game.awayScore}`);
+      logger.debug(`[STANDINGS UPDATE] Game not eligible for standings update`, {
+        gameId,
+        matchType: game.matchType,
+        status: game.status,
+        hasValidScores: game.homeScore !== null && game.awayScore !== null
+      });
       return;
     }
     
     const homeScore = game.homeScore;
     const awayScore = game.awayScore;
     
-    console.log(`🎮 [STANDINGS UPDATE] ${game.homeTeam.name} ${homeScore} - ${awayScore} ${game.awayTeam.name}`);
+    logger.info(`[STANDINGS UPDATE] Processing game result`, {
+      gameId,
+      homeTeam: game.homeTeam.name,
+      awayTeam: game.awayTeam.name,
+      score: `${homeScore}-${awayScore}`
+    });
     
-    // Determine winner and update standings
-    if (homeScore > awayScore) {
-      // Home team wins
-      await this.incrementTeamWin(game.homeTeamId);
-      await this.incrementTeamLoss(game.awayTeamId);
-      console.log(`✅ [STANDINGS UPDATE] ${game.homeTeam.name} WIN, ${game.awayTeam.name} LOSS`);
+    // Use comprehensive statistics synchronization for bulletproof accuracy
+    try {
+      // Sync both teams' statistics comprehensively
+      const homeTeamResult = await TeamStatisticsIntegrityService.syncTeamStatistics(game.homeTeamId);
+      const awayTeamResult = await TeamStatisticsIntegrityService.syncTeamStatistics(game.awayTeamId);
       
-    } else if (awayScore > homeScore) {
-      // Away team wins  
-      await this.incrementTeamWin(game.awayTeamId);
-      await this.incrementTeamLoss(game.homeTeamId);
-      console.log(`✅ [STANDINGS UPDATE] ${game.awayTeam.name} WIN, ${game.homeTeam.name} LOSS`);
+      logger.info(`[STANDINGS UPDATE] Comprehensive sync completed`, {
+        gameId,
+        homeTeam: {
+          name: homeTeamResult.teamName,
+          discrepancies: homeTeamResult.discrepanciesFound.length,
+          statsUpdated: homeTeamResult.discrepanciesFound.length > 0
+        },
+        awayTeam: {
+          name: awayTeamResult.teamName,
+          discrepancies: awayTeamResult.discrepanciesFound.length,
+          statsUpdated: awayTeamResult.discrepanciesFound.length > 0
+        }
+      });
       
-    } else {
-      // Draw - increment draws for both teams
-      await this.incrementTeamDraw(game.homeTeamId);
-      await this.incrementTeamDraw(game.awayTeamId);
-      console.log(`✅ [STANDINGS UPDATE] ${game.homeTeam.name} and ${game.awayTeam.name} DRAW`);
+      // Log the game result for audit purposes
+      if (homeScore > awayScore) {
+        logger.info(`[STANDINGS UPDATE] Game result: ${game.homeTeam.name} WIN, ${game.awayTeam.name} LOSS`, { gameId });
+      } else if (awayScore > homeScore) {
+        logger.info(`[STANDINGS UPDATE] Game result: ${game.awayTeam.name} WIN, ${game.homeTeam.name} LOSS`, { gameId });
+      } else {
+        logger.info(`[STANDINGS UPDATE] Game result: ${game.homeTeam.name} and ${game.awayTeam.name} DRAW`, { gameId });
+      }
+      
+    } catch (syncError) {
+      // Fallback to incremental updates if comprehensive sync fails
+      logger.warn(`[STANDINGS UPDATE] Comprehensive sync failed, using fallback incremental update`, {
+        gameId,
+        error: syncError instanceof Error ? syncError.message : 'Unknown error'
+      });
+      
+      // Use standardized game outcome calculation for fallback
+      const homeOutcome = TeamStatisticsCalculator.calculateGameOutcome(homeScore, awayScore);
+      const awayOutcome = TeamStatisticsCalculator.calculateGameOutcome(awayScore, homeScore);
+      
+      // Apply standardized increments
+      if (homeOutcome.winsIncrement > 0) {
+        await this.incrementTeamWin(game.homeTeamId);
+      } else if (homeOutcome.lossesIncrement > 0) {
+        await this.incrementTeamLoss(game.homeTeamId);
+      } else if (homeOutcome.drawsIncrement > 0) {
+        await this.incrementTeamDraw(game.homeTeamId);
+      }
+      
+      if (awayOutcome.winsIncrement > 0) {
+        await this.incrementTeamWin(game.awayTeamId);
+      } else if (awayOutcome.lossesIncrement > 0) {
+        await this.incrementTeamLoss(game.awayTeamId);
+      } else if (awayOutcome.drawsIncrement > 0) {
+        await this.incrementTeamDraw(game.awayTeamId);
+      }
+      
+      logger.info(`[STANDINGS UPDATE] Fallback using standardized logic: ${game.homeTeam.name} ${homeOutcome.outcome}, ${game.awayTeam.name} ${awayOutcome.outcome}`, { gameId });
     }
   }
   
@@ -81,7 +135,12 @@ export class StandingsUpdateService {
       select: { name: true, wins: true, losses: true, points: true }
     });
     
-    console.log(`🏆 [WIN] ${updatedTeam.name}: ${updatedTeam.wins}W-${updatedTeam.losses}L = ${updatedTeam.points} points`);
+    logger.debug(`[WIN] Team stats updated`, {
+      teamName: updatedTeam.name,
+      wins: updatedTeam.wins,
+      losses: updatedTeam.losses,
+      points: updatedTeam.points
+    });
   }
   
   /**
@@ -98,7 +157,12 @@ export class StandingsUpdateService {
       select: { name: true, wins: true, losses: true, points: true }
     });
     
-    console.log(`😞 [LOSS] ${updatedTeam.name}: ${updatedTeam.wins}W-${updatedTeam.losses}L = ${updatedTeam.points} points`);
+    logger.debug(`[LOSS] Team stats updated`, {
+      teamName: updatedTeam.name,
+      wins: updatedTeam.wins,
+      losses: updatedTeam.losses,
+      points: updatedTeam.points
+    });
   }
   
   /**
@@ -116,7 +180,13 @@ export class StandingsUpdateService {
       select: { name: true, wins: true, losses: true, draws: true, points: true }
     });
     
-    console.log(`🤝 [DRAW] ${updatedTeam.name}: ${updatedTeam.wins}W-${updatedTeam.draws || 0}D-${updatedTeam.losses}L = ${updatedTeam.points} points`);
+    logger.debug(`[DRAW] Team stats updated`, {
+      teamName: updatedTeam.name,
+      wins: updatedTeam.wins,
+      draws: updatedTeam.draws || 0,
+      losses: updatedTeam.losses,
+      points: updatedTeam.points
+    });
   }
   
   /**
@@ -127,7 +197,11 @@ export class StandingsUpdateService {
     try {
       await this.updateStandingsForCompletedGame(gameId);
     } catch (error) {
-      console.error(`❌ [STANDINGS UPDATE] Error updating standings for game ${gameId}:`, error);
+      logger.error(`[STANDINGS UPDATE] Error updating standings for game`, {
+        gameId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
   }
 }

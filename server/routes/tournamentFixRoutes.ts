@@ -11,6 +11,7 @@ const router = Router();
 // Emergency tournament fix endpoint
 router.post('/start-tournament-matches/:tournamentId', requireAuth, async (req, res) => {
   try {
+    const prisma = await getPrismaClient();
     const { tournamentId } = req.params;
     const tournamentIdNum = parseInt(tournamentId);
     
@@ -30,7 +31,6 @@ router.post('/start-tournament-matches/:tournamentId', requireAuth, async (req, 
     console.log(`Found ${matches.length} IN_PROGRESS matches for tournament ${tournamentId}`);
     
     // Start instant simulation for each match
-    const prisma = await getPrismaClient();
     for (const match of matches) {
       try {
         const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());

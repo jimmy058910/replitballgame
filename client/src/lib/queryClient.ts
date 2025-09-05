@@ -105,10 +105,11 @@ export const getQueryFn: <T>(options: {
           console.warn('⚠️ No Firebase token available (neither currentUser nor stored)');
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Reduce console spam - only log meaningful errors  
-      if (!error.message?.includes('network-request-failed')) {
-        console.warn('⚠️ Firebase token error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (!errorMessage.includes('network-request-failed')) {
+        console.warn('⚠️ Firebase token error:', errorMessage);
       }
       // Try stored token as fallback
       const storedToken = localStorage.getItem('firebase_token');

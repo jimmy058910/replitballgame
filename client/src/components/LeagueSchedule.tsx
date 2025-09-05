@@ -22,6 +22,7 @@ interface ScheduledMatch {
   canWatch: boolean;
   status: string;
   gameDay: number;
+  matchType?: string;
 }
 
 interface DailySchedule {
@@ -211,12 +212,15 @@ export default function LeagueSchedule() {
     );
   };
 
-  // Separate completed and upcoming games
+  // Separate completed and upcoming games - ONLY LEAGUE GAMES for consistency with standings
   const allMatches: ScheduledMatch[] = [];
   Object.entries(schedule.schedule).forEach(([day, dayMatches]) => {
     if (dayMatches && dayMatches.length > 0) {
       dayMatches.forEach(match => {
-        allMatches.push({ ...match, gameDay: parseInt(day) });
+        // CRITICAL FIX: Only include LEAGUE games to match standings calculation
+        if (match.matchType === 'LEAGUE' || !match.matchType) {
+          allMatches.push({ ...match, gameDay: parseInt(day) });
+        }
       });
     }
   });

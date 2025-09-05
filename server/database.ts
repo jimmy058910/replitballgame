@@ -57,14 +57,14 @@ function getDatabaseUrl(): string {
         const [, username, password, database] = urlMatch;
         
         // Development: Connect via Cloud SQL Auth Proxy on localhost:5432
-        devUrl = `postgresql://${username}:${password}@localhost:5432/${database}?schema=public&sslmode=disable`;
+        devUrl = `postgresql://${username}:${password}@localhost:5432/${database}?schema=public&sslmode=prefer`;
         
         console.log('🔍 Cloud SQL Auth Proxy connection configured:', {
           username: username,
           database: database,
           host: 'localhost:5432',
           method: 'Cloud SQL Auth Proxy',
-          sslmode: 'disabled (proxy handles SSL)'
+          sslmode: 'prefer (SSL enabled, fallback to non-SSL)'
         });
         
         console.log('💡 Cloud SQL Auth Proxy initialized automatically for development');

@@ -1,0 +1,23 @@
+{
+  "name": "realm-rivalry-dev-scripts",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:setup": "npm run db:setup && npm run dev:env-check",
+    "dev:env-check": "node scripts/check-env.js",
+    "dev:db-proxy": "cloud-sql-proxy --auto-iam-authn your-project:us-central1:realm-rivalry-dev --port=5432",
+    "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:db-proxy\"",
+    "dev:backend": "NODE_ENV=development tsx server/index.ts --inspect",
+    "dev:frontend": "vite --port 5173 --host 0.0.0.0",
+    "dev:database": "npm run db:push && npm run db:seed",
+    "preview": "npm run build && npm run preview:serve",
+    "preview:serve": "concurrently \"npm run start\" \"serve -s dist/public -l 5173\"",
+    "db:setup": "npm run db:push && echo 'Database schema synced'",
+    "db:seed": "tsx scripts/seed-database.ts",
+    "db:reset": "npm run db:push && npm run db:seed",
+    "debug": "NODE_ENV=development node --inspect-brk=0.0.0.0:9229 dist/server/index.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "serve": "^14.2.3"
+  }
+}

@@ -230,6 +230,7 @@ export class EnhancedGameEconomyService {
     upgradeType: string
   ): Promise<{ success: boolean; cost?: number; error?: string; newLevel?: number }> {
     try {
+      const prisma = await getPrismaClient();
       const stadium = await prisma.stadium.findFirst({
         where: { teamId: parseInt(teamId) }
       });
@@ -904,6 +905,7 @@ export class EnhancedGameEconomyService {
     nextUpgradeCosts: any;
   }> {
     try {
+      const prisma = await getPrismaClient();
       const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: parseInt(teamId, 10) }
       });
@@ -967,6 +969,7 @@ export class EnhancedGameEconomyService {
     adsRequired: number;
   }> {
     try {
+      const prisma = await getPrismaClient();
       // Get team's ad watching progress (assuming we track this somewhere)
       const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: parseInt(teamId, 10) }
@@ -1216,6 +1219,7 @@ export class EnhancedGameEconomyService {
     rewardType: 'champion' | 'runnerUp' | 'regularWinner' | 'promotion'
   ): Promise<{ success: boolean; rewards?: { credits: number; gems: number }; error?: string }> {
     try {
+      const prisma = await getPrismaClient();
       const divisionRewards = (this.DIVISION_REWARDS as Record<number, any>)[division];
       if (!divisionRewards) {
         return { success: false, error: 'Invalid division' };

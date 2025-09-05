@@ -2,8 +2,6 @@ import { getPrismaClient } from "../database.js";
 import type { Prisma } from '../db';
 import { getEasternTime } from '../../shared/timezone.js';
 
-const prisma = getPrismaClient();
-
 /**
  * Daily Player Progression & Development System
  * 
@@ -108,6 +106,7 @@ export class DailyPlayerProgressionService {
     const progressionsByTeam: Record<string, number> = {};
     
     try {
+      const prisma = await getPrismaClient();
       // Get all players on active rosters (not on taxi squad)
       const activePlayers = await prisma.player.findMany({
         where: { isOnMarket: false },
@@ -176,6 +175,7 @@ export class DailyPlayerProgressionService {
     numberOfRolls: number;
     performanceBonus: boolean;
   }> {
+    const prisma = await getPrismaClient();
     // Get player data
     const player = await prisma.player.findUnique({
       where: { id: playerId }
@@ -275,6 +275,7 @@ export class DailyPlayerProgressionService {
       exhibitionGames: number;
     };
   }> {
+    const prisma = await getPrismaClient();
     const easternTime = getEasternTime();
     const yesterday = easternTime.clone().subtract(1, 'day');
     const yesterdayStart = yesterday.clone().startOf('day').toDate();
@@ -403,6 +404,7 @@ export class DailyPlayerProgressionService {
    */
   private static async calculateEquipmentModifier(playerId: number, statName: string): Promise<number> {
     try {
+      const prisma = await getPrismaClient();
       // Get player equipment
       const playerEquipment = await prisma.playerEquipment.findMany({
         where: { playerId: playerId },
@@ -444,6 +446,7 @@ export class DailyPlayerProgressionService {
    * Calculate staff modifier for progression
    */
   private static async calculateStaffModifier(teamId: number, statName: string): Promise<number> {
+    const prisma = await getPrismaClient();
     // Get team staff
     const teamStaff = await prisma.staff.findMany({
       where: { teamId }

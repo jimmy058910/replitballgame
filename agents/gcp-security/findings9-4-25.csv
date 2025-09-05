@@ -1,0 +1,605 @@
+finding.name,finding.canonical_name,finding.parent,finding.resource_name,finding.cai_resource,finding.state,finding.category,finding.external_uri,finding.source_properties,finding.security_marks.name,finding.security_marks.marks,finding.security_marks.canonical_name,finding.event_time,finding.create_time,finding.property_data_types,finding.severity,finding.mute,finding.mute_info.static_mute.state,finding.mute_info.static_mute.apply_time,finding.mute_info.dynamic_mute_records,finding.finding_class,finding.indicator.ip_addresses,finding.indicator.domains,finding.indicator.signatures,finding.indicator.uris,finding.vulnerability.cve.id,finding.vulnerability.cve.references,finding.vulnerability.cve.cvssv3,finding.vulnerability.cve.upstream_fix_available,finding.vulnerability.cve.impact,finding.vulnerability.cve.exploitation_activity,finding.vulnerability.cve.observed_in_the_wild,finding.vulnerability.cve.zero_day,finding.vulnerability.cve.exploit_release_date,finding.vulnerability.cve.first_exploitation_date,finding.vulnerability.offending_package.package_name,finding.vulnerability.offending_package.cpe_uri,finding.vulnerability.offending_package.package_type,finding.vulnerability.offending_package.package_version,finding.vulnerability.fixed_package.package_name,finding.vulnerability.fixed_package.cpe_uri,finding.vulnerability.fixed_package.package_type,finding.vulnerability.fixed_package.package_version,finding.vulnerability.security_bulletin.bulletin_id,finding.vulnerability.security_bulletin.submission_time,finding.vulnerability.security_bulletin.suggested_upgrade_version,finding.vulnerability.provider_risk_score,finding.vulnerability.reachable,finding.vulnerability.cwes,finding.mute_update_time,finding.external_systems,finding.mitre_attack.primary_tactic,finding.mitre_attack.primary_techniques,finding.mitre_attack.additional_tactics,finding.mitre_attack.additional_techniques,finding.mitre_attack.version,finding.access.principal_email,finding.access.caller_ip,finding.access.caller_ip_geo.region_code,finding.access.user_agent_family,finding.access.user_agent,finding.access.service_name,finding.access.method_name,finding.access.principal_subject,finding.access.service_account_key_name,finding.access.service_account_delegation_info,finding.access.user_name,finding.connections,finding.mute_initiator,finding.processes,finding.contacts,finding.compliances,finding.original_provider_id,finding.cloud_provider,finding.parent_display_name,finding.description,finding.exfiltration.sources,finding.exfiltration.targets,finding.exfiltration.total_exfiltrated_bytes,finding.iam_bindings,finding.next_steps,finding.module_name,finding.containers,finding.kubernetes.pods,finding.kubernetes.nodes,finding.kubernetes.node_pools,finding.kubernetes.roles,finding.kubernetes.bindings,finding.kubernetes.access_reviews,finding.kubernetes.objects,finding.database.name,finding.database.display_name,finding.database.user_name,finding.database.query,finding.database.grantees,finding.database.version,finding.attack_exposure.score,finding.attack_exposure.latest_calculation_time,finding.attack_exposure.attack_exposure_result,finding.attack_exposure.state,finding.attack_exposure.exposed_high_value_resources_count,finding.attack_exposure.exposed_medium_value_resources_count,finding.attack_exposure.exposed_low_value_resources_count,finding.files,finding.cloud_dlp_inspection.inspect_job,finding.cloud_dlp_inspection.info_type,finding.cloud_dlp_inspection.info_type_count,finding.cloud_dlp_inspection.full_scan,finding.cloud_dlp_data_profile.data_profile,finding.cloud_dlp_data_profile.parent_type,finding.kernel_rootkit.name,finding.kernel_rootkit.unexpected_code_modification,finding.kernel_rootkit.unexpected_read_only_data_modification,finding.kernel_rootkit.unexpected_ftrace_handler,finding.kernel_rootkit.unexpected_kprobe_handler,finding.kernel_rootkit.unexpected_kernel_code_pages,finding.kernel_rootkit.unexpected_system_call_handler,finding.kernel_rootkit.unexpected_interrupt_handler,finding.kernel_rootkit.unexpected_processes_in_runqueue,finding.org_policies,finding.job.name,finding.job.state,finding.job.error_code,finding.job.location,finding.application.base_uri,finding.application.full_uri,finding.ip_rules.direction,finding.ip_rules.allowed.ip_rules,finding.ip_rules.denied.ip_rules,finding.ip_rules.source_ip_ranges,finding.ip_rules.destination_ip_ranges,finding.ip_rules.exposed_services,finding.backup_disaster_recovery.backup_template,finding.backup_disaster_recovery.policies,finding.backup_disaster_recovery.host,finding.backup_disaster_recovery.applications,finding.backup_disaster_recovery.storage_pool,finding.backup_disaster_recovery.policy_options,finding.backup_disaster_recovery.profile,finding.backup_disaster_recovery.appliance,finding.backup_disaster_recovery.backup_type,finding.backup_disaster_recovery.backup_create_time,finding.security_posture.name,finding.security_posture.revision_id,finding.security_posture.posture_deployment_resource,finding.security_posture.posture_deployment,finding.security_posture.changed_policy,finding.security_posture.policy_set,finding.security_posture.policy,finding.security_posture.policy_drift_details,finding.log_entries,finding.load_balancers,finding.cloud_armor.security_policy.name,finding.cloud_armor.security_policy.type,finding.cloud_armor.security_policy.preview,finding.cloud_armor.requests.ratio,finding.cloud_armor.requests.short_term_allowed,finding.cloud_armor.requests.long_term_allowed,finding.cloud_armor.requests.long_term_denied,finding.cloud_armor.adaptive_protection.confidence,finding.cloud_armor.attack.volume_pps_long,finding.cloud_armor.attack.volume_bps_long,finding.cloud_armor.attack.classification,finding.cloud_armor.attack.volume_pps,finding.cloud_armor.attack.volume_bps,finding.cloud_armor.threat_vector,finding.cloud_armor.duration.seconds,finding.cloud_armor.duration.nanos,finding.apigee.organization,finding.apigee.environment,finding.apigee.security_profile_id,finding.notebook.name,finding.notebook.service,finding.notebook.last_author,finding.notebook.notebook_update_time,finding.toxic_combination.attack_exposure_score,finding.toxic_combination.related_findings,finding.group_memberships,finding.disk.name,finding.risks,finding.deactivation_reason.reason,finding.data_access_events,finding.data_flow_events,finding.networks,finding.data_retention_deletion_events,finding.affected_resources.count,finding.affected_resources.vulnerable_resources,finding.ai_model.name,finding.ai_model.domain,finding.ai_model.library,finding.ai_model.location,finding.ai_model.publisher,finding.ai_model.deployment_platform,finding.ai_model.display_name,finding.domains,finding.remediation_details.remediation_intent,finding.remediation_details.repository_uri,finding.remediation_details.pull_request_uri,finding.remediation_details.remediation_explanation,finding.remediation_details.remediation_state,finding.remediation_details.remediation_error,finding.remediation_details.pr_generation_time,finding.remediation_details.owner,finding.chokepoint.related_findings,finding.data_protection_key_governance.violations,finding.compliance_details.frameworks,finding.compliance_details.cloud_control.cloud_control_name,finding.compliance_details.cloud_control.type,finding.compliance_details.cloud_control.policy_type,finding.compliance_details.cloud_control.version,finding.compliance_details.cloud_control_deployment_names,finding.vertex_ai.datasets,finding.vertex_ai.pipelines,finding.crypto_key_name,resource.name,resource.display_name,resource.type,resource.cloud_provider,resource.service,resource.location,resource.gcp_metadata.project,resource.gcp_metadata.project_display_name,resource.gcp_metadata.parent,resource.gcp_metadata.parent_display_name,resource.gcp_metadata.folders,resource.gcp_metadata.organization,resource.aws_metadata.organization.id,resource.aws_metadata.organizational_units,resource.aws_metadata.account.id,resource.aws_metadata.account.name,resource.azure_metadata.management_groups,resource.azure_metadata.subscription.id,resource.azure_metadata.subscription.display_name,resource.azure_metadata.resource_group.id,resource.azure_metadata.resource_group.name,resource.azure_metadata.tenant.id,resource.azure_metadata.tenant.display_name,resource.resource_path.nodes,resource.resource_path_string,resource.tags,resource.application.name
+organizations/61283374946/sources/10763946113818817650/locations/global/findings/19faf62ec85ce9f39c6db4dab47c1016,projects/108005641993/sources/10763946113818817650/locations/global/findings/19faf62ec85ce9f39c6db4dab47c1016,organizations/61283374946/sources/10763946113818817650/locations/global,//compute.googleapis.com/projects/direct-glider-465821-p7/global/firewalls/default-allow-ssh,//compute.googleapis.com/projects/direct-glider-465821-p7/global/firewalls/default-allow-ssh,ACTIVE,OPEN_SSH_PORT,https://console.cloud.google.com/networking/firewalls/details/default-allow-ssh?project=direct-glider-465821-p7,"[{
+  ""key"": ""Recommendation"",
+  ""value"": ""Restrict the firewall rules at: https://console.cloud.google.com/networking/firewalls/details/default-allow-ssh?project\u003ddirect-glider-465821-p7""
+},{
+  ""key"": ""ExceptionInstructions"",
+  ""value"": ""Add the security mark \""allow_open_ssh_port\"" to the asset with a value of \""true\"" to prevent this finding from being activated again.""
+},{
+  ""key"": ""Explanation"",
+  ""value"": ""Firewall rules that allow connections from all IP addresses on TCP port 22 or SCTP port 22 may expose SSH services to attackers.""
+},{
+  ""key"": ""ScannerName"",
+  ""value"": ""FIREWALL_SCANNER""
+},{
+  ""key"": ""ResourcePath"",
+  ""value"": [""projects/direct-glider-465821-p7/"", ""organizations/61283374946/""]
+},{
+  ""key"": ""ExposedService"",
+  ""value"": ""SSH""
+},{
+  ""key"": ""OpenPorts"",
+  ""value"": {
+    ""TCP"": [22.0],
+    ""SCTP"": [22.0]
+  }
+},{
+  ""key"": ""compliance_standards"",
+  ""value"": {
+    ""iso"": [{
+      ""ids"": [""A.13.1.1""]
+    }],
+    ""pci"": [{
+      ""ids"": [""1.2.1""]
+    }, {
+      ""version"": ""4.0"",
+      ""ids"": [""1.2.1"", ""1.4.1""]
+    }],
+    ""cis"": [{
+      ""version"": ""1.0"",
+      ""ids"": [""3.6""]
+    }, {
+      ""version"": ""1.1"",
+      ""ids"": [""3.6""]
+    }, {
+      ""version"": ""1.2"",
+      ""ids"": [""3.6""]
+    }, {
+      ""version"": ""1.3"",
+      ""ids"": [""3.6""]
+    }, {
+      ""version"": ""2.0"",
+      ""ids"": [""3.6""]
+    }],
+    ""cisControls"": [{
+      ""version"": ""8.0"",
+      ""ids"": [""4.4"", ""4.5""]
+    }],
+    ""soc2"": [{
+      ""version"": ""2017"",
+      ""ids"": [""CC6.6.1"", ""CC6.6.4""]
+    }],
+    ""nist"": [{
+      ""ids"": [""SC-7""]
+    }, {
+      ""version"": ""r5"",
+      ""ids"": [""CA-9"", ""SC-7""]
+    }]
+  }
+},{
+  ""key"": ""ReactivationCount"",
+  ""value"": 0.0
+}]",organizations/61283374946/sources/10763946113818817650/locations/global/findings/19faf62ec85ce9f39c6db4dab47c1016/securityMarks,,,2025-08-28T03:36:24.218Z,2025-08-28T03:46:00.160Z,"[{
+  ""key"": ""ResourcePath"",
+  ""value"": {
+  }
+},{
+  ""key"": ""ReactivationCount"",
+  ""value"": {
+    ""primitive_data_type"": ""NUMBER""
+  }
+},{
+  ""key"": ""Explanation"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""ExposedService"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""ScannerName"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""compliance_standards"",
+  ""value"": {
+    ""struct_value"": {
+      ""fields"": {
+        ""iso"": {
+        },
+        ""pci"": {
+        },
+        ""cis"": {
+        },
+        ""cisControls"": {
+        },
+        ""soc2"": {
+        },
+        ""nist"": {
+        }
+      }
+    }
+  }
+},{
+  ""key"": ""ExceptionInstructions"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""Recommendation"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""OpenPorts"",
+  ""value"": {
+    ""struct_value"": {
+      ""fields"": {
+        ""TCP"": {
+        },
+        ""SCTP"": {
+        }
+      }
+    }
+  }
+}]",HIGH,UNDEFINED,UNDEFINED,1970-01-01T00:00:00Z,,MISCONFIGURATION,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1970-01-01T00:00:00Z,,,,,,,,,,,,,,,,,,,,,,"[{
+  ""standard"": ""cis"",
+  ""version"": ""1.0"",
+  ""ids"": [""3.6""]
+},{
+  ""standard"": ""cis"",
+  ""version"": ""1.1"",
+  ""ids"": [""3.6""]
+},{
+  ""standard"": ""cis"",
+  ""version"": ""1.2"",
+  ""ids"": [""3.6""]
+},{
+  ""standard"": ""cis"",
+  ""version"": ""1.3"",
+  ""ids"": [""3.6""]
+},{
+  ""standard"": ""cis"",
+  ""version"": ""2.0"",
+  ""ids"": [""3.6""]
+},{
+  ""standard"": ""cis-controls"",
+  ""version"": ""8.0"",
+  ""ids"": [""4.4"", ""4.5""]
+},{
+  ""standard"": ""iso"",
+  ""ids"": [""A.13.1.1""]
+},{
+  ""standard"": ""nist"",
+  ""ids"": [""SC-7""]
+},{
+  ""standard"": ""nist800-53"",
+  ""version"": ""r5"",
+  ""ids"": [""CA-9"", ""SC-7""]
+},{
+  ""standard"": ""pci"",
+  ""ids"": [""1.2.1""]
+},{
+  ""standard"": ""pci-dss"",
+  ""version"": ""4.0"",
+  ""ids"": [""1.2.1"", ""1.4.1""]
+},{
+  ""standard"": ""soc2"",
+  ""version"": ""2017"",
+  ""ids"": [""CC6.6.1"", ""CC6.6.4""]
+}]",SECURITY_HEALTH_ADVISOR,GOOGLE_CLOUD_PLATFORM,Security Health Analytics,Firewall rules that allow connections from all IP addresses on TCP port 22 or SCTP port 22 may expose SSH services to attackers.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,INGRESS,"[{
+  ""protocol"": ""TCP"",
+  ""port_ranges"": [{
+    ""min"": ""22"",
+    ""max"": ""22""
+  }]
+},{
+  ""protocol"": ""SCTP"",
+  ""port_ranges"": [{
+    ""min"": ""22"",
+    ""max"": ""22""
+  }]
+}]",,"[""0.0.0.0/0""]",,"[""SSH""]",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,//compute.googleapis.com/projects/direct-glider-465821-p7/global/firewalls/default-allow-ssh,default-allow-ssh,google.compute.Firewall,GOOGLE_CLOUD_PLATFORM,compute.googleapis.com,global,//cloudresourcemanager.googleapis.com/projects/108005641993,direct-glider-465821-p7,//cloudresourcemanager.googleapis.com/projects/108005641993,direct-glider-465821-p7,,organizations/61283374946,,,,,,,,,,,,"[{
+  ""node_type"": ""GCP_PROJECT"",
+  ""id"": ""projects/108005641993"",
+  ""display_name"": ""direct-glider-465821-p7""
+},{
+  ""node_type"": ""GCP_ORGANIZATION"",
+  ""id"": ""organizations/61283374946""
+}]",organizations/61283374946/projects/108005641993,,
+organizations/61283374946/sources/10763946113818817650/locations/global/findings/3d0f93ec0a8984ff2d81d16870c55c91,projects/108005641993/sources/10763946113818817650/locations/global/findings/3d0f93ec0a8984ff2d81d16870c55c91,organizations/61283374946/sources/10763946113818817650/locations/global,//cloudsql.googleapis.com/projects/direct-glider-465821-p7/instances/realm-rivalry-dev,//cloudsql.googleapis.com/projects/direct-glider-465821-p7/instances/realm-rivalry-dev,ACTIVE,SSL_NOT_ENFORCED,https://console.cloud.google.com/sql/instances/realm-rivalry-dev/connections?project=direct-glider-465821-p7,"[{
+  ""key"": ""Recommendation"",
+  ""value"": ""Go to https://console.cloud.google.com/sql/instances/realm-rivalry-dev/overview?project\u003ddirect-glider-465821-p7 and verify that the instance is running by looking for a green checkmark icon next to the instance name. If it is not running, then click on the \""START\"" button. (The instance must be running in order to perform the next remediation step, but need not remain running afterwards.) Go to https://console.cloud.google.com/sql/instances/realm-rivalry-dev/connections?project\u003ddirect-glider-465821-p7 and the listed SSL settings provide two options. If you want to enforce only the SSL, but not require client certificates click the \""Allow only SSL connections\"" button, otherwise if you want to enforce SSL as well as require client certificates click the \""Require trusted client certificates\"" button.""
+},{
+  ""key"": ""ExceptionInstructions"",
+  ""value"": ""Add the security mark \""allow_ssl_not_enforced\"" to the asset with a value of \""true\"" to prevent this finding from being activated again.""
+},{
+  ""key"": ""Explanation"",
+  ""value"": ""To avoid leaking sensitive data in transit through unencrypted communications, all incoming connections to your SQL database instance should use SSL. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ssl-instance""
+},{
+  ""key"": ""ScannerName"",
+  ""value"": ""SQL_SCANNER""
+},{
+  ""key"": ""ResourcePath"",
+  ""value"": [""projects/direct-glider-465821-p7/"", ""organizations/61283374946/""]
+},{
+  ""key"": ""compliance_standards"",
+  ""value"": {
+    ""iso"": [{
+      ""ids"": [""A.13.2.1"", ""A.14.1.3"", ""A.8.2.3""]
+    }],
+    ""pci"": [{
+      ""ids"": [""4.1""]
+    }],
+    ""cis"": [{
+      ""version"": ""2.0"",
+      ""ids"": [""6.4""]
+    }],
+    ""nist"": [{
+      ""ids"": [""SC-7""]
+    }]
+  }
+},{
+  ""key"": ""ReactivationCount"",
+  ""value"": 0.0
+}]",organizations/61283374946/sources/10763946113818817650/locations/global/findings/3d0f93ec0a8984ff2d81d16870c55c91/securityMarks,,,2025-08-28T03:36:24.218Z,2025-08-28T03:45:53.287Z,"[{
+  ""key"": ""ResourcePath"",
+  ""value"": {
+  }
+},{
+  ""key"": ""ReactivationCount"",
+  ""value"": {
+    ""primitive_data_type"": ""NUMBER""
+  }
+},{
+  ""key"": ""Explanation"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""ScannerName"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""compliance_standards"",
+  ""value"": {
+    ""struct_value"": {
+      ""fields"": {
+        ""iso"": {
+        },
+        ""pci"": {
+        },
+        ""cis"": {
+        },
+        ""nist"": {
+        }
+      }
+    }
+  }
+},{
+  ""key"": ""ExceptionInstructions"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""Recommendation"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+}]",HIGH,UNDEFINED,UNDEFINED,1970-01-01T00:00:00Z,,MISCONFIGURATION,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1970-01-01T00:00:00Z,,,,,,,,,,,,,,,,,,,,,,"[{
+  ""standard"": ""cis"",
+  ""version"": ""2.0"",
+  ""ids"": [""6.4""]
+},{
+  ""standard"": ""iso"",
+  ""ids"": [""A.13.2.1"", ""A.14.1.3"", ""A.8.2.3""]
+},{
+  ""standard"": ""nist"",
+  ""ids"": [""SC-7""]
+},{
+  ""standard"": ""pci"",
+  ""ids"": [""4.1""]
+}]",SECURITY_HEALTH_ADVISOR,GOOGLE_CLOUD_PLATFORM,Security Health Analytics,"To avoid leaking sensitive data in transit through unencrypted communications, all incoming connections to your SQL database instance should use SSL. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ssl-instance",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,//cloudsql.googleapis.com/projects/direct-glider-465821-p7/instances/realm-rivalry-dev,realm-rivalry-dev,google.cloud.sql.Instance,GOOGLE_CLOUD_PLATFORM,sqladmin.googleapis.com,us-central1,//cloudresourcemanager.googleapis.com/projects/108005641993,direct-glider-465821-p7,//cloudresourcemanager.googleapis.com/projects/108005641993,direct-glider-465821-p7,,organizations/61283374946,,,,,,,,,,,,"[{
+  ""node_type"": ""GCP_PROJECT"",
+  ""id"": ""projects/108005641993"",
+  ""display_name"": ""direct-glider-465821-p7""
+},{
+  ""node_type"": ""GCP_ORGANIZATION"",
+  ""id"": ""organizations/61283374946""
+}]",organizations/61283374946/projects/108005641993,,
+organizations/61283374946/sources/10763946113818817650/locations/global/findings/59d5fefd9410738253fd567845f583c0,projects/108005641993/sources/10763946113818817650/locations/global/findings/59d5fefd9410738253fd567845f583c0,organizations/61283374946/sources/10763946113818817650/locations/global,//cloudsql.googleapis.com/projects/direct-glider-465821-p7/instances/realm-rivalry-prod,//cloudsql.googleapis.com/projects/direct-glider-465821-p7/instances/realm-rivalry-prod,ACTIVE,SSL_NOT_ENFORCED,https://console.cloud.google.com/sql/instances/realm-rivalry-prod/connections?project=direct-glider-465821-p7,"[{
+  ""key"": ""Recommendation"",
+  ""value"": ""Go to https://console.cloud.google.com/sql/instances/realm-rivalry-prod/overview?project\u003ddirect-glider-465821-p7 and verify that the instance is running by looking for a green checkmark icon next to the instance name. If it is not running, then click on the \""START\"" button. (The instance must be running in order to perform the next remediation step, but need not remain running afterwards.) Go to https://console.cloud.google.com/sql/instances/realm-rivalry-prod/connections?project\u003ddirect-glider-465821-p7 and the listed SSL settings provide two options. If you want to enforce only the SSL, but not require client certificates click the \""Allow only SSL connections\"" button, otherwise if you want to enforce SSL as well as require client certificates click the \""Require trusted client certificates\"" button.""
+},{
+  ""key"": ""ExceptionInstructions"",
+  ""value"": ""Add the security mark \""allow_ssl_not_enforced\"" to the asset with a value of \""true\"" to prevent this finding from being activated again.""
+},{
+  ""key"": ""Explanation"",
+  ""value"": ""To avoid leaking sensitive data in transit through unencrypted communications, all incoming connections to your SQL database instance should use SSL. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ssl-instance""
+},{
+  ""key"": ""ScannerName"",
+  ""value"": ""SQL_SCANNER""
+},{
+  ""key"": ""ResourcePath"",
+  ""value"": [""projects/direct-glider-465821-p7/"", ""organizations/61283374946/""]
+},{
+  ""key"": ""compliance_standards"",
+  ""value"": {
+    ""iso"": [{
+      ""ids"": [""A.13.2.1"", ""A.14.1.3"", ""A.8.2.3""]
+    }],
+    ""pci"": [{
+      ""ids"": [""4.1""]
+    }],
+    ""cis"": [{
+      ""version"": ""2.0"",
+      ""ids"": [""6.4""]
+    }],
+    ""nist"": [{
+      ""ids"": [""SC-7""]
+    }]
+  }
+},{
+  ""key"": ""ReactivationCount"",
+  ""value"": 0.0
+}]",organizations/61283374946/sources/10763946113818817650/locations/global/findings/59d5fefd9410738253fd567845f583c0/securityMarks,,,2025-08-28T03:36:24.218Z,2025-08-28T03:46:00.401Z,"[{
+  ""key"": ""ResourcePath"",
+  ""value"": {
+  }
+},{
+  ""key"": ""ReactivationCount"",
+  ""value"": {
+    ""primitive_data_type"": ""NUMBER""
+  }
+},{
+  ""key"": ""Explanation"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""ScannerName"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""compliance_standards"",
+  ""value"": {
+    ""struct_value"": {
+      ""fields"": {
+        ""iso"": {
+        },
+        ""pci"": {
+        },
+        ""cis"": {
+        },
+        ""nist"": {
+        }
+      }
+    }
+  }
+},{
+  ""key"": ""ExceptionInstructions"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""Recommendation"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+}]",HIGH,UNDEFINED,UNDEFINED,1970-01-01T00:00:00Z,,MISCONFIGURATION,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1970-01-01T00:00:00Z,,,,,,,,,,,,,,,,,,,,,,"[{
+  ""standard"": ""cis"",
+  ""version"": ""2.0"",
+  ""ids"": [""6.4""]
+},{
+  ""standard"": ""iso"",
+  ""ids"": [""A.13.2.1"", ""A.14.1.3"", ""A.8.2.3""]
+},{
+  ""standard"": ""nist"",
+  ""ids"": [""SC-7""]
+},{
+  ""standard"": ""pci"",
+  ""ids"": [""4.1""]
+}]",SECURITY_HEALTH_ADVISOR,GOOGLE_CLOUD_PLATFORM,Security Health Analytics,"To avoid leaking sensitive data in transit through unencrypted communications, all incoming connections to your SQL database instance should use SSL. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ssl-instance",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,//cloudsql.googleapis.com/projects/direct-glider-465821-p7/instances/realm-rivalry-prod,realm-rivalry-prod,google.cloud.sql.Instance,GOOGLE_CLOUD_PLATFORM,sqladmin.googleapis.com,us-central1,//cloudresourcemanager.googleapis.com/projects/108005641993,direct-glider-465821-p7,//cloudresourcemanager.googleapis.com/projects/108005641993,direct-glider-465821-p7,,organizations/61283374946,,,,,,,,,,,,"[{
+  ""node_type"": ""GCP_PROJECT"",
+  ""id"": ""projects/108005641993"",
+  ""display_name"": ""direct-glider-465821-p7""
+},{
+  ""node_type"": ""GCP_ORGANIZATION"",
+  ""id"": ""organizations/61283374946""
+}]",organizations/61283374946/projects/108005641993,,
+organizations/61283374946/sources/10763946113818817650/locations/global/findings/f7cd96aa055575286bb14210149ec8a8,projects/108005641993/sources/10763946113818817650/locations/global/findings/f7cd96aa055575286bb14210149ec8a8,organizations/61283374946/sources/10763946113818817650/locations/global,//compute.googleapis.com/projects/direct-glider-465821-p7/global/firewalls/default-allow-rdp,//compute.googleapis.com/projects/direct-glider-465821-p7/global/firewalls/default-allow-rdp,ACTIVE,OPEN_RDP_PORT,https://console.cloud.google.com/networking/firewalls/details/default-allow-rdp?project=direct-glider-465821-p7,"[{
+  ""key"": ""Recommendation"",
+  ""value"": ""Restrict the firewall rules at: https://console.cloud.google.com/networking/firewalls/details/default-allow-rdp?project\u003ddirect-glider-465821-p7""
+},{
+  ""key"": ""ExceptionInstructions"",
+  ""value"": ""Add the security mark \""allow_open_rdp_port\"" to the asset with a value of \""true\"" to prevent this finding from being activated again.""
+},{
+  ""key"": ""Explanation"",
+  ""value"": ""Firewall rules that allow connections from all IP addresses on TCP port 3389 or UDP port 3389 may expose RDP services to attackers.""
+},{
+  ""key"": ""ScannerName"",
+  ""value"": ""FIREWALL_SCANNER""
+},{
+  ""key"": ""ResourcePath"",
+  ""value"": [""projects/direct-glider-465821-p7/"", ""organizations/61283374946/""]
+},{
+  ""key"": ""ExposedService"",
+  ""value"": ""RDP""
+},{
+  ""key"": ""OpenPorts"",
+  ""value"": {
+    ""TCP"": [3389.0],
+    ""UDP"": [3389.0]
+  }
+},{
+  ""key"": ""compliance_standards"",
+  ""value"": {
+    ""iso"": [{
+      ""ids"": [""A.13.1.1""]
+    }],
+    ""pci"": [{
+      ""ids"": [""1.2.1""]
+    }, {
+      ""version"": ""4.0"",
+      ""ids"": [""1.2.1"", ""1.4.1""]
+    }],
+    ""cis"": [{
+      ""version"": ""1.0"",
+      ""ids"": [""3.7""]
+    }, {
+      ""version"": ""1.1"",
+      ""ids"": [""3.7""]
+    }, {
+      ""version"": ""1.2"",
+      ""ids"": [""3.7""]
+    }, {
+      ""version"": ""1.3"",
+      ""ids"": [""3.7""]
+    }, {
+      ""version"": ""2.0"",
+      ""ids"": [""3.7""]
+    }],
+    ""cisControls"": [{
+      ""version"": ""8.0"",
+      ""ids"": [""4.4"", ""4.5""]
+    }],
+    ""soc2"": [{
+      ""version"": ""2017"",
+      ""ids"": [""CC6.6.1"", ""CC6.6.4""]
+    }],
+    ""nist"": [{
+      ""ids"": [""SC-7""]
+    }, {
+      ""version"": ""r5"",
+      ""ids"": [""CA-9"", ""SC-7""]
+    }]
+  }
+},{
+  ""key"": ""ReactivationCount"",
+  ""value"": 0.0
+}]",organizations/61283374946/sources/10763946113818817650/locations/global/findings/f7cd96aa055575286bb14210149ec8a8/securityMarks,,,2025-08-28T03:36:24.218Z,2025-08-28T03:46:02.470Z,"[{
+  ""key"": ""ResourcePath"",
+  ""value"": {
+  }
+},{
+  ""key"": ""ReactivationCount"",
+  ""value"": {
+    ""primitive_data_type"": ""NUMBER""
+  }
+},{
+  ""key"": ""Explanation"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""ExposedService"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""ScannerName"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""compliance_standards"",
+  ""value"": {
+    ""struct_value"": {
+      ""fields"": {
+        ""iso"": {
+        },
+        ""pci"": {
+        },
+        ""cis"": {
+        },
+        ""cisControls"": {
+        },
+        ""soc2"": {
+        },
+        ""nist"": {
+        }
+      }
+    }
+  }
+},{
+  ""key"": ""ExceptionInstructions"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""Recommendation"",
+  ""value"": {
+    ""primitive_data_type"": ""STRING""
+  }
+},{
+  ""key"": ""OpenPorts"",
+  ""value"": {
+    ""struct_value"": {
+      ""fields"": {
+        ""TCP"": {
+        },
+        ""UDP"": {
+        }
+      }
+    }
+  }
+}]",HIGH,UNDEFINED,UNDEFINED,1970-01-01T00:00:00Z,,MISCONFIGURATION,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1970-01-01T00:00:00Z,,,,,,,,,,,,,,,,,,,,,,"[{
+  ""standard"": ""cis"",
+  ""version"": ""1.0"",
+  ""ids"": [""3.7""]
+},{
+  ""standard"": ""cis"",
+  ""version"": ""1.1"",
+  ""ids"": [""3.7""]
+},{
+  ""standard"": ""cis"",
+  ""version"": ""1.2"",
+  ""ids"": [""3.7""]
+},{
+  ""standard"": ""cis"",
+  ""version"": ""1.3"",
+  ""ids"": [""3.7""]
+},{
+  ""standard"": ""cis"",
+  ""version"": ""2.0"",
+  ""ids"": [""3.7""]
+},{
+  ""standard"": ""cis-controls"",
+  ""version"": ""8.0"",
+  ""ids"": [""4.4"", ""4.5""]
+},{
+  ""standard"": ""iso"",
+  ""ids"": [""A.13.1.1""]
+},{
+  ""standard"": ""nist"",
+  ""ids"": [""SC-7""]
+},{
+  ""standard"": ""nist800-53"",
+  ""version"": ""r5"",
+  ""ids"": [""CA-9"", ""SC-7""]
+},{
+  ""standard"": ""pci"",
+  ""ids"": [""1.2.1""]
+},{
+  ""standard"": ""pci-dss"",
+  ""version"": ""4.0"",
+  ""ids"": [""1.2.1"", ""1.4.1""]
+},{
+  ""standard"": ""soc2"",
+  ""version"": ""2017"",
+  ""ids"": [""CC6.6.1"", ""CC6.6.4""]
+}]",SECURITY_HEALTH_ADVISOR,GOOGLE_CLOUD_PLATFORM,Security Health Analytics,Firewall rules that allow connections from all IP addresses on TCP port 3389 or UDP port 3389 may expose RDP services to attackers.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,INGRESS,"[{
+  ""protocol"": ""TCP"",
+  ""port_ranges"": [{
+    ""min"": ""3389"",
+    ""max"": ""3389""
+  }]
+},{
+  ""protocol"": ""UDP"",
+  ""port_ranges"": [{
+    ""min"": ""3389"",
+    ""max"": ""3389""
+  }]
+}]",,"[""0.0.0.0/0""]",,"[""RDP""]",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,//compute.googleapis.com/projects/direct-glider-465821-p7/global/firewalls/default-allow-rdp,default-allow-rdp,google.compute.Firewall,GOOGLE_CLOUD_PLATFORM,compute.googleapis.com,global,//cloudresourcemanager.googleapis.com/projects/108005641993,direct-glider-465821-p7,//cloudresourcemanager.googleapis.com/projects/108005641993,direct-glider-465821-p7,,organizations/61283374946,,,,,,,,,,,,"[{
+  ""node_type"": ""GCP_PROJECT"",
+  ""id"": ""projects/108005641993"",
+  ""display_name"": ""direct-glider-465821-p7""
+},{
+  ""node_type"": ""GCP_ORGANIZATION"",
+  ""id"": ""organizations/61283374946""
+}]",organizations/61283374946/projects/108005641993,,

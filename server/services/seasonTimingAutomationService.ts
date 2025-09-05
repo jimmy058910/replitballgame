@@ -1366,7 +1366,28 @@ export class SeasonTimingAutomationService {
       if (calculatedDay > databaseDay && calculatedDay <= 17) {
         logInfo(`🚀 [SMART PROGRESSION] Advancing from Day ${databaseDay} to Day ${calculatedDay}...`);
         
-        // SAFE UPDATE: Only touch the currentDay field
+        // CRITICAL: Simulate all missed games before advancing the day
+        logInfo(`🎮 [SMART PROGRESSION] Simulating missed games for Days ${databaseDay} to ${calculatedDay - 1}...`);
+        
+        for (let missedDay = databaseDay; missedDay < calculatedDay; missedDay++) {
+          if (missedDay <= 14) { // Only simulate regular season games (Days 1-14)
+            logInfo(`🎯 [SMART PROGRESSION] Processing missed games for Day ${missedDay}...`);
+            
+            // Temporarily set the day to simulate games for that specific day
+            const prisma = await getPrismaClient();
+            await prisma.season.update({
+              where: { id: currentSeason.id },
+              data: { currentDay: missedDay }
+            });
+            
+            // Trigger game simulation for this day
+            await this.checkMatchSimulationWindow();
+            
+            logInfo(`✅ [SMART PROGRESSION] Completed simulation for Day ${missedDay}`);
+          }
+        }
+        
+        // Now update to the correct current day
         const prisma = await getPrismaClient();
         await prisma.season.update({
           where: { id: currentSeason.id },
@@ -1375,7 +1396,7 @@ export class SeasonTimingAutomationService {
           }
         });
         
-        logInfo(`✅ [SMART PROGRESSION] Successfully advanced from Day ${databaseDay} to Day ${calculatedDay}`);
+        logInfo(`✅ [SMART PROGRESSION] Successfully advanced from Day ${databaseDay} to Day ${calculatedDay} with all games simulated`);
         
         // Create progression tracking entry
         await this.logProgressionEvent(databaseDay, calculatedDay, 'missed_progression_recovery');
@@ -1433,7 +1454,7 @@ export class SeasonTimingAutomationService {
    * ORIGINAL: Check for missed daily progressions and create season if none exists
    * Creates initial season when missing, then checks for missed progressions
    */
-  private async checkAndExecuteMissedDailyProgressions(): Promise<void> {
+  public async checkAndExecuteMissedDailyProgressions(): Promise<void> {
     try {
       logInfo('🔍 Checking for current season and missed progressions...');
       console.log('🔧 [MISSED PROGRESSION DEBUG] Step 1: About to call storage.seasons.getCurrentSeason...');

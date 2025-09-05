@@ -490,6 +490,7 @@ export class PlayerAgingRetirementService {
     retirements: Array<{ playerId: string; playerName: string; age: number; reason: string }>;
     milestones: Array<{ playerId: string; playerName: string; type: string; description: string }>;
   }> {
+    const prisma = await getPrismaClient();
     const teamPlayers = await prisma.player.findMany({
       where: { teamId: parseInt(teamId, 10) }
     });
@@ -566,6 +567,7 @@ export class PlayerAgingRetirementService {
     totalRetirements: number;
     retirementsByReason: Record<string, number>;
   }> {
+    const prisma = await getPrismaClient();
     const allActivePlayers = await prisma.player.findMany({
       where: {
         teamId: {
@@ -669,6 +671,7 @@ export class PlayerAgingRetirementService {
     retired: boolean;
     retirementAge?: number;
   }> {
+    const prisma = await getPrismaClient();
     const startingPlayer = await prisma.player.findFirst({
       where: { id: parseInt(playerId, 10) }
     });

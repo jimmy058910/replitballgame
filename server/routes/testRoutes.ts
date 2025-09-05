@@ -9,6 +9,7 @@ const router = Router();
 // Test endpoint to verify team creation works end-to-end
 router.post('/test-team-creation', async (req: Request, res: Response) => {
   try {
+    const prisma = await getPrismaClient();
     const { testUserId, teamName } = req.body;
     
     // 1. Create test user profile
@@ -149,6 +150,7 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
 // PRODUCTION: Populate existing teams that were created before roster generation
 router.post('/populate-existing-team', async (req: Request, res: Response) => {
   try {
+    const prisma = await getPrismaClient();
     const { teamId } = req.body;
     
     if (!teamId) {
@@ -391,6 +393,7 @@ router.post('/populate-all-existing-teams', async (req: Request, res: Response) 
 // PRODUCTION: Clear user data for fresh team creation testing
 router.post('/clear-user-data', async (req: Request, res: Response) => {
   try {
+    const prisma = await getPrismaClient();
     const { userId } = req.body;
     
     if (!userId) {
@@ -478,6 +481,7 @@ router.post('/clear-user-data', async (req: Request, res: Response) => {
 // PRODUCTION: Delete team and all related data for clean testing
 router.post('/delete-team', async (req: Request, res: Response) => {
   try {
+    const prisma = await getPrismaClient();
     const { teamName } = req.body;
     
     if (!teamName) {

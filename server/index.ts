@@ -1,3 +1,14 @@
+// Load environment variables first
+import { config } from 'dotenv';
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env.local file for local development
+config({ path: path.join(__dirname, '..', '.env.local') });
+
 import express from "express";
 import cors from "cors";
 import compression from "compression";
@@ -5,12 +16,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import session from "express-session";
 import http from "http";
-import path from "path";
-import { fileURLToPath } from "url";
 import fs from "fs";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Main startup function
 async function startServer() {

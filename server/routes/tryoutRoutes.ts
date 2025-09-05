@@ -18,6 +18,9 @@ function generateRandomPlayer(tryoutType: 'basic' | 'advanced' = 'basic') {
   // Use race-specific naming system
   const { firstName, lastName } = generateRandomName(race.toLowerCase());
   
+  // Generate random age for tryout player (18-25 typical range)
+  const age = Math.floor(Math.random() * 8) + 18;
+  
   // Base stats (6-20 range to match new weaker player balance)
   const baseStats = {
     speed: Math.floor(Math.random() * 14) + 6,

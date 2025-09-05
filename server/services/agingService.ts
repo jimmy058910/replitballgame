@@ -330,6 +330,7 @@ export class AgingService {
     let playersDeclined = 0;
 
     try {
+      const prisma = await getPrismaClient();
       // Get all active players
       const allPlayers = await prisma.player.findMany({
         where: { 

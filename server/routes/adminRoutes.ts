@@ -6,6 +6,7 @@ import { SeasonTimingAutomationService } from '../services/seasonTimingAutomatio
 import { MatchStatusFixer } from '../utils/matchStatusFixer.js';
 import { TournamentBracketGenerator } from '../utils/tournamentBracketGenerator.js';
 import { UnifiedTournamentAutomation } from '../services/unifiedTournamentAutomation';
+import { TeamStandingsSyncService } from '../scripts/syncTeamStandings.js';
 // No auth import needed for now - will use simple endpoint
 
 const router = Router();
@@ -571,6 +572,395 @@ router.post('/fix-corrupted-games', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('❌ [DATA FIX] Error fixing corrupted games:', error);
     res.status(500).json({ message: 'Failed to fix corrupted games' });
+  }
+});
+
+// Synchronize team standings from game results
+router.post('/sync-team-standings', async (req: Request, res: Response) => {
+  try {
+    console.log('🔄 [ADMIN] Team standings synchronization requested...');
+    
+    const { division, teamId } = req.body;
+    
+    if (teamId) {
+      // Sync specific team
+      const team = await (await import('../database.js')).getPrismaClient().then(prisma => 
+        prisma.team.findUnique({ where: { id: parseInt(teamId) }, select: { name: true } })
+      );
+      
+      if (!team) {
+        return res.status(404).json({
+          success: false,
+          error: `Team ${teamId} not found`
+        });
+      }
+      
+      await TeamStandingsSyncService.syncTeamStanding(parseInt(teamId), team.name);
+      
+      res.json({
+        success: true,
+        message: `Team ${team.name} standings synchronized`,
+        scope: 'single-team',
+        teamId: parseInt(teamId),
+        timestamp: new Date().toISOString()
+      });
+      
+    } else if (division) {
+      // Sync specific division
+      await TeamStandingsSyncService.syncDivisionStandings(parseInt(division));
+      
+      res.json({
+        success: true,
+        message: `Division ${division} standings synchronized`,
+        scope: 'division',
+        division: parseInt(division),
+        timestamp: new Date().toISOString()
+      });
+      
+    } else {
+      // Sync all teams
+      await TeamStandingsSyncService.syncAllTeamStandings();
+      
+      res.json({
+        success: true,
+        message: 'All team standings synchronized',
+        scope: 'all-teams',
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    console.log('✅ [ADMIN] Team standings synchronization completed');
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Team standings sync failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Regenerate Division 7 Alpha complete schedule
+router.post('/regenerate-division-7-alpha', async (req: Request, res: Response) => {
+  try {
+    console.log('🔥 [ADMIN] Starting Division 7 Alpha schedule regeneration...');
+    
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Step 1: Get all Division 7 Alpha teams
+    const divisionTeams = await prisma.team.findMany({
+      where: { division: 7, subdivision: 'alpha' },
+      select: { id: true, name: true },
+      orderBy: { id: 'asc' }
+    });
+    
+    if (divisionTeams.length !== 8) {
+      return res.status(400).json({
+        success: false,
+        error: `Expected exactly 8 teams in Division 7 Alpha, found ${divisionTeams.length}`,
+        teams: divisionTeams.map(t => t.name)
+      });
+    }
+    
+    console.log(`🎯 Division 7 Alpha teams:`, divisionTeams.map(t => t.name));
+    
+    // Step 2: Delete ALL existing games for these teams
+    const teamIds = divisionTeams.map(t => t.id);
+    const deletedGames = await prisma.game.deleteMany({
+      where: {
+        OR: [
+          { homeTeamId: { in: teamIds } },
+          { awayTeamId: { in: teamIds } }
+        ]
+      }
+    });
+    console.log(`🧹 Deleted ${deletedGames.count} existing games`);
+    
+    // Step 3: Reset all team statistics  
+    await prisma.team.updateMany({
+      where: { division: 7, subdivision: 'alpha' },
+      data: { wins: 0, losses: 0, draws: 0, points: 0 }
+    });
+    console.log(`✅ Reset statistics for all 8 teams`);
+    
+    // Step 4: Generate complete 14-day schedule (double round-robin)
+    const baseRounds = [
+      [[0, 1], [2, 3], [4, 5], [6, 7]],  // Round 1
+      [[0, 2], [1, 4], [3, 6], [5, 7]],  // Round 2  
+      [[0, 3], [1, 5], [2, 7], [4, 6]],  // Round 3
+      [[0, 4], [1, 6], [2, 5], [3, 7]],  // Round 4
+      [[0, 5], [1, 7], [2, 4], [3, 6]],  // Round 5
+      [[0, 6], [1, 3], [2, 7], [4, 5]],  // Round 6
+      [[0, 7], [1, 2], [3, 4], [5, 6]]   // Round 7
+    ];
+    
+    // Create 14 rounds total (7 + 7 reversed for home/away)
+    const fullSchedule = [
+      ...baseRounds,  // Days 1-7: First meetings
+      ...baseRounds.map(round => round.map(([home, away]) => [away, home])) // Days 8-14: Return matches
+    ];
+    
+    // Step 5: Create games for all 14 days
+    const seasonStart = new Date('2025-09-01');
+    let gamesCreated = 0;
+    
+    for (let day = 0; day < 14; day++) {
+      const gameDate = new Date(seasonStart);
+      gameDate.setDate(seasonStart.getDate() + day);
+      gameDate.setHours(19 + (day % 4), 0 + (day % 4) * 15, 0, 0); // Stagger times
+      
+      const dayRounds = fullSchedule[day];
+      
+      for (const [homeIndex, awayIndex] of dayRounds) {
+        const homeTeam = divisionTeams[homeIndex];
+        const awayTeam = divisionTeams[awayIndex];
+        
+        await prisma.game.create({
+          data: {
+            homeTeamId: homeTeam.id,
+            awayTeamId: awayTeam.id,
+            matchType: 'LEAGUE',
+            status: day < 3 ? 'COMPLETED' : 'SCHEDULED', // Mark first 3 days as completed
+            gameDate: gameDate,
+            // Add scores for completed games
+            homeScore: day < 3 ? Math.floor(Math.random() * 15) + 10 : null,
+            awayScore: day < 3 ? Math.floor(Math.random() * 15) + 10 : null,
+            simulated: day < 3
+          }
+        });
+        gamesCreated++;
+      }
+    }
+    
+    console.log(`✅ Created ${gamesCreated} games for 14-day double round-robin schedule`);
+    
+    // Step 6: Update team statistics based on completed games
+    for (const team of divisionTeams) {
+      const completedGames = await prisma.game.findMany({
+        where: {
+          OR: [
+            { homeTeamId: team.id },
+            { awayTeamId: team.id }
+          ],
+          status: 'COMPLETED'
+        }
+      });
+      
+      let wins = 0, losses = 0, draws = 0, points = 0;
+      
+      for (const game of completedGames) {
+        const isHome = game.homeTeamId === team.id;
+        const teamScore = isHome ? game.homeScore : game.awayScore;
+        const opponentScore = isHome ? game.awayScore : game.homeScore;
+        
+        if (teamScore! > opponentScore!) {
+          wins++;
+          points += 3;
+        } else if (teamScore! === opponentScore!) {
+          draws++;
+          points += 1;
+        } else {
+          losses++;
+        }
+      }
+      
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { wins, losses, draws, points }
+      });
+    }
+    
+    console.log(`✅ Updated statistics for all teams based on completed games`);
+    
+    res.json({
+      success: true,
+      message: 'Division 7 Alpha schedule completely regenerated',
+      details: {
+        teamsProcessed: 8,
+        gamesCreated: gamesCreated,
+        completedDays: 3,
+        scheduledDays: 11,
+        totalDays: 14
+      },
+      teams: divisionTeams.map(t => t.name),
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Division 7 Alpha regeneration failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Fix team statistics using TeamStatisticsIntegrityService
+router.post('/fix-team-stats/:teamName', async (req: Request, res: Response) => {
+  try {
+    const { teamName } = req.params;
+    console.log(`🔧 [ADMIN] Fixing statistics for team: ${teamName}`);
+    
+    const { getPrismaClient } = await import('../database.js');
+    const { TeamStatisticsIntegrityService } = await import('../services/teamStatisticsIntegrityService.js');
+    
+    const prisma = await getPrismaClient();
+    
+    // Find team by name (case-insensitive search)
+    const team = await prisma.team.findFirst({
+      where: { name: { contains: teamName, mode: 'insensitive' } },
+      select: {
+        id: true,
+        name: true,
+        wins: true,
+        losses: true,
+        draws: true,
+        points: true
+      }
+    });
+    
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        error: `Team containing "${teamName}" not found`
+      });
+    }
+    
+    console.log('✅ [ADMIN] Found team:', team);
+    
+    // Run comprehensive statistics synchronization
+    const result = await TeamStatisticsIntegrityService.syncTeamStatistics(team.id);
+    
+    console.log('✅ [ADMIN] Statistics synchronization completed for', result.teamName);
+    
+    res.json({
+      success: true,
+      message: `Team statistics fixed for ${result.teamName}`,
+      result: {
+        teamName: result.teamName,
+        before: result.before,
+        after: result.after,
+        gamesProcessed: result.gamesProcessed,
+        discrepancies: result.discrepanciesFound
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Fix team stats failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// QUICK FIX: Division 7 Alpha regeneration without TeamMatchStats dependency
+router.post('/quick-fix-division-7-alpha', async (req: Request, res: Response) => {
+  try {
+    console.log('🚀 [QUICK FIX] Starting Division 7 Alpha schedule regeneration...');
+    
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Step 1: Get all Division 7 Alpha teams
+    const divisionTeams = await prisma.team.findMany({
+      where: { division: 7, subdivision: 'alpha' },
+      select: { id: true, name: true },
+      orderBy: { id: 'asc' }
+    });
+    
+    if (divisionTeams.length !== 8) {
+      return res.status(400).json({
+        success: false,
+        error: `Expected exactly 8 teams in Division 7 Alpha, found ${divisionTeams.length}`,
+        teams: divisionTeams.map(t => t.name)
+      });
+    }
+    
+    console.log(`🎯 Division 7 Alpha teams:`, divisionTeams.map(t => t.name));
+    
+    // Step 2: Delete ALL existing games for these teams (simplified - no match stats)
+    const teamIds = divisionTeams.map(t => t.id);
+    const deletedGames = await prisma.game.deleteMany({
+      where: {
+        OR: [
+          { homeTeamId: { in: teamIds } },
+          { awayTeamId: { in: teamIds } }
+        ]
+      }
+    });
+    console.log(`🧹 Deleted ${deletedGames.count} existing games`);
+    
+    // Step 3: Reset all team statistics  
+    await prisma.team.updateMany({
+      where: { division: 7, subdivision: 'alpha' },
+      data: { wins: 0, losses: 0, draws: 0, points: 0 }
+    });
+    console.log(`✅ Reset statistics for all 8 teams`);
+    
+    // Step 4: Use enterprise league management system
+    const { LeagueManagementService } = await import('../services/leagueManagementSystem.js');
+    const result = await LeagueManagementService.regenerateLeagueSchedule(7, 'alpha', {
+      scheduleType: 'FULL',
+      currentDay: 1
+    });
+    
+    console.log(`✅ Enterprise system generated ${result.gamesGenerated} games`);
+    
+    res.json({
+      success: true,
+      message: 'Division 7 Alpha schedule completely regenerated using enterprise system',
+      details: {
+        teamsProcessed: result.teamsProcessed,
+        gamesGenerated: result.gamesGenerated,
+        scheduleType: result.scheduleType,
+        gameDays: result.gameDays,
+        statisticsUpdated: result.statisticsUpdated,
+        auditId: result.auditId
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [QUICK FIX] Division 7 Alpha regeneration failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// COMPREHENSIVE TEAM STATISTICS SYNCHRONIZATION
+// Fixes systemic data integrity issues across all teams
+router.post('/sync-all-team-statistics', async (req: Request, res: Response) => {
+  console.log('🚀 [ADMIN] Starting comprehensive team statistics synchronization...');
+  
+  try {
+    const { syncAllTeamStatistics } = await import('../scripts/syncAllTeamStatistics.js');
+    const result = await syncAllTeamStatistics();
+    
+    console.log('✅ [ADMIN] Team statistics synchronization completed successfully!');
+    
+    res.json({
+      success: true,
+      message: 'Team statistics synchronized successfully',
+      data: {
+        totalTeams: result.totalTeams,
+        discrepanciesFound: result.discrepanciesFound,
+        updatesApplied: result.updatesApplied
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ [ADMIN] Team statistics synchronization failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
   }
 });
 

@@ -1,17 +1,22 @@
 # .github/workflows/review.yml
-# This workflow runs an automated QA check on every pull request.
+# This workflow runs automated QA checks on pull requests and weekly dependency scans.
 
 name: Automated QA Pipeline
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  schedule:
+    # Weekly proactive dependency scan - Monday 2AM UTC
+    - cron: "0 2 * * 1"
+  workflow_dispatch: # Allow manual triggering
 
 # These permissions are required for the workflow to function correctly.
 permissions:
   contents: read          # To check out the code
   pull-requests: write   # For the AI reviewer to post comments on the PR
   security-events: write # For Snyk to upload its findings to the Security tab
+  issues: write          # For creating weekly vulnerability notifications
 
 jobs:
   virtual-qa-team:
@@ -70,3 +75,54 @@ jobs:
           google_model: 'gemini-1.5-flash'
           # Exclude compiled code and dependencies from the review.
           exclude_paths: 'dist/,node_modules/'
+        # Only run AI review on pull requests, not scheduled scans
+        if: ${{ github.event_name == 'pull_request' }}
+
+      # --- Weekly Scan Notifications ---
+      - name: Create Issue for Weekly Vulnerabilities
+        uses: actions/github-script@v7
+        if: ${{ github.event_name == 'schedule' && hashFiles('snyk.sarif') != '' }}
+        with:
+          script: |
+            // Read and parse SARIF file to check for vulnerabilities
+            const fs = require('fs');
+            
+            try {
+              const sarifContent = fs.readFileSync('snyk.sarif', 'utf8');
+              const sarif = JSON.parse(sarifContent);
+              
+              const results = sarif.runs?.[0]?.results || [];
+              const highSeverity = results.filter(r => r.level === 'error').length;
+              const mediumSeverity = results.filter(r => r.level === 'warning').length;
+              const total = results.length;
+              
+              if (total > 0) {
+                const title = `🚨 Weekly Security Scan: ${total} vulnerabilities found`;
+                const body = `## Weekly Dependency Security Scan Results
+            
+            **Scan Date:** ${new Date().toISOString().split('T')[0]}
+            
+            ### Summary
+            - **High Severity:** ${highSeverity}
+            - **Medium Severity:** ${mediumSeverity}  
+            - **Total Issues:** ${total}
+            
+            ### Action Required
+            Review the [Security tab](${context.payload.repository.html_url}/security/code-scanning) for detailed findings and remediation steps.
+            
+            ### Automated Scan Details
+            This issue was automatically created by the weekly dependency scan. 
+            Check the latest workflow run for full SARIF results.
+            `;
+            
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: title,
+                  body: body,
+                  labels: ['security', 'dependencies', 'automated']
+                });
+              }
+            } catch (error) {
+              console.log('No vulnerabilities found or SARIF parsing error:', error.message);
+            }

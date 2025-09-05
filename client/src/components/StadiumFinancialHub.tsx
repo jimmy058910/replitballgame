@@ -224,18 +224,16 @@ const StadiumFinancialHub: React.FC<StadiumFinancialHubProps> = ({ team, stadium
   // Stadium upgrade mutation
   const upgradeMutation = useMutation({
     mutationFn: async ({ facilityType, upgradeLevel }: { facilityType: string, upgradeLevel: number }) => {
-      return await apiRequest('/api/stadium/upgrade', {
-        method: 'POST',
-        body: JSON.stringify({
-          facilityType: facilityType === 'vipSuites' ? 'vipSuites' : facilityType === 'lightingScreensLevel' ? 'lighting' : facilityType,
-          upgradeLevel
-        })
+      return await apiRequest('/api/stadium/upgrade', 'POST', {
+        facilityType: facilityType === 'vipSuites' ? 'vipSuites' : facilityType === 'lightingScreensLevel' ? 'lighting' : facilityType,
+        upgradeLevel
       });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: unknown) => {
+      const response = data as { cost?: number };
       toast({
         title: "Stadium Upgraded!",
-        description: `Successfully upgraded facility. Cost: ₡${data.cost?.toLocaleString()}`,
+        description: `Successfully upgraded facility. Cost: ₡${response.cost?.toLocaleString()}`,
         duration: 3000,
       });
       

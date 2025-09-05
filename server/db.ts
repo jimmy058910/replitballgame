@@ -16,15 +16,61 @@ export {
   prisma
 } from './database';
 
-// Export all Prisma types and models from generated client  
+// Export Prisma Client and all utilities
 export {
   PrismaClient,
+  Prisma,
   $Enums
 } from '../prisma/generated/client';
 
+// Re-export standardized utilities from prismaUtils
+export {
+  PrismaError,
+  executePrismaOperation,
+  executePrismaTransaction,
+  findUnique,
+  findMany,
+  create,
+  update,
+  deleteRecord,
+  count,
+  queryRaw,
+  executeRaw,
+  createMany,
+  updateMany,
+  deleteMany,
+  upsert,
+  findFirst,
+  aggregate,
+  groupBy
+} from './utils/prismaUtils';
+
+// Re-export enums as VALUES (not types) for proper usage
+export {
+  Race,
+  PlayerRole,
+  FieldSize,
+  TacticalFocus,
+  InjuryStatus,
+  SkillType,
+  SkillCategory,
+  StaffType,
+  ItemType,
+  EquipmentSlot,
+  ItemRarity,
+  MatchType,
+  MarketplaceStatus,
+  ListingActionType,
+  GameStatus,
+  SeasonPhase,
+  NotificationType,
+  RewardType,
+  TournamentType,
+  TournamentStatus
+} from '../prisma/generated/client';
+
+// Export types separately to avoid conflicts with value exports
 export type {
-  
-  // Main Models
   UserProfile,
   Session,
   Team,
@@ -65,30 +111,5 @@ export type {
   PlayerMatchStats,
   TeamMatchStats,
   PlayerCareerMilestone,
-  PlayerEquipment,
-
-  // Enums
-  FieldSize,
-  TacticalFocus,
-  Race,
-  PlayerRole,
-  InjuryStatus,
-  SkillType,
-  SkillCategory,
-  StaffType,
-  ItemType,
-  EquipmentSlot,
-  ItemRarity,
-  MatchType,
-  MarketplaceStatus,
-  ListingActionType,
-  GameStatus,
-  SeasonPhase,
-  NotificationType,
-  RewardType,
-  TournamentType,
-  TournamentStatus,
-
-  // Prisma Utility Types
-  Prisma
+  PlayerEquipment
 } from '../prisma/generated/client';

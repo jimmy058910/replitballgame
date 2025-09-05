@@ -41,6 +41,7 @@ interface Team {
   leagueId?: number;
   wins?: number;
   losses?: number;
+  draws?: number;
   points?: number;
 }
 

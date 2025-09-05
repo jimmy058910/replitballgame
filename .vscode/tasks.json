@@ -1,0 +1,90 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🎮 Start Development",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev:local"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": ["$tsc"],
+      "detail": "Start both frontend and backend with live preview"
+    },
+    {
+      "label": "🗄️ Setup Database",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev:setup"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "new"
+      },
+      "detail": "Initialize database connection and run setup"
+    },
+    {
+      "label": "🏗️ Build Project",
+      "type": "shell", 
+      "command": "npm",
+      "args": ["run", "build:all"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "new"
+      },
+      "detail": "Build both server and client for production"
+    },
+    {
+      "label": "🧪 Run Tests",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "test"],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "new"
+      },
+      "detail": "Run all tests in watch mode"
+    },
+    {
+      "label": "📊 Type Check",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "check"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "new"
+      },
+      "detail": "Run TypeScript type checking"
+    },
+    {
+      "label": "🔄 Database Push",
+      "type": "shell",
+      "command": "npm", 
+      "args": ["run", "db:push"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "new"
+      },
+      "detail": "Push database schema changes"
+    }
+  ]
+}

@@ -748,7 +748,7 @@ export default function ComprehensiveCompetitionCenter() {
                 <Trophy className="h-5 w-5 text-green-400" />
                 <div>
                   <h3 className="text-lg font-bold text-white">
-                    {team?.wins || 0} W – {Math.max(0, (team?.points || 0) - ((team?.wins || 0) * 3))} D – {team?.losses || 0} L
+                    {team?.wins || 0} W – {team?.draws || 0} D – {team?.losses || 0} L
                   </h3>
                   <p className="text-sm text-green-400 font-medium">League Record</p>
                 </div>
@@ -771,9 +771,10 @@ export default function ComprehensiveCompetitionCenter() {
                       let gamesRemaining = 0;
                       
                       if (currentDay >= 1 && currentDay <= 14) {
-                        // Regular season: Calculate remaining days in season
-                        // Days 1-14 are regular season, so games remaining = 14 - currentDay
-                        gamesRemaining = Math.max(0, 14 - currentDay);
+                        // Regular season: Calculate remaining games in season
+                        // Include current day's game since it hasn't been played yet
+                        // Days 1-14 are regular season, so games remaining = 14 - (currentDay - 1)
+                        gamesRemaining = Math.max(0, 14 - (currentDay - 1));
                       } else if (currentDay === 15) {
                         // Division playoffs: No regular season games remain
                         gamesRemaining = 0;
@@ -1711,7 +1712,7 @@ export default function ComprehensiveCompetitionCenter() {
                       <div className="text-lg">{scoutingData.team?.name || 'Unknown Team'}</div>
                       <div className="text-sm text-gray-400 font-normal">
                         Division {scoutingData.team?.division || '?'} – {scoutingData.team?.subdivision?.charAt(0).toUpperCase() + scoutingData.team?.subdivision?.slice(1) || 'Unknown'} | 
-                        Record {scoutingData.team?.wins || 0}-{Math.max(0, (scoutingData.team?.points || 0) - ((scoutingData.team?.wins || 0) * 3))}-{scoutingData.team?.losses || 0} - Pts {scoutingData.team?.points || 0}
+                        Record {scoutingData.team?.wins || 0}-{scoutingData.team?.draws || 0}-{scoutingData.team?.losses || 0} - Pts {scoutingData.team?.points || 0}
                       </div>
                     </div>
                   </>

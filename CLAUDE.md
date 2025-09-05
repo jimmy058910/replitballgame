@@ -55,6 +55,145 @@ Credits must ALWAYS be displayed with amount BEFORE the ₡ symbol:
 - ❌ INCORRECT: "₡25,000", "₡1.5M", "₡0"
 - **Implementation**: Use the creditFormatter utility (`client/src/utils/creditFormatter.ts`) for standardized formatting
 
+## 📚 DEVELOPMENT STANDARDS
+
+### **COMPREHENSIVE SOLUTIONS ONLY**
+- ✅ **NO BAND-AID FIXES**: Temporary patches, quick hacks, or workarounds are PROHIBITED
+- ✅ **ROOT CAUSE RESOLUTION**: Always identify and fix the underlying cause, not symptoms
+- ✅ **FUTURE-PROOF IMPLEMENTATIONS**: Solutions must be maintainable and scalable long-term
+- ✅ **SYSTEMATIC APPROACH**: Fix entire problem domains, not individual edge cases
+
+### **MANDATORY IMPLEMENTATION STANDARDS**
+
+#### **1. COMPREHENSIVE ERROR HANDLING**
+```typescript
+// ✅ CORRECT: Full error handling with recovery
+try {
+  const result = await complexOperation();
+  return processResult(result);
+} catch (error) {
+  logger.error('Operation failed', { error, context: operationContext });
+  await notifyMonitoring(error);
+  return handleFailureGracefully(error);
+}
+```
+
+#### **2. TYPE SAFETY & VALIDATION**
+```typescript
+// ✅ CORRECT: Runtime validation + compile-time types
+const validateTeamStats = z.object({
+  wins: z.number().min(0),
+  losses: z.number().min(0), 
+  draws: z.number().min(0),
+  points: z.number().min(0)
+});
+
+export async function updateTeamStats(data: unknown): Promise<TeamStats> {
+  const validatedData = validateTeamStats.parse(data);
+  return await persistTeamStats(validatedData);
+}
+```
+
+#### **3. DATABASE CONSISTENCY & RELIABILITY**
+```typescript
+// ✅ CORRECT: Transaction-based consistency
+export async function syncTeamStandings(teamId: number): Promise<void> {
+  return await prisma.$transaction(async (tx) => {
+    const games = await tx.game.findMany({ /* query */ });
+    const calculatedStats = calculateStatsFromGames(games);
+    const updatedTeam = await tx.team.update({
+      where: { id: teamId },
+      data: calculatedStats
+    });
+    await tx.auditLog.create({ /* audit trail */ });
+    return updatedTeam;
+  });
+}
+```
+
+### **PROHIBITED PRACTICES**
+- ❌ TODO comments in production code
+- ❌ Console.log statements (use proper logging)
+- ❌ Magic numbers or hardcoded values
+- ❌ Silent error swallowing
+- ❌ Direct database access outside service layer
+- ❌ Unvalidated user input
+- ❌ Missing error handling
+- ❌ Temporary fixes or workarounds
+
+## 💻 LOCAL DEVELOPMENT SETUP
+
+### **Quick Start**
+```bash
+# 1. Copy environment configuration
+cp .env.local.example .env.local
+
+# 2. Install dependencies  
+npm install
+
+# 3. Start development environment
+npm run dev:local
+```
+
+### **Database Setup**
+
+#### **Step 1: Install Google Cloud SDK**
+- **Windows**: Download from https://cloud.google.com/sdk/docs/install
+- **Or use Chocolatey**: `choco install gcloudsdk`
+
+#### **Step 2: Authenticate & Setup Cloud SQL Proxy**
+```bash
+# 1. Login to your Google account
+gcloud auth login
+
+# 2. Set your project
+gcloud config set project direct-glider-465821-p7
+
+# 3. Install Cloud SQL Auth Proxy
+gcloud components install cloud-sql-proxy
+
+# 4. Test the proxy connection
+cloud-sql-proxy direct-glider-465821-p7:us-central1:realm-rivalry-dev --port=5432
+```
+
+### **Development Environment Features**
+✅ **Live Preview**: Frontend automatically opens at http://localhost:5173  
+✅ **Hot Reloading**: Instant updates when you save files  
+✅ **Database Integration**: Real Cloud SQL connection via Auth Proxy  
+✅ **Debugging**: Full breakpoint debugging in IDE  
+✅ **API Proxy**: Seamless API calls from frontend to backend  
+✅ **WebSocket Support**: Real-time Socket.IO connections  
+
+### **Daily Development Workflow**
+1. Open your IDE (Cursor AI recommended)
+2. Run: `npm run dev:local`
+3. Browser automatically opens to http://localhost:5173
+4. Start coding - changes appear instantly!
+
+### **Environment Configuration (.env.local)**
+```env
+# Required: Your Cloud SQL database
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name?schema=public&sslmode=prefer"
+
+# Required: Firebase configuration
+FIREBASE_PROJECT_ID="your-firebase-project-id"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_KEY_HERE\n-----END PRIVATE KEY-----"
+FIREBASE_CLIENT_EMAIL="firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com"
+
+# Required: Google Cloud
+GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
+```
+
+### **Debugging Setup**
+- **Backend**: Set breakpoints in TypeScript code, press F5
+- **Frontend**: Chrome DevTools + React DevTools available
+- **Database**: Direct query access via Cloud SQL Auth Proxy
+
+### **Troubleshooting**
+- **"Upgrade Required" Error**: Backend isn't connected to database - ensure Cloud SQL Auth Proxy is running
+- **Port Conflicts**: Use `npx kill-port 3000 5173` or change ports in .env.local
+- **TypeScript Errors**: Run `npm run check` and `npm run build:all`
+
 ## 📋 QUICK REFERENCE
 
 ### **Database Model Names (CRITICAL)**
@@ -310,6 +449,50 @@ Industry-standard patterns with:
 
 ---
 
+## 🚨 CRITICAL SESSION UPDATE - September 5th, 2025
+
+### **MAJOR REGRESSION DETECTED**
+This session resulted in significant system instability despite successfully fixing the initial League Schedule API issue. **IMMEDIATE ATTENTION REQUIRED** for next development session.
+
+### **✅ Successfully Fixed Issues:**
+1. **League Schedule API Error**: Fixed "ReferenceError: team is not defined" in daily-schedule API (`server/routes/leagueRoutes.ts:1121`)
+   - **Root Cause**: Using undefined `team` variable instead of `userTeam`
+   - **Fix Applied**: Changed `team?.division` → `userTeam?.division` and `team.id` → `userTeam.id`
+   - **Result**: League Schedule now loads properly, no more 500 errors
+
+### **🚨 CRITICAL REGRESSIONS INTRODUCED:**
+1. **Game Day Reset to Day 1**: System reverted from Day 5 to Day 1 unexpectedly
+2. **Massive Standings Cross-Contamination**: Teams showing inflated game counts (11+ games instead of 8)
+   - Galaxy Warriors 792: 11 games played
+   - Fire Hawks 261: 10 games played  
+   - Crimson Lions 932: 12 games played
+   - Earth Guardians 132: 13 games played
+   - **Expected**: ~8 games after 5 completed days
+3. **Schedule Data Inconsistency**: Shows Days 2-10 as "scheduled" when Days 1-5 should be completed
+4. **Database State Corruption**: 108 total games found in Division 7 Alpha (should be ~20 after 5 days)
+
+### **Root Cause Analysis:**
+- **Standings Query Issue**: The main standings calculation in `/api/leagues/7/standings` is still including all historical games, not just current season/schedule games
+- **Season State Corruption**: Something caused the season to reset to Day 1, losing previous progress
+- **Cross-Division Game Inclusion**: Despite subdivision filtering, 108 games suggests games from multiple seasons or divisions are being included
+
+### **Files Modified During Session:**
+- `server/routes/leagueRoutes.ts:1121-1127` - Fixed `team` → `userTeam` references
+- `server/routes/teamRoutes.ts:1325-1489` - Modified `reset-all-standings` with subdivision filtering (untested due to auth issues)
+
+### **URGENT TODO for Next Session:**
+1. **PRIORITY 1**: Investigate why Game Day reset from Day 5 to Day 1
+2. **PRIORITY 2**: Apply same subdivision filtering fix to main standings calculation (`/api/leagues/7/standings`) that was applied to `reset-all-standings`
+3. **PRIORITY 3**: Investigate why 108 games exist instead of expected ~20 games
+4. **PRIORITY 4**: Verify season state integrity and restore to correct day if possible
+
+### **Critical Code Locations Requiring Attention:**
+- `server/routes/leagueRoutes.ts:515-531` - Game query for standings (needs subdivision scoping)
+- Season management system - investigate Day 1 reset
+- Database game records - verify correct game counts per subdivision
+
+---
+
 **Last Updated**: September 4th, 2025 - GitHub Actions Guardian Agents Implementation & Root Directory Cleanup
 **Status**: Production operational at https://realmrivalry.com with automated code quality monitoring
 **Next Review**: After Guardian Agents first run results and frontend/UI development sessions
@@ -342,3 +525,40 @@ This development session achieved unprecedented system completeness:
 - ✅ **Unified AI Guidance**: CLAUDE.md now serves ALL AI development assistants (Claude Code, Replit AI, GitHub Copilot)
 - ✅ **Merged Unique Content**: creditFormatter utility reference, external dependencies, and enhanced late signup details integrated
 - ✅ **Clean Documentation**: Only 2 essential files remain - CLAUDE.md (development guide) and REALM_RIVALRY_COMPLETE_DOCUMENTATION.md (comprehensive reference)
+
+---
+
+## 📚 **DOCUMENTATION POLICY**
+
+### **🚨 MANDATORY: Documentation Consolidation Rule**
+
+**ALL technical development documentation MUST be consolidated into CLAUDE.md - DO NOT create separate documentation files.**
+
+### **Approved Documentation Structure:**
+```
+📁 Repository Root
+├── 📄 CLAUDE.md (Complete AI development guide - ALL technical info)
+├── 📄 REALM_RIVALRY_COMPLETE_DOCUMENTATION.md (Business/user documentation)
+└── 📄 README.md (Basic project overview - optional)
+```
+
+### **❌ PROHIBITED: Additional Documentation Files**
+- **DO NOT CREATE**: DEVELOPMENT_STANDARDS.md, LOCAL_DEVELOPMENT.md, SETUP_DATABASE.md
+- **DO NOT CREATE**: Any other .md files for development purposes
+- **ALWAYS ADD TO**: CLAUDE.md under appropriate sections instead
+
+### **✅ When Adding New Technical Documentation:**
+1. **Identify the appropriate section** in CLAUDE.md
+2. **Add content under existing headers** (Development Standards, Local Development, etc.)
+3. **Use consistent formatting** with existing content
+4. **Update the table of contents** if adding major sections
+
+### **🔧 Why This Policy Exists:**
+- **Single Source of Truth**: Prevents documentation fragmentation
+- **Easier Maintenance**: One file to keep updated
+- **Better AI Assistance**: All context in one place for AI development assistants
+- **Reduced Redundancy**: Eliminates duplicate or conflicting information
+- **Faster Onboarding**: Developers find everything in one location
+
+### **Last Updated**: September 5th, 2025 - Critical Bug Fix Session & Major Regression Analysis
+**Status**: REGRESSION - Multiple critical systems broken after attempting standings fix

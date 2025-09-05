@@ -1,0 +1,540 @@
+2025-09-04T19:57:12.4778290Z Current runner version: '2.328.0'
+2025-09-04T19:57:12.4818483Z ##[group]Runner Image Provisioner
+2025-09-04T19:57:12.4819635Z Hosted Compute Agent
+2025-09-04T19:57:12.4820582Z Version: 20250829.383
+2025-09-04T19:57:12.4821549Z Commit: 27cb235aab5b0e52e153a26cd86b4742e89dac5d
+2025-09-04T19:57:12.4822727Z Build Date: 2025-08-29T13:48:48Z
+2025-09-04T19:57:12.4823894Z ##[endgroup]
+2025-09-04T19:57:12.4824799Z ##[group]Operating System
+2025-09-04T19:57:12.4825643Z Ubuntu
+2025-09-04T19:57:12.4826980Z 24.04.3
+2025-09-04T19:57:12.4827823Z LTS
+2025-09-04T19:57:12.4828677Z ##[endgroup]
+2025-09-04T19:57:12.4829544Z ##[group]Runner Image
+2025-09-04T19:57:12.4830497Z Image: ubuntu-24.04
+2025-09-04T19:57:12.4831334Z Version: 20250831.1.0
+2025-09-04T19:57:12.4833256Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20250831.1/images/ubuntu/Ubuntu2404-Readme.md
+2025-09-04T19:57:12.4835948Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20250831.1
+2025-09-04T19:57:12.4837957Z ##[endgroup]
+2025-09-04T19:57:12.4839865Z ##[group]GITHUB_TOKEN Permissions
+2025-09-04T19:57:12.4843207Z Contents: read
+2025-09-04T19:57:12.4844005Z Metadata: read
+2025-09-04T19:57:12.4844796Z Packages: read
+2025-09-04T19:57:12.4845722Z ##[endgroup]
+2025-09-04T19:57:12.4849201Z Secret source: Actions
+2025-09-04T19:57:12.4850260Z Prepare workflow directory
+2025-09-04T19:57:12.5458238Z Prepare all required actions
+2025-09-04T19:57:12.5521435Z Getting action download info
+2025-09-04T19:57:12.8997664Z Download action repository 'actions/checkout@v4' (SHA:08eba0b27e820071cde6df949e0beb9ba4906955)
+2025-09-04T19:57:12.9837874Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2025-09-04T19:57:13.0868517Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2025-09-04T19:57:13.2214670Z Download action repository 'actions/github-script@v7' (SHA:60a0d83039c74a4aee543508d2ffcb1c3799cdea)
+2025-09-04T19:57:13.5409179Z Complete job name: Database Schema & Integration Validation
+2025-09-04T19:57:13.6159077Z ##[group]Run actions/checkout@v4
+2025-09-04T19:57:13.6160008Z with:
+2025-09-04T19:57:13.6160477Z   repository: jimmy058910/replitballgame
+2025-09-04T19:57:13.6161319Z   token: ***
+2025-09-04T19:57:13.6161749Z   ssh-strict: true
+2025-09-04T19:57:13.6162179Z   ssh-user: git
+2025-09-04T19:57:13.6162619Z   persist-credentials: true
+2025-09-04T19:57:13.6163113Z   clean: true
+2025-09-04T19:57:13.6163561Z   sparse-checkout-cone-mode: true
+2025-09-04T19:57:13.6164147Z   fetch-depth: 1
+2025-09-04T19:57:13.6164580Z   fetch-tags: false
+2025-09-04T19:57:13.6165020Z   show-progress: true
+2025-09-04T19:57:13.6165488Z   lfs: false
+2025-09-04T19:57:13.6165908Z   submodules: false
+2025-09-04T19:57:13.6166730Z   set-safe-directory: true
+2025-09-04T19:57:13.6167530Z env:
+2025-09-04T19:57:13.6167942Z   NODE_VERSION: 20
+2025-09-04T19:57:13.6168383Z ##[endgroup]
+2025-09-04T19:57:13.7410118Z Syncing repository: jimmy058910/replitballgame
+2025-09-04T19:57:13.7413463Z ##[group]Getting Git version info
+2025-09-04T19:57:13.7414922Z Working directory is '/home/runner/work/replitballgame/replitballgame'
+2025-09-04T19:57:13.7421235Z [command]/usr/bin/git version
+2025-09-04T19:57:13.7457329Z git version 2.51.0
+2025-09-04T19:57:13.7487516Z ##[endgroup]
+2025-09-04T19:57:13.7506566Z Temporarily overriding HOME='/home/runner/work/_temp/d3401126-91c6-4f24-b62d-3e75de003f86' before making global git config changes
+2025-09-04T19:57:13.7510217Z Adding repository directory to the temporary git global config as a safe directory
+2025-09-04T19:57:13.7514458Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/replitballgame/replitballgame
+2025-09-04T19:57:13.7571871Z Deleting the contents of '/home/runner/work/replitballgame/replitballgame'
+2025-09-04T19:57:13.7577378Z ##[group]Initializing the repository
+2025-09-04T19:57:13.7582912Z [command]/usr/bin/git init /home/runner/work/replitballgame/replitballgame
+2025-09-04T19:57:13.7659032Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-09-04T19:57:13.7661292Z hint: is subject to change. To configure the initial branch name to use in all
+2025-09-04T19:57:13.7663000Z hint: of your new repositories, which will suppress this warning, call:
+2025-09-04T19:57:13.7664239Z hint:
+2025-09-04T19:57:13.7665179Z hint: 	git config --global init.defaultBranch <name>
+2025-09-04T19:57:13.7666457Z hint:
+2025-09-04T19:57:13.7667469Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-09-04T19:57:13.7669013Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-09-04T19:57:13.7670199Z hint:
+2025-09-04T19:57:13.7670929Z hint: 	git branch -m <name>
+2025-09-04T19:57:13.7671694Z hint:
+2025-09-04T19:57:13.7673157Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-09-04T19:57:13.7675545Z Initialized empty Git repository in /home/runner/work/replitballgame/replitballgame/.git/
+2025-09-04T19:57:13.7680462Z [command]/usr/bin/git remote add origin https://github.com/jimmy058910/replitballgame
+2025-09-04T19:57:13.7724489Z ##[endgroup]
+2025-09-04T19:57:13.7725855Z ##[group]Disabling automatic garbage collection
+2025-09-04T19:57:13.7729817Z [command]/usr/bin/git config --local gc.auto 0
+2025-09-04T19:57:13.7770952Z ##[endgroup]
+2025-09-04T19:57:13.7772316Z ##[group]Setting up auth
+2025-09-04T19:57:13.7778923Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-09-04T19:57:13.7818432Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-09-04T19:57:13.8112011Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-09-04T19:57:13.8152217Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-09-04T19:57:13.8402011Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-09-04T19:57:13.8442077Z ##[endgroup]
+2025-09-04T19:57:13.8444605Z ##[group]Fetching the repository
+2025-09-04T19:57:13.8463092Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +6bc441c3ac5b2071e8b8819a806b8c3e4b88bd2b:refs/remotes/origin/main
+2025-09-04T19:57:16.4512459Z From https://github.com/jimmy058910/replitballgame
+2025-09-04T19:57:16.4514809Z  * [new ref]         6bc441c3ac5b2071e8b8819a806b8c3e4b88bd2b -> origin/main
+2025-09-04T19:57:16.4567928Z ##[endgroup]
+2025-09-04T19:57:16.4568865Z ##[group]Determining the checkout info
+2025-09-04T19:57:16.4569769Z ##[endgroup]
+2025-09-04T19:57:16.4573428Z [command]/usr/bin/git sparse-checkout disable
+2025-09-04T19:57:16.4649776Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2025-09-04T19:57:16.4676930Z ##[group]Checking out the ref
+2025-09-04T19:57:16.4683840Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2025-09-04T19:57:16.9079492Z Switched to a new branch 'main'
+2025-09-04T19:57:16.9100625Z branch 'main' set up to track 'origin/main'.
+2025-09-04T19:57:16.9132034Z ##[endgroup]
+2025-09-04T19:57:16.9185183Z [command]/usr/bin/git log -1 --format=%H
+2025-09-04T19:57:16.9224050Z 6bc441c3ac5b2071e8b8819a806b8c3e4b88bd2b
+2025-09-04T19:57:16.9478197Z ##[group]Run actions/setup-node@v4
+2025-09-04T19:57:16.9478526Z with:
+2025-09-04T19:57:16.9478715Z   node-version: 20
+2025-09-04T19:57:16.9478901Z   cache: npm
+2025-09-04T19:57:16.9479086Z   always-auth: false
+2025-09-04T19:57:16.9479302Z   check-latest: false
+2025-09-04T19:57:16.9479675Z   token: ***
+2025-09-04T19:57:16.9479861Z env:
+2025-09-04T19:57:16.9480025Z   NODE_VERSION: 20
+2025-09-04T19:57:16.9480218Z ##[endgroup]
+2025-09-04T19:57:17.1397979Z Found in cache @ /opt/hostedtoolcache/node/20.19.4/x64
+2025-09-04T19:57:17.1410587Z ##[group]Environment details
+2025-09-04T19:57:19.1362153Z node: v20.19.4
+2025-09-04T19:57:19.1363214Z npm: 10.8.2
+2025-09-04T19:57:19.1377291Z yarn: 1.22.22
+2025-09-04T19:57:19.1379709Z ##[endgroup]
+2025-09-04T19:57:19.1397294Z [command]/opt/hostedtoolcache/node/20.19.4/x64/bin/npm config get cache
+2025-09-04T19:57:19.4294663Z /home/runner/.npm
+2025-09-04T19:57:19.5907547Z Cache hit for: node-cache-Linux-x64-npm-8619a49c0d208bfd301d3f6ca9a306a7488136f427be935ea07ae97f241b1849
+2025-09-04T19:57:20.6637761Z Received 150994944 of 437404036 (34.5%), 142.3 MBs/sec
+2025-09-04T19:57:21.7050874Z Received 402653184 of 437404036 (92.1%), 186.9 MBs/sec
+2025-09-04T19:57:21.8812430Z Received 437404036 of 437404036 (100.0%), 186.9 MBs/sec
+2025-09-04T19:57:21.8816270Z Cache Size: ~417 MB (437404036 B)
+2025-09-04T19:57:21.8928722Z [command]/usr/bin/tar -xf /home/runner/work/_temp/20afd413-5ded-497c-a686-675082310a23/cache.tzst -P -C /home/runner/work/replitballgame/replitballgame --use-compress-program unzstd
+2025-09-04T19:57:24.6387736Z Cache restored successfully
+2025-09-04T19:57:24.7235281Z Cache restored from key: node-cache-Linux-x64-npm-8619a49c0d208bfd301d3f6ca9a306a7488136f427be935ea07ae97f241b1849
+2025-09-04T19:57:24.7773950Z ##[group]Run echo "🔄 Installing dependencies..."
+2025-09-04T19:57:24.7774661Z [36;1mecho "🔄 Installing dependencies..."[0m
+2025-09-04T19:57:24.7775171Z [36;1mnpm ci --include=dev[0m
+2025-09-04T19:57:24.7775592Z [36;1mecho "✅ Dependencies installed"[0m
+2025-09-04T19:57:25.1707382Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:57:25.1707895Z env:
+2025-09-04T19:57:25.1708251Z   NODE_VERSION: 20
+2025-09-04T19:57:25.1708668Z ##[endgroup]
+2025-09-04T19:57:25.1816658Z 🔄 Installing dependencies...
+2025-09-04T19:58:24.9155759Z 
+2025-09-04T19:58:24.9157627Z added 1641 packages, and audited 1642 packages in 60s
+2025-09-04T19:58:24.9158894Z 
+2025-09-04T19:58:24.9159220Z 210 packages are looking for funding
+2025-09-04T19:58:24.9159731Z   run `npm fund` for details
+2025-09-04T19:58:24.9188337Z 
+2025-09-04T19:58:24.9196886Z found 0 vulnerabilities
+2025-09-04T19:58:25.0207088Z ✅ Dependencies installed
+2025-09-04T19:58:25.0244722Z ##[group]Run echo "🗄️ Validating Prisma schema (CI environment)..."
+2025-09-04T19:58:25.0245440Z [36;1mecho "🗄️ Validating Prisma schema (CI environment)..."[0m
+2025-09-04T19:58:25.0245772Z [36;1m[0m
+2025-09-04T19:58:25.0245998Z [36;1m# Set dummy DATABASE_URL for CI validation[0m
+2025-09-04T19:58:25.0246872Z [36;1mexport DATABASE_URL="***localhost:5432/testdb"[0m
+2025-09-04T19:58:25.0247188Z [36;1m[0m
+2025-09-04T19:58:25.0247385Z [36;1mif npx prisma validate; then[0m
+2025-09-04T19:58:25.0247687Z [36;1m  echo "✅ PRISMA SCHEMA: Valid and consistent"[0m
+2025-09-04T19:58:25.0248013Z [36;1m  echo "schema_status=valid" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:25.0248290Z [36;1melse[0m
+2025-09-04T19:58:25.0248593Z [36;1m  echo "⚠️ PRISMA SCHEMA: Validation failed (likely missing env vars in CI)"[0m
+2025-09-04T19:58:25.0249021Z [36;1m  echo "schema_status=ci_env_issue" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:25.0249343Z [36;1mfi[0m
+2025-09-04T19:58:25.0282972Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:58:25.0283223Z env:
+2025-09-04T19:58:25.0283398Z   NODE_VERSION: 20
+2025-09-04T19:58:25.0283592Z ##[endgroup]
+2025-09-04T19:58:25.0340574Z 🗄️ Validating Prisma schema (CI environment)...
+2025-09-04T19:58:26.2201070Z Prisma schema loaded from prisma/schema.prisma
+2025-09-04T19:58:26.2756640Z 
+2025-09-04T19:58:26.2777170Z Prisma schema warnings:
+2025-09-04T19:58:26.2780650Z - With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+2025-09-04T19:58:26.2786044Z - With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+2025-09-04T19:58:26.2790923Z - With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+2025-09-04T19:58:26.2795053Z - With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+2025-09-04T19:58:26.2799416Z - With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+2025-09-04T19:58:26.2803547Z - With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+2025-09-04T19:58:26.2807719Z - With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+2025-09-04T19:58:26.2812192Z - With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+2025-09-04T19:58:26.3137709Z The schema at prisma/schema.prisma is valid 🚀
+2025-09-04T19:58:26.5065040Z ✅ PRISMA SCHEMA: Valid and consistent
+2025-09-04T19:58:26.5123679Z ##[group]Run echo "🔄 Testing Prisma client generation..."
+2025-09-04T19:58:26.5124140Z [36;1mecho "🔄 Testing Prisma client generation..."[0m
+2025-09-04T19:58:26.5124422Z [36;1m[0m
+2025-09-04T19:58:26.5124733Z [36;1m# Set dummy DATABASE_URL for CI generation (optional, but ensures consistency)[0m
+2025-09-04T19:58:26.5125411Z [36;1mexport DATABASE_URL="***localhost:5432/testdb"[0m
+2025-09-04T19:58:26.5125696Z [36;1m[0m
+2025-09-04T19:58:26.5125885Z [36;1mif npx prisma generate; then[0m
+2025-09-04T19:58:26.5126478Z [36;1m  echo "✅ PRISMA CLIENT: Generated successfully"[0m
+2025-09-04T19:58:26.5126832Z [36;1m  echo "generation_status=success" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:26.5127124Z [36;1m  [0m
+2025-09-04T19:58:26.5127388Z [36;1m  # Check if models are properly exported (simplified check)[0m
+2025-09-04T19:58:26.5127723Z [36;1m  MISSING_MODELS=$(node -e "[0m
+2025-09-04T19:58:26.5127956Z [36;1m    try {[0m
+2025-09-04T19:58:26.5128215Z [36;1m      const fs = require('fs');[0m
+2025-09-04T19:58:26.5128591Z [36;1m      const schemaContent = fs.readFileSync('./prisma/schema.prisma', 'utf8');[0m
+2025-09-04T19:58:26.5129031Z [36;1m      const models = schemaContent.match(/^model\s+(\w+)/gm);[0m
+2025-09-04T19:58:26.5129344Z [36;1m      if (!models) {[0m
+2025-09-04T19:58:26.5129574Z [36;1m        console.log('0');[0m
+2025-09-04T19:58:26.5129805Z [36;1m        process.exit(0);[0m
+2025-09-04T19:58:26.5130024Z [36;1m      }[0m
+2025-09-04T19:58:26.5130203Z [36;1m      [0m
+2025-09-04T19:58:26.5130718Z [36;1m      // Basic check - if node_modules/@prisma/client exists, assume models are exported[0m
+2025-09-04T19:58:26.5131157Z [36;1m      if (fs.existsSync('./node_modules/@prisma/client')) {[0m
+2025-09-04T19:58:26.5131461Z [36;1m        console.log('0');[0m
+2025-09-04T19:58:26.5131693Z [36;1m      } else {[0m
+2025-09-04T19:58:26.5131912Z [36;1m        console.log(models.length);[0m
+2025-09-04T19:58:26.5132157Z [36;1m      }[0m
+2025-09-04T19:58:26.5132348Z [36;1m    } catch (e) {[0m
+2025-09-04T19:58:26.5132558Z [36;1m      console.log('0');[0m
+2025-09-04T19:58:26.5132781Z [36;1m    }[0m
+2025-09-04T19:58:26.5132968Z [36;1m  " 2>/dev/null || echo "0")[0m
+2025-09-04T19:58:26.5133189Z [36;1m  [0m
+2025-09-04T19:58:26.5133436Z [36;1m  echo "missing_models=$MISSING_MODELS" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:26.5133734Z [36;1m  [0m
+2025-09-04T19:58:26.5133931Z [36;1m  if [ "$MISSING_MODELS" -eq "0" ]; then[0m
+2025-09-04T19:58:26.5134229Z [36;1m    echo "✅ All schema models properly exported"[0m
+2025-09-04T19:58:26.5134513Z [36;1m  else[0m
+2025-09-04T19:58:26.5134780Z [36;1m    echo "⚠️ $MISSING_MODELS models missing from generated client"[0m
+2025-09-04T19:58:26.5135087Z [36;1m  fi[0m
+2025-09-04T19:58:26.5135259Z [36;1melse[0m
+2025-09-04T19:58:26.5135473Z [36;1m  echo "❌ PRISMA CLIENT: Generation failed"[0m
+2025-09-04T19:58:26.5135790Z [36;1m  echo "generation_status=failed" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:26.5136323Z [36;1mfi[0m
+2025-09-04T19:58:26.5167146Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:58:26.5167381Z env:
+2025-09-04T19:58:26.5167567Z   NODE_VERSION: 20
+2025-09-04T19:58:26.5167762Z ##[endgroup]
+2025-09-04T19:58:26.5224660Z 🔄 Testing Prisma client generation...
+2025-09-04T19:58:27.7512267Z Prisma schema loaded from prisma/schema.prisma
+2025-09-04T19:58:28.8845797Z 
+2025-09-04T19:58:28.8851348Z ✔ Generated Prisma Client (v6.10.1) to ./prisma/generated/client in 536ms
+2025-09-04T19:58:28.8854976Z 
+2025-09-04T19:58:28.8859400Z Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+2025-09-04T19:58:28.8863222Z 
+2025-09-04T19:58:28.8867457Z Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
+2025-09-04T19:58:28.8871532Z 
+2025-09-04T19:58:28.9166045Z ✅ PRISMA CLIENT: Generated successfully
+2025-09-04T19:58:28.9447503Z ✅ All schema models properly exported
+2025-09-04T19:58:28.9492475Z ##[group]Run echo "🗄️ Checking database integration patterns..."
+2025-09-04T19:58:28.9493409Z [36;1mecho "🗄️ Checking database integration patterns..."[0m
+2025-09-04T19:58:28.9493984Z [36;1m[0m
+2025-09-04T19:58:28.9494479Z [36;1m# Check for proper getPrismaClient usage (production-friendly)[0m
+2025-09-04T19:58:28.9495419Z [36;1mFILES_WITH_PRISMA=$(find server/ -name "*.ts" -exec grep -l "prisma\." {} \; 2>/dev/null || true)[0m
+2025-09-04T19:58:28.9496498Z [36;1mPROPER_INIT_COUNT=0[0m
+2025-09-04T19:58:28.9496932Z [36;1mMISSING_INIT_COUNT=0[0m
+2025-09-04T19:58:28.9497332Z [36;1m[0m
+2025-09-04T19:58:28.9497718Z [36;1mecho "📋 Analyzing Prisma usage patterns..."[0m
+2025-09-04T19:58:28.9498224Z [36;1m[0m
+2025-09-04T19:58:28.9498588Z [36;1mif [ -n "$FILES_WITH_PRISMA" ]; then[0m
+2025-09-04T19:58:28.9499109Z [36;1m  for file in $FILES_WITH_PRISMA; do[0m
+2025-09-04T19:58:28.9499754Z [36;1m    # More flexible pattern matching for prisma initialization[0m
+2025-09-04T19:58:28.9500795Z [36;1m    if grep -q "getPrismaClient\|const prisma = await\|const.*prisma.*=\|import.*prisma" "$file"; then[0m
+2025-09-04T19:58:28.9501667Z [36;1m      PROPER_INIT_COUNT=$((PROPER_INIT_COUNT + 1))[0m
+2025-09-04T19:58:28.9502200Z [36;1m    else[0m
+2025-09-04T19:58:28.9502642Z [36;1m      MISSING_INIT_COUNT=$((MISSING_INIT_COUNT + 1))[0m
+2025-09-04T19:58:28.9503224Z [36;1m      echo "⚠️ Potential initialization issue: $file"[0m
+2025-09-04T19:58:28.9503758Z [36;1m    fi[0m
+2025-09-04T19:58:28.9504070Z [36;1m  done[0m
+2025-09-04T19:58:28.9504385Z [36;1melse[0m
+2025-09-04T19:58:28.9505183Z [36;1m  echo "📋 No files with direct prisma usage found"[0m
+2025-09-04T19:58:28.9505698Z [36;1mfi[0m
+2025-09-04T19:58:28.9506017Z [36;1m[0m
+2025-09-04T19:58:28.9506708Z [36;1mecho "proper_init=$PROPER_INIT_COUNT" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:28.9507451Z [36;1mecho "missing_init=$MISSING_INIT_COUNT" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:28.9508031Z [36;1m[0m
+2025-09-04T19:58:28.9508490Z [36;1m# More lenient integration status (production-aligned)[0m
+2025-09-04T19:58:28.9509133Z [36;1mif [ "$MISSING_INIT_COUNT" -eq "0" ]; then[0m
+2025-09-04T19:58:28.9509905Z [36;1m  echo "✅ DATABASE INTEGRATION: All prisma calls properly initialized"[0m
+2025-09-04T19:58:28.9510664Z [36;1m  echo "integration_status=perfect" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:28.9511312Z [36;1melif [ "$MISSING_INIT_COUNT" -lt "5" ]; then[0m
+2025-09-04T19:58:28.9512190Z [36;1m  echo "⚠️ DATABASE INTEGRATION: $MISSING_INIT_COUNT files may need attention (minor issues)"[0m
+2025-09-04T19:58:28.9513137Z [36;1m  echo "integration_status=minor_issues" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:28.9513720Z [36;1melse[0m
+2025-09-04T19:58:28.9514275Z [36;1m  echo "⚠️ DATABASE INTEGRATION: $MISSING_INIT_COUNT files need attention"[0m
+2025-09-04T19:58:28.9515113Z [36;1m  echo "integration_status=needs_attention" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:28.9515721Z [36;1mfi[0m
+2025-09-04T19:58:28.9549658Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:58:28.9549907Z env:
+2025-09-04T19:58:28.9550087Z   NODE_VERSION: 20
+2025-09-04T19:58:28.9550281Z ##[endgroup]
+2025-09-04T19:58:28.9622547Z 🗄️ Checking database integration patterns...
+2025-09-04T19:58:29.2405804Z 📋 Analyzing Prisma usage patterns...
+2025-09-04T19:58:29.2444821Z ⚠️ Potential initialization issue: server/utils/connectionPoolOptimizer.ts
+2025-09-04T19:58:29.4066424Z ⚠️ Potential initialization issue: server/database-enhancer.ts
+2025-09-04T19:58:29.4070383Z ⚠️ DATABASE INTEGRATION: 2 files may need attention (minor issues)
+2025-09-04T19:58:29.4109253Z ##[group]Run echo "📊 Validating database exports (server/db.ts)..."
+2025-09-04T19:58:29.4110142Z [36;1mecho "📊 Validating database exports (server/db.ts)..."[0m
+2025-09-04T19:58:29.4110681Z [36;1m[0m
+2025-09-04T19:58:29.4111016Z [36;1mif [ -f "server/db.ts" ]; then[0m
+2025-09-04T19:58:29.4111568Z [36;1m  # Check if all necessary exports are present[0m
+2025-09-04T19:58:29.4112099Z [36;1m  MISSING_EXPORTS=""[0m
+2025-09-04T19:58:29.4112499Z [36;1m  [0m
+2025-09-04T19:58:29.4112872Z [36;1m  # Check for getPrismaClient export[0m
+2025-09-04T19:58:29.4113480Z [36;1m  if ! grep -q "export.*getPrismaClient" server/db.ts; then[0m
+2025-09-04T19:58:29.4114163Z [36;1m    MISSING_EXPORTS="$MISSING_EXPORTS getPrismaClient"[0m
+2025-09-04T19:58:29.4114714Z [36;1m  fi[0m
+2025-09-04T19:58:29.4115022Z [36;1m  [0m
+2025-09-04T19:58:29.4115353Z [36;1m  # Check for prisma export[0m
+2025-09-04T19:58:29.4115866Z [36;1m  if ! grep -q "export.*prisma" server/db.ts; then[0m
+2025-09-04T19:58:29.4117092Z [36;1m    MISSING_EXPORTS="$MISSING_EXPORTS prisma"[0m
+2025-09-04T19:58:29.4117624Z [36;1m  fi[0m
+2025-09-04T19:58:29.4117940Z [36;1m  [0m
+2025-09-04T19:58:29.4118298Z [36;1m  # Check for PrismaClient export  [0m
+2025-09-04T19:58:29.4118886Z [36;1m  if ! grep -q "export.*PrismaClient" server/db.ts; then[0m
+2025-09-04T19:58:29.4119601Z [36;1m    MISSING_EXPORTS="$MISSING_EXPORTS PrismaClient"[0m
+2025-09-04T19:58:29.4120152Z [36;1m  fi[0m
+2025-09-04T19:58:29.4120472Z [36;1m  [0m
+2025-09-04T19:58:29.4120848Z [36;1m  if [ -z "$MISSING_EXPORTS" ]; then[0m
+2025-09-04T19:58:29.4121453Z [36;1m    echo "✅ DATABASE EXPORTS: All required exports present"[0m
+2025-09-04T19:58:29.4122119Z [36;1m    echo "exports_status=complete" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:29.4122650Z [36;1m  else[0m
+2025-09-04T19:58:29.4123142Z [36;1m    echo "⚠️ DATABASE EXPORTS: Missing exports: $MISSING_EXPORTS"[0m
+2025-09-04T19:58:29.4123880Z [36;1m    echo "exports_status=incomplete" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:29.4124885Z [36;1m    echo "missing_exports=$MISSING_EXPORTS" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:29.4125466Z [36;1m  fi[0m
+2025-09-04T19:58:29.4125795Z [36;1melse[0m
+2025-09-04T19:58:29.4126703Z [36;1m  echo "❌ DATABASE EXPORTS: server/db.ts file missing"[0m
+2025-09-04T19:58:29.4127378Z [36;1m  echo "exports_status=missing_file" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:29.4127914Z [36;1mfi[0m
+2025-09-04T19:58:29.4171884Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:58:29.4172301Z env:
+2025-09-04T19:58:29.4172594Z   NODE_VERSION: 20
+2025-09-04T19:58:29.4172924Z ##[endgroup]
+2025-09-04T19:58:29.4255463Z 📊 Validating database exports (server/db.ts)...
+2025-09-04T19:58:29.4313078Z ⚠️ DATABASE EXPORTS: Missing exports:  getPrismaClient prisma PrismaClient
+2025-09-04T19:58:29.4358544Z ##[group]Run echo "🔧 Auto-fixing common Prisma patterns..."
+2025-09-04T19:58:29.4359000Z [36;1mecho "🔧 Auto-fixing common Prisma patterns..."[0m
+2025-09-04T19:58:29.4359292Z [36;1m[0m
+2025-09-04T19:58:29.4359539Z [36;1m# Find files using prisma without proper initialization[0m
+2025-09-04T19:58:29.4360013Z [36;1mfind server/ -name "*.ts" -exec grep -l "prisma\." {} \; | while read file; do[0m
+2025-09-04T19:58:29.4360469Z [36;1m  if ! grep -q "getPrismaClient\|const prisma = await" "$file"; then[0m
+2025-09-04T19:58:29.4360846Z [36;1m    echo "🔧 Fixing prisma initialization in $file"[0m
+2025-09-04T19:58:29.4361117Z [36;1m    [0m
+2025-09-04T19:58:29.4361316Z [36;1m    # Add import if not present[0m
+2025-09-04T19:58:29.4361616Z [36;1m    if ! grep -q "import.*getPrismaClient" "$file"; then[0m
+2025-09-04T19:58:29.4361937Z [36;1m      # Determine correct relative path to db.ts[0m
+2025-09-04T19:58:29.4362297Z [36;1m      DEPTH=$(echo "$file" | grep -o "/" | wc -l)[0m
+2025-09-04T19:58:29.4362578Z [36;1m      RELATIVE_PATH=""[0m
+2025-09-04T19:58:29.4362840Z [36;1m      for i in $(seq 1 $((DEPTH - 1))); do[0m
+2025-09-04T19:58:29.4363125Z [36;1m        RELATIVE_PATH="../$RELATIVE_PATH"[0m
+2025-09-04T19:58:29.4363386Z [36;1m      done[0m
+2025-09-04T19:58:29.4363566Z [36;1m      [0m
+2025-09-04T19:58:29.4363769Z [36;1m      # Add import at top of file[0m
+2025-09-04T19:58:29.4364133Z [36;1m      sed -i "1i import { getPrismaClient } from \"${RELATIVE_PATH}db\";" "$file"[0m
+2025-09-04T19:58:29.4364509Z [36;1m      echo "   ✅ Added import to $file"[0m
+2025-09-04T19:58:29.4364756Z [36;1m    fi[0m
+2025-09-04T19:58:29.4365047Z [36;1m    [0m
+2025-09-04T19:58:29.4365337Z [36;1m    # Add prisma initialization to functions that use prisma[0m
+2025-09-04T19:58:29.4365740Z [36;1m    # This is a basic pattern - more sophisticated logic could be added[0m
+2025-09-04T19:58:29.4366434Z [36;1m    if grep -q "async.*function\|async.*=>" "$file"; then[0m
+2025-09-04T19:58:29.4366884Z [36;1m      echo "   📝 Note: $file may need manual prisma initialization in async functions"[0m
+2025-09-04T19:58:29.4367253Z [36;1m    fi[0m
+2025-09-04T19:58:29.4367427Z [36;1m  fi[0m
+2025-09-04T19:58:29.4367599Z [36;1mdone[0m
+2025-09-04T19:58:29.4367778Z [36;1m[0m
+2025-09-04T19:58:29.4367971Z [36;1mecho "✅ Auto-fix patterns completed"[0m
+2025-09-04T19:58:29.4398909Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:58:29.4399153Z env:
+2025-09-04T19:58:29.4399332Z   NODE_VERSION: 20
+2025-09-04T19:58:29.4399535Z ##[endgroup]
+2025-09-04T19:58:29.4455627Z 🔧 Auto-fixing common Prisma patterns...
+2025-09-04T19:58:29.4619731Z 🔧 Fixing prisma initialization in server/utils/connectionPoolOptimizer.ts
+2025-09-04T19:58:29.4794630Z    ✅ Added import to server/utils/connectionPoolOptimizer.ts
+2025-09-04T19:58:29.4812702Z    📝 Note: server/utils/connectionPoolOptimizer.ts may need manual prisma initialization in async functions
+2025-09-04T19:58:29.8414160Z 🔧 Fixing prisma initialization in server/database-enhancer.ts
+2025-09-04T19:58:29.8485590Z    ✅ Added import to server/database-enhancer.ts
+2025-09-04T19:58:29.8500865Z    📝 Note: server/database-enhancer.ts may need manual prisma initialization in async functions
+2025-09-04T19:58:29.8503530Z ✅ Auto-fix patterns completed
+2025-09-04T19:58:29.8532152Z ##[group]Run echo "🎯 Checking critical database files..."
+2025-09-04T19:58:29.8532587Z [36;1mecho "🎯 Checking critical database files..."[0m
+2025-09-04T19:58:29.8532864Z [36;1m[0m
+2025-09-04T19:58:29.8533044Z [36;1mCRITICAL_FILES=([0m
+2025-09-04T19:58:29.8533268Z [36;1m  "server/database.ts"[0m
+2025-09-04T19:58:29.8533493Z [36;1m  "server/db.ts"[0m
+2025-09-04T19:58:29.8533723Z [36;1m  "prisma/schema.prisma"[0m
+2025-09-04T19:58:29.8533961Z [36;1m)[0m
+2025-09-04T19:58:29.8534126Z [36;1m[0m
+2025-09-04T19:58:29.8534303Z [36;1mMISSING_CRITICAL=0[0m
+2025-09-04T19:58:29.8534557Z [36;1mfor file in "${CRITICAL_FILES[@]}"; do[0m
+2025-09-04T19:58:29.8534833Z [36;1m  if [ ! -f "$file" ]; then[0m
+2025-09-04T19:58:29.8535105Z [36;1m    echo "❌ CRITICAL: Missing file $file"[0m
+2025-09-04T19:58:29.8535413Z [36;1m    MISSING_CRITICAL=$((MISSING_CRITICAL + 1))[0m
+2025-09-04T19:58:29.8535684Z [36;1m  else[0m
+2025-09-04T19:58:29.8535915Z [36;1m    echo "✅ Found: $file"[0m
+2025-09-04T19:58:29.8536456Z [36;1m  fi[0m
+2025-09-04T19:58:29.8536646Z [36;1mdone[0m
+2025-09-04T19:58:29.8536820Z [36;1m[0m
+2025-09-04T19:58:29.8537082Z [36;1mecho "missing_critical=$MISSING_CRITICAL" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:29.8537400Z [36;1m[0m
+2025-09-04T19:58:29.8537604Z [36;1mif [ "$MISSING_CRITICAL" -eq "0" ]; then[0m
+2025-09-04T19:58:29.8562166Z [36;1m  echo "critical_files_status=all_present" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:29.8562767Z [36;1melse[0m
+2025-09-04T19:58:29.8563217Z [36;1m  echo "critical_files_status=missing_files" >> $GITHUB_OUTPUT[0m
+2025-09-04T19:58:29.8563728Z [36;1mfi[0m
+2025-09-04T19:58:29.8594760Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:58:29.8595009Z env:
+2025-09-04T19:58:29.8595191Z   NODE_VERSION: 20
+2025-09-04T19:58:29.8595391Z ##[endgroup]
+2025-09-04T19:58:29.8657489Z 🎯 Checking critical database files...
+2025-09-04T19:58:29.8658343Z ✅ Found: server/database.ts
+2025-09-04T19:58:29.8659874Z ✅ Found: server/db.ts
+2025-09-04T19:58:29.8660454Z ✅ Found: prisma/schema.prisma
+2025-09-04T19:58:29.8740784Z ##[group]Run actions/upload-artifact@v4
+2025-09-04T19:58:29.8741070Z with:
+2025-09-04T19:58:29.8741385Z   name: prisma-guardian-analysis-6bc441c3ac5b2071e8b8819a806b8c3e4b88bd2b
+2025-09-04T19:58:29.8741953Z   path: prisma/schema.prisma
+prisma/generated/client/index.d.ts
+server/db.ts
+server/database.ts
+
+2025-09-04T19:58:29.8742378Z   retention-days: 30
+2025-09-04T19:58:29.8742583Z   if-no-files-found: warn
+2025-09-04T19:58:29.8742799Z   compression-level: 6
+2025-09-04T19:58:29.8743002Z   overwrite: false
+2025-09-04T19:58:29.8743199Z   include-hidden-files: false
+2025-09-04T19:58:29.8743418Z env:
+2025-09-04T19:58:29.8743588Z   NODE_VERSION: 20
+2025-09-04T19:58:29.8743765Z ##[endgroup]
+2025-09-04T19:58:30.1314870Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2025-09-04T19:58:30.1342739Z The least common ancestor is /home/runner/work/replitballgame/replitballgame. This will be the root directory of the artifact
+2025-09-04T19:58:30.1344190Z With the provided path, there will be 4 files uploaded
+2025-09-04T19:58:30.1351909Z Artifact name is valid!
+2025-09-04T19:58:30.1358305Z Root directory input is valid!
+2025-09-04T19:58:30.2923226Z Beginning upload of artifact content to blob storage
+2025-09-04T19:58:30.4357306Z Uploaded bytes 305334
+2025-09-04T19:58:30.4534551Z Finished uploading artifact content to blob storage!
+2025-09-04T19:58:30.4538542Z SHA256 digest of uploaded artifact zip is 61498f5ac6dc8b06b5b763b15eeb3ce9ee63b1502263c36a83b173ff8e935775
+2025-09-04T19:58:30.4540989Z Finalizing artifact upload
+2025-09-04T19:58:30.5670629Z Artifact prisma-guardian-analysis-6bc441c3ac5b2071e8b8819a806b8c3e4b88bd2b.zip successfully finalized. Artifact ID 3931090800
+2025-09-04T19:58:30.5675005Z Artifact prisma-guardian-analysis-6bc441c3ac5b2071e8b8819a806b8c3e4b88bd2b has been successfully uploaded! Final size is 305334 bytes. Artifact ID is 3931090800
+2025-09-04T19:58:30.5698390Z Artifact download URL: https://github.com/jimmy058910/replitballgame/actions/runs/17475196571/artifacts/3931090800
+2025-09-04T19:58:30.5816513Z ##[group]Run echo ""
+2025-09-04T19:58:30.5817016Z [36;1mecho ""[0m
+2025-09-04T19:58:30.5817486Z [36;1mecho "🗄️ PRISMA DATABASE GUARDIAN REPORT"[0m
+2025-09-04T19:58:30.5817997Z [36;1mecho "==================================="[0m
+2025-09-04T19:58:30.5818482Z [36;1mecho "🗓️ Run Date: $(date)"[0m
+2025-09-04T19:58:30.5819073Z [36;1mecho "🎯 Commit: 6bc441c3ac5b2071e8b8819a806b8c3e4b88bd2b"[0m
+2025-09-04T19:58:30.5819706Z [36;1mecho "🌿 Branch: main"[0m
+2025-09-04T19:58:30.5820133Z [36;1mecho ""[0m
+2025-09-04T19:58:30.5820544Z [36;1mecho "📊 DATABASE VALIDATION RESULTS:"[0m
+2025-09-04T19:58:30.5821084Z [36;1mecho "   Schema Status: valid"[0m
+2025-09-04T19:58:30.5821601Z [36;1mecho "   Client Generation: success"[0m
+2025-09-04T19:58:30.5822101Z [36;1mecho "   Missing Models: 0"[0m
+2025-09-04T19:58:30.5822630Z [36;1mecho "   Integration Status: minor_issues"[0m
+2025-09-04T19:58:30.5823226Z [36;1mecho "   Proper Initializations: 116"[0m
+2025-09-04T19:58:30.5823818Z [36;1mecho "   Missing Initializations: 2"[0m
+2025-09-04T19:58:30.5824364Z [36;1mecho "   Exports Status: incomplete"[0m
+2025-09-04T19:58:30.5824885Z [36;1mecho "   Critical Files: all_present"[0m
+2025-09-04T19:58:30.5825353Z [36;1mecho ""[0m
+2025-09-04T19:58:30.5825690Z [36;1m[0m
+2025-09-04T19:58:30.5826029Z [36;1m# Overall status determination[0m
+2025-09-04T19:58:30.5826758Z [36;1mSCHEMA_OK="valid"[0m
+2025-09-04T19:58:30.5827177Z [36;1mGENERATION_OK="success"[0m
+2025-09-04T19:58:30.5827622Z [36;1mINTEGRATION_OK="minor_issues"[0m
+2025-09-04T19:58:30.5828096Z [36;1mEXPORTS_OK="incomplete"[0m
+2025-09-04T19:58:30.5828551Z [36;1mCRITICAL_OK="all_present"[0m
+2025-09-04T19:58:30.5828973Z [36;1m[0m
+2025-09-04T19:58:30.5830035Z [36;1mif ([ "$SCHEMA_OK" = "valid" ] || [ "$SCHEMA_OK" = "ci_env_issue" ]) && [ "$GENERATION_OK" = "success" ] && ([ "$INTEGRATION_OK" = "perfect" ] || [ "$INTEGRATION_OK" = "minor_issues" ]) && [ "$CRITICAL_OK" = "all_present" ]; then[0m
+2025-09-04T19:58:30.5831375Z [36;1m  echo "🎉 STATUS: DATABASE SYSTEM PERFECT"[0m
+2025-09-04T19:58:30.5831977Z [36;1m  echo "✅ Schema valid and consistent"[0m
+2025-09-04T19:58:30.5832506Z [36;1m  echo "✅ Client generation working"[0m
+2025-09-04T19:58:30.5833037Z [36;1m  echo "✅ All integrations proper"[0m
+2025-09-04T19:58:30.5833548Z [36;1m  echo "✅ All exports complete"[0m
+2025-09-04T19:58:30.5834031Z [36;1m  echo "✅ Deployment ready"[0m
+2025-09-04T19:58:30.5834479Z [36;1melse[0m
+2025-09-04T19:58:30.5834897Z [36;1m  echo "⚠️ STATUS: DATABASE NEEDS ATTENTION"[0m
+2025-09-04T19:58:30.5835491Z [36;1m  echo "🔧 Issues detected in database layer"[0m
+2025-09-04T19:58:30.5836337Z [36;1m  echo "📋 Check details above for specific fixes needed"[0m
+2025-09-04T19:58:30.5836947Z [36;1mfi[0m
+2025-09-04T19:58:30.5837325Z [36;1mecho "==================================="[0m
+2025-09-04T19:58:30.5882699Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:58:30.5883182Z env:
+2025-09-04T19:58:30.5883511Z   NODE_VERSION: 20
+2025-09-04T19:58:30.5883882Z ##[endgroup]
+2025-09-04T19:58:30.5966842Z 
+2025-09-04T19:58:30.5967696Z 🗄️ PRISMA DATABASE GUARDIAN REPORT
+2025-09-04T19:58:30.5968269Z ===================================
+2025-09-04T19:58:30.5982879Z 🗓️ Run Date: Thu Sep  4 19:58:30 UTC 2025
+2025-09-04T19:58:30.5983923Z 🎯 Commit: 6bc441c3ac5b2071e8b8819a806b8c3e4b88bd2b
+2025-09-04T19:58:30.5984691Z 🌿 Branch: main
+2025-09-04T19:58:30.5985100Z 
+2025-09-04T19:58:30.5985434Z 📊 DATABASE VALIDATION RESULTS:
+2025-09-04T19:58:30.5985892Z    Schema Status: valid
+2025-09-04T19:58:30.5986525Z    Client Generation: success
+2025-09-04T19:58:30.5987102Z    Missing Models: 0
+2025-09-04T19:58:30.5987639Z    Integration Status: minor_issues
+2025-09-04T19:58:30.5988304Z    Proper Initializations: 116
+2025-09-04T19:58:30.5988882Z    Missing Initializations: 2
+2025-09-04T19:58:30.5989432Z    Exports Status: incomplete
+2025-09-04T19:58:30.5989991Z    Critical Files: all_present
+2025-09-04T19:58:30.5990747Z 
+2025-09-04T19:58:30.5999380Z 🎉 STATUS: DATABASE SYSTEM PERFECT
+2025-09-04T19:58:30.6000234Z ✅ Schema valid and consistent
+2025-09-04T19:58:30.6000879Z ✅ Client generation working
+2025-09-04T19:58:30.6001485Z ✅ All integrations proper
+2025-09-04T19:58:30.6002081Z ✅ All exports complete
+2025-09-04T19:58:30.6002618Z ✅ Deployment ready
+2025-09-04T19:58:30.6003156Z ===================================
+2025-09-04T19:58:30.6045140Z ##[group]Run SCHEMA_STATUS="valid"
+2025-09-04T19:58:30.6045468Z [36;1mSCHEMA_STATUS="valid"[0m
+2025-09-04T19:58:30.6045725Z [36;1mCRITICAL_STATUS="all_present"[0m
+2025-09-04T19:58:30.6045996Z [36;1mGENERATION_STATUS="success"[0m
+2025-09-04T19:58:30.6046687Z [36;1mMISSING_INIT="2"[0m
+2025-09-04T19:58:30.6046913Z [36;1m[0m
+2025-09-04T19:58:30.6047185Z [36;1m# Only fail on issues that would actually break deployment[0m
+2025-09-04T19:58:30.6047637Z [36;1mif [ "$CRITICAL_STATUS" = "missing_files" ] || [ "$GENERATION_STATUS" = "failed" ]; then[0m
+2025-09-04T19:58:30.6048160Z [36;1m  echo "❌ CRITICAL: Database issues detected that will break deployment"[0m
+2025-09-04T19:58:30.6048615Z [36;1m  echo "🔧 Missing critical files or client generation failed"[0m
+2025-09-04T19:58:30.6048933Z [36;1m  exit 1[0m
+2025-09-04T19:58:30.6049260Z [36;1melif [ "$SCHEMA_STATUS" = "invalid" ] && [ "$SCHEMA_STATUS" != "ci_env_issue" ]; then[0m
+2025-09-04T19:58:30.6049768Z [36;1m  echo "⚠️ WARNING: Schema validation failed (non-environment issue)"[0m
+2025-09-04T19:58:30.6050284Z [36;1m  echo "🔧 Consider reviewing schema structure - but not blocking deployment if files exist"[0m
+2025-09-04T19:58:30.6050732Z [36;1m  # Don't exit 1 here - only warn[0m
+2025-09-04T19:58:30.6050985Z [36;1mfi[0m
+2025-09-04T19:58:30.6051159Z [36;1m[0m
+2025-09-04T19:58:30.6051491Z [36;1mecho "✅ SUCCESS: Prisma Guardian completed - database layer stable for deployment"[0m
+2025-09-04T19:58:30.6052052Z [36;1mecho "📊 Schema: $SCHEMA_STATUS, Generation: $GENERATION_STATUS, Files: $CRITICAL_STATUS"[0m
+2025-09-04T19:58:30.6052638Z [36;1mecho "📊 Missing initializations: $MISSING_INIT (informational - not blocking deployment)"[0m
+2025-09-04T19:58:30.6053175Z [36;1mecho "🔧 Prisma patterns may need attention but don't prevent deployment"[0m
+2025-09-04T19:58:30.6053533Z [36;1mexit 0[0m
+2025-09-04T19:58:30.6084112Z shell: /usr/bin/bash -e {0}
+2025-09-04T19:58:30.6084355Z env:
+2025-09-04T19:58:30.6084544Z   NODE_VERSION: 20
+2025-09-04T19:58:30.6084742Z ##[endgroup]
+2025-09-04T19:58:30.6139621Z ✅ SUCCESS: Prisma Guardian completed - database layer stable for deployment
+2025-09-04T19:58:30.6141003Z 📊 Schema: valid, Generation: success, Files: all_present
+2025-09-04T19:58:30.6141990Z 📊 Missing initializations: 2 (informational - not blocking deployment)
+2025-09-04T19:58:30.6142989Z 🔧 Prisma patterns may need attention but don't prevent deployment
+2025-09-04T19:58:30.6187663Z Post job cleanup.
+2025-09-04T19:58:30.7801067Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-8619a49c0d208bfd301d3f6ca9a306a7488136f427be935ea07ae97f241b1849, not saving cache.
+2025-09-04T19:58:30.7899958Z Post job cleanup.
+2025-09-04T19:58:30.8941559Z [command]/usr/bin/git version
+2025-09-04T19:58:30.9000204Z git version 2.51.0
+2025-09-04T19:58:30.9042247Z Temporarily overriding HOME='/home/runner/work/_temp/bd1305a5-441e-4115-90a3-4b76a64f5a98' before making global git config changes
+2025-09-04T19:58:30.9044312Z Adding repository directory to the temporary git global config as a safe directory
+2025-09-04T19:58:30.9050005Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/replitballgame/replitballgame
+2025-09-04T19:58:30.9102533Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-09-04T19:58:30.9144908Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-09-04T19:58:30.9409993Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-09-04T19:58:30.9435818Z http.https://github.com/.extraheader
+2025-09-04T19:58:30.9451284Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2025-09-04T19:58:30.9489703Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-09-04T19:58:30.9864084Z Cleaning up orphan processes

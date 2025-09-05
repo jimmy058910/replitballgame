@@ -8,6 +8,7 @@ import { matchStorage } from '../storage/matchStorage.js'; // For getMatchesByDi
 import { seasonStorage } from '../storage/seasonStorage.js'; // For getCurrentSeason
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
+import { dynamicSeasonService } from '../services/dynamicSeasonService.js';
 import {
   generateLeagueGameSchedule,
   generateDailyGameTimes,
@@ -53,7 +54,7 @@ function getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; 
  * Helper function to get date for a specific season day
  */
 function getDateForDay(currentSeason: any, dayNumber: number): Date {
-  const startDate = new Date(currentSeason.startDate || "2025-09-02");
+  const startDate = new Date(currentSeason.startDate || "2025-09-01");
   const targetDate = new Date(startDate);
   targetDate.setDate(startDate.getDate() + dayNumber - 1);
   return targetDate;
@@ -901,6 +902,8 @@ router.post('/schedule', requireAuth, (req: Request, res: Response) => {
 
 router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('🎯 [DAILY-SCHEDULE] Route called!');
+    
     // Get current season from database to get the actual currentDay
     const currentSeason = await seasonStorage.getCurrentSeason(); // Use seasonStorage
     let currentDayInCycle = 5; // Default fallback
@@ -980,7 +983,7 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
       
       // Organize games by day for display
       const schedule: any = {};
-      const startDate = currentSeason.startDate || new Date('2025-09-02');
+      const startDate = currentSeason.startDate || new Date('2025-09-01');
       
       // Remove duplicates by creating a Set of unique game IDs
       const uniqueGames = existingGames.filter((game, index, arr) => 
@@ -1041,37 +1044,53 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
       });
     }
 
-    // Get all matches for the user's division and subdivision
-    const divisionMatches = await matchStorage.getMatchesByDivision(userTeam.division as any);
+    // 🔧 UNIFIED APPROACH: Use same comprehensive subdivision query for all divisions (not just Division 8)
+    console.log(`🎯 [UNIFIED] Getting subdivision games for Division ${userTeam.division}, Subdivision ${userTeam.subdivision}`);
     
-    // ✅ INCLUDE PLAYOFF MATCHES: Show both league games and playoff matches
-    const leagueMatches = divisionMatches.filter((match: any) => match.matchType === 'LEAGUE' || match.matchType === 'PLAYOFF');
-    
-    // Get all teams in the user's subdivision
+    // Get all teams in user's subdivision
     const prisma = await getPrismaClient();
     const subdivisionTeams = await prisma.team.findMany({
       where: { 
         division: userTeam.division,
         subdivision: userTeam.subdivision 
       },
-      select: { id: true }
+      select: { id: true, name: true }
     });
     
-    const subdivisionTeamIds = subdivisionTeams.map((team: any) => team.id);
-
-    // Show user's team games + fill to exactly 4 games per day
-    const userTeamMatches = leagueMatches.filter((match: any) => 
-      Number(match.homeTeamId) === Number(userTeam.id) || Number(match.awayTeamId) === Number(userTeam.id)
-    );
+    const subdivisionTeamIds = subdivisionTeams.map(team => team.id);
+    console.log(`✅ [UNIFIED] Found ${subdivisionTeams.length} teams in subdivision: ${subdivisionTeams.map(t => t.name).join(', ')}`);
     
-    // Filter other matches to only include games within the user's subdivision
-    const otherMatches = leagueMatches.filter((match: any) => {
-      const isNotUserTeam = Number(match.homeTeamId) !== Number(userTeam.id) && Number(match.awayTeamId) !== Number(userTeam.id);
-      const bothTeamsInSubdivision = subdivisionTeamIds.includes(Number(match.homeTeamId)) && subdivisionTeamIds.includes(Number(match.awayTeamId));
-      return isNotUserTeam && bothTeamsInSubdivision;
+    // Get all games involving teams in this subdivision (both league games and playoff matches)
+    const allSubdivisionGames = await prisma.game.findMany({
+      where: {
+        matchType: { in: ['LEAGUE', 'PLAYOFF'] },
+        OR: [
+          { homeTeamId: { in: subdivisionTeamIds } },
+          { awayTeamId: { in: subdivisionTeamIds } }
+        ]
+      },
+      include: {
+        homeTeam: { select: { id: true, name: true } },
+        awayTeam: { select: { id: true, name: true } }
+      },
+      orderBy: { gameDate: 'asc' }
     });
     
-    const allMatches = [...userTeamMatches, ...otherMatches];
+    console.log(`✅ [UNIFIED] Found ${allSubdivisionGames.length} subdivision games (should show ALL in completed section)`);
+    
+    const allMatches = allSubdivisionGames.map(game => ({
+      id: game.id,
+      homeTeamId: game.homeTeamId,
+      awayTeamId: game.awayTeamId,
+      homeTeamName: game.homeTeam.name,
+      awayTeamName: game.awayTeam.name,
+      homeScore: game.homeScore,
+      awayScore: game.awayScore,
+      gameDate: game.gameDate,
+      matchType: game.matchType,
+      status: game.status,
+      simulated: game.simulated || false
+    }));
     
 
 
@@ -1094,21 +1113,35 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
 
     const scheduleByDay: { [key: number]: any[] } = {};
 
-    // FIXED: Use dynamic Season 2 start date for proper day calculation
+    // BULLETPROOF: Use dynamic season service for accurate day calculation
+    // First, ensure season dates are synchronized with actual games
+    await dynamicSeasonService.synchronizeSeasonDates();
+    
+    // Check if this is Division 8 (late signup) - may have shortened seasons
+    const teamDivision = userTeam?.division;
+    const isDiv8 = teamDivision === 8;
+    if (isDiv8) {
+      const seasonLength = await dynamicSeasonService.getSeasonLengthForTeam(userTeam.id);
+      if (seasonLength.isShortened) {
+        console.log(`🔍 [SHORTENED SEASON] Division 8 ${userTeam.subdivision}: ${seasonLength.totalDays} days`);
+      }
+    }
+    
+    // Pre-calculate day numbers for all matches to avoid async in filter
+    const matchDayMap = new Map<number, number>();
+    for (const match of allMatches) {
+      if (match.gameDate) {
+        const gameDate = new Date(match.gameDate);
+        const gameDayInSchedule = await dynamicSeasonService.getGameDayNumber(gameDate);
+        matchDayMap.set(match.id, gameDayInSchedule);
+        console.log(`🎯 [DYNAMIC SEASON] Game ${match.id} on ${gameDate.toDateString()} = Day ${gameDayInSchedule}`);
+      }
+    }
+    
     for (let day = 1; day <= 17; day++) {
       const dayMatches = allMatches.filter((match: any) => {
         if (match.gameDate) {
-          const gameDate = new Date(match.gameDate);
-          const gameDateUTC = new Date(gameDate.getFullYear(), gameDate.getMonth(), gameDate.getDate());
-          
-          // FIXED: Use current season start date instead of hardcoded Season 1 date
-          const seasonStartDate = new Date(currentSeason.startDate);
-          const seasonStartUTC = new Date(seasonStartDate.getFullYear(), seasonStartDate.getMonth(), seasonStartDate.getDate());
-          const daysDiff = Math.floor((gameDateUTC.getTime() - seasonStartUTC.getTime()) / (1000 * 60 * 60 * 24));
-          const gameDayInSchedule = daysDiff + 1; // Season start = Day 1
-          
-          console.log(`🎯 [SCHEDULE] Game ${match.id} on ${gameDate.toDateString()} = Day ${gameDayInSchedule} (Season ${currentSeason.seasonNumber})`);
-          
+          const gameDayInSchedule = matchDayMap.get(match.id);
           return gameDayInSchedule === day;
         }
         return false;
@@ -1140,7 +1173,8 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
           canWatch: match.status === 'IN_PROGRESS' || match.status === 'COMPLETED',
           status: match.status || 'SCHEDULED', // Keep original logic for regular schedule
           homeScore: match.homeScore,
-          awayScore: match.awayScore
+          awayScore: match.awayScore,
+          matchType: match.matchType // CRITICAL FIX: Include matchType for frontend filtering
         }));
       } else {
         scheduleByDay[day] = [];
@@ -1155,6 +1189,86 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
     });
   } catch (error) {
     console.error("Error getting daily schedule:", error);
+    next(error);
+  }
+});
+
+// DEBUG: Check game statuses for Days 1-5
+router.get('/debug-games-status', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Get games from Days 1-5 (Aug 31 - Sep 5)
+    const games = await prisma.game.findMany({
+      where: {
+        gameDate: {
+          gte: new Date('2025-08-31T00:00:00Z'),
+          lte: new Date('2025-09-05T23:59:59Z')
+        },
+        matchType: 'LEAGUE'
+      },
+      include: {
+        homeTeam: { select: { id: true, name: true } },
+        awayTeam: { select: { id: true, name: true } }
+      },
+      orderBy: { gameDate: 'asc' }
+    });
+
+    console.log(`🔍 [DEBUG] Found ${games.length} league games between Aug 31 - Sep 5`);
+    
+    const gamesByDay: Record<string, any[]> = {};
+    const completedGames: any[] = [];
+    const oaklandGames: any[] = [];
+    
+    games.forEach(game => {
+      const gameDate = new Date(game.gameDate);
+      const dayKey = gameDate.toDateString();
+      
+      if (!gamesByDay[dayKey]) {
+        gamesByDay[dayKey] = [];
+      }
+      
+      const gameInfo = {
+        id: game.id,
+        homeTeam: game.homeTeam?.name || `Team ${game.homeTeamId}`,
+        awayTeam: game.awayTeam?.name || `Team ${game.awayTeamId}`,
+        homeTeamId: game.homeTeamId,
+        awayTeamId: game.awayTeamId,
+        status: game.status,
+        simulated: game.simulated,
+        homeScore: game.homeScore,
+        awayScore: game.awayScore,
+        gameDate: game.gameDate
+      };
+      
+      gamesByDay[dayKey].push(gameInfo);
+      
+      // Check if completed
+      if (game.status === 'COMPLETED' || game.simulated === true || (game.homeScore !== null && game.awayScore !== null)) {
+        completedGames.push(gameInfo);
+      }
+      
+      // Check if Oakland Cougars game
+      if (game.homeTeamId === 4 || game.awayTeamId === 4) {
+        oaklandGames.push(gameInfo);
+      }
+    });
+
+    res.json({
+      totalGames: games.length,
+      gamesByDay,
+      completedGames: {
+        count: completedGames.length,
+        games: completedGames
+      },
+      oaklandCougarsGames: {
+        count: oaklandGames.length,
+        games: oaklandGames
+      }
+    });
+
+  } catch (error) {
+    console.error("Error debugging game statuses:", error);
     next(error);
   }
 });

@@ -320,11 +320,12 @@ export default function MobileRosterHQ() {
     mutationFn: async (type: "basic" | "advanced") => {
       return apiRequest(`/api/teams/${team?.id}/tryouts`, "POST", { type });
     },
-    onSuccess: (data) => {
-      setCandidates(data.candidates);
-      setTryoutType(data.type);
+    onSuccess: (data: unknown) => {
+      const response = data as { candidates: any[]; type: string };
+      setCandidates(response.candidates);
+      setTryoutType(response.type);
       setShowTryoutModal(true);
-      startRevealAnimation(data.candidates);
+      startRevealAnimation(response.candidates);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/seasonal-data`] });
     },
@@ -342,10 +343,11 @@ export default function MobileRosterHQ() {
       const selectedFullCandidates = candidates.filter(c => candidateIds.includes(c.id));
       return apiRequest(`/api/teams/${team?.id}/taxi-squad/add-candidates`, "POST", { candidates: selectedFullCandidates });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: unknown) => {
+      const response = data as { message: string };
       toast({
         title: "Success!",
-        description: data.message,
+        description: response.message,
       });
       setShowTryoutModal(false);
       setSelectedCandidates([]);

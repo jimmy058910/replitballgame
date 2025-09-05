@@ -793,6 +793,7 @@ router.post('/:id/force-progression', requireAuth, async (req: any, res) => {
 // Helper function to check and advance tournament if needed
 async function checkAndAdvanceTournament(tournamentId: number) {
   try {
+    const prisma = await getPrismaClient();
     console.log(`🔍 [TOURNAMENT CHECK] Checking advancement for tournament ${tournamentId}`);
     
     // Check quarterfinals (round 1)
@@ -834,6 +835,7 @@ async function checkAndAdvanceTournament(tournamentId: number) {
 // Start a tournament match
 router.post('/:id/matches/:matchId/start', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const { matchId } = req.params;
     const userId = req.user.claims.sub;
     
@@ -857,6 +859,7 @@ router.post('/:id/matches/:matchId/start', requireAuth, async (req: any, res) =>
 // Simulate a tournament match (for testing)
 router.post('/:id/matches/:matchId/simulate', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const { matchId } = req.params;
     const userId = req.user.claims.sub;
     
@@ -889,6 +892,7 @@ router.post('/:id/matches/:matchId/simulate', requireAuth, async (req: any, res)
 // Get tournament matches for bracket display
 router.get('/:tournamentId/matches', async (req, res) => {
   try {
+    const prisma = await getPrismaClient();
     const { tournamentId } = req.params;
     
     // Get tournament matches from Game table
@@ -947,6 +951,7 @@ router.get('/:tournamentId/matches', async (req, res) => {
 // Start live tournament round (Admin only)
 router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) => {
   try {
+    const prisma = await getPrismaClient();
     const { tournamentId } = req.params;
     const { round } = req.body;
     const userId = req.user.claims.sub;
@@ -1054,6 +1059,7 @@ router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) 
 // Helper function to advance tournament to next round
 async function advanceTournament(tournamentId: number, completedRound: string) {
   try {
+    const prisma = await getPrismaClient();
     // Get completed matches from the round
     const completedMatches = await prisma.game.findMany({
       where: {
