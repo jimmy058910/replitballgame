@@ -55,6 +55,7 @@ export class TeamStatisticsCalculator {
     logger.debug(`[${this.serviceName}] Calculating statistics for team`, { teamId, teamName });
     
     // Fetch all completed league games using standardized completion criteria
+    // CRITICAL: Only include games with a valid scheduleId to avoid orphaned games from old seasons
     const completedGames = await prisma.game.findMany({
       where: {
         OR: [
@@ -62,6 +63,7 @@ export class TeamStatisticsCalculator {
           { awayTeamId: teamId }
         ],
         matchType: 'LEAGUE',
+        scheduleId: { not: null }, // Filter out orphaned games
         AND: [
           {
             OR: [
@@ -94,6 +96,18 @@ export class TeamStatisticsCalculator {
     logger.debug(`[${this.serviceName}] Games retrieved for calculation`, { 
       teamId, 
       gameCount: completedGames.length 
+    });
+    
+    // Log each game for debugging
+    completedGames.forEach((game, index) => {
+      logger.debug(`[${this.serviceName}] Game ${index + 1}:`, {
+        gameId: game.id,
+        scheduleId: game.scheduleId,
+        homeTeamId: game.homeTeamId,
+        awayTeamId: game.awayTeamId,
+        score: `${game.homeScore}-${game.awayScore}`,
+        date: game.gameDate
+      });
     });
 
     // Calculate statistics using standardized logic

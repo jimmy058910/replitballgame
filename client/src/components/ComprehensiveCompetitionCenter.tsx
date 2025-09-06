@@ -772,9 +772,10 @@ export default function ComprehensiveCompetitionCenter() {
                       
                       if (currentDay >= 1 && currentDay <= 14) {
                         // Regular season: Calculate remaining games in season
-                        // Include current day's game since it hasn't been played yet
-                        // Days 1-14 are regular season, so games remaining = 14 - (currentDay - 1)
-                        gamesRemaining = Math.max(0, 14 - (currentDay - 1));
+                        // Each team plays 14 games total across days 1-14
+                        // On day 1, after playing 1 game, 13 remain
+                        // So games remaining = 14 - currentDay
+                        gamesRemaining = Math.max(0, 14 - currentDay);
                       } else if (currentDay === 15) {
                         // Division playoffs: No regular season games remain
                         gamesRemaining = 0;
