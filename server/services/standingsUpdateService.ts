@@ -1,6 +1,6 @@
 import { getPrismaClient } from '../database.js';
-import { TeamStatisticsIntegrityService } from './teamStatisticsIntegrityService.js';
-import { TeamStatisticsCalculator } from '../utils/teamStatisticsCalculator.js';
+import { TeamStatisticsIntegrityService } from './enhancedStatisticsService.js';
+import { TeamStatisticsCalculator } from './enhancedStatisticsService.js';
 import logger from '../utils/logger.js';
 
 /**

@@ -803,7 +803,7 @@ router.post('/fix-team-stats/:teamName', async (req: Request, res: Response) => 
     console.log(`🔧 [ADMIN] Fixing statistics for team: ${teamName}`);
     
     const { getPrismaClient } = await import('../database.js');
-    const { TeamStatisticsIntegrityService } = await import('../services/teamStatisticsIntegrityService.js');
+    const { TeamStatisticsIntegrityService } = await import('../services/enhancedStatisticsService.js');
     
     const prisma = await getPrismaClient();
     

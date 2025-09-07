@@ -13,7 +13,7 @@
  */
 
 import { getPrismaClient } from '../database.js';
-import { TeamStatisticsCalculator } from '../utils/teamStatisticsCalculator.js';
+import { TeamStatisticsCalculator } from '../services/enhancedStatisticsService.js';
 
 interface TeamDiscrepancy {
   teamId: number;

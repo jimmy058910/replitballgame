@@ -2,13 +2,41 @@ import { Router } from "express";
 import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { cacheMiddleware } from "../middleware/cache.js";
+import { getPrismaClient } from '../database.js';
 
 const router = Router();
 
 // Universal Team Power Rankings with 5-minute cache
 router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), requireAuth, async (req, res) => {
   try {
-    const teams = await storage.teams.getAllTeamsWithStats();
+    console.log('🔍 [GLOBAL RANKINGS] Starting global rankings calculation...');
+    
+    // Use direct Prisma query to bypass storage layer issues
+    const prisma = await getPrismaClient();
+    
+    const teams = await prisma.team.findMany({
+      select: {
+        id: true,
+        name: true,
+        division: true,
+        subdivision: true,
+        wins: true,
+        losses: true,
+        draws: true,
+        points: true,
+        camaraderie: true,
+        fanLoyalty: true,
+        homeField: true,
+        tacticalFocus: true
+      }
+    });
+    
+    console.log(`🔍 [GLOBAL RANKINGS] Retrieved ${teams?.length || 0} teams via direct query`);
+    
+    if (!teams || teams.length === 0) {
+      console.log('⚠️ [GLOBAL RANKINGS] No teams found, returning empty rankings');
+      return res.json([]);
+    }
     
     // Calculate Enhanced True Strength Rating for each team with simplified fallbacks
     const rankedTeams = teams.map((team) => {
@@ -21,17 +49,19 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), requireAuth, async
       const winPercentage = (team.wins || 0) / ((team.wins || 0) + (team.losses || 0) + (team.draws || 0) || 1);
       
       // Enhanced True Strength Rating Algorithm (Research-Based Formula)
-      const baseRating = (team.teamPower || 0) * 10;           // Base: 40% weight (250 max)
+      // Base rating derived from actual available team stats
+      const basePointsRating = (team.points || 0) * 5;         // Base: Points earned (100+ max)
       const divisionBonus = divisionMultiplier * 100;          // Division: 15% weight (200 max)
-      const recordBonus = winPercentage * 120;                 // Record: 18% weight (120 max) - REDUCED from 200
+      const recordBonus = winPercentage * 120;                 // Record: 18% weight (120 max)
       const sosBonus = strengthOfSchedule * 1.5;               // SOS: 15% weight (~75 avg)
-      const camaraderieBonus = (team.camaraderie || 0) * 2;    // Chemistry: 12% weight (200 max) - Fixed field name
+      const camaraderieBonus = (team.camaraderie || 0) * 2;    // Chemistry: 12% weight (200 max)
+      const fanLoyaltyBonus = (team.fanLoyalty || 0) * 1.5;    // Fan Support: 75 max
       const recentFormBonus = recentFormBias * 30;             // Recent Form: ±30 range
       const healthBonus = healthFactor * 50;                   // Health: 50 max
       
       const trueStrengthRating = Math.round(
-        baseRating + divisionBonus + recordBonus + sosBonus + 
-        camaraderieBonus + recentFormBonus + healthBonus
+        basePointsRating + divisionBonus + recordBonus + sosBonus + 
+        camaraderieBonus + fanLoyaltyBonus + recentFormBonus + healthBonus
       );
       
       // Convert BigInt fields to strings for JSON serialization
@@ -73,8 +103,15 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), requireAuth, async
     
     res.json(globalRankings);
   } catch (error) {
-    console.error("Error fetching global rankings:", error);
-    res.status(500).json({ error: "Failed to fetch global rankings" });
+    console.error("❌ [GLOBAL RANKINGS] Error fetching global rankings:", error);
+    console.error("❌ [GLOBAL RANKINGS] Stack trace:", error instanceof Error ? error.stack : 'No stack trace');
+    
+    // Return a fallback response for development
+    res.status(500).json({ 
+      error: "Failed to fetch global rankings", 
+      details: error instanceof Error ? error.message : 'Unknown error',
+      fallback: []
+    });
   }
 });
 
@@ -403,6 +440,62 @@ function getExpectedPowerForDivision(division: number): number {
     default: return 24; // Default
   }
 }
+
+// EMERGENCY GLOBAL RANKINGS TEST (No Auth Required)
+router.get("/emergency-global-rankings", async (req, res) => {
+  try {
+    console.log('🔧 EMERGENCY: Testing global rankings without auth...');
+    
+    const teams = await storage.teams.getAllTeamsWithStats();
+    console.log(`🔍 Found ${teams.length} teams with stats`);
+    
+    if (!teams || teams.length === 0) {
+      return res.json({
+        globalRankings: [],
+        totalTeams: 0,
+        message: "No teams found with stats"
+      });
+    }
+    
+    // Simple ranking by team power only
+    const rankedTeams = teams.map((team) => {
+      const divisionMultiplier = getDivisionMultiplier(team.division);
+      const baseRating = (team.teamPower || 0) * 10;
+      const divisionBonus = divisionMultiplier * 100;
+      const trueStrengthRating = Math.round(baseRating + divisionBonus);
+      
+      return {
+        teamName: team.name,
+        division: team.division,
+        trueStrengthRating,
+        teamPower: team.teamPower || 0,
+        wins: team.wins || 0,
+        losses: team.losses || 0
+      };
+    });
+    
+    // Sort by True Strength Rating (descending)
+    rankedTeams.sort((a: any, b: any) => b.trueStrengthRating - a.trueStrengthRating);
+    
+    // Add global rank and limit to top 10
+    const globalRankings = rankedTeams.slice(0, 10).map((team, index) => ({
+      ...team,
+      globalRank: index + 1
+    }));
+    
+    res.json({
+      globalRankings,
+      totalTeams: teams.length,
+      message: "Emergency global rankings working"
+    });
+  } catch (error) {
+    console.error("Error in emergency global rankings:", error);
+    res.status(500).json({ 
+      error: "Failed to get emergency global rankings",
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
 
 

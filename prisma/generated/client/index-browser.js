@@ -415,6 +415,10 @@ exports.Prisma.GameScalarFieldEnum = {
   tournamentId: 'tournamentId',
   round: 'round',
   status: 'status',
+  seasonId: 'seasonId',
+  scheduleId: 'scheduleId',
+  subdivision: 'subdivision',
+  gameDay: 'gameDay',
   createdAt: 'createdAt'
 };
 
@@ -426,6 +430,16 @@ exports.Prisma.SeasonScalarFieldEnum = {
   currentDay: 'currentDay',
   phase: 'phase',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.ScheduleScalarFieldEnum = {
+  id: 'id',
+  seasonId: 'seasonId',
+  division: 'division',
+  subdivision: 'subdivision',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.NotificationScalarFieldEnum = {
@@ -887,6 +901,7 @@ exports.Prisma.ModelName = {
   LeagueStanding: 'LeagueStanding',
   Game: 'Game',
   Season: 'Season',
+  Schedule: 'Schedule',
   Notification: 'Notification',
   TryoutPack: 'TryoutPack',
   TryoutHistory: 'TryoutHistory',

@@ -1,5 +1,5 @@
 import { getPrismaClient } from "../database.js";
-import { QuickMatchSimulation } from './quickMatchSimulation.js';
+import { QuickMatchSimulation } from './enhancedSimulationEngine.js';
 import { MatchType } from "../db";
 
 // Remove top-level await - Prisma will be initialized in each method

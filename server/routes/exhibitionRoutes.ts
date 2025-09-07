@@ -6,7 +6,7 @@ import { exhibitionGameStorage } from '../storage/exhibitionGameStorage.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
-import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
+import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
 import { z } from "zod";
 // Using string literals for match types
 import { getPrismaClient } from "../database.js";

@@ -59,7 +59,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
 
   // Get current season cycle to determine if promotions are allowed
   const { data: seasonCycle } = useQuery<{ data?: { currentDay?: number } }>({
-    queryKey: ['/api/season/current-cycle'],
+    queryKey: ['/api/seasons/current-cycle'],
   });
 
   // Promotions only allowed during offseason (Days 16-17)

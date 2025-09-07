@@ -6,8 +6,8 @@ import path from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env.local file for local development
-config({ path: path.join(__dirname, '..', '.env.local') });
+// Load .env file for local development
+config({ path: path.join(__dirname, '..', '.env') });
 
 import express from "express";
 import cors from "cors";
@@ -267,8 +267,9 @@ async function startServer() {
     const defaultPort = process.env.NODE_ENV === 'production' ? "8080" : "5000";
     const port = parseInt(process.env.PORT || defaultPort, 10);
     
-    httpServer.listen(port, "0.0.0.0", async () => {
-      console.log(`✅ Server running on 0.0.0.0:${port}`);
+    const host = process.env.HOST || "localhost";
+    httpServer.listen(port, host, async () => {
+      console.log(`✅ Server running on ${host}:${port}`);
       console.log('🎯 All systems operational');
       
       // Initialize automation services for game simulation

@@ -38,8 +38,8 @@ export default function PlayerListingModal({ player, isOpen, onClose }: PlayerLi
 
   const listPlayerMutation = useMutation({
     mutationFn: async () => {
-      // Corrected apiRequest call
-      await apiRequest("/api/marketplace/list-player", "POST", {
+      // Using Enhanced Marketplace with backward compatibility endpoint
+      await apiRequest("/api/enhanced-marketplace/list-player", "POST", {
         playerId: player.id,
         price: parseInt(price),
         duration: parseInt(duration)

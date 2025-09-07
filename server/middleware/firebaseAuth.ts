@@ -76,24 +76,45 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction): 
     } catch (tokenError: any) {
       console.error('❌ Firebase token verification failed:', tokenError.message);
       
-      // For development environment, always allow authentication with any token
-      console.log('🔄 Development: Using development authentication bypass...');
-      console.log('🔄 Environment check:', process.env.NODE_ENV);
-      
-      req.user = {
-        uid: 'dev-user-123',
-        email: 'developer@realmrivalry.com',
-        claims: { 
-          uid: 'dev-user-123', 
-          sub: 'dev-user-123',
-          email: 'developer@realmrivalry.com',
-          dev: true 
+      // Industry-standard development bypass with proper user mapping
+      if (process.env.NODE_ENV === 'development') {
+        let devUser = null;
+        
+        // Map development tokens to actual user profiles for comprehensive testing
+        switch (token) {
+          case 'dev-token-oakland-cougars':
+            // Maps to the real user who owns Oakland Cougars team (Division 7 Alpha)
+            devUser = {
+              uid: 'oakland-cougars-owner',
+              email: 'oakland.cougars@realmrivalry.dev',
+              claims: { uid: 'oakland-cougars-owner', email: 'oakland.cougars@realmrivalry.dev' }
+            };
+            break;
+          case 'dev-token-123':
+          case 'dev-token-local':
+            // Generic development user - may not have team associations
+            devUser = {
+              uid: 'dev-user-123',
+              email: 'developer@realmrivalry.com',
+              claims: { uid: 'dev-user-123', email: 'developer@realmrivalry.com' }
+            };
+            break;
+          default:
+            break;
         }
-      };
+        
+        if (devUser) {
+          console.log(`🔧 Development bypass activated for ${devUser.email}`);
+          req.user = devUser;
+          console.log(`✅ Development bypass authenticated for ${devUser.uid}`);
+          next();
+          return;
+        }
+      }
       
-      console.log('✅ Development authentication successful for user:', req.user.uid);
-      console.log('✅ Calling next() to continue to route handler...');
-      return next();
+      console.log('❌ Firebase token verification failed');
+      res.status(401).json({ message: 'Invalid Firebase token' });
+      return;
     }
   } catch (error) {
     console.error('❌ Authentication middleware error:', error);

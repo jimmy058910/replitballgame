@@ -16,7 +16,7 @@ interface UnifiedTeamHeaderProps {
 export default function UnifiedTeamHeader({ title, titleIcon, team, players, showCreditsGems = false, showLowStaminaWarning = false, lowStaminaCount = 0 }: UnifiedTeamHeaderProps) {
   // Fetch current season data for consistent display
   const { data: seasonData } = useQuery({
-    queryKey: ['/api/season/current-cycle'],
+    queryKey: ['/api/seasons/current-cycle'],
   });
 
   // Use consistent player filtering and calculations

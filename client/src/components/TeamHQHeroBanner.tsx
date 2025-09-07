@@ -23,8 +23,8 @@ interface TeamData {
 
 export default function TeamHQHeroBanner() {
   const { data: seasonData } = useQuery<SeasonData>({
-    queryKey: ['/api/season/current-cycle'],
-    queryFn: () => apiRequest('/api/season/current-cycle'),
+    queryKey: ['/api/seasons/current-cycle'],
+    queryFn: () => apiRequest('/api/seasons/current-cycle'),
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes as specified
   });
 

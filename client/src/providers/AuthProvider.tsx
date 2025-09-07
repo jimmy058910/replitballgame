@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('🔥 Setting up Firebase authentication system...');
     
-    // Development bypass - auto-login for development
+    // Development bypass enabled for local testing
     if (import.meta.env.DEV) {
       console.log('🔧 Development mode - bypassing Firebase auth');
       

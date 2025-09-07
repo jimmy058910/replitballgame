@@ -1,7 +1,7 @@
 import { getPrismaClient } from "../database.js";
 import { randomUUID } from "crypto";
 import moment from "moment-timezone";
-import { PaymentHistoryService } from "./paymentHistoryService.js";
+import { PaymentHistoryService } from './enhancedEconomyService.js';
 // Using any types for Prisma enums to avoid import issues
 
 export interface TournamentReward {

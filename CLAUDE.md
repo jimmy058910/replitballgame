@@ -284,18 +284,23 @@ Revolutionary interface replacing 6-hub/23-tab design:
 
 ## 🔧 DEVELOPMENT PATTERNS
 
-### **Domain-Driven Architecture**
-Server organized by business domains with clear separation:
+### **Flat Architecture Decision (September 2025 Refactor)**
+**ARCHITECTURAL DECISION**: The codebase uses a flat architecture pattern with routes and services organized by feature. The domain-driven architecture experiment was removed due to import complexity issues in production.
+
 ```
-server/domains/
-├── auth/          # Authentication services
-├── economy/       # Credits, marketplace, transactions
-├── matches/       # Game simulation, live matches  
-├── tournaments/   # Competition management
-└── index.ts       # Centralized domain registry
+server/
+├── routes/        # 70+ feature-specific route files
+├── services/      # 40+ business logic services
+├── storage/       # Data access layer
+├── utils/         # Shared utilities
+└── middleware/    # Express middleware
 ```
 
-Each domain includes: `service.ts`, `routes.ts`, `schemas.ts`, `index.ts`
+This flat structure provides:
+- Direct import paths without complex chains
+- Clear separation between routes, services, and data access
+- Easier debugging and maintenance
+- Better compatibility with production builds
 
 ### **API Route Registration Order (CRITICAL)**
 ALL API routes must be registered BEFORE Vite middleware:
@@ -454,6 +459,7 @@ Industry-standard patterns with:
 4. **Deployment Failures**: Check secrets vs environment variables separation
 5. **API Route Issues**: Ensure registration before Vite middleware
 6. **Server Hot-Reload Not Working**: The development server using `tsx` doesn't always hot-reload server-side changes, especially in route files. **Always restart the server (`npx kill-port 3000 && npm run dev`) after modifying server routes or middleware** to ensure changes take effect
+7. **Multiple Development Ports**: Frontend should consistently use localhost:5173. **SOLUTION**: Added `strictPort: true` to `vite.config.local.ts` to prevent port fallback behavior and multiple port accumulation over time
 
 ### **Performance Optimization**
 - Countdown timers update every minute (not second)
@@ -463,47 +469,16 @@ Industry-standard patterns with:
 
 ---
 
-## 🚨 CRITICAL SESSION UPDATE - September 5th, 2025
+## 📋 SESSION UPDATES & DEVELOPMENT HISTORY
 
-### **MAJOR REGRESSION DETECTED**
-This session resulted in significant system instability despite successfully fixing the initial League Schedule API issue. **IMMEDIATE ATTENTION REQUIRED** for next development session.
+**For detailed session logs, bug fixes, and development progress, see: [SESSION_LOG.md](./SESSION_LOG.md)**
 
-### **✅ Successfully Fixed Issues:**
-1. **League Schedule API Error**: Fixed "ReferenceError: team is not defined" in daily-schedule API (`server/routes/leagueRoutes.ts:1121`)
-   - **Root Cause**: Using undefined `team` variable instead of `userTeam`
-   - **Fix Applied**: Changed `team?.division` → `userTeam?.division` and `team.id` → `userTeam.id`
-   - **Result**: League Schedule now loads properly, no more 500 errors
-
-### **🚨 CRITICAL REGRESSIONS INTRODUCED:**
-1. **Game Day Reset to Day 1**: System reverted from Day 5 to Day 1 unexpectedly
-2. **Massive Standings Cross-Contamination**: Teams showing inflated game counts (11+ games instead of 8)
-   - Galaxy Warriors 792: 11 games played
-   - Fire Hawks 261: 10 games played  
-   - Crimson Lions 932: 12 games played
-   - Earth Guardians 132: 13 games played
-   - **Expected**: ~8 games after 5 completed days
-3. **Schedule Data Inconsistency**: Shows Days 2-10 as "scheduled" when Days 1-5 should be completed
-4. **Database State Corruption**: 108 total games found in Division 7 Alpha (should be ~20 after 5 days)
-
-### **Root Cause Analysis:**
-- **Standings Query Issue**: The main standings calculation in `/api/leagues/7/standings` is still including all historical games, not just current season/schedule games
-- **Season State Corruption**: Something caused the season to reset to Day 1, losing previous progress
-- **Cross-Division Game Inclusion**: Despite subdivision filtering, 108 games suggests games from multiple seasons or divisions are being included
-
-### **Files Modified During Session:**
-- `server/routes/leagueRoutes.ts:1121-1127` - Fixed `team` → `userTeam` references
-- `server/routes/teamRoutes.ts:1325-1489` - Modified `reset-all-standings` with subdivision filtering (untested due to auth issues)
-
-### **URGENT TODO for Next Session:**
-1. **PRIORITY 1**: Investigate why Game Day reset from Day 5 to Day 1
-2. **PRIORITY 2**: Apply same subdivision filtering fix to main standings calculation (`/api/leagues/7/standings`) that was applied to `reset-all-standings`
-3. **PRIORITY 3**: Investigate why 108 games exist instead of expected ~20 games
-4. **PRIORITY 4**: Verify season state integrity and restore to correct day if possible
-
-### **Critical Code Locations Requiring Attention:**
-- `server/routes/leagueRoutes.ts:515-531` - Game query for standings (needs subdivision scoping)
-- Season management system - investigate Day 1 reset
-- Database game records - verify correct game counts per subdivision
+This includes:
+- Critical bug fixes and resolutions
+- Route consolidation project progress
+- Emergency system resets and fixes
+- Technical debt reduction initiatives
+- Database integrity improvements
 
 ---
 
@@ -513,32 +488,14 @@ This session resulted in significant system instability despite successfully fix
 
 ---
 
-## 🎯 KEY SESSION ACCOMPLISHMENTS SUMMARY
+## 🎯 RECENT ACHIEVEMENTS SUMMARY
 
-This development session achieved unprecedented system completeness:
-
-1. **Dynamic Playoff System**: Complete implementation of real-time playoff scheduling
-2. **Dome Ball Statistics**: Comprehensive 40+ statistic tracking system with full database integration  
-3. **Greek Alphabet Consistency**: Resolved naming inconsistencies across all subdivision systems
-4. **System Cleanup**: Removed three unintended systems cleanly without breaking functionality
-5. **Documentation Sync**: Both CLAUDE.md and REALM_RIVALRY_COMPLETE_DOCUMENTATION.md fully updated
-
-**Technical Debt**: Zero - All implementations follow production-ready patterns
-**Database Schema**: Enhanced with comprehensive statistics models  
-**Code Quality**: All new services follow domain-driven architecture patterns
-
-### **GitHub Actions Guardian Agents Implementation (September 4th, 2025)**
-- ✅ **4 Automated Guardian Agents**: TypeScript, Code Quality, Prisma Database, and Deployment Readiness agents fully operational
-- ✅ **Production-Aligned Thresholds**: Agents now use realistic failure criteria that match actual deployment requirements
-- ✅ **Auto-Fix Capabilities**: All agents enabled with safe auto-fix features for common issues (Prisma imports, console.log removal, etc.)
-- ✅ **Comprehensive Monitoring**: Agents run on push/PR events plus scheduled maintenance cycles
-- ✅ **Root Directory Cleanup**: Archived 9 obsolete files to maintain clean development environment
-
-### **Documentation Consolidation (September 3rd, 2025)**
-- ✅ **Eliminated Redundancy**: Removed 4 redundant markdown files (README.md, replit.md, README-ORGANIZATION.md, github_integration_steps.md)
-- ✅ **Unified AI Guidance**: CLAUDE.md now serves ALL AI development assistants (Claude Code, Replit AI, GitHub Copilot)
-- ✅ **Merged Unique Content**: creditFormatter utility reference, external dependencies, and enhanced late signup details integrated
-- ✅ **Clean Documentation**: Only 2 essential files remain - CLAUDE.md (development guide) and REALM_RIVALRY_COMPLETE_DOCUMENTATION.md (comprehensive reference)
+### **September 2025 Major Accomplishments**
+- ✅ **Dynamic Playoff System**: Real-time playoff scheduling with 30-minute round buffers
+- ✅ **Comprehensive Statistics**: 40+ dome ball statistics with full database persistence
+- ✅ **Route Consolidation**: 16 route files → 4 enhanced systems (60+ endpoints)
+- ✅ **GitHub Actions Agents**: 4 automated code quality guardians operational
+- ✅ **Documentation Cleanup**: Consolidated to CLAUDE.md + SESSION_LOG.md structure
 
 ---
 
@@ -574,155 +531,3 @@ This development session achieved unprecedented system completeness:
 - **Reduced Redundancy**: Eliminates duplicate or conflicting information
 - **Faster Onboarding**: Developers find everything in one location
 
-## 🎯 COMPREHENSIVE DIVISION RESET SYSTEM (September 6th, 2025)
-
-### **✅ EMERGENCY RESET COMPLETED**
-Successfully implemented and executed comprehensive Division 7 Alpha reset system addressing all data inconsistencies:
-
-**Root Cause Identified**: Teams had 6-13 games played while season showed "currentDay": 1, indicating historical games from previous seasons weren't cleared during season reset.
-
-**Comprehensive Solution Implemented**:
-1. **Historical Game Clearing**: Removed 108 accumulated games from all previous seasons
-2. **Season Reset**: Properly reset season to Day 1 with clean state
-3. **Standings Reset**: All team records reset to 0W-0L-0pts
-4. **Schedule Generation**: Created proper 14-game round-robin schedule (56 total games)
-
-### **Implementation Details**
-
-**Emergency API Endpoint Created**:
-```typescript
-// Location: server/routes/leagueRoutes.ts
-router.get('/emergency-reset-division-7-alpha', async (req: Request, res: Response, next: NextFunction) => {
-  // 1. Clear all historical games (108 games removed)
-  const deletedGames = await prisma.game.deleteMany({
-    where: {
-      OR: [
-        { homeTeamId: { in: teamIds } },
-        { awayTeamId: { in: teamIds } }
-      ]
-    }
-  });
-
-  // 2. Reset all team standings
-  await prisma.team.updateMany({
-    where: { division: 7, subdivision: 'alpha' },
-    data: { wins: 0, losses: 0, draws: 0, points: 0 }
-  });
-
-  // 3. Reset season to Day 1
-  await prisma.season.update({
-    where: { id: currentSeason.id },
-    data: { currentDay: 1 }
-  });
-
-  // 4. Generate proper 14-game round-robin schedule
-  // Each team plays 14 games (7 home, 7 away)
-  // Each team plays every other team twice (once home, once away)
-});
-```
-
-### **Requirements Verification ✅**
-All user requirements successfully met:
-- ✅ **14-game schedule**: 56 games created (14 per team × 8 teams ÷ 2)
-- ✅ **14 days**: One game day per scheduled day  
-- ✅ **1 game per day per team**: Round-robin scheduling ensures this
-- ✅ **8 teams in division**: Division 7 Alpha confirmed
-- ✅ **4 division games per day**: 8 teams ÷ 2 = 4 simultaneous games
-- ✅ **7 home games and 7 away games**: Balanced home/away distribution
-- ✅ **Each team plays each team twice**: Complete round-robin implementation
-- ✅ **Historical games cleared**: 108 games removed
-- ✅ **Proper reset to Day 1**: Season currentDay = 1
-
-### **Final Results**
-```json
-{
-  "success": true,
-  "message": "🎉 Emergency Division 7 Alpha reset complete!",
-  "data": {
-    "season": {"id": "season-2-1756825909804", "currentDay": 1},
-    "schedule": {"id": "9831b211-05b2-4e8f-a164-1731634e7e21"},
-    "teams": 8,
-    "gamesCleared": 108,
-    "gamesCreated": 56
-  }
-}
-```
-
-**Post-Reset Verification**: Teams now properly show 0W-0L-0pts with 0 games played, matching Day 1 status.
-
-### **Technical Innovation**
-- **Bulletproof Subdivision Filtering**: Confirmed working correctly throughout system
-- **Round-Robin Algorithm**: Mathematical scheduling ensuring perfect game distribution
-- **Database Transaction Safety**: All operations performed atomically
-- **No Authentication Emergency Access**: Critical system recovery without user dependencies
-
----
-
-## 🚨 CRITICAL SESSION UPDATE - September 6th, 2025 (Continued)
-
-### **MAJOR BUG FIX: Orphaned Games Affecting Team Statistics**
-
-**Issue Discovered**: Teams showing incorrect win/loss records due to orphaned games from previous seasons being included in statistics calculations.
-
-**Root Cause**: The `TeamStatisticsCalculator` was including ALL historical games for a team, not just current season games. Games without a `scheduleId` (orphaned from previous seasons) were incorrectly counted.
-
-**Fix Applied**: Updated `server/utils/teamStatisticsCalculator.ts` to filter out orphaned games:
-```typescript
-// Line 66 - CRITICAL: Only include games with valid scheduleId
-const completedGames = await prisma.game.findMany({
-  where: {
-    OR: [
-      { homeTeamId: teamId },
-      { awayTeamId: teamId }
-    ],
-    matchType: 'LEAGUE',
-    scheduleId: { not: null }, // Filter out orphaned games from old seasons
-    // ... rest of query
-  }
-});
-```
-
-**Impact**: Oakland Cougars was showing 1W-0D-1L (should be 1W-0D-0L) because an orphaned game (ID: 12591) from a previous season where they lost 10-16 was being counted.
-
-### **Key Learnings & Documentation Updates**
-
-#### **1. Server Restart Requirements**
-**CRITICAL**: When making backend changes during development with `tsx`:
-- Server does NOT automatically hot-reload for all changes
-- Must manually restart server when changing core services like `TeamStatisticsCalculator`
-- Kill existing process: `npx kill-port 3000` or kill the bash process
-- Restart: `npm run dev:local`
-
-#### **2. UserProfile vs userId Architecture**
-**Important distinction in database schema**:
-- `Team` model has `userProfileId` (NOT `userId`)
-- `UserProfile` model has `userId` (Firebase UID)
-- Two-tier association: Firebase UID → UserProfile → Team
-- Development mode uses `'dev-user-123'` as Firebase UID
-
-#### **3. Database Integrity Checks**
-Always verify when debugging statistics issues:
-1. Check for orphaned games: `WHERE scheduleId IS NULL`
-2. Verify current season games only have valid scheduleId
-3. Use `ensureUserProfiles.ts` script to verify team associations
-4. Clear orphaned games when transitioning seasons
-
-### **Files Modified in This Session**
-1. `server/utils/teamStatisticsCalculator.ts` - Added scheduleId filter for orphaned games
-2. `server/routes/leagueRoutes.ts` - Fixed team undefined error (line 1121)
-3. `client/src/components/ComprehensiveCompetitionCenter.tsx` - Fixed games remaining calculation (line 778)
-4. Created temporary scripts (deleted after use):
-   - `fix-future-game-scores.cjs` - Reset 52 future games with 0-0 scores to NULL
-   - `cleanup-orphaned-games.cjs` - Removed 285 orphaned games
-   - `revert-userprofile.cjs` - Restored UserProfile associations
-
-### **Results**
-✅ Oakland Cougars now correctly shows: **1W - 0D - 0L** with 3 points  
-✅ Only current season games counted in statistics  
-✅ 13 games remaining correctly calculated  
-✅ All standings accurate for Division 7 Alpha
-
----
-
-### **Last Updated**: September 6th, 2025 - Orphaned Games Fix & Statistics Calculation Update
-**Status**: ✅ SUCCESS - All data inconsistencies resolved, system fully operational

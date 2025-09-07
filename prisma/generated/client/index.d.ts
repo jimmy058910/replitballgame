@@ -129,6 +129,11 @@ export type Game = $Result.DefaultSelection<Prisma.$GamePayload>
  */
 export type Season = $Result.DefaultSelection<Prisma.$SeasonPayload>
 /**
+ * Model Schedule
+ * 
+ */
+export type Schedule = $Result.DefaultSelection<Prisma.$SchedulePayload>
+/**
  * Model Notification
  * 
  */
@@ -884,6 +889,16 @@ export class PrismaClient<
   get season(): Prisma.SeasonDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.schedule`: Exposes CRUD operations for the **Schedule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Schedules
+    * const schedules = await prisma.schedule.findMany()
+    * ```
+    */
+  get schedule(): Prisma.ScheduleDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.notification`: Exposes CRUD operations for the **Notification** model.
     * Example usage:
     * ```ts
@@ -1525,6 +1540,7 @@ export namespace Prisma {
     LeagueStanding: 'LeagueStanding',
     Game: 'Game',
     Season: 'Season',
+    Schedule: 'Schedule',
     Notification: 'Notification',
     TryoutPack: 'TryoutPack',
     TryoutHistory: 'TryoutHistory',
@@ -1561,7 +1577,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "userProfile" | "session" | "team" | "player" | "playerEquipment" | "contract" | "skill" | "playerSkillLink" | "staff" | "teamFinances" | "stadium" | "item" | "inventoryItem" | "activeBoost" | "marketplaceListing" | "bid" | "listingHistory" | "playerMarketValue" | "strategy" | "league" | "leagueStanding" | "game" | "season" | "notification" | "tryoutPack" | "tryoutHistory" | "gemPack" | "creditExchangeRate" | "referral" | "redeemCode" | "redeemCodeRecord" | "adRewardMilestone" | "premiumBoxReward" | "equipmentReward" | "tournament" | "tournamentEntry" | "paymentTransaction" | "playerDevelopmentHistory" | "playerMatchStats" | "teamMatchStats" | "playerCareerMilestone"
+      modelProps: "userProfile" | "session" | "team" | "player" | "playerEquipment" | "contract" | "skill" | "playerSkillLink" | "staff" | "teamFinances" | "stadium" | "item" | "inventoryItem" | "activeBoost" | "marketplaceListing" | "bid" | "listingHistory" | "playerMarketValue" | "strategy" | "league" | "leagueStanding" | "game" | "season" | "schedule" | "notification" | "tryoutPack" | "tryoutHistory" | "gemPack" | "creditExchangeRate" | "referral" | "redeemCode" | "redeemCodeRecord" | "adRewardMilestone" | "premiumBoxReward" | "equipmentReward" | "tournament" | "tournamentEntry" | "paymentTransaction" | "playerDevelopmentHistory" | "playerMatchStats" | "teamMatchStats" | "playerCareerMilestone"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3267,6 +3283,80 @@ export namespace Prisma {
           }
         }
       }
+      Schedule: {
+        payload: Prisma.$SchedulePayload<ExtArgs>
+        fields: Prisma.ScheduleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ScheduleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ScheduleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          findFirst: {
+            args: Prisma.ScheduleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ScheduleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          findMany: {
+            args: Prisma.ScheduleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>[]
+          }
+          create: {
+            args: Prisma.ScheduleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          createMany: {
+            args: Prisma.ScheduleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ScheduleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>[]
+          }
+          delete: {
+            args: Prisma.ScheduleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          update: {
+            args: Prisma.ScheduleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          deleteMany: {
+            args: Prisma.ScheduleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ScheduleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ScheduleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>[]
+          }
+          upsert: {
+            args: Prisma.ScheduleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          aggregate: {
+            args: Prisma.ScheduleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSchedule>
+          }
+          groupBy: {
+            args: Prisma.ScheduleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ScheduleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ScheduleCountArgs<ExtArgs>
+            result: $Utils.Optional<ScheduleCountAggregateOutputType> | number
+          }
+        }
+      }
       Notification: {
         payload: Prisma.$NotificationPayload<ExtArgs>
         fields: Prisma.NotificationFieldRefs
@@ -4706,6 +4796,7 @@ export namespace Prisma {
     leagueStanding?: LeagueStandingOmit
     game?: GameOmit
     season?: SeasonOmit
+    schedule?: ScheduleOmit
     notification?: NotificationOmit
     tryoutPack?: TryoutPackOmit
     tryoutHistory?: TryoutHistoryOmit
@@ -5301,11 +5392,15 @@ export namespace Prisma {
 
   export type SeasonCountOutputType = {
     leagues: number
+    games: number
+    schedules: number
     tryoutHistory: number
   }
 
   export type SeasonCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     leagues?: boolean | SeasonCountOutputTypeCountLeaguesArgs
+    games?: boolean | SeasonCountOutputTypeCountGamesArgs
+    schedules?: boolean | SeasonCountOutputTypeCountSchedulesArgs
     tryoutHistory?: boolean | SeasonCountOutputTypeCountTryoutHistoryArgs
   }
 
@@ -5330,8 +5425,53 @@ export namespace Prisma {
   /**
    * SeasonCountOutputType without action
    */
+  export type SeasonCountOutputTypeCountGamesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GameWhereInput
+  }
+
+  /**
+   * SeasonCountOutputType without action
+   */
+  export type SeasonCountOutputTypeCountSchedulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ScheduleWhereInput
+  }
+
+  /**
+   * SeasonCountOutputType without action
+   */
   export type SeasonCountOutputTypeCountTryoutHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TryoutHistoryWhereInput
+  }
+
+
+  /**
+   * Count Type ScheduleCountOutputType
+   */
+
+  export type ScheduleCountOutputType = {
+    games: number
+  }
+
+  export type ScheduleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    games?: boolean | ScheduleCountOutputTypeCountGamesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ScheduleCountOutputType without action
+   */
+  export type ScheduleCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ScheduleCountOutputType
+     */
+    select?: ScheduleCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ScheduleCountOutputType without action
+   */
+  export type ScheduleCountOutputTypeCountGamesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GameWhereInput
   }
 
 
@@ -31424,6 +31564,7 @@ export namespace Prisma {
     awayScore: number | null
     tournamentId: number | null
     round: number | null
+    gameDay: number | null
   }
 
   export type GameSumAggregateOutputType = {
@@ -31435,6 +31576,7 @@ export namespace Prisma {
     awayScore: number | null
     tournamentId: number | null
     round: number | null
+    gameDay: number | null
   }
 
   export type GameMinAggregateOutputType = {
@@ -31450,6 +31592,10 @@ export namespace Prisma {
     tournamentId: number | null
     round: number | null
     status: $Enums.GameStatus | null
+    seasonId: string | null
+    scheduleId: string | null
+    subdivision: string | null
+    gameDay: number | null
     createdAt: Date | null
   }
 
@@ -31466,6 +31612,10 @@ export namespace Prisma {
     tournamentId: number | null
     round: number | null
     status: $Enums.GameStatus | null
+    seasonId: string | null
+    scheduleId: string | null
+    subdivision: string | null
+    gameDay: number | null
     createdAt: Date | null
   }
 
@@ -31483,6 +31633,10 @@ export namespace Prisma {
     tournamentId: number
     round: number
     status: number
+    seasonId: number
+    scheduleId: number
+    subdivision: number
+    gameDay: number
     createdAt: number
     _all: number
   }
@@ -31497,6 +31651,7 @@ export namespace Prisma {
     awayScore?: true
     tournamentId?: true
     round?: true
+    gameDay?: true
   }
 
   export type GameSumAggregateInputType = {
@@ -31508,6 +31663,7 @@ export namespace Prisma {
     awayScore?: true
     tournamentId?: true
     round?: true
+    gameDay?: true
   }
 
   export type GameMinAggregateInputType = {
@@ -31523,6 +31679,10 @@ export namespace Prisma {
     tournamentId?: true
     round?: true
     status?: true
+    seasonId?: true
+    scheduleId?: true
+    subdivision?: true
+    gameDay?: true
     createdAt?: true
   }
 
@@ -31539,6 +31699,10 @@ export namespace Prisma {
     tournamentId?: true
     round?: true
     status?: true
+    seasonId?: true
+    scheduleId?: true
+    subdivision?: true
+    gameDay?: true
     createdAt?: true
   }
 
@@ -31556,6 +31720,10 @@ export namespace Prisma {
     tournamentId?: true
     round?: true
     status?: true
+    seasonId?: true
+    scheduleId?: true
+    subdivision?: true
+    gameDay?: true
     createdAt?: true
     _all?: true
   }
@@ -31660,6 +31828,10 @@ export namespace Prisma {
     tournamentId: number | null
     round: number | null
     status: $Enums.GameStatus
+    seasonId: string | null
+    scheduleId: string | null
+    subdivision: string | null
+    gameDay: number | null
     createdAt: Date
     _count: GameCountAggregateOutputType | null
     _avg: GameAvgAggregateOutputType | null
@@ -31696,11 +31868,17 @@ export namespace Prisma {
     tournamentId?: boolean
     round?: boolean
     status?: boolean
+    seasonId?: boolean
+    scheduleId?: boolean
+    subdivision?: boolean
+    gameDay?: boolean
     createdAt?: boolean
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
     tournament?: boolean | Game$tournamentArgs<ExtArgs>
+    season?: boolean | Game$seasonArgs<ExtArgs>
+    schedule?: boolean | Game$scheduleArgs<ExtArgs>
     playerStats?: boolean | Game$playerStatsArgs<ExtArgs>
     teamStats?: boolean | Game$teamStatsArgs<ExtArgs>
     _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
@@ -31720,11 +31898,17 @@ export namespace Prisma {
     tournamentId?: boolean
     round?: boolean
     status?: boolean
+    seasonId?: boolean
+    scheduleId?: boolean
+    subdivision?: boolean
+    gameDay?: boolean
     createdAt?: boolean
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
     tournament?: boolean | Game$tournamentArgs<ExtArgs>
+    season?: boolean | Game$seasonArgs<ExtArgs>
+    schedule?: boolean | Game$scheduleArgs<ExtArgs>
   }, ExtArgs["result"]["game"]>
 
   export type GameSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -31741,11 +31925,17 @@ export namespace Prisma {
     tournamentId?: boolean
     round?: boolean
     status?: boolean
+    seasonId?: boolean
+    scheduleId?: boolean
+    subdivision?: boolean
+    gameDay?: boolean
     createdAt?: boolean
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
     tournament?: boolean | Game$tournamentArgs<ExtArgs>
+    season?: boolean | Game$seasonArgs<ExtArgs>
+    schedule?: boolean | Game$scheduleArgs<ExtArgs>
   }, ExtArgs["result"]["game"]>
 
   export type GameSelectScalar = {
@@ -31762,15 +31952,21 @@ export namespace Prisma {
     tournamentId?: boolean
     round?: boolean
     status?: boolean
+    seasonId?: boolean
+    scheduleId?: boolean
+    subdivision?: boolean
+    gameDay?: boolean
     createdAt?: boolean
   }
 
-  export type GameOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "leagueId" | "homeTeamId" | "awayTeamId" | "homeScore" | "awayScore" | "gameDate" | "simulated" | "simulationLog" | "matchType" | "tournamentId" | "round" | "status" | "createdAt", ExtArgs["result"]["game"]>
+  export type GameOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "leagueId" | "homeTeamId" | "awayTeamId" | "homeScore" | "awayScore" | "gameDate" | "simulated" | "simulationLog" | "matchType" | "tournamentId" | "round" | "status" | "seasonId" | "scheduleId" | "subdivision" | "gameDay" | "createdAt", ExtArgs["result"]["game"]>
   export type GameInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
     tournament?: boolean | Game$tournamentArgs<ExtArgs>
+    season?: boolean | Game$seasonArgs<ExtArgs>
+    schedule?: boolean | Game$scheduleArgs<ExtArgs>
     playerStats?: boolean | Game$playerStatsArgs<ExtArgs>
     teamStats?: boolean | Game$teamStatsArgs<ExtArgs>
     _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
@@ -31780,12 +31976,16 @@ export namespace Prisma {
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
     tournament?: boolean | Game$tournamentArgs<ExtArgs>
+    season?: boolean | Game$seasonArgs<ExtArgs>
+    schedule?: boolean | Game$scheduleArgs<ExtArgs>
   }
   export type GameIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
     tournament?: boolean | Game$tournamentArgs<ExtArgs>
+    season?: boolean | Game$seasonArgs<ExtArgs>
+    schedule?: boolean | Game$scheduleArgs<ExtArgs>
   }
 
   export type $GamePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -31795,6 +31995,8 @@ export namespace Prisma {
       homeTeam: Prisma.$TeamPayload<ExtArgs>
       awayTeam: Prisma.$TeamPayload<ExtArgs>
       tournament: Prisma.$TournamentPayload<ExtArgs> | null
+      season: Prisma.$SeasonPayload<ExtArgs> | null
+      schedule: Prisma.$SchedulePayload<ExtArgs> | null
       playerStats: Prisma.$PlayerMatchStatsPayload<ExtArgs>[]
       teamStats: Prisma.$TeamMatchStatsPayload<ExtArgs>[]
     }
@@ -31812,6 +32014,10 @@ export namespace Prisma {
       tournamentId: number | null
       round: number | null
       status: $Enums.GameStatus
+      seasonId: string | null
+      scheduleId: string | null
+      subdivision: string | null
+      gameDay: number | null
       createdAt: Date
     }, ExtArgs["result"]["game"]>
     composites: {}
@@ -32211,6 +32417,8 @@ export namespace Prisma {
     homeTeam<T extends TeamDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TeamDefaultArgs<ExtArgs>>): Prisma__TeamClient<$Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     awayTeam<T extends TeamDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TeamDefaultArgs<ExtArgs>>): Prisma__TeamClient<$Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     tournament<T extends Game$tournamentArgs<ExtArgs> = {}>(args?: Subset<T, Game$tournamentArgs<ExtArgs>>): Prisma__TournamentClient<$Result.GetResult<Prisma.$TournamentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    season<T extends Game$seasonArgs<ExtArgs> = {}>(args?: Subset<T, Game$seasonArgs<ExtArgs>>): Prisma__SeasonClient<$Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    schedule<T extends Game$scheduleArgs<ExtArgs> = {}>(args?: Subset<T, Game$scheduleArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     playerStats<T extends Game$playerStatsArgs<ExtArgs> = {}>(args?: Subset<T, Game$playerStatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlayerMatchStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     teamStats<T extends Game$teamStatsArgs<ExtArgs> = {}>(args?: Subset<T, Game$teamStatsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TeamMatchStatsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -32255,6 +32463,10 @@ export namespace Prisma {
     readonly tournamentId: FieldRef<"Game", 'Int'>
     readonly round: FieldRef<"Game", 'Int'>
     readonly status: FieldRef<"Game", 'GameStatus'>
+    readonly seasonId: FieldRef<"Game", 'String'>
+    readonly scheduleId: FieldRef<"Game", 'String'>
+    readonly subdivision: FieldRef<"Game", 'String'>
+    readonly gameDay: FieldRef<"Game", 'Int'>
     readonly createdAt: FieldRef<"Game", 'DateTime'>
   }
     
@@ -32690,6 +32902,44 @@ export namespace Prisma {
   }
 
   /**
+   * Game.season
+   */
+  export type Game$seasonArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Season
+     */
+    select?: SeasonSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Season
+     */
+    omit?: SeasonOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SeasonInclude<ExtArgs> | null
+    where?: SeasonWhereInput
+  }
+
+  /**
+   * Game.schedule
+   */
+  export type Game$scheduleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    where?: ScheduleWhereInput
+  }
+
+  /**
    * Game.playerStats
    */
   export type Game$playerStatsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -32975,6 +33225,8 @@ export namespace Prisma {
     phase?: boolean
     createdAt?: boolean
     leagues?: boolean | Season$leaguesArgs<ExtArgs>
+    games?: boolean | Season$gamesArgs<ExtArgs>
+    schedules?: boolean | Season$schedulesArgs<ExtArgs>
     tryoutHistory?: boolean | Season$tryoutHistoryArgs<ExtArgs>
     _count?: boolean | SeasonCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["season"]>
@@ -33012,6 +33264,8 @@ export namespace Prisma {
   export type SeasonOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "seasonNumber" | "startDate" | "endDate" | "currentDay" | "phase" | "createdAt", ExtArgs["result"]["season"]>
   export type SeasonInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     leagues?: boolean | Season$leaguesArgs<ExtArgs>
+    games?: boolean | Season$gamesArgs<ExtArgs>
+    schedules?: boolean | Season$schedulesArgs<ExtArgs>
     tryoutHistory?: boolean | Season$tryoutHistoryArgs<ExtArgs>
     _count?: boolean | SeasonCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -33022,6 +33276,8 @@ export namespace Prisma {
     name: "Season"
     objects: {
       leagues: Prisma.$LeaguePayload<ExtArgs>[]
+      games: Prisma.$GamePayload<ExtArgs>[]
+      schedules: Prisma.$SchedulePayload<ExtArgs>[]
       tryoutHistory: Prisma.$TryoutHistoryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -33427,6 +33683,8 @@ export namespace Prisma {
   export interface Prisma__SeasonClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     leagues<T extends Season$leaguesArgs<ExtArgs> = {}>(args?: Subset<T, Season$leaguesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LeaguePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    games<T extends Season$gamesArgs<ExtArgs> = {}>(args?: Subset<T, Season$gamesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    schedules<T extends Season$schedulesArgs<ExtArgs> = {}>(args?: Subset<T, Season$schedulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     tryoutHistory<T extends Season$tryoutHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Season$tryoutHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TryoutHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -33876,6 +34134,54 @@ export namespace Prisma {
   }
 
   /**
+   * Season.games
+   */
+  export type Season$gamesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Game
+     */
+    select?: GameSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Game
+     */
+    omit?: GameOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInclude<ExtArgs> | null
+    where?: GameWhereInput
+    orderBy?: GameOrderByWithRelationInput | GameOrderByWithRelationInput[]
+    cursor?: GameWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GameScalarFieldEnum | GameScalarFieldEnum[]
+  }
+
+  /**
+   * Season.schedules
+   */
+  export type Season$schedulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    where?: ScheduleWhereInput
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
+    cursor?: ScheduleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
+  }
+
+  /**
    * Season.tryoutHistory
    */
   export type Season$tryoutHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -33915,6 +34221,1154 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: SeasonInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Schedule
+   */
+
+  export type AggregateSchedule = {
+    _count: ScheduleCountAggregateOutputType | null
+    _avg: ScheduleAvgAggregateOutputType | null
+    _sum: ScheduleSumAggregateOutputType | null
+    _min: ScheduleMinAggregateOutputType | null
+    _max: ScheduleMaxAggregateOutputType | null
+  }
+
+  export type ScheduleAvgAggregateOutputType = {
+    division: number | null
+  }
+
+  export type ScheduleSumAggregateOutputType = {
+    division: number | null
+  }
+
+  export type ScheduleMinAggregateOutputType = {
+    id: string | null
+    seasonId: string | null
+    division: number | null
+    subdivision: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ScheduleMaxAggregateOutputType = {
+    id: string | null
+    seasonId: string | null
+    division: number | null
+    subdivision: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ScheduleCountAggregateOutputType = {
+    id: number
+    seasonId: number
+    division: number
+    subdivision: number
+    isActive: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ScheduleAvgAggregateInputType = {
+    division?: true
+  }
+
+  export type ScheduleSumAggregateInputType = {
+    division?: true
+  }
+
+  export type ScheduleMinAggregateInputType = {
+    id?: true
+    seasonId?: true
+    division?: true
+    subdivision?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ScheduleMaxAggregateInputType = {
+    id?: true
+    seasonId?: true
+    division?: true
+    subdivision?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ScheduleCountAggregateInputType = {
+    id?: true
+    seasonId?: true
+    division?: true
+    subdivision?: true
+    isActive?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ScheduleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Schedule to aggregate.
+     */
+    where?: ScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Schedules to fetch.
+     */
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Schedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Schedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Schedules
+    **/
+    _count?: true | ScheduleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ScheduleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ScheduleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ScheduleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ScheduleMaxAggregateInputType
+  }
+
+  export type GetScheduleAggregateType<T extends ScheduleAggregateArgs> = {
+        [P in keyof T & keyof AggregateSchedule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSchedule[P]>
+      : GetScalarType<T[P], AggregateSchedule[P]>
+  }
+
+
+
+
+  export type ScheduleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ScheduleWhereInput
+    orderBy?: ScheduleOrderByWithAggregationInput | ScheduleOrderByWithAggregationInput[]
+    by: ScheduleScalarFieldEnum[] | ScheduleScalarFieldEnum
+    having?: ScheduleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ScheduleCountAggregateInputType | true
+    _avg?: ScheduleAvgAggregateInputType
+    _sum?: ScheduleSumAggregateInputType
+    _min?: ScheduleMinAggregateInputType
+    _max?: ScheduleMaxAggregateInputType
+  }
+
+  export type ScheduleGroupByOutputType = {
+    id: string
+    seasonId: string
+    division: number
+    subdivision: string
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: ScheduleCountAggregateOutputType | null
+    _avg: ScheduleAvgAggregateOutputType | null
+    _sum: ScheduleSumAggregateOutputType | null
+    _min: ScheduleMinAggregateOutputType | null
+    _max: ScheduleMaxAggregateOutputType | null
+  }
+
+  type GetScheduleGroupByPayload<T extends ScheduleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ScheduleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ScheduleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ScheduleGroupByOutputType[P]>
+            : GetScalarType<T[P], ScheduleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ScheduleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    seasonId?: boolean
+    division?: boolean
+    subdivision?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    season?: boolean | SeasonDefaultArgs<ExtArgs>
+    games?: boolean | Schedule$gamesArgs<ExtArgs>
+    _count?: boolean | ScheduleCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["schedule"]>
+
+  export type ScheduleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    seasonId?: boolean
+    division?: boolean
+    subdivision?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    season?: boolean | SeasonDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["schedule"]>
+
+  export type ScheduleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    seasonId?: boolean
+    division?: boolean
+    subdivision?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    season?: boolean | SeasonDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["schedule"]>
+
+  export type ScheduleSelectScalar = {
+    id?: boolean
+    seasonId?: boolean
+    division?: boolean
+    subdivision?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ScheduleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "seasonId" | "division" | "subdivision" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["schedule"]>
+  export type ScheduleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    season?: boolean | SeasonDefaultArgs<ExtArgs>
+    games?: boolean | Schedule$gamesArgs<ExtArgs>
+    _count?: boolean | ScheduleCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ScheduleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    season?: boolean | SeasonDefaultArgs<ExtArgs>
+  }
+  export type ScheduleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    season?: boolean | SeasonDefaultArgs<ExtArgs>
+  }
+
+  export type $SchedulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Schedule"
+    objects: {
+      season: Prisma.$SeasonPayload<ExtArgs>
+      games: Prisma.$GamePayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      seasonId: string
+      division: number
+      subdivision: string
+      isActive: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["schedule"]>
+    composites: {}
+  }
+
+  type ScheduleGetPayload<S extends boolean | null | undefined | ScheduleDefaultArgs> = $Result.GetResult<Prisma.$SchedulePayload, S>
+
+  type ScheduleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ScheduleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ScheduleCountAggregateInputType | true
+    }
+
+  export interface ScheduleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Schedule'], meta: { name: 'Schedule' } }
+    /**
+     * Find zero or one Schedule that matches the filter.
+     * @param {ScheduleFindUniqueArgs} args - Arguments to find a Schedule
+     * @example
+     * // Get one Schedule
+     * const schedule = await prisma.schedule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ScheduleFindUniqueArgs>(args: SelectSubset<T, ScheduleFindUniqueArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Schedule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ScheduleFindUniqueOrThrowArgs} args - Arguments to find a Schedule
+     * @example
+     * // Get one Schedule
+     * const schedule = await prisma.schedule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ScheduleFindUniqueOrThrowArgs>(args: SelectSubset<T, ScheduleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Schedule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ScheduleFindFirstArgs} args - Arguments to find a Schedule
+     * @example
+     * // Get one Schedule
+     * const schedule = await prisma.schedule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ScheduleFindFirstArgs>(args?: SelectSubset<T, ScheduleFindFirstArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Schedule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ScheduleFindFirstOrThrowArgs} args - Arguments to find a Schedule
+     * @example
+     * // Get one Schedule
+     * const schedule = await prisma.schedule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ScheduleFindFirstOrThrowArgs>(args?: SelectSubset<T, ScheduleFindFirstOrThrowArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Schedules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ScheduleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Schedules
+     * const schedules = await prisma.schedule.findMany()
+     * 
+     * // Get first 10 Schedules
+     * const schedules = await prisma.schedule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const scheduleWithIdOnly = await prisma.schedule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ScheduleFindManyArgs>(args?: SelectSubset<T, ScheduleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Schedule.
+     * @param {ScheduleCreateArgs} args - Arguments to create a Schedule.
+     * @example
+     * // Create one Schedule
+     * const Schedule = await prisma.schedule.create({
+     *   data: {
+     *     // ... data to create a Schedule
+     *   }
+     * })
+     * 
+     */
+    create<T extends ScheduleCreateArgs>(args: SelectSubset<T, ScheduleCreateArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Schedules.
+     * @param {ScheduleCreateManyArgs} args - Arguments to create many Schedules.
+     * @example
+     * // Create many Schedules
+     * const schedule = await prisma.schedule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ScheduleCreateManyArgs>(args?: SelectSubset<T, ScheduleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Schedules and returns the data saved in the database.
+     * @param {ScheduleCreateManyAndReturnArgs} args - Arguments to create many Schedules.
+     * @example
+     * // Create many Schedules
+     * const schedule = await prisma.schedule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Schedules and only return the `id`
+     * const scheduleWithIdOnly = await prisma.schedule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ScheduleCreateManyAndReturnArgs>(args?: SelectSubset<T, ScheduleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Schedule.
+     * @param {ScheduleDeleteArgs} args - Arguments to delete one Schedule.
+     * @example
+     * // Delete one Schedule
+     * const Schedule = await prisma.schedule.delete({
+     *   where: {
+     *     // ... filter to delete one Schedule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ScheduleDeleteArgs>(args: SelectSubset<T, ScheduleDeleteArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Schedule.
+     * @param {ScheduleUpdateArgs} args - Arguments to update one Schedule.
+     * @example
+     * // Update one Schedule
+     * const schedule = await prisma.schedule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ScheduleUpdateArgs>(args: SelectSubset<T, ScheduleUpdateArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Schedules.
+     * @param {ScheduleDeleteManyArgs} args - Arguments to filter Schedules to delete.
+     * @example
+     * // Delete a few Schedules
+     * const { count } = await prisma.schedule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ScheduleDeleteManyArgs>(args?: SelectSubset<T, ScheduleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Schedules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ScheduleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Schedules
+     * const schedule = await prisma.schedule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ScheduleUpdateManyArgs>(args: SelectSubset<T, ScheduleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Schedules and returns the data updated in the database.
+     * @param {ScheduleUpdateManyAndReturnArgs} args - Arguments to update many Schedules.
+     * @example
+     * // Update many Schedules
+     * const schedule = await prisma.schedule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Schedules and only return the `id`
+     * const scheduleWithIdOnly = await prisma.schedule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ScheduleUpdateManyAndReturnArgs>(args: SelectSubset<T, ScheduleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Schedule.
+     * @param {ScheduleUpsertArgs} args - Arguments to update or create a Schedule.
+     * @example
+     * // Update or create a Schedule
+     * const schedule = await prisma.schedule.upsert({
+     *   create: {
+     *     // ... data to create a Schedule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Schedule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ScheduleUpsertArgs>(args: SelectSubset<T, ScheduleUpsertArgs<ExtArgs>>): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Schedules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ScheduleCountArgs} args - Arguments to filter Schedules to count.
+     * @example
+     * // Count the number of Schedules
+     * const count = await prisma.schedule.count({
+     *   where: {
+     *     // ... the filter for the Schedules we want to count
+     *   }
+     * })
+    **/
+    count<T extends ScheduleCountArgs>(
+      args?: Subset<T, ScheduleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ScheduleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Schedule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ScheduleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ScheduleAggregateArgs>(args: Subset<T, ScheduleAggregateArgs>): Prisma.PrismaPromise<GetScheduleAggregateType<T>>
+
+    /**
+     * Group by Schedule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ScheduleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ScheduleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ScheduleGroupByArgs['orderBy'] }
+        : { orderBy?: ScheduleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ScheduleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetScheduleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Schedule model
+   */
+  readonly fields: ScheduleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Schedule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ScheduleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    season<T extends SeasonDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SeasonDefaultArgs<ExtArgs>>): Prisma__SeasonClient<$Result.GetResult<Prisma.$SeasonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    games<T extends Schedule$gamesArgs<ExtArgs> = {}>(args?: Subset<T, Schedule$gamesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Schedule model
+   */
+  interface ScheduleFieldRefs {
+    readonly id: FieldRef<"Schedule", 'String'>
+    readonly seasonId: FieldRef<"Schedule", 'String'>
+    readonly division: FieldRef<"Schedule", 'Int'>
+    readonly subdivision: FieldRef<"Schedule", 'String'>
+    readonly isActive: FieldRef<"Schedule", 'Boolean'>
+    readonly createdAt: FieldRef<"Schedule", 'DateTime'>
+    readonly updatedAt: FieldRef<"Schedule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Schedule findUnique
+   */
+  export type ScheduleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which Schedule to fetch.
+     */
+    where: ScheduleWhereUniqueInput
+  }
+
+  /**
+   * Schedule findUniqueOrThrow
+   */
+  export type ScheduleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which Schedule to fetch.
+     */
+    where: ScheduleWhereUniqueInput
+  }
+
+  /**
+   * Schedule findFirst
+   */
+  export type ScheduleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which Schedule to fetch.
+     */
+    where?: ScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Schedules to fetch.
+     */
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Schedules.
+     */
+    cursor?: ScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Schedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Schedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Schedules.
+     */
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * Schedule findFirstOrThrow
+   */
+  export type ScheduleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which Schedule to fetch.
+     */
+    where?: ScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Schedules to fetch.
+     */
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Schedules.
+     */
+    cursor?: ScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Schedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Schedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Schedules.
+     */
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * Schedule findMany
+   */
+  export type ScheduleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * Filter, which Schedules to fetch.
+     */
+    where?: ScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Schedules to fetch.
+     */
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Schedules.
+     */
+    cursor?: ScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Schedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Schedules.
+     */
+    skip?: number
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * Schedule create
+   */
+  export type ScheduleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Schedule.
+     */
+    data: XOR<ScheduleCreateInput, ScheduleUncheckedCreateInput>
+  }
+
+  /**
+   * Schedule createMany
+   */
+  export type ScheduleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Schedules.
+     */
+    data: ScheduleCreateManyInput | ScheduleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Schedule createManyAndReturn
+   */
+  export type ScheduleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * The data used to create many Schedules.
+     */
+    data: ScheduleCreateManyInput | ScheduleCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Schedule update
+   */
+  export type ScheduleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Schedule.
+     */
+    data: XOR<ScheduleUpdateInput, ScheduleUncheckedUpdateInput>
+    /**
+     * Choose, which Schedule to update.
+     */
+    where: ScheduleWhereUniqueInput
+  }
+
+  /**
+   * Schedule updateMany
+   */
+  export type ScheduleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Schedules.
+     */
+    data: XOR<ScheduleUpdateManyMutationInput, ScheduleUncheckedUpdateManyInput>
+    /**
+     * Filter which Schedules to update
+     */
+    where?: ScheduleWhereInput
+    /**
+     * Limit how many Schedules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Schedule updateManyAndReturn
+   */
+  export type ScheduleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * The data used to update Schedules.
+     */
+    data: XOR<ScheduleUpdateManyMutationInput, ScheduleUncheckedUpdateManyInput>
+    /**
+     * Filter which Schedules to update
+     */
+    where?: ScheduleWhereInput
+    /**
+     * Limit how many Schedules to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Schedule upsert
+   */
+  export type ScheduleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Schedule to update in case it exists.
+     */
+    where: ScheduleWhereUniqueInput
+    /**
+     * In case the Schedule found by the `where` argument doesn't exist, create a new Schedule with this data.
+     */
+    create: XOR<ScheduleCreateInput, ScheduleUncheckedCreateInput>
+    /**
+     * In case the Schedule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ScheduleUpdateInput, ScheduleUncheckedUpdateInput>
+  }
+
+  /**
+   * Schedule delete
+   */
+  export type ScheduleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
+    /**
+     * Filter which Schedule to delete.
+     */
+    where: ScheduleWhereUniqueInput
+  }
+
+  /**
+   * Schedule deleteMany
+   */
+  export type ScheduleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Schedules to delete
+     */
+    where?: ScheduleWhereInput
+    /**
+     * Limit how many Schedules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Schedule.games
+   */
+  export type Schedule$gamesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Game
+     */
+    select?: GameSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Game
+     */
+    omit?: GameOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInclude<ExtArgs> | null
+    where?: GameWhereInput
+    orderBy?: GameOrderByWithRelationInput | GameOrderByWithRelationInput[]
+    cursor?: GameWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GameScalarFieldEnum | GameScalarFieldEnum[]
+  }
+
+  /**
+   * Schedule without action
+   */
+  export type ScheduleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Schedule
+     */
+    select?: ScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Schedule
+     */
+    omit?: ScheduleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ScheduleInclude<ExtArgs> | null
   }
 
 
@@ -55349,6 +56803,10 @@ export namespace Prisma {
     tournamentId: 'tournamentId',
     round: 'round',
     status: 'status',
+    seasonId: 'seasonId',
+    scheduleId: 'scheduleId',
+    subdivision: 'subdivision',
+    gameDay: 'gameDay',
     createdAt: 'createdAt'
   };
 
@@ -55366,6 +56824,19 @@ export namespace Prisma {
   };
 
   export type SeasonScalarFieldEnum = (typeof SeasonScalarFieldEnum)[keyof typeof SeasonScalarFieldEnum]
+
+
+  export const ScheduleScalarFieldEnum: {
+    id: 'id',
+    seasonId: 'seasonId',
+    division: 'division',
+    subdivision: 'subdivision',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ScheduleScalarFieldEnum = (typeof ScheduleScalarFieldEnum)[keyof typeof ScheduleScalarFieldEnum]
 
 
   export const NotificationScalarFieldEnum: {
@@ -58017,11 +59488,17 @@ export namespace Prisma {
     tournamentId?: IntNullableFilter<"Game"> | number | null
     round?: IntNullableFilter<"Game"> | number | null
     status?: EnumGameStatusFilter<"Game"> | $Enums.GameStatus
+    seasonId?: StringNullableFilter<"Game"> | string | null
+    scheduleId?: StringNullableFilter<"Game"> | string | null
+    subdivision?: StringNullableFilter<"Game"> | string | null
+    gameDay?: IntNullableFilter<"Game"> | number | null
     createdAt?: DateTimeFilter<"Game"> | Date | string
     league?: XOR<LeagueNullableScalarRelationFilter, LeagueWhereInput> | null
     homeTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     awayTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     tournament?: XOR<TournamentNullableScalarRelationFilter, TournamentWhereInput> | null
+    season?: XOR<SeasonNullableScalarRelationFilter, SeasonWhereInput> | null
+    schedule?: XOR<ScheduleNullableScalarRelationFilter, ScheduleWhereInput> | null
     playerStats?: PlayerMatchStatsListRelationFilter
     teamStats?: TeamMatchStatsListRelationFilter
   }
@@ -58040,11 +59517,17 @@ export namespace Prisma {
     tournamentId?: SortOrderInput | SortOrder
     round?: SortOrderInput | SortOrder
     status?: SortOrder
+    seasonId?: SortOrderInput | SortOrder
+    scheduleId?: SortOrderInput | SortOrder
+    subdivision?: SortOrderInput | SortOrder
+    gameDay?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     league?: LeagueOrderByWithRelationInput
     homeTeam?: TeamOrderByWithRelationInput
     awayTeam?: TeamOrderByWithRelationInput
     tournament?: TournamentOrderByWithRelationInput
+    season?: SeasonOrderByWithRelationInput
+    schedule?: ScheduleOrderByWithRelationInput
     playerStats?: PlayerMatchStatsOrderByRelationAggregateInput
     teamStats?: TeamMatchStatsOrderByRelationAggregateInput
   }
@@ -58066,11 +59549,17 @@ export namespace Prisma {
     tournamentId?: IntNullableFilter<"Game"> | number | null
     round?: IntNullableFilter<"Game"> | number | null
     status?: EnumGameStatusFilter<"Game"> | $Enums.GameStatus
+    seasonId?: StringNullableFilter<"Game"> | string | null
+    scheduleId?: StringNullableFilter<"Game"> | string | null
+    subdivision?: StringNullableFilter<"Game"> | string | null
+    gameDay?: IntNullableFilter<"Game"> | number | null
     createdAt?: DateTimeFilter<"Game"> | Date | string
     league?: XOR<LeagueNullableScalarRelationFilter, LeagueWhereInput> | null
     homeTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     awayTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     tournament?: XOR<TournamentNullableScalarRelationFilter, TournamentWhereInput> | null
+    season?: XOR<SeasonNullableScalarRelationFilter, SeasonWhereInput> | null
+    schedule?: XOR<ScheduleNullableScalarRelationFilter, ScheduleWhereInput> | null
     playerStats?: PlayerMatchStatsListRelationFilter
     teamStats?: TeamMatchStatsListRelationFilter
   }, "id">
@@ -58089,6 +59578,10 @@ export namespace Prisma {
     tournamentId?: SortOrderInput | SortOrder
     round?: SortOrderInput | SortOrder
     status?: SortOrder
+    seasonId?: SortOrderInput | SortOrder
+    scheduleId?: SortOrderInput | SortOrder
+    subdivision?: SortOrderInput | SortOrder
+    gameDay?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: GameCountOrderByAggregateInput
     _avg?: GameAvgOrderByAggregateInput
@@ -58114,6 +59607,10 @@ export namespace Prisma {
     tournamentId?: IntNullableWithAggregatesFilter<"Game"> | number | null
     round?: IntNullableWithAggregatesFilter<"Game"> | number | null
     status?: EnumGameStatusWithAggregatesFilter<"Game"> | $Enums.GameStatus
+    seasonId?: StringNullableWithAggregatesFilter<"Game"> | string | null
+    scheduleId?: StringNullableWithAggregatesFilter<"Game"> | string | null
+    subdivision?: StringNullableWithAggregatesFilter<"Game"> | string | null
+    gameDay?: IntNullableWithAggregatesFilter<"Game"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Game"> | Date | string
   }
 
@@ -58129,6 +59626,8 @@ export namespace Prisma {
     phase?: EnumSeasonPhaseFilter<"Season"> | $Enums.SeasonPhase
     createdAt?: DateTimeFilter<"Season"> | Date | string
     leagues?: LeagueListRelationFilter
+    games?: GameListRelationFilter
+    schedules?: ScheduleListRelationFilter
     tryoutHistory?: TryoutHistoryListRelationFilter
   }
 
@@ -58141,6 +59640,8 @@ export namespace Prisma {
     phase?: SortOrder
     createdAt?: SortOrder
     leagues?: LeagueOrderByRelationAggregateInput
+    games?: GameOrderByRelationAggregateInput
+    schedules?: ScheduleOrderByRelationAggregateInput
     tryoutHistory?: TryoutHistoryOrderByRelationAggregateInput
   }
 
@@ -58156,6 +59657,8 @@ export namespace Prisma {
     phase?: EnumSeasonPhaseFilter<"Season"> | $Enums.SeasonPhase
     createdAt?: DateTimeFilter<"Season"> | Date | string
     leagues?: LeagueListRelationFilter
+    games?: GameListRelationFilter
+    schedules?: ScheduleListRelationFilter
     tryoutHistory?: TryoutHistoryListRelationFilter
   }, "id" | "id" | "seasonNumber">
 
@@ -58185,6 +59688,77 @@ export namespace Prisma {
     currentDay?: IntWithAggregatesFilter<"Season"> | number
     phase?: EnumSeasonPhaseWithAggregatesFilter<"Season"> | $Enums.SeasonPhase
     createdAt?: DateTimeWithAggregatesFilter<"Season"> | Date | string
+  }
+
+  export type ScheduleWhereInput = {
+    AND?: ScheduleWhereInput | ScheduleWhereInput[]
+    OR?: ScheduleWhereInput[]
+    NOT?: ScheduleWhereInput | ScheduleWhereInput[]
+    id?: StringFilter<"Schedule"> | string
+    seasonId?: StringFilter<"Schedule"> | string
+    division?: IntFilter<"Schedule"> | number
+    subdivision?: StringFilter<"Schedule"> | string
+    isActive?: BoolFilter<"Schedule"> | boolean
+    createdAt?: DateTimeFilter<"Schedule"> | Date | string
+    updatedAt?: DateTimeFilter<"Schedule"> | Date | string
+    season?: XOR<SeasonScalarRelationFilter, SeasonWhereInput>
+    games?: GameListRelationFilter
+  }
+
+  export type ScheduleOrderByWithRelationInput = {
+    id?: SortOrder
+    seasonId?: SortOrder
+    division?: SortOrder
+    subdivision?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    season?: SeasonOrderByWithRelationInput
+    games?: GameOrderByRelationAggregateInput
+  }
+
+  export type ScheduleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    seasonId_division_subdivision?: ScheduleSeasonIdDivisionSubdivisionCompoundUniqueInput
+    AND?: ScheduleWhereInput | ScheduleWhereInput[]
+    OR?: ScheduleWhereInput[]
+    NOT?: ScheduleWhereInput | ScheduleWhereInput[]
+    seasonId?: StringFilter<"Schedule"> | string
+    division?: IntFilter<"Schedule"> | number
+    subdivision?: StringFilter<"Schedule"> | string
+    isActive?: BoolFilter<"Schedule"> | boolean
+    createdAt?: DateTimeFilter<"Schedule"> | Date | string
+    updatedAt?: DateTimeFilter<"Schedule"> | Date | string
+    season?: XOR<SeasonScalarRelationFilter, SeasonWhereInput>
+    games?: GameListRelationFilter
+  }, "id" | "seasonId_division_subdivision">
+
+  export type ScheduleOrderByWithAggregationInput = {
+    id?: SortOrder
+    seasonId?: SortOrder
+    division?: SortOrder
+    subdivision?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ScheduleCountOrderByAggregateInput
+    _avg?: ScheduleAvgOrderByAggregateInput
+    _max?: ScheduleMaxOrderByAggregateInput
+    _min?: ScheduleMinOrderByAggregateInput
+    _sum?: ScheduleSumOrderByAggregateInput
+  }
+
+  export type ScheduleScalarWhereWithAggregatesInput = {
+    AND?: ScheduleScalarWhereWithAggregatesInput | ScheduleScalarWhereWithAggregatesInput[]
+    OR?: ScheduleScalarWhereWithAggregatesInput[]
+    NOT?: ScheduleScalarWhereWithAggregatesInput | ScheduleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Schedule"> | string
+    seasonId?: StringWithAggregatesFilter<"Schedule"> | string
+    division?: IntWithAggregatesFilter<"Schedule"> | number
+    subdivision?: StringWithAggregatesFilter<"Schedule"> | string
+    isActive?: BoolWithAggregatesFilter<"Schedule"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Schedule"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Schedule"> | Date | string
   }
 
   export type NotificationWhereInput = {
@@ -61764,11 +63338,15 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    season?: SeasonCreateNestedOneWithoutGamesInput
+    schedule?: ScheduleCreateNestedOneWithoutGamesInput
     playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
@@ -61787,6 +63365,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
@@ -61801,11 +63383,15 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    season?: SeasonUpdateOneWithoutGamesNestedInput
+    schedule?: ScheduleUpdateOneWithoutGamesNestedInput
     playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
@@ -61824,6 +63410,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
@@ -61843,6 +63433,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
   }
 
@@ -61855,6 +63449,8 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -61872,6 +63468,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -61884,6 +63484,8 @@ export namespace Prisma {
     phase?: $Enums.SeasonPhase
     createdAt?: Date | string
     leagues?: LeagueCreateNestedManyWithoutSeasonInput
+    games?: GameCreateNestedManyWithoutSeasonInput
+    schedules?: ScheduleCreateNestedManyWithoutSeasonInput
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutSeasonInput
   }
 
@@ -61896,6 +63498,8 @@ export namespace Prisma {
     phase?: $Enums.SeasonPhase
     createdAt?: Date | string
     leagues?: LeagueUncheckedCreateNestedManyWithoutSeasonInput
+    games?: GameUncheckedCreateNestedManyWithoutSeasonInput
+    schedules?: ScheduleUncheckedCreateNestedManyWithoutSeasonInput
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutSeasonInput
   }
 
@@ -61908,6 +63512,8 @@ export namespace Prisma {
     phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leagues?: LeagueUpdateManyWithoutSeasonNestedInput
+    games?: GameUpdateManyWithoutSeasonNestedInput
+    schedules?: ScheduleUpdateManyWithoutSeasonNestedInput
     tryoutHistory?: TryoutHistoryUpdateManyWithoutSeasonNestedInput
   }
 
@@ -61920,6 +63526,8 @@ export namespace Prisma {
     phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leagues?: LeagueUncheckedUpdateManyWithoutSeasonNestedInput
+    games?: GameUncheckedUpdateManyWithoutSeasonNestedInput
+    schedules?: ScheduleUncheckedUpdateManyWithoutSeasonNestedInput
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutSeasonNestedInput
   }
 
@@ -61951,6 +63559,79 @@ export namespace Prisma {
     currentDay?: IntFieldUpdateOperationsInput | number
     phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ScheduleCreateInput = {
+    id?: string
+    division: number
+    subdivision: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    season: SeasonCreateNestedOneWithoutSchedulesInput
+    games?: GameCreateNestedManyWithoutScheduleInput
+  }
+
+  export type ScheduleUncheckedCreateInput = {
+    id?: string
+    seasonId: string
+    division: number
+    subdivision: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    games?: GameUncheckedCreateNestedManyWithoutScheduleInput
+  }
+
+  export type ScheduleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    season?: SeasonUpdateOneRequiredWithoutSchedulesNestedInput
+    games?: GameUpdateManyWithoutScheduleNestedInput
+  }
+
+  export type ScheduleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seasonId?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    games?: GameUncheckedUpdateManyWithoutScheduleNestedInput
+  }
+
+  export type ScheduleCreateManyInput = {
+    id?: string
+    seasonId: string
+    division: number
+    subdivision: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ScheduleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ScheduleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seasonId?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type NotificationCreateInput = {
@@ -65771,6 +67452,16 @@ export namespace Prisma {
     isNot?: TournamentWhereInput | null
   }
 
+  export type SeasonNullableScalarRelationFilter = {
+    is?: SeasonWhereInput | null
+    isNot?: SeasonWhereInput | null
+  }
+
+  export type ScheduleNullableScalarRelationFilter = {
+    is?: ScheduleWhereInput | null
+    isNot?: ScheduleWhereInput | null
+  }
+
   export type GameCountOrderByAggregateInput = {
     id?: SortOrder
     leagueId?: SortOrder
@@ -65785,6 +67476,10 @@ export namespace Prisma {
     tournamentId?: SortOrder
     round?: SortOrder
     status?: SortOrder
+    seasonId?: SortOrder
+    scheduleId?: SortOrder
+    subdivision?: SortOrder
+    gameDay?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -65797,6 +67492,7 @@ export namespace Prisma {
     awayScore?: SortOrder
     tournamentId?: SortOrder
     round?: SortOrder
+    gameDay?: SortOrder
   }
 
   export type GameMaxOrderByAggregateInput = {
@@ -65812,6 +67508,10 @@ export namespace Prisma {
     tournamentId?: SortOrder
     round?: SortOrder
     status?: SortOrder
+    seasonId?: SortOrder
+    scheduleId?: SortOrder
+    subdivision?: SortOrder
+    gameDay?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -65828,6 +67528,10 @@ export namespace Prisma {
     tournamentId?: SortOrder
     round?: SortOrder
     status?: SortOrder
+    seasonId?: SortOrder
+    scheduleId?: SortOrder
+    subdivision?: SortOrder
+    gameDay?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -65840,6 +67544,7 @@ export namespace Prisma {
     awayScore?: SortOrder
     tournamentId?: SortOrder
     round?: SortOrder
+    gameDay?: SortOrder
   }
 
   export type EnumGameStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -65865,7 +67570,17 @@ export namespace Prisma {
     none?: LeagueWhereInput
   }
 
+  export type ScheduleListRelationFilter = {
+    every?: ScheduleWhereInput
+    some?: ScheduleWhereInput
+    none?: ScheduleWhereInput
+  }
+
   export type LeagueOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ScheduleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -65917,6 +67632,50 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumSeasonPhaseFilter<$PrismaModel>
     _max?: NestedEnumSeasonPhaseFilter<$PrismaModel>
+  }
+
+  export type ScheduleSeasonIdDivisionSubdivisionCompoundUniqueInput = {
+    seasonId: string
+    division: number
+    subdivision: string
+  }
+
+  export type ScheduleCountOrderByAggregateInput = {
+    id?: SortOrder
+    seasonId?: SortOrder
+    division?: SortOrder
+    subdivision?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ScheduleAvgOrderByAggregateInput = {
+    division?: SortOrder
+  }
+
+  export type ScheduleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    seasonId?: SortOrder
+    division?: SortOrder
+    subdivision?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ScheduleMinOrderByAggregateInput = {
+    id?: SortOrder
+    seasonId?: SortOrder
+    division?: SortOrder
+    subdivision?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ScheduleSumOrderByAggregateInput = {
+    division?: SortOrder
   }
 
   export type EnumNotificationTypeFilter<$PrismaModel = never> = {
@@ -69303,6 +71062,18 @@ export namespace Prisma {
     connect?: TournamentWhereUniqueInput
   }
 
+  export type SeasonCreateNestedOneWithoutGamesInput = {
+    create?: XOR<SeasonCreateWithoutGamesInput, SeasonUncheckedCreateWithoutGamesInput>
+    connectOrCreate?: SeasonCreateOrConnectWithoutGamesInput
+    connect?: SeasonWhereUniqueInput
+  }
+
+  export type ScheduleCreateNestedOneWithoutGamesInput = {
+    create?: XOR<ScheduleCreateWithoutGamesInput, ScheduleUncheckedCreateWithoutGamesInput>
+    connectOrCreate?: ScheduleCreateOrConnectWithoutGamesInput
+    connect?: ScheduleWhereUniqueInput
+  }
+
   export type PlayerMatchStatsCreateNestedManyWithoutGameInput = {
     create?: XOR<PlayerMatchStatsCreateWithoutGameInput, PlayerMatchStatsUncheckedCreateWithoutGameInput> | PlayerMatchStatsCreateWithoutGameInput[] | PlayerMatchStatsUncheckedCreateWithoutGameInput[]
     connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutGameInput | PlayerMatchStatsCreateOrConnectWithoutGameInput[]
@@ -69371,6 +71142,26 @@ export namespace Prisma {
     update?: XOR<XOR<TournamentUpdateToOneWithWhereWithoutGamesInput, TournamentUpdateWithoutGamesInput>, TournamentUncheckedUpdateWithoutGamesInput>
   }
 
+  export type SeasonUpdateOneWithoutGamesNestedInput = {
+    create?: XOR<SeasonCreateWithoutGamesInput, SeasonUncheckedCreateWithoutGamesInput>
+    connectOrCreate?: SeasonCreateOrConnectWithoutGamesInput
+    upsert?: SeasonUpsertWithoutGamesInput
+    disconnect?: SeasonWhereInput | boolean
+    delete?: SeasonWhereInput | boolean
+    connect?: SeasonWhereUniqueInput
+    update?: XOR<XOR<SeasonUpdateToOneWithWhereWithoutGamesInput, SeasonUpdateWithoutGamesInput>, SeasonUncheckedUpdateWithoutGamesInput>
+  }
+
+  export type ScheduleUpdateOneWithoutGamesNestedInput = {
+    create?: XOR<ScheduleCreateWithoutGamesInput, ScheduleUncheckedCreateWithoutGamesInput>
+    connectOrCreate?: ScheduleCreateOrConnectWithoutGamesInput
+    upsert?: ScheduleUpsertWithoutGamesInput
+    disconnect?: ScheduleWhereInput | boolean
+    delete?: ScheduleWhereInput | boolean
+    connect?: ScheduleWhereUniqueInput
+    update?: XOR<XOR<ScheduleUpdateToOneWithWhereWithoutGamesInput, ScheduleUpdateWithoutGamesInput>, ScheduleUncheckedUpdateWithoutGamesInput>
+  }
+
   export type PlayerMatchStatsUpdateManyWithoutGameNestedInput = {
     create?: XOR<PlayerMatchStatsCreateWithoutGameInput, PlayerMatchStatsUncheckedCreateWithoutGameInput> | PlayerMatchStatsCreateWithoutGameInput[] | PlayerMatchStatsUncheckedCreateWithoutGameInput[]
     connectOrCreate?: PlayerMatchStatsCreateOrConnectWithoutGameInput | PlayerMatchStatsCreateOrConnectWithoutGameInput[]
@@ -69434,6 +71225,20 @@ export namespace Prisma {
     connect?: LeagueWhereUniqueInput | LeagueWhereUniqueInput[]
   }
 
+  export type GameCreateNestedManyWithoutSeasonInput = {
+    create?: XOR<GameCreateWithoutSeasonInput, GameUncheckedCreateWithoutSeasonInput> | GameCreateWithoutSeasonInput[] | GameUncheckedCreateWithoutSeasonInput[]
+    connectOrCreate?: GameCreateOrConnectWithoutSeasonInput | GameCreateOrConnectWithoutSeasonInput[]
+    createMany?: GameCreateManySeasonInputEnvelope
+    connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+  }
+
+  export type ScheduleCreateNestedManyWithoutSeasonInput = {
+    create?: XOR<ScheduleCreateWithoutSeasonInput, ScheduleUncheckedCreateWithoutSeasonInput> | ScheduleCreateWithoutSeasonInput[] | ScheduleUncheckedCreateWithoutSeasonInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutSeasonInput | ScheduleCreateOrConnectWithoutSeasonInput[]
+    createMany?: ScheduleCreateManySeasonInputEnvelope
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+  }
+
   export type TryoutHistoryCreateNestedManyWithoutSeasonInput = {
     create?: XOR<TryoutHistoryCreateWithoutSeasonInput, TryoutHistoryUncheckedCreateWithoutSeasonInput> | TryoutHistoryCreateWithoutSeasonInput[] | TryoutHistoryUncheckedCreateWithoutSeasonInput[]
     connectOrCreate?: TryoutHistoryCreateOrConnectWithoutSeasonInput | TryoutHistoryCreateOrConnectWithoutSeasonInput[]
@@ -69446,6 +71251,20 @@ export namespace Prisma {
     connectOrCreate?: LeagueCreateOrConnectWithoutSeasonInput | LeagueCreateOrConnectWithoutSeasonInput[]
     createMany?: LeagueCreateManySeasonInputEnvelope
     connect?: LeagueWhereUniqueInput | LeagueWhereUniqueInput[]
+  }
+
+  export type GameUncheckedCreateNestedManyWithoutSeasonInput = {
+    create?: XOR<GameCreateWithoutSeasonInput, GameUncheckedCreateWithoutSeasonInput> | GameCreateWithoutSeasonInput[] | GameUncheckedCreateWithoutSeasonInput[]
+    connectOrCreate?: GameCreateOrConnectWithoutSeasonInput | GameCreateOrConnectWithoutSeasonInput[]
+    createMany?: GameCreateManySeasonInputEnvelope
+    connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+  }
+
+  export type ScheduleUncheckedCreateNestedManyWithoutSeasonInput = {
+    create?: XOR<ScheduleCreateWithoutSeasonInput, ScheduleUncheckedCreateWithoutSeasonInput> | ScheduleCreateWithoutSeasonInput[] | ScheduleUncheckedCreateWithoutSeasonInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutSeasonInput | ScheduleCreateOrConnectWithoutSeasonInput[]
+    createMany?: ScheduleCreateManySeasonInputEnvelope
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
   }
 
   export type TryoutHistoryUncheckedCreateNestedManyWithoutSeasonInput = {
@@ -69471,6 +71290,34 @@ export namespace Prisma {
     update?: LeagueUpdateWithWhereUniqueWithoutSeasonInput | LeagueUpdateWithWhereUniqueWithoutSeasonInput[]
     updateMany?: LeagueUpdateManyWithWhereWithoutSeasonInput | LeagueUpdateManyWithWhereWithoutSeasonInput[]
     deleteMany?: LeagueScalarWhereInput | LeagueScalarWhereInput[]
+  }
+
+  export type GameUpdateManyWithoutSeasonNestedInput = {
+    create?: XOR<GameCreateWithoutSeasonInput, GameUncheckedCreateWithoutSeasonInput> | GameCreateWithoutSeasonInput[] | GameUncheckedCreateWithoutSeasonInput[]
+    connectOrCreate?: GameCreateOrConnectWithoutSeasonInput | GameCreateOrConnectWithoutSeasonInput[]
+    upsert?: GameUpsertWithWhereUniqueWithoutSeasonInput | GameUpsertWithWhereUniqueWithoutSeasonInput[]
+    createMany?: GameCreateManySeasonInputEnvelope
+    set?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    disconnect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    delete?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    update?: GameUpdateWithWhereUniqueWithoutSeasonInput | GameUpdateWithWhereUniqueWithoutSeasonInput[]
+    updateMany?: GameUpdateManyWithWhereWithoutSeasonInput | GameUpdateManyWithWhereWithoutSeasonInput[]
+    deleteMany?: GameScalarWhereInput | GameScalarWhereInput[]
+  }
+
+  export type ScheduleUpdateManyWithoutSeasonNestedInput = {
+    create?: XOR<ScheduleCreateWithoutSeasonInput, ScheduleUncheckedCreateWithoutSeasonInput> | ScheduleCreateWithoutSeasonInput[] | ScheduleUncheckedCreateWithoutSeasonInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutSeasonInput | ScheduleCreateOrConnectWithoutSeasonInput[]
+    upsert?: ScheduleUpsertWithWhereUniqueWithoutSeasonInput | ScheduleUpsertWithWhereUniqueWithoutSeasonInput[]
+    createMany?: ScheduleCreateManySeasonInputEnvelope
+    set?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    disconnect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    delete?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    update?: ScheduleUpdateWithWhereUniqueWithoutSeasonInput | ScheduleUpdateWithWhereUniqueWithoutSeasonInput[]
+    updateMany?: ScheduleUpdateManyWithWhereWithoutSeasonInput | ScheduleUpdateManyWithWhereWithoutSeasonInput[]
+    deleteMany?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
   }
 
   export type TryoutHistoryUpdateManyWithoutSeasonNestedInput = {
@@ -69501,6 +71348,34 @@ export namespace Prisma {
     deleteMany?: LeagueScalarWhereInput | LeagueScalarWhereInput[]
   }
 
+  export type GameUncheckedUpdateManyWithoutSeasonNestedInput = {
+    create?: XOR<GameCreateWithoutSeasonInput, GameUncheckedCreateWithoutSeasonInput> | GameCreateWithoutSeasonInput[] | GameUncheckedCreateWithoutSeasonInput[]
+    connectOrCreate?: GameCreateOrConnectWithoutSeasonInput | GameCreateOrConnectWithoutSeasonInput[]
+    upsert?: GameUpsertWithWhereUniqueWithoutSeasonInput | GameUpsertWithWhereUniqueWithoutSeasonInput[]
+    createMany?: GameCreateManySeasonInputEnvelope
+    set?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    disconnect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    delete?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    update?: GameUpdateWithWhereUniqueWithoutSeasonInput | GameUpdateWithWhereUniqueWithoutSeasonInput[]
+    updateMany?: GameUpdateManyWithWhereWithoutSeasonInput | GameUpdateManyWithWhereWithoutSeasonInput[]
+    deleteMany?: GameScalarWhereInput | GameScalarWhereInput[]
+  }
+
+  export type ScheduleUncheckedUpdateManyWithoutSeasonNestedInput = {
+    create?: XOR<ScheduleCreateWithoutSeasonInput, ScheduleUncheckedCreateWithoutSeasonInput> | ScheduleCreateWithoutSeasonInput[] | ScheduleUncheckedCreateWithoutSeasonInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutSeasonInput | ScheduleCreateOrConnectWithoutSeasonInput[]
+    upsert?: ScheduleUpsertWithWhereUniqueWithoutSeasonInput | ScheduleUpsertWithWhereUniqueWithoutSeasonInput[]
+    createMany?: ScheduleCreateManySeasonInputEnvelope
+    set?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    disconnect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    delete?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    update?: ScheduleUpdateWithWhereUniqueWithoutSeasonInput | ScheduleUpdateWithWhereUniqueWithoutSeasonInput[]
+    updateMany?: ScheduleUpdateManyWithWhereWithoutSeasonInput | ScheduleUpdateManyWithWhereWithoutSeasonInput[]
+    deleteMany?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
+  }
+
   export type TryoutHistoryUncheckedUpdateManyWithoutSeasonNestedInput = {
     create?: XOR<TryoutHistoryCreateWithoutSeasonInput, TryoutHistoryUncheckedCreateWithoutSeasonInput> | TryoutHistoryCreateWithoutSeasonInput[] | TryoutHistoryUncheckedCreateWithoutSeasonInput[]
     connectOrCreate?: TryoutHistoryCreateOrConnectWithoutSeasonInput | TryoutHistoryCreateOrConnectWithoutSeasonInput[]
@@ -69513,6 +71388,62 @@ export namespace Prisma {
     update?: TryoutHistoryUpdateWithWhereUniqueWithoutSeasonInput | TryoutHistoryUpdateWithWhereUniqueWithoutSeasonInput[]
     updateMany?: TryoutHistoryUpdateManyWithWhereWithoutSeasonInput | TryoutHistoryUpdateManyWithWhereWithoutSeasonInput[]
     deleteMany?: TryoutHistoryScalarWhereInput | TryoutHistoryScalarWhereInput[]
+  }
+
+  export type SeasonCreateNestedOneWithoutSchedulesInput = {
+    create?: XOR<SeasonCreateWithoutSchedulesInput, SeasonUncheckedCreateWithoutSchedulesInput>
+    connectOrCreate?: SeasonCreateOrConnectWithoutSchedulesInput
+    connect?: SeasonWhereUniqueInput
+  }
+
+  export type GameCreateNestedManyWithoutScheduleInput = {
+    create?: XOR<GameCreateWithoutScheduleInput, GameUncheckedCreateWithoutScheduleInput> | GameCreateWithoutScheduleInput[] | GameUncheckedCreateWithoutScheduleInput[]
+    connectOrCreate?: GameCreateOrConnectWithoutScheduleInput | GameCreateOrConnectWithoutScheduleInput[]
+    createMany?: GameCreateManyScheduleInputEnvelope
+    connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+  }
+
+  export type GameUncheckedCreateNestedManyWithoutScheduleInput = {
+    create?: XOR<GameCreateWithoutScheduleInput, GameUncheckedCreateWithoutScheduleInput> | GameCreateWithoutScheduleInput[] | GameUncheckedCreateWithoutScheduleInput[]
+    connectOrCreate?: GameCreateOrConnectWithoutScheduleInput | GameCreateOrConnectWithoutScheduleInput[]
+    createMany?: GameCreateManyScheduleInputEnvelope
+    connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+  }
+
+  export type SeasonUpdateOneRequiredWithoutSchedulesNestedInput = {
+    create?: XOR<SeasonCreateWithoutSchedulesInput, SeasonUncheckedCreateWithoutSchedulesInput>
+    connectOrCreate?: SeasonCreateOrConnectWithoutSchedulesInput
+    upsert?: SeasonUpsertWithoutSchedulesInput
+    connect?: SeasonWhereUniqueInput
+    update?: XOR<XOR<SeasonUpdateToOneWithWhereWithoutSchedulesInput, SeasonUpdateWithoutSchedulesInput>, SeasonUncheckedUpdateWithoutSchedulesInput>
+  }
+
+  export type GameUpdateManyWithoutScheduleNestedInput = {
+    create?: XOR<GameCreateWithoutScheduleInput, GameUncheckedCreateWithoutScheduleInput> | GameCreateWithoutScheduleInput[] | GameUncheckedCreateWithoutScheduleInput[]
+    connectOrCreate?: GameCreateOrConnectWithoutScheduleInput | GameCreateOrConnectWithoutScheduleInput[]
+    upsert?: GameUpsertWithWhereUniqueWithoutScheduleInput | GameUpsertWithWhereUniqueWithoutScheduleInput[]
+    createMany?: GameCreateManyScheduleInputEnvelope
+    set?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    disconnect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    delete?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    update?: GameUpdateWithWhereUniqueWithoutScheduleInput | GameUpdateWithWhereUniqueWithoutScheduleInput[]
+    updateMany?: GameUpdateManyWithWhereWithoutScheduleInput | GameUpdateManyWithWhereWithoutScheduleInput[]
+    deleteMany?: GameScalarWhereInput | GameScalarWhereInput[]
+  }
+
+  export type GameUncheckedUpdateManyWithoutScheduleNestedInput = {
+    create?: XOR<GameCreateWithoutScheduleInput, GameUncheckedCreateWithoutScheduleInput> | GameCreateWithoutScheduleInput[] | GameUncheckedCreateWithoutScheduleInput[]
+    connectOrCreate?: GameCreateOrConnectWithoutScheduleInput | GameCreateOrConnectWithoutScheduleInput[]
+    upsert?: GameUpsertWithWhereUniqueWithoutScheduleInput | GameUpsertWithWhereUniqueWithoutScheduleInput[]
+    createMany?: GameCreateManyScheduleInputEnvelope
+    set?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    disconnect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    delete?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+    update?: GameUpdateWithWhereUniqueWithoutScheduleInput | GameUpdateWithWhereUniqueWithoutScheduleInput[]
+    updateMany?: GameUpdateManyWithWhereWithoutScheduleInput | GameUpdateManyWithWhereWithoutScheduleInput[]
+    deleteMany?: GameScalarWhereInput | GameScalarWhereInput[]
   }
 
   export type TeamCreateNestedOneWithoutNotificationsInput = {
@@ -71434,10 +73365,14 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    season?: SeasonCreateNestedOneWithoutGamesInput
+    schedule?: ScheduleCreateNestedOneWithoutGamesInput
     playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
@@ -71455,6 +73390,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
@@ -71479,10 +73418,14 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    season?: SeasonCreateNestedOneWithoutGamesInput
+    schedule?: ScheduleCreateNestedOneWithoutGamesInput
     playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
@@ -71500,6 +73443,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
@@ -72162,6 +74109,10 @@ export namespace Prisma {
     tournamentId?: IntNullableFilter<"Game"> | number | null
     round?: IntNullableFilter<"Game"> | number | null
     status?: EnumGameStatusFilter<"Game"> | $Enums.GameStatus
+    seasonId?: StringNullableFilter<"Game"> | string | null
+    scheduleId?: StringNullableFilter<"Game"> | string | null
+    subdivision?: StringNullableFilter<"Game"> | string | null
+    gameDay?: IntNullableFilter<"Game"> | number | null
     createdAt?: DateTimeFilter<"Game"> | Date | string
   }
 
@@ -76874,10 +78825,14 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    season?: SeasonCreateNestedOneWithoutGamesInput
+    schedule?: ScheduleCreateNestedOneWithoutGamesInput
     playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
@@ -76895,6 +78850,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
@@ -76957,6 +78916,8 @@ export namespace Prisma {
     currentDay?: number
     phase?: $Enums.SeasonPhase
     createdAt?: Date | string
+    games?: GameCreateNestedManyWithoutSeasonInput
+    schedules?: ScheduleCreateNestedManyWithoutSeasonInput
     tryoutHistory?: TryoutHistoryCreateNestedManyWithoutSeasonInput
   }
 
@@ -76968,6 +78929,8 @@ export namespace Prisma {
     currentDay?: number
     phase?: $Enums.SeasonPhase
     createdAt?: Date | string
+    games?: GameUncheckedCreateNestedManyWithoutSeasonInput
+    schedules?: ScheduleUncheckedCreateNestedManyWithoutSeasonInput
     tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutSeasonInput
   }
 
@@ -77086,6 +79049,8 @@ export namespace Prisma {
     currentDay?: IntFieldUpdateOperationsInput | number
     phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    games?: GameUpdateManyWithoutSeasonNestedInput
+    schedules?: ScheduleUpdateManyWithoutSeasonNestedInput
     tryoutHistory?: TryoutHistoryUpdateManyWithoutSeasonNestedInput
   }
 
@@ -77097,6 +79062,8 @@ export namespace Prisma {
     currentDay?: IntFieldUpdateOperationsInput | number
     phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    games?: GameUncheckedUpdateManyWithoutSeasonNestedInput
+    schedules?: ScheduleUncheckedUpdateManyWithoutSeasonNestedInput
     tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutSeasonNestedInput
   }
 
@@ -77368,6 +79335,62 @@ export namespace Prisma {
   export type TournamentCreateOrConnectWithoutGamesInput = {
     where: TournamentWhereUniqueInput
     create: XOR<TournamentCreateWithoutGamesInput, TournamentUncheckedCreateWithoutGamesInput>
+  }
+
+  export type SeasonCreateWithoutGamesInput = {
+    id: string
+    seasonNumber: number
+    startDate: Date | string
+    endDate: Date | string
+    currentDay?: number
+    phase?: $Enums.SeasonPhase
+    createdAt?: Date | string
+    leagues?: LeagueCreateNestedManyWithoutSeasonInput
+    schedules?: ScheduleCreateNestedManyWithoutSeasonInput
+    tryoutHistory?: TryoutHistoryCreateNestedManyWithoutSeasonInput
+  }
+
+  export type SeasonUncheckedCreateWithoutGamesInput = {
+    id: string
+    seasonNumber: number
+    startDate: Date | string
+    endDate: Date | string
+    currentDay?: number
+    phase?: $Enums.SeasonPhase
+    createdAt?: Date | string
+    leagues?: LeagueUncheckedCreateNestedManyWithoutSeasonInput
+    schedules?: ScheduleUncheckedCreateNestedManyWithoutSeasonInput
+    tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutSeasonInput
+  }
+
+  export type SeasonCreateOrConnectWithoutGamesInput = {
+    where: SeasonWhereUniqueInput
+    create: XOR<SeasonCreateWithoutGamesInput, SeasonUncheckedCreateWithoutGamesInput>
+  }
+
+  export type ScheduleCreateWithoutGamesInput = {
+    id?: string
+    division: number
+    subdivision: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    season: SeasonCreateNestedOneWithoutSchedulesInput
+  }
+
+  export type ScheduleUncheckedCreateWithoutGamesInput = {
+    id?: string
+    seasonId: string
+    division: number
+    subdivision: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ScheduleCreateOrConnectWithoutGamesInput = {
+    where: ScheduleWhereUniqueInput
+    create: XOR<ScheduleCreateWithoutGamesInput, ScheduleUncheckedCreateWithoutGamesInput>
   }
 
   export type PlayerMatchStatsCreateWithoutGameInput = {
@@ -77780,6 +79803,74 @@ export namespace Prisma {
     entries?: TournamentEntryUncheckedUpdateManyWithoutTournamentNestedInput
   }
 
+  export type SeasonUpsertWithoutGamesInput = {
+    update: XOR<SeasonUpdateWithoutGamesInput, SeasonUncheckedUpdateWithoutGamesInput>
+    create: XOR<SeasonCreateWithoutGamesInput, SeasonUncheckedCreateWithoutGamesInput>
+    where?: SeasonWhereInput
+  }
+
+  export type SeasonUpdateToOneWithWhereWithoutGamesInput = {
+    where?: SeasonWhereInput
+    data: XOR<SeasonUpdateWithoutGamesInput, SeasonUncheckedUpdateWithoutGamesInput>
+  }
+
+  export type SeasonUpdateWithoutGamesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seasonNumber?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    currentDay?: IntFieldUpdateOperationsInput | number
+    phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leagues?: LeagueUpdateManyWithoutSeasonNestedInput
+    schedules?: ScheduleUpdateManyWithoutSeasonNestedInput
+    tryoutHistory?: TryoutHistoryUpdateManyWithoutSeasonNestedInput
+  }
+
+  export type SeasonUncheckedUpdateWithoutGamesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seasonNumber?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    currentDay?: IntFieldUpdateOperationsInput | number
+    phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leagues?: LeagueUncheckedUpdateManyWithoutSeasonNestedInput
+    schedules?: ScheduleUncheckedUpdateManyWithoutSeasonNestedInput
+    tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutSeasonNestedInput
+  }
+
+  export type ScheduleUpsertWithoutGamesInput = {
+    update: XOR<ScheduleUpdateWithoutGamesInput, ScheduleUncheckedUpdateWithoutGamesInput>
+    create: XOR<ScheduleCreateWithoutGamesInput, ScheduleUncheckedCreateWithoutGamesInput>
+    where?: ScheduleWhereInput
+  }
+
+  export type ScheduleUpdateToOneWithWhereWithoutGamesInput = {
+    where?: ScheduleWhereInput
+    data: XOR<ScheduleUpdateWithoutGamesInput, ScheduleUncheckedUpdateWithoutGamesInput>
+  }
+
+  export type ScheduleUpdateWithoutGamesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    season?: SeasonUpdateOneRequiredWithoutSchedulesNestedInput
+  }
+
+  export type ScheduleUncheckedUpdateWithoutGamesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seasonId?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type PlayerMatchStatsUpsertWithWhereUniqueWithoutGameInput = {
     where: PlayerMatchStatsWhereUniqueInput
     update: XOR<PlayerMatchStatsUpdateWithoutGameInput, PlayerMatchStatsUncheckedUpdateWithoutGameInput>
@@ -77839,6 +79930,89 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type GameCreateWithoutSeasonInput = {
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    round?: number | null
+    status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
+    createdAt?: Date | string
+    league?: LeagueCreateNestedOneWithoutScheduleInput
+    homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
+    awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
+    tournament?: TournamentCreateNestedOneWithoutGamesInput
+    schedule?: ScheduleCreateNestedOneWithoutGamesInput
+    playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutSeasonInput = {
+    id?: number
+    leagueId?: number | null
+    homeTeamId: number
+    awayTeamId: number
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    tournamentId?: number | null
+    round?: number | null
+    status?: $Enums.GameStatus
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
+    createdAt?: Date | string
+    playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutSeasonInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutSeasonInput, GameUncheckedCreateWithoutSeasonInput>
+  }
+
+  export type GameCreateManySeasonInputEnvelope = {
+    data: GameCreateManySeasonInput | GameCreateManySeasonInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ScheduleCreateWithoutSeasonInput = {
+    id?: string
+    division: number
+    subdivision: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    games?: GameCreateNestedManyWithoutScheduleInput
+  }
+
+  export type ScheduleUncheckedCreateWithoutSeasonInput = {
+    id?: string
+    division: number
+    subdivision: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    games?: GameUncheckedCreateNestedManyWithoutScheduleInput
+  }
+
+  export type ScheduleCreateOrConnectWithoutSeasonInput = {
+    where: ScheduleWhereUniqueInput
+    create: XOR<ScheduleCreateWithoutSeasonInput, ScheduleUncheckedCreateWithoutSeasonInput>
+  }
+
+  export type ScheduleCreateManySeasonInputEnvelope = {
+    data: ScheduleCreateManySeasonInput | ScheduleCreateManySeasonInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TryoutHistoryCreateWithoutSeasonInput = {
     tryoutType: string
     cost: number
@@ -77894,6 +80068,51 @@ export namespace Prisma {
     seasonId?: StringFilter<"League"> | string
   }
 
+  export type GameUpsertWithWhereUniqueWithoutSeasonInput = {
+    where: GameWhereUniqueInput
+    update: XOR<GameUpdateWithoutSeasonInput, GameUncheckedUpdateWithoutSeasonInput>
+    create: XOR<GameCreateWithoutSeasonInput, GameUncheckedCreateWithoutSeasonInput>
+  }
+
+  export type GameUpdateWithWhereUniqueWithoutSeasonInput = {
+    where: GameWhereUniqueInput
+    data: XOR<GameUpdateWithoutSeasonInput, GameUncheckedUpdateWithoutSeasonInput>
+  }
+
+  export type GameUpdateManyWithWhereWithoutSeasonInput = {
+    where: GameScalarWhereInput
+    data: XOR<GameUpdateManyMutationInput, GameUncheckedUpdateManyWithoutSeasonInput>
+  }
+
+  export type ScheduleUpsertWithWhereUniqueWithoutSeasonInput = {
+    where: ScheduleWhereUniqueInput
+    update: XOR<ScheduleUpdateWithoutSeasonInput, ScheduleUncheckedUpdateWithoutSeasonInput>
+    create: XOR<ScheduleCreateWithoutSeasonInput, ScheduleUncheckedCreateWithoutSeasonInput>
+  }
+
+  export type ScheduleUpdateWithWhereUniqueWithoutSeasonInput = {
+    where: ScheduleWhereUniqueInput
+    data: XOR<ScheduleUpdateWithoutSeasonInput, ScheduleUncheckedUpdateWithoutSeasonInput>
+  }
+
+  export type ScheduleUpdateManyWithWhereWithoutSeasonInput = {
+    where: ScheduleScalarWhereInput
+    data: XOR<ScheduleUpdateManyMutationInput, ScheduleUncheckedUpdateManyWithoutSeasonInput>
+  }
+
+  export type ScheduleScalarWhereInput = {
+    AND?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
+    OR?: ScheduleScalarWhereInput[]
+    NOT?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
+    id?: StringFilter<"Schedule"> | string
+    seasonId?: StringFilter<"Schedule"> | string
+    division?: IntFilter<"Schedule"> | number
+    subdivision?: StringFilter<"Schedule"> | string
+    isActive?: BoolFilter<"Schedule"> | boolean
+    createdAt?: DateTimeFilter<"Schedule"> | Date | string
+    updatedAt?: DateTimeFilter<"Schedule"> | Date | string
+  }
+
   export type TryoutHistoryUpsertWithWhereUniqueWithoutSeasonInput = {
     where: TryoutHistoryWhereUniqueInput
     update: XOR<TryoutHistoryUpdateWithoutSeasonInput, TryoutHistoryUncheckedUpdateWithoutSeasonInput>
@@ -77908,6 +80127,143 @@ export namespace Prisma {
   export type TryoutHistoryUpdateManyWithWhereWithoutSeasonInput = {
     where: TryoutHistoryScalarWhereInput
     data: XOR<TryoutHistoryUpdateManyMutationInput, TryoutHistoryUncheckedUpdateManyWithoutSeasonInput>
+  }
+
+  export type SeasonCreateWithoutSchedulesInput = {
+    id: string
+    seasonNumber: number
+    startDate: Date | string
+    endDate: Date | string
+    currentDay?: number
+    phase?: $Enums.SeasonPhase
+    createdAt?: Date | string
+    leagues?: LeagueCreateNestedManyWithoutSeasonInput
+    games?: GameCreateNestedManyWithoutSeasonInput
+    tryoutHistory?: TryoutHistoryCreateNestedManyWithoutSeasonInput
+  }
+
+  export type SeasonUncheckedCreateWithoutSchedulesInput = {
+    id: string
+    seasonNumber: number
+    startDate: Date | string
+    endDate: Date | string
+    currentDay?: number
+    phase?: $Enums.SeasonPhase
+    createdAt?: Date | string
+    leagues?: LeagueUncheckedCreateNestedManyWithoutSeasonInput
+    games?: GameUncheckedCreateNestedManyWithoutSeasonInput
+    tryoutHistory?: TryoutHistoryUncheckedCreateNestedManyWithoutSeasonInput
+  }
+
+  export type SeasonCreateOrConnectWithoutSchedulesInput = {
+    where: SeasonWhereUniqueInput
+    create: XOR<SeasonCreateWithoutSchedulesInput, SeasonUncheckedCreateWithoutSchedulesInput>
+  }
+
+  export type GameCreateWithoutScheduleInput = {
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    round?: number | null
+    status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
+    createdAt?: Date | string
+    league?: LeagueCreateNestedOneWithoutScheduleInput
+    homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
+    awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
+    tournament?: TournamentCreateNestedOneWithoutGamesInput
+    season?: SeasonCreateNestedOneWithoutGamesInput
+    playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
+  }
+
+  export type GameUncheckedCreateWithoutScheduleInput = {
+    id?: number
+    leagueId?: number | null
+    homeTeamId: number
+    awayTeamId: number
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    tournamentId?: number | null
+    round?: number | null
+    status?: $Enums.GameStatus
+    seasonId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
+    createdAt?: Date | string
+    playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
+    teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutScheduleInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutScheduleInput, GameUncheckedCreateWithoutScheduleInput>
+  }
+
+  export type GameCreateManyScheduleInputEnvelope = {
+    data: GameCreateManyScheduleInput | GameCreateManyScheduleInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SeasonUpsertWithoutSchedulesInput = {
+    update: XOR<SeasonUpdateWithoutSchedulesInput, SeasonUncheckedUpdateWithoutSchedulesInput>
+    create: XOR<SeasonCreateWithoutSchedulesInput, SeasonUncheckedCreateWithoutSchedulesInput>
+    where?: SeasonWhereInput
+  }
+
+  export type SeasonUpdateToOneWithWhereWithoutSchedulesInput = {
+    where?: SeasonWhereInput
+    data: XOR<SeasonUpdateWithoutSchedulesInput, SeasonUncheckedUpdateWithoutSchedulesInput>
+  }
+
+  export type SeasonUpdateWithoutSchedulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seasonNumber?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    currentDay?: IntFieldUpdateOperationsInput | number
+    phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leagues?: LeagueUpdateManyWithoutSeasonNestedInput
+    games?: GameUpdateManyWithoutSeasonNestedInput
+    tryoutHistory?: TryoutHistoryUpdateManyWithoutSeasonNestedInput
+  }
+
+  export type SeasonUncheckedUpdateWithoutSchedulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    seasonNumber?: IntFieldUpdateOperationsInput | number
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    currentDay?: IntFieldUpdateOperationsInput | number
+    phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    leagues?: LeagueUncheckedUpdateManyWithoutSeasonNestedInput
+    games?: GameUncheckedUpdateManyWithoutSeasonNestedInput
+    tryoutHistory?: TryoutHistoryUncheckedUpdateManyWithoutSeasonNestedInput
+  }
+
+  export type GameUpsertWithWhereUniqueWithoutScheduleInput = {
+    where: GameWhereUniqueInput
+    update: XOR<GameUpdateWithoutScheduleInput, GameUncheckedUpdateWithoutScheduleInput>
+    create: XOR<GameCreateWithoutScheduleInput, GameUncheckedCreateWithoutScheduleInput>
+  }
+
+  export type GameUpdateWithWhereUniqueWithoutScheduleInput = {
+    where: GameWhereUniqueInput
+    data: XOR<GameUpdateWithoutScheduleInput, GameUncheckedUpdateWithoutScheduleInput>
+  }
+
+  export type GameUpdateManyWithWhereWithoutScheduleInput = {
+    where: GameScalarWhereInput
+    data: XOR<GameUpdateManyMutationInput, GameUncheckedUpdateManyWithoutScheduleInput>
   }
 
   export type TeamCreateWithoutNotificationsInput = {
@@ -78159,6 +80515,8 @@ export namespace Prisma {
     phase?: $Enums.SeasonPhase
     createdAt?: Date | string
     leagues?: LeagueCreateNestedManyWithoutSeasonInput
+    games?: GameCreateNestedManyWithoutSeasonInput
+    schedules?: ScheduleCreateNestedManyWithoutSeasonInput
   }
 
   export type SeasonUncheckedCreateWithoutTryoutHistoryInput = {
@@ -78170,6 +80528,8 @@ export namespace Prisma {
     phase?: $Enums.SeasonPhase
     createdAt?: Date | string
     leagues?: LeagueUncheckedCreateNestedManyWithoutSeasonInput
+    games?: GameUncheckedCreateNestedManyWithoutSeasonInput
+    schedules?: ScheduleUncheckedCreateNestedManyWithoutSeasonInput
   }
 
   export type SeasonCreateOrConnectWithoutTryoutHistoryInput = {
@@ -78373,6 +80733,8 @@ export namespace Prisma {
     phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leagues?: LeagueUpdateManyWithoutSeasonNestedInput
+    games?: GameUpdateManyWithoutSeasonNestedInput
+    schedules?: ScheduleUpdateManyWithoutSeasonNestedInput
   }
 
   export type SeasonUncheckedUpdateWithoutTryoutHistoryInput = {
@@ -78384,6 +80746,8 @@ export namespace Prisma {
     phase?: EnumSeasonPhaseFieldUpdateOperationsInput | $Enums.SeasonPhase
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     leagues?: LeagueUncheckedUpdateManyWithoutSeasonNestedInput
+    games?: GameUncheckedUpdateManyWithoutSeasonNestedInput
+    schedules?: ScheduleUncheckedUpdateManyWithoutSeasonNestedInput
   }
 
   export type PlayerUpsertWithoutTryoutHistoryInput = {
@@ -78856,10 +81220,14 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
+    season?: SeasonCreateNestedOneWithoutGamesInput
+    schedule?: ScheduleCreateNestedOneWithoutGamesInput
     playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
@@ -78877,6 +81245,10 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
@@ -79492,11 +81864,15 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    season?: SeasonCreateNestedOneWithoutGamesInput
+    schedule?: ScheduleCreateNestedOneWithoutGamesInput
     teamStats?: TeamMatchStatsCreateNestedManyWithoutGameInput
   }
 
@@ -79514,6 +81890,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -79641,11 +82021,15 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    season?: SeasonUpdateOneWithoutGamesNestedInput
+    schedule?: ScheduleUpdateOneWithoutGamesNestedInput
     teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
 
@@ -79663,6 +82047,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -79754,11 +82142,15 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
+    season?: SeasonCreateNestedOneWithoutGamesInput
+    schedule?: ScheduleCreateNestedOneWithoutGamesInput
     playerStats?: PlayerMatchStatsCreateNestedManyWithoutGameInput
   }
 
@@ -79776,6 +82168,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -79889,11 +82285,15 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    season?: SeasonUpdateOneWithoutGamesNestedInput
+    schedule?: ScheduleUpdateOneWithoutGamesNestedInput
     playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
   }
 
@@ -79911,6 +82311,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -80300,6 +82704,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
   }
 
@@ -80316,6 +82724,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
   }
 
@@ -80862,10 +83274,14 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    season?: SeasonUpdateOneWithoutGamesNestedInput
+    schedule?: ScheduleUpdateOneWithoutGamesNestedInput
     playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
@@ -80883,6 +83299,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
@@ -80901,6 +83321,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -80913,10 +83337,14 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    season?: SeasonUpdateOneWithoutGamesNestedInput
+    schedule?: ScheduleUpdateOneWithoutGamesNestedInput
     playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
@@ -80934,6 +83362,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
@@ -80952,6 +83384,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -81687,6 +84123,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
   }
 
@@ -81807,10 +84247,14 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    season?: SeasonUpdateOneWithoutGamesNestedInput
+    schedule?: ScheduleUpdateOneWithoutGamesNestedInput
     playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
@@ -81828,6 +84272,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
@@ -81846,6 +84294,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -82193,6 +84645,35 @@ export namespace Prisma {
     name: string
   }
 
+  export type GameCreateManySeasonInput = {
+    id?: number
+    leagueId?: number | null
+    homeTeamId: number
+    awayTeamId: number
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    tournamentId?: number | null
+    round?: number | null
+    status?: $Enums.GameStatus
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
+    createdAt?: Date | string
+  }
+
+  export type ScheduleCreateManySeasonInput = {
+    id?: string
+    division: number
+    subdivision: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type TryoutHistoryCreateManySeasonInput = {
     id?: number
     teamId: number
@@ -82226,6 +84707,98 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
   }
 
+  export type GameUpdateWithoutSeasonInput = {
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    league?: LeagueUpdateOneWithoutScheduleNestedInput
+    homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
+    awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
+    tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    schedule?: ScheduleUpdateOneWithoutGamesNestedInput
+    playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutSeasonInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    leagueId?: NullableIntFieldUpdateOperationsInput | number | null
+    homeTeamId?: IntFieldUpdateOperationsInput | number
+    awayTeamId?: IntFieldUpdateOperationsInput | number
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateManyWithoutSeasonInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    leagueId?: NullableIntFieldUpdateOperationsInput | number | null
+    homeTeamId?: IntFieldUpdateOperationsInput | number
+    awayTeamId?: IntFieldUpdateOperationsInput | number
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ScheduleUpdateWithoutSeasonInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    games?: GameUpdateManyWithoutScheduleNestedInput
+  }
+
+  export type ScheduleUncheckedUpdateWithoutSeasonInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    games?: GameUncheckedUpdateManyWithoutScheduleNestedInput
+  }
+
+  export type ScheduleUncheckedUpdateManyWithoutSeasonInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    division?: IntFieldUpdateOperationsInput | number
+    subdivision?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type TryoutHistoryUpdateWithoutSeasonInput = {
     tryoutType?: StringFieldUpdateOperationsInput | string
     cost?: IntFieldUpdateOperationsInput | number
@@ -82253,6 +84826,89 @@ export namespace Prisma {
     playersAdded?: IntFieldUpdateOperationsInput | number
     conductedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerId?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type GameCreateManyScheduleInput = {
+    id?: number
+    leagueId?: number | null
+    homeTeamId: number
+    awayTeamId: number
+    homeScore?: number | null
+    awayScore?: number | null
+    gameDate: Date | string
+    simulated?: boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: $Enums.MatchType
+    tournamentId?: number | null
+    round?: number | null
+    status?: $Enums.GameStatus
+    seasonId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
+    createdAt?: Date | string
+  }
+
+  export type GameUpdateWithoutScheduleInput = {
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    league?: LeagueUpdateOneWithoutScheduleNestedInput
+    homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
+    awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
+    tournament?: TournamentUpdateOneWithoutGamesNestedInput
+    season?: SeasonUpdateOneWithoutGamesNestedInput
+    playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutScheduleInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    leagueId?: NullableIntFieldUpdateOperationsInput | number | null
+    homeTeamId?: IntFieldUpdateOperationsInput | number
+    awayTeamId?: IntFieldUpdateOperationsInput | number
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+    teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameUncheckedUpdateManyWithoutScheduleInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    leagueId?: NullableIntFieldUpdateOperationsInput | number | null
+    homeTeamId?: IntFieldUpdateOperationsInput | number
+    awayTeamId?: IntFieldUpdateOperationsInput | number
+    homeScore?: NullableIntFieldUpdateOperationsInput | number | null
+    awayScore?: NullableIntFieldUpdateOperationsInput | number | null
+    gameDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    simulated?: BoolFieldUpdateOperationsInput | boolean
+    simulationLog?: NullableJsonNullValueInput | InputJsonValue
+    matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+    tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
+    round?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RedeemCodeRecordCreateManyRedeemCodeInput = {
@@ -82291,6 +84947,10 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    seasonId?: string | null
+    scheduleId?: string | null
+    subdivision?: string | null
+    gameDay?: number | null
     createdAt?: Date | string
   }
 
@@ -82311,10 +84971,14 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
+    season?: SeasonUpdateOneWithoutGamesNestedInput
+    schedule?: ScheduleUpdateOneWithoutGamesNestedInput
     playerStats?: PlayerMatchStatsUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUpdateManyWithoutGameNestedInput
   }
@@ -82332,6 +84996,10 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
@@ -82350,6 +85018,10 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    seasonId?: NullableStringFieldUpdateOperationsInput | string | null
+    scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
+    subdivision?: NullableStringFieldUpdateOperationsInput | string | null
+    gameDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

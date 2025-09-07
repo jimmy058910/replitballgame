@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
-import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
+import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
 
 const router = Router();
 

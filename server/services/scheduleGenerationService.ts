@@ -66,14 +66,46 @@ export class ScheduleGenerationService {
   /**
    * Generate schedule for Division 7 Alpha - 56 games across Days 5-14
    */
-  static async generateDivisionSchedule(teams: any[]): Promise<number> {
+  static async generateDivisionSchedule(teams: any[], division: number = 7, subdivision: string = 'alpha'): Promise<number> {
     const prisma = await getPrismaClient();
     
     if (teams.length !== 8) {
       throw new Error(`Division schedule requires exactly 8 teams, got ${teams.length}`);
     }
     
-    logInfo(`Generating complete schedule for Days 5-14 with 8 teams`);
+    logInfo(`Generating complete schedule for Division ${division}-${subdivision} Days 5-14 with 8 teams`);
+    
+    // Get current season
+    const currentSeason = await prisma.season.findFirst({
+      orderBy: { startDate: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      throw new Error('No active season found');
+    }
+    
+    // Find or create schedule for this division-subdivision
+    let schedule = await prisma.schedule.findUnique({
+      where: {
+        seasonId_division_subdivision: {
+          seasonId: currentSeason.id,
+          division: division,
+          subdivision: subdivision
+        }
+      }
+    });
+    
+    if (!schedule) {
+      schedule = await prisma.schedule.create({
+        data: {
+          seasonId: currentSeason.id,
+          division: division,
+          subdivision: subdivision,
+          isActive: true
+        }
+      });
+      logInfo(`Created new schedule with ID: ${schedule.id}`);
+    }
     
     const scheduledGames = [];
     const baseDate = new Date("2025-08-20");
@@ -115,7 +147,12 @@ export class ScheduleGenerationService {
           matchType: 'LEAGUE' as const,
           status: 'SCHEDULED' as const,
           homeScore: 0,
-          awayScore: 0
+          awayScore: 0,
+          // NEW FIELDS for bulletproof filtering
+          scheduleId: schedule.id,
+          seasonId: currentSeason.id,
+          subdivision: subdivision,
+          gameDay: day
         };
         
         scheduledGames.push(gameData);

@@ -131,7 +131,7 @@ const TournamentCenter: React.FC<TournamentCenterProps> = ({ teamId }) => {
 
   // Fetch current season info
   const { data: seasonInfo } = useQuery({
-    queryKey: ["/api/season/current-cycle"],
+    queryKey: ["/api/seasons/current-cycle"],
   });
 
   // Check if Mid-Season Cup registration deadline has passed (Day 7 at 1PM EDT)

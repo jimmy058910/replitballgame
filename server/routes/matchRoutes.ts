@@ -3,7 +3,7 @@ import { matchStorage } from '../storage/matchStorage.js';
 import { storage } from '../storage/index.js';
 // playerStorage imported via storage index
 import { requireAuth } from "../middleware/firebaseAuth.js";
-import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
+import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections  
 // import { matchStateManager } from '../services/matchStateManager.js';
 import { getPrismaClient } from "../database.js";

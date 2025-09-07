@@ -72,7 +72,7 @@ export default function SuperUser() {
   });
 
   const { data: currentWeek } = useQuery<CurrentWeek>({
-    queryKey: ["/api/season/current-week"],
+    queryKey: ["/api/seasons/current-week"],
   });
 
   // System statistics for admin dashboard
@@ -107,7 +107,7 @@ export default function SuperUser() {
         title: "Day Advanced",
         description: data?.message || "Day successfully advanced",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/season/current-week"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/seasons/current-week"] });
     },
     onError: (error: Error) => {
       toast({

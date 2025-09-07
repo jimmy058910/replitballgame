@@ -8,7 +8,7 @@ import { tournamentService } from './tournamentService.js';
 import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { getEasternTime, EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
-import { QuickMatchSimulation } from './quickMatchSimulation.js';
+import { QuickMatchSimulation } from './enhancedSimulationEngine.js';
 import { dailyTournamentAutoFillService } from './dailyTournamentAutoFillService.js';
 import { DynamicPlayoffService } from './dynamicPlayoffService.js';
 import { generateRandomPlayer } from './leagueService.js';
@@ -90,8 +90,7 @@ export class SeasonTimingAutomationService {
     this.scheduleMatchSimulation();
     
     // Schedule catch-up check every 15 minutes for missed matches
-    // 🚨 TEMPORARILY DISABLED - Schedule corruption fix in progress
-    // this.scheduleCatchUpChecks();
+    this.scheduleCatchUpChecks();
     
     // Schedule tournament auto-start check every hour
     this.scheduleTournamentAutoStart();

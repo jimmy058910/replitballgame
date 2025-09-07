@@ -181,7 +181,7 @@ export default function MobileRosterHQ() {
 
   // Get current season cycle to determine if promotions are allowed
   const { data: seasonCycle } = useQuery({
-    queryKey: ['/api/season/current-cycle'],
+    queryKey: ['/api/seasons/current-cycle'],
   });
   
   // Recruitment system queries

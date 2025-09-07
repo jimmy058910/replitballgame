@@ -36,12 +36,15 @@ interface Finances {
 }
 
 interface SeasonData {
-  seasonNumber: number;
-  currentDay: number;
-  phase: string;
-  nextMatchCountdown?: string;
-  nextOpponent?: string;
-  startDate?: string;
+  season: {
+    id: number;
+    seasonNumber: number;
+    currentDay: number;
+    phase: string;
+    startDate?: string;
+  };
+  serverTime: any;
+  easternTime: any;
 }
 
 interface LiveMatch {
@@ -96,7 +99,7 @@ const ModernStickyHeader: React.FC = () => {
   } : null;
 
   const { data: seasonData } = useQuery<SeasonData>({
-    queryKey: ['/api/season/current'], // Use the correct working API endpoint
+    queryKey: ['/api/seasons/current'], // Use the correct working API endpoint (plural)
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5, // 5 minutes - season data changes infrequently
   });
@@ -218,10 +221,10 @@ const ModernStickyHeader: React.FC = () => {
   };
 
   const getNextMatchInfo = (): { text: string; isOffSeason: boolean } => {
-    if (!seasonData) return { text: "Loading...", isOffSeason: false };
+    if (!seasonData?.season) return { text: "Loading...", isOffSeason: false };
     
     // If in off-season (Day 16-17)
-    if (seasonData.currentDay >= 16) {
+    if (seasonData.season.currentDay >= 16) {
       return { 
         text: "Prepare for next season", 
         isOffSeason: true 
@@ -296,8 +299,8 @@ const ModernStickyHeader: React.FC = () => {
   };
 
   const getSeasonPhase = (): string => {
-    if (!seasonData) return 'Off-Season';
-    const { currentDay, phase } = seasonData;
+    if (!seasonData?.season) return 'Off-Season';
+    const currentDay = seasonData.season.currentDay;
     
     if (currentDay <= 14) return 'Regular Season';
     if (currentDay === 15) return 'Division Playoffs';
@@ -307,7 +310,7 @@ const ModernStickyHeader: React.FC = () => {
   const credits = parseInt(String(finances?.credits || "0"));
   const gems = parseInt(String(finances?.gems || "0"));
   const unreadNotifications = (notifications && typeof notifications === 'object' && 'notifications' in notifications && Array.isArray(notifications.notifications)) ? notifications.notifications.filter((n: any) => !n.isRead).length : 0;
-  const seasonInfo = seasonData ? `Day ${seasonData.currentDay}/17` : 'Day 9/17';
+  const seasonInfo = seasonData?.season?.currentDay ? `Day ${seasonData.season.currentDay}/17` : 'Day 9/17';
   const phaseDisplay = getSeasonPhase();
   
   // Enhanced display data

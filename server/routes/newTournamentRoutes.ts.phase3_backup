@@ -1,0 +1,572 @@
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { storage } from '../storage/index.js';
+import { requireAuth } from "../middleware/firebaseAuth.js";
+import { z } from "zod";
+import { tournamentService } from '../services/tournamentService.js';
+import { getPrismaClient } from "../database.js";
+import moment from "moment-timezone";
+
+const router = Router();
+
+// Schema validation
+const registerTournamentSchema = z.object({
+  tournamentId: z.string().uuid("Invalid tournament ID format"),
+});
+
+const dailyTournamentRegisterSchema = z.object({
+  division: z.number().min(2).max(8),
+});
+
+const midSeasonRegisterSchema = z.object({
+  division: z.number().min(1).max(8),
+  paymentType: z.enum(["credits", "gems", "both"]),
+});
+
+// Get available tournaments for team's division
+router.get('/available', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const availableTournaments = await tournamentService.getAvailableTournaments(team.id);
+    
+    // Format tournaments with additional info
+    const formattedTournaments = availableTournaments.map((tournament: any) => ({
+      id: tournament.id,
+      name: tournament.name,
+      tournamentId: tournament.tournamentId,
+      type: tournament.type,
+      division: tournament.division,
+      entryFeeCredits: Number(tournament.entryFeeCredits || 0),
+      entryFeeGems: tournament.entryFeeGems,
+      requiresEntryItem: false, // Default value
+      maxTeams: 8, // Default division tournament size
+      registrationDeadline: tournament.registrationEndTime,
+      tournamentStartTime: tournament.startTime,
+      prizes: tournament.prizePoolJson,
+      canRegister: new Date() < tournament.registrationEndTime!,
+      timeUntilDeadline: tournament.registrationEndTime 
+        ? Math.max(0, tournament.registrationEndTime.getTime() - Date.now()) 
+        : 0
+    }));
+
+    res.json(formattedTournaments);
+  } catch (error) {
+    console.error("Error fetching available tournaments:", error);
+    next(error);
+  }
+});
+
+// Register for tournament
+router.post('/register', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const { tournamentId } = registerTournamentSchema.parse(req.body);
+
+    await tournamentService.registerForTournament(team.id, parseInt(tournamentId.toString()));
+
+    res.json({ 
+      success: true, 
+      message: "Successfully registered for tournament" 
+    });
+  } catch (error) {
+    console.error("Error registering for tournament:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+    }
+    
+    // Handle specific tournament registration errors
+    if (error instanceof Error) {
+      return res.status(400).json({ message: error.message });
+    }
+    
+    next(error);
+  }
+});
+
+// Register for Daily Divisional Tournament (on-demand creation)
+router.post('/daily-tournament/register', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const { division } = dailyTournamentRegisterSchema.parse(req.body);
+    
+    const tournamentId = await tournamentService.createOrJoinDailyTournament(team.id, division);
+    
+    res.json({ 
+      success: true, 
+      message: "Successfully registered for Daily Division Tournament!",
+      tournamentId
+    });
+  } catch (error) {
+    console.error("Error registering for daily tournament:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        message: "Invalid request data", 
+        errors: error.errors 
+      });
+    }
+    if (error instanceof Error) {
+      return res.status(400).json({ message: error.message });
+    }
+    next(error);
+  }
+});
+
+// Register for Mid-Season Cup (on-demand creation)
+router.post('/mid-season/register', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const { division, paymentType } = midSeasonRegisterSchema.parse(req.body);
+    
+    const tournamentId = await tournamentService.createOrJoinMidSeasonCup(team.id, division, paymentType);
+    
+    res.json({ 
+      success: true, 
+      message: "Successfully registered for Mid-Season Cup!",
+      tournamentId,
+      paymentType
+    });
+  } catch (error) {
+    console.error("Error registering for mid-season tournament:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        message: "Invalid request data", 
+        errors: error.errors 
+      });
+    }
+    if (error instanceof Error) {
+      return res.status(400).json({ message: error.message });
+    }
+    next(error);
+  }
+});
+
+// Get team's registered tournaments
+router.get('/my-tournaments', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const teamTournaments = await tournamentService.getTeamTournaments(team.id);
+    
+    const formattedTournaments = teamTournaments.map(({ tournament, entry }: any) => ({
+      id: tournament.id,
+      name: tournament.name,
+      tournamentId: tournament.tournamentId,
+      type: tournament.type,
+      division: tournament.division,
+      status: tournament.status,
+      registrationDeadline: tournament.registrationEndTime,
+      tournamentStartTime: tournament.startTime,
+      entryTime: entry?.registeredAt || null,
+      placement: entry?.finalRank || null,
+      creditsWon: 0,
+      gemsWon: 0,
+      trophyWon: false,
+      isUpcoming: tournament.status === "REGISTRATION_OPEN",
+      isActive: tournament.status === "IN_PROGRESS",
+      isCompleted: tournament.status === "COMPLETED"
+    }));
+
+    res.json(formattedTournaments);
+  } catch (error) {
+    console.error("Error fetching team tournaments:", error);
+    next(error);
+  }
+});
+
+// Get tournament history
+router.get('/history', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const history = await tournamentService.getTournamentHistory(team.id);
+    // Convert BigInt fields to numbers for JSON serialization
+    const serializedHistory = history.map((entry: any) => ({
+      ...entry,
+      teamId: Number(entry.teamId),
+      tournamentId: entry.tournamentId,
+      id: entry.id,
+      tournament: entry.tournament ? {
+        ...entry.tournament,
+        entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
+        entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
+      } : null
+    }));
+    
+    res.json(serializedHistory);
+  } catch (error) {
+    console.error("Error fetching tournament history:", error);
+    next(error);
+  }
+});
+
+// Get tournament statistics
+router.get('/stats', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team) return res.status(404).json({ message: "Team not found" });
+
+    const stats = await tournamentService.getTournamentStats(team.id);
+    res.json(stats);
+  } catch (error) {
+    console.error("Error fetching tournament stats:", error);
+    next(error);
+  }
+});
+
+// Find active tournament for Oakland Cougars 
+router.get('/oakland-cougars-tournament', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Find active tournament entry for Oakland Cougars (team ID 4)
+    const tournamentEntry = await prisma.tournamentEntry.findFirst({
+      where: {
+        teamId: 4 // Oakland Cougars team ID
+      },
+      include: {
+        tournament: true
+      },
+      orderBy: {
+        registeredAt: 'desc'
+      }
+    });
+
+    if (!tournamentEntry) {
+      return res.json({ registered: false, message: "No tournament registration found" });
+    }
+
+    res.json({ 
+      registered: true,
+      tournamentId: Number(tournamentEntry.tournamentId),
+      tournament: {
+        id: Number(tournamentEntry.tournament.id),
+        name: tournamentEntry.tournament.name,
+        type: tournamentEntry.tournament.type,
+        status: tournamentEntry.tournament.status,
+        startTime: tournamentEntry.tournament.startTime
+      },
+      accessUrl: `/competition/tournaments/${tournamentEntry.tournamentId}`
+    });
+  } catch (error) {
+    console.error("Error finding Oakland Cougars tournament:", error);
+    res.json({ registered: false, error: "Could not check tournament status" });
+  }
+});
+
+// Get team's current tournament entries
+router.get('/team/:teamId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const prisma = await getPrismaClient();
+    const { teamId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    // Verify team ownership
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || team.id.toString() !== teamId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Get current tournament entries
+    const currentEntries = await prisma.tournamentEntry.findMany({
+      where: {
+        teamId: parseInt(teamId)
+      },
+      include: {
+        tournament: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            division: true,
+            status: true,
+            registrationEndTime: true,
+            startTime: true,
+            entryFeeCredits: true,
+            entryFeeGems: true,
+            prizePoolJson: true
+          }
+        }
+      },
+      orderBy: {
+        registeredAt: 'desc'
+      }
+    });
+
+    // Convert BigInt fields to numbers for JSON serialization
+    const serializedEntries = currentEntries.map((entry: any) => ({
+      ...entry,
+      teamId: Number(entry.teamId),
+      tournamentId: Number(entry.tournamentId),
+      id: Number(entry.id),
+      finalRank: entry.finalRank ? Number(entry.finalRank) : null,
+      tournament: {
+        ...entry.tournament,
+        id: Number(entry.tournament.id),
+        entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
+        entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
+      }
+    }));
+    
+    res.json(serializedEntries);
+  } catch (error) {
+    console.error("Error fetching team tournament entries:", error);
+    next(error);
+  }
+});
+
+// Get team's tournament history
+router.get('/team/:teamId/history', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const prisma = await getPrismaClient();
+    const { teamId } = req.params;
+    const userId = req.user.claims.sub;
+    
+    // Verify team ownership
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || team.id.toString() !== teamId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Get tournament history with tournament details
+    const history = await prisma.tournamentEntry.findMany({
+      where: {
+        teamId: parseInt(teamId),
+        finalRank: { not: null } // Only completed tournaments
+      },
+      include: {
+        tournament: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            division: true,
+            status: true,
+            seasonDay: true,
+            entryFeeCredits: true,
+            entryFeeGems: true,
+            prizePoolJson: true,
+            tournamentId: true,
+            createdAt: true
+          }
+        }
+      },
+      orderBy: {
+        registeredAt: 'desc'
+      },
+      take: 20
+    });
+
+    // Convert BigInt fields to numbers for JSON serialization
+    const serializedHistory = history.map((entry: any) => ({
+      ...entry,
+      teamId: Number(entry.teamId),
+      tournamentId: Number(entry.tournamentId),
+      id: Number(entry.id),
+      finalRank: entry.finalRank ? Number(entry.finalRank) : null,
+      placement: entry.finalRank ? Number(entry.finalRank) : null, // Add placement field for frontend compatibility
+      tournament: {
+        ...entry.tournament,
+        id: Number(entry.tournament.id),
+        entryFeeCredits: Number(entry.tournament.entryFeeCredits || 0),
+        entryFeeGems: Number(entry.tournament.entryFeeGems || 0)
+      }
+    }));
+    
+    res.json(serializedHistory);
+  } catch (error) {
+    console.error("Error fetching team tournament history:", error);
+    next(error);
+  }
+});
+
+// Get tournament details by ID - MOVE this after current-registrations
+router.get('/tournament/:tournamentId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const prisma = await getPrismaClient();
+    const { tournamentId } = req.params;
+    
+    // Validate tournamentId parameter
+    if (!tournamentId || isNaN(parseInt(tournamentId))) {
+      return res.status(400).json({ message: "Invalid tournament ID" });
+    }
+    
+    const tournament = await prisma.tournament.findUnique({
+      where: { id: parseInt(tournamentId) }
+    });
+
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    // Get participants with team details
+    const participants = await prisma.tournamentEntry.findMany({
+      where: { tournamentId: parseInt(tournamentId) },
+      include: {
+        team: {
+          select: { name: true }
+        }
+      },
+      orderBy: { registeredAt: 'asc' }
+    });
+
+    // Format participants for frontend compatibility
+    const formattedParticipants = participants.map((entry: any) => ({
+      teamId: entry.teamId,
+      teamName: entry.team.name,
+      entryTime: entry.registeredAt,
+      placement: entry.finalRank,
+      eliminated: false
+    }));
+
+    const maxTeams = (tournament as any).maxTeams || 16;
+    const tournamentDetails = {
+      ...tournament,
+      participants: formattedParticipants,
+      participantCount: formattedParticipants.length,
+      spotsRemaining: maxTeams - formattedParticipants.length,
+      canStillJoin: new Date() < (tournament as any).registrationEndTime! && formattedParticipants.length < maxTeams
+    };
+
+    res.json(tournamentDetails);
+  } catch (error) {
+    console.error("Error fetching tournament details:", error);
+    next(error);
+  }
+});
+
+// Get tournament overview (shows both types available for team's division)
+router.get('/overview/:division', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const division = parseInt(req.params.division);
+    if (isNaN(division) || division < 1 || division > 8) {
+      return res.status(400).json({ message: "Invalid division number" });
+    }
+
+    const userId = req.user.claims.sub;
+    const team = await storage.teams.getTeamByUserId(userId);
+    if (!team || team.division !== division) {
+      return res.status(403).json({ message: "Access denied for this division" });
+    }
+
+    // Get current season info
+    const startDate = new Date("2025-01-01");
+    const now = new Date();
+    const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const season = Math.floor(daysSinceStart / 17);
+    const gameDay = (daysSinceStart % 17) + 1;
+
+    // Check what tournaments are available
+    const divisionNames = ["Champion", "Diamond", "Platinum", "Gold", "Silver", "Bronze", "Copper", "Iron", "Stone"];
+    const divisionName = divisionNames[division];
+
+    const response = {
+      division,
+      divisionName,
+      season,
+      gameDay,
+      tournaments: {
+        dailyDivisionTournament: {
+          available: division > 1, // Only divisions 2-8
+          name: `${divisionName} Daily Division Tournament`,
+          description: "Daily single-elimination tournament requiring Tournament Entry items",
+          entryRequirement: "Tournament Entry Item",
+          gameLength: "Short (like Exhibition)",
+          injuryRisk: "Low (5%)",
+          staminaCost: "Minimal (-10 points)",
+          progressionBenefit: "Moderate",
+          registrationWindow: "24 hours",
+          tournamentTime: "8:00 PM EST",
+          rewards: division > 1 ? tournamentService['getDailyDivisionTournamentRewards'](division) : null
+        },
+        midSeasonCup: {
+          available: true, // Always show Mid-Season Cup
+          name: `${divisionName} Mid-Season Cup`,
+          description: "Premier seasonal tournament with substantial rewards and trophies",
+          entryRequirement: "10,000 Credits OR 20 Gems",
+          gameLength: "Standard (like League)",
+          injuryRisk: "Normal (20%)",
+          staminaCost: "High (-30 points)",
+          progressionBenefit: "High",
+          registrationWindow: gameDay >= 1 && gameDay < 7 ? "Registration open!" : gameDay === 7 ? "Final day - closes at 1PM EDT" : "Registration closed - next season",
+          tournamentTime: "1:00 PM EST on Day 7",
+          rewards: tournamentService['getMidSeasonCupRewards'](division)
+        }
+      }
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error fetching tournament overview:", error);
+    next(error);
+  }
+});
+
+// Admin endpoint to create tournaments (for testing and management)
+router.post('/admin/create-daily-cup/:division', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    // Check admin permissions (simplified for now)
+    const userId = req.user.claims.sub;
+    if (userId !== "44010914") { // Replace with proper admin check
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const division = parseInt(req.params.division);
+    if (isNaN(division) || division < 2 || division > 8) {
+      return res.status(400).json({ message: "Invalid division for Daily Cup (2-8 only)" });
+    }
+
+    const tournamentId = await tournamentService.createDailyDivisionTournament(division);
+    res.json({ 
+      success: true, 
+      tournamentId,
+      message: `Daily Cup tournament created for division ${division}` 
+    });
+  } catch (error) {
+    console.error("Error creating daily cup tournament:", error);
+    next(error);
+  }
+});
+
+// Admin endpoint to create Mid-Season Cup
+router.post('/admin/create-mid-season/:division', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    // Check admin permissions (simplified for now)
+    const userId = req.user.claims.sub;
+    if (userId !== "44010914") { // Replace with proper admin check
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const division = parseInt(req.params.division);
+    if (isNaN(division) || division < 1 || division > 8) {
+      return res.status(400).json({ message: "Invalid division number" });
+    }
+
+    const tournamentId = await tournamentService.createMidSeasonCup(division);
+    res.json({ 
+      success: true, 
+      tournamentId,
+      message: `Mid-Season Cup created for division ${division}` 
+    });
+  } catch (error) {
+    console.error("Error creating Mid-Season Cup:", error);
+    next(error);
+  }
+});
+
+export default router;

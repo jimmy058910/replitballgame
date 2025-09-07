@@ -14,9 +14,10 @@ export class MatchStatusFixer {
     const stuckGames = await prisma.game.findMany({
       where: { 
         status: 'IN_PROGRESS',
-        // Games created more than 1 hour ago are considered stuck
+        // Games that have been IN_PROGRESS for more than 30 minutes are considered stuck
+        // This allows for proper simulation time while catching truly stuck games
         createdAt: {
-          lt: new Date(Date.now() - 60 * 60 * 1000)
+          lt: new Date(Date.now() - 30 * 60 * 1000)
         }
       },
       include: {

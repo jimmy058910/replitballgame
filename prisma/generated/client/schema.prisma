@@ -554,26 +554,35 @@ model LeagueStanding {
 }
 
 model Game {
-  id            Int                @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   leagueId      Int?
-  league        League?            @relation(fields: [leagueId], references: [id])
+  league        League?     @relation(fields: [leagueId], references: [id])
   homeTeamId    Int
-  homeTeam      Team               @relation("HomeTeamGames", fields: [homeTeamId], references: [id])
+  homeTeam      Team        @relation("HomeTeamGames", fields: [homeTeamId], references: [id])
   awayTeamId    Int
-  awayTeam      Team               @relation("AwayTeamGames", fields: [awayTeamId], references: [id])
+  awayTeam      Team        @relation("AwayTeamGames", fields: [awayTeamId], references: [id])
   homeScore     Int?
   awayScore     Int?
   gameDate      DateTime
-  simulated     Boolean            @default(false)
+  simulated     Boolean     @default(false)
   simulationLog Json?
-  matchType     MatchType          @default(LEAGUE)
+  matchType     MatchType   @default(LEAGUE)
   tournamentId  Int?
-  tournament    Tournament?        @relation(fields: [tournamentId], references: [id])
+  tournament    Tournament? @relation(fields: [tournamentId], references: [id])
   round         Int?
-  status        GameStatus         @default(SCHEDULED)
-  createdAt     DateTime           @default(now())
-  playerStats   PlayerMatchStats[]
-  teamStats     TeamMatchStats[]
+  status        GameStatus  @default(SCHEDULED)
+
+  // NEW FIELDS FOR PROPER FILTERING
+  seasonId    String? // Links to Season.id for season isolation
+  season      Season?   @relation(fields: [seasonId], references: [id])
+  scheduleId  String? // Links to Schedule.id for bulletproof division-subdivision filtering
+  schedule    Schedule? @relation(fields: [scheduleId], references: [id])
+  subdivision String? // Tracks which subdivision this game belongs to (alpha, beta, gamma, etc)
+  gameDay     Int? // Tracks which day of the season this game is scheduled for
+
+  createdAt   DateTime           @default(now())
+  playerStats PlayerMatchStats[]
+  teamStats   TeamMatchStats[]
 
   // Performance indexes
   @@index([homeTeamId])
@@ -585,6 +594,9 @@ model Game {
   @@index([tournamentId])
   @@index([status, gameDate])
   @@index([matchType, gameDate])
+  @@index([seasonId, subdivision]) // New index for efficient season/subdivision queries
+  @@index([seasonId, gameDay]) // New index for schedule queries
+  @@index([scheduleId]) // Primary filtering index for division-subdivision games
 }
 
 enum GameStatus {
@@ -603,6 +615,8 @@ model Season {
   currentDay    Int             @default(1)
   phase         SeasonPhase     @default(REGULAR_SEASON)
   leagues       League[]
+  games         Game[] // NEW: Track all games in this season
+  schedules     Schedule[] // NEW: Track all schedules in this season
   createdAt     DateTime        @default(now())
   tryoutHistory TryoutHistory[]
 
@@ -611,6 +625,26 @@ model Season {
   @@index([currentDay])
   @@index([phase])
   @@index([startDate, endDate])
+}
+
+// NEW MODEL: Represents a unique schedule for each division-subdivision combo
+model Schedule {
+  id          String   @id @default(uuid())
+  seasonId    String
+  season      Season   @relation(fields: [seasonId], references: [id])
+  division    Int // Division number (1-8)
+  subdivision String // Subdivision name (alpha, beta, gamma, etc.)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  games       Game[] // All games in this schedule
+
+  // Ensure unique schedule per season-division-subdivision
+  @@unique([seasonId, division, subdivision])
+  // Performance indexes
+  @@index([seasonId])
+  @@index([division, subdivision])
+  @@index([isActive])
 }
 
 enum SeasonPhase {

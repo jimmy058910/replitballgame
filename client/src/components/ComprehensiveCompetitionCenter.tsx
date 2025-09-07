@@ -235,7 +235,7 @@ export default function ComprehensiveCompetitionCenter() {
   const players = team?.players || [];
 
   const { data: seasonData } = useQuery<any>({
-    queryKey: ['/api/season/current-cycle'],
+    queryKey: ['/api/seasons/current-cycle'],
     enabled: isAuthenticated,
   });
 
@@ -296,6 +296,7 @@ export default function ComprehensiveCompetitionCenter() {
     queryKey: [`/api/leagues/${team?.division || 8}/standings`],  // ✅ FIXED: Correct API endpoint
     enabled: !!team?.division || !!team,  // Try enabling if team exists at all
     staleTime: 0, // EMERGENCY: No cache - force fresh data
+    select: (data: any) => data?.standings || [], // ✅ CRITICAL FIX: Extract standings array from API response
   });
 
   // Debug logging for standings issues
@@ -731,7 +732,12 @@ export default function ComprehensiveCompetitionCenter() {
                   Division {team?.division || 8} - {team?.subdivision ? team.subdivision.charAt(0).toUpperCase() + team.subdivision.slice(1) : 'Eta'}
                 </Badge>
                 <Badge className="bg-yellow-600 text-yellow-100 px-2 py-1">
-                  Season {seasonData?.seasonNumber || 1} • Day {seasonData?.currentDay || 4}/17
+                  Season {seasonData?.seasonNumber || 1} • Day {seasonData?.currentDay || 4}/17 - {
+                    seasonData?.phase === 'REGULAR_SEASON' ? 'Regular Season' :
+                    seasonData?.phase === 'PLAYOFFS' ? 'Playoffs' :
+                    seasonData?.phase === 'OFF_SEASON' ? 'Off-Season' :
+                    'Loading...'
+                  }
                 </Badge>
               </div>
             </div>

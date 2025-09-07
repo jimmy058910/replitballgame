@@ -29,16 +29,17 @@ export default defineConfig(({ mode }) => {
   },
   server: {
     port: 5173,
+    strictPort: true, // ✅ CRITICAL FIX: Prevent port fallback, fail if 5173 is occupied
     host: "0.0.0.0", // Allow external access
     proxy: {
       // Proxy API requests to backend during development
       "/api": {
-        target: "http://localhost:5001",
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
       "/socket.io": {
-        target: "http://localhost:5001",
+        target: "http://localhost:3000",
         changeOrigin: true,
         ws: true, // Enable WebSocket proxying
       }

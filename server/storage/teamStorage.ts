@@ -125,7 +125,7 @@ async function serializeTeamData(team: any): Promise<any> {
     // Fetch contracts for all players in this team
     const prisma = await getPrismaClient();
     const playerIds = team.players.map((p: any) => p.id);
-    const contracts = await prisma.contract.findMany({
+    const contracts = await prisma.Contract.findMany({
       where: { playerId: { in: playerIds } }
     });
     
@@ -309,7 +309,7 @@ export class TeamStorage {
         return null;
       }
       
-      const team = await prisma.team.findFirst({
+      let team = await prisma.team.findFirst({
         where: { userProfileId: userProfile.id },
         include: {
           finances: true,
@@ -329,6 +329,44 @@ export class TeamStorage {
           staff: true
         }
       });
+      
+      // Fallback: Check for old data structure using direct userId field
+      if (!team) {
+        console.log(`🔄 Team not found by userProfileId, checking legacy userId field for ${userId}`);
+        team = await prisma.team.findFirst({
+          where: { userId: userId },
+          include: {
+            finances: true,
+            stadium: true,
+            players: {
+              where: {
+                isOnMarket: false,
+                contract: {
+                  isNot: null // Only include players WITH contracts (main roster)
+                }
+              },
+              include: {
+                contract: true,
+                skills: { include: { skill: true } }
+              }
+            },
+            staff: true
+          }
+        });
+        
+        // If found via legacy field, update the team to use proper relationship
+        if (team) {
+          console.log(`✅ Found team via legacy userId, migrating to userProfile relationship`);
+          await prisma.team.update({
+            where: { id: team.id },
+            data: {
+              userProfileId: userProfile.id,
+              userId: null // Remove legacy field
+            }
+          });
+          console.log(`🔧 Team ${team.name} migrated to use userProfileId ${userProfile.id}`);
+        }
+      }
       
       if (!team) {
         return null;

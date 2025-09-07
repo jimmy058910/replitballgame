@@ -143,7 +143,7 @@ export class AwardsService {
       //     }
       //   },
       //   _sum: {
-      //     goals: true,
+      //     scores: true,
       //     assists: true,
       //     passes: true,
       //     rushingYards: true,
@@ -362,14 +362,14 @@ export class AwardsService {
     // Calculate stats from raw data
     let wins = 0;
     let losses = 0;
-    let goalsFor = 0;
-    let goalsAgainst = 0;
+    let pointsFor = 0;
+    let pointsAgainst = 0;
 
     // teamStatsRaw.forEach((stat: any) => { // Commented until table exists
-    //     goalsFor += stat.score;
+    //     pointsFor += stat.score;
     // });
 
-    const stats = { wins, losses, goalsFor, goalsAgainst };
+    const stats = { wins, losses, pointsFor, pointsAgainst };
     const totalPoints = stats.wins * 3; // 3 points per win
 
     const historyRecord: any = {
@@ -381,8 +381,8 @@ export class AwardsService {
       finalPosition: null, // To be updated later
       wins: stats.wins,
       losses: stats.losses,
-      goalsFor: stats.goalsFor,
-      goalsAgainst: stats.goalsAgainst,
+      pointsFor: stats.pointsFor,
+      pointsAgainst: stats.pointsAgainst,
       playoffResult: null, // To be updated later
       specialAchievements: [],
       totalPoints,
@@ -426,8 +426,8 @@ export class AwardsService {
       //   },
       //   select: {
       //     teamId: true,
-      //     goalsFor: true,
-      //     goalsAgainst: true,
+      //     pointsFor: true,
+      //     pointsAgainst: true,
       //     matchId: true
       //   }
       // });
@@ -439,13 +439,13 @@ export class AwardsService {
         if (!teamStatsMap.has(stat.teamId)) {
           teamStatsMap.set(stat.teamId, {
             teamId: stat.teamId,
-            goalsFor: 0,
-            goalsAgainst: 0,
+            pointsFor: 0,
+            pointsAgainst: 0,
             gamesPlayed: 0
           });
         }
         const team = teamStatsMap.get(stat.teamId);
-        team.goalsFor += stat.score;
+        team.pointsFor += stat.score;
         team.gamesPlayed += 1;
       });
 
@@ -457,22 +457,22 @@ export class AwardsService {
 
       // Most Goals Scored
       const highestScoringTeam = teamStats.reduce((best, current) => 
-        current.goalsFor > best.goalsFor ? current : best
+        current.pointsFor > best.pointsFor ? current : best
       );
       awards.push({
         id: nanoid(),
         teamId: highestScoringTeam.teamId,
         seasonId,
-        awardType: "Most Goals Scored",
+        awardType: "Most Points Scored",
         awardCategory: "statistical",
-        statValue: highestScoringTeam.goalsFor,
+        statValue: highestScoringTeam.pointsFor,
         awardDate: new Date(),
         createdAt: new Date()
       });
 
-      // Best Defense (fewest goals allowed)
+      // Best Defense (fewest points allowed)
       const bestDefenseTeam = teamStats.reduce((best, current) => 
-        current.goalsAgainst < best.goalsAgainst ? current : best
+        current.pointsAgainst < best.pointsAgainst ? current : best
       );
       awards.push({
         id: nanoid(),
@@ -480,7 +480,7 @@ export class AwardsService {
         seasonId,
         awardType: "Best Defense",
         awardCategory: "statistical",
-        statValue: bestDefenseTeam.goalsAgainst,
+        statValue: bestDefenseTeam.pointsAgainst,
         awardDate: new Date(),
         createdAt: new Date()
       });

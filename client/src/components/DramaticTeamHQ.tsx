@@ -171,7 +171,7 @@ export default function DramaticTeamHQ() {
 
   // Season data with error handling
   const { data: seasonData, error: seasonError } = useQuery({
-    queryKey: ["/api/season/current-cycle"],
+    queryKey: ["/api/seasons/current-cycle"],
     enabled: isAuthenticated,
     retry: false,
     staleTime: 60000,

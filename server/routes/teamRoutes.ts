@@ -64,7 +64,7 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
   console.log('🔍 [API CALL] /api/teams/my route called!');
   console.log('🚨 [UNIQUE DEBUG] This is the FIXED endpoint running!');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -113,13 +113,13 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
   console.log(`🔍 [DEBUG] About to calculate real-time stats for team: ${team.name} (ID: ${team.id})`);
   console.log(`🔍 [DEBUG] Current database values: ${serializedTeam.wins}W-${serializedTeam.draws}D-${serializedTeam.losses}L-${serializedTeam.points}pts`);
   
-  const { TeamStatisticsCalculator } = await import('../utils/teamStatisticsCalculator.js');
+  const { calculateTeamStatisticsFromGames } = await import('../utils/teamStatisticsCalculator.js');
   
   let correctedSerializedTeam;
   
   try {
     // Calculate real statistics from actual game results
-    const realTimeStats = await TeamStatisticsCalculator.calculateTeamStatisticsFromGames(
+    const realTimeStats = await calculateTeamStatisticsFromGames(
       parseInt(team.id.toString()), 
       team.name
     );
@@ -154,7 +154,7 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
 router.get('/my/finances', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [FINANCES] /api/teams/my/finances endpoint called');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -260,7 +260,7 @@ router.get('/:teamId/contracts', requireAuth, asyncHandler(async (req: Request, 
     throw ErrorCreators.validation("Invalid team ID");
   }
 
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -331,7 +331,7 @@ router.get('/:teamId/transactions', requireAuth, asyncHandler(async (req: Reques
     throw ErrorCreators.validation("Invalid team ID");
   }
 
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -395,7 +395,7 @@ router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: Request, r
 router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my-schedule/comprehensive route called!');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -935,7 +935,7 @@ router.post('/:teamId/fix-financial-balance', requireAuth, asyncHandler(async (r
 router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [CAMARADERIE] Setting all players camaraderie to base level (50)');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -969,7 +969,7 @@ router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req
 router.post('/fix-day9-dates', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('📅 [FIX DAY 9] Moving 4 games from August 25th to August 24th (Day 9)');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1049,7 +1049,7 @@ router.post('/fix-day9-dates', requireAuth, asyncHandler(async (req: Request, re
 router.post('/reset-test-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔄 [RESET TEST GAMES] Resetting manual test games to proper Day 9 times');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1120,7 +1120,7 @@ router.post('/reset-test-games', requireAuth, asyncHandler(async (req: Request, 
 router.post('/fix-day8-status-and-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [FIX DAY 8] Fixing Day 8 games status and recalculating standings');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1270,7 +1270,7 @@ router.post('/fix-day8-status-and-standings', requireAuth, asyncHandler(async (r
 router.post('/debug-games-status', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [DEBUG GAMES] Checking all Day 7 and Day 8 games status');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1323,11 +1323,11 @@ router.post('/debug-games-status', requireAuth, asyncHandler(async (req: Request
 
 // Reset and recalculate all standings from scratch
 router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
-  console.log('🚨 [UNIQUE DEBUG] This is the FIXED reset-all-standings endpoint running!');
-  console.log('🔄 [RESET STANDINGS] Resetting all team standings and recalculating from completed games');
-  console.log('🔧 [DEBUG] Using correct Team field name now');
+  console.log('🚨 [COMPREHENSIVE RESET v2] This is the COMPREHENSIVE reset-all-standings endpoint running!');
+  console.log('🔄 [COMPREHENSIVE RESET v2] Clearing games, resetting season, and generating 14-game schedule');
+  console.log('🔧 [COMPREHENSIVE RESET v2] Full Division 7 Alpha reset with proper scheduling');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1382,93 +1382,133 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
     const teamIds = subdivisionTeams.map(team => team.id);
     console.log(`🎯 [RESET STANDINGS] Found ${teamIds.length} teams in Division ${targetDivision} ${targetSubdivision}: ${teamIds.join(', ')}`);
 
-    // Step 3: Get completed league games ONLY within this subdivision
-    const completedGames = await prisma.game.findMany({
+    // STEP 3: CLEAR ALL GAMES FOR THIS SUBDIVISION
+    const deletedGames = await prisma.game.deleteMany({
       where: {
-        status: 'COMPLETED',
-        matchType: 'LEAGUE',
-        homeScore: { not: null },
-        awayScore: { not: null },
-        // CRITICAL FIX: Only games where BOTH teams are in the same subdivision
-        AND: [
+        // Delete ALL games involving teams in this subdivision
+        OR: [
           { homeTeamId: { in: teamIds } },
           { awayTeamId: { in: teamIds } }
         ]
-      },
-      include: {
-        homeTeam: true,
-        awayTeam: true
-      },
-      orderBy: { id: 'asc' }
+      }
     });
     
-    console.log(`🔄 [RESET STANDINGS] Found ${completedGames.length} completed games WITHIN Division ${targetDivision} ${targetSubdivision} to process`);
+    console.log(`🗑️ [COMPREHENSIVE RESET] CLEARED ${deletedGames.count} games for Division ${targetDivision} ${targetSubdivision}`);
     
-    // Step 4: Recalculate standings from subdivision-only games
-    const standingsUpdates = [];
+    // STEP 4: RESET SEASON TO DAY 1
+    const currentSeason = await prisma.season.findFirst({
+      where: { phase: 'REGULAR_SEASON' },
+      orderBy: { createdAt: 'desc' }
+    });
     
-    for (const game of completedGames) {
-      const homeScore = game.homeScore || 0;
-      const awayScore = game.awayScore || 0;
-      
-      if (homeScore > awayScore) {
-        // Home team wins
-        await prisma.team.update({
-          where: { id: game.homeTeamId },
-          data: { 
-            wins: { increment: 1 },
-            points: { increment: 3 }
-          }
-        });
-        await prisma.team.update({
-          where: { id: game.awayTeamId },
-          data: { 
-            losses: { increment: 1 }
-          }
-        });
-        standingsUpdates.push(`${game.homeTeam.name} beat ${game.awayTeam.name} ${homeScore}-${awayScore}`);
-        
-      } else if (awayScore > homeScore) {
-        // Away team wins
-        await prisma.team.update({
-          where: { id: game.awayTeamId },
-          data: { 
-            wins: { increment: 1 },
-            points: { increment: 3 }
-          }
-        });
-        await prisma.team.update({
-          where: { id: game.homeTeamId },
-          data: { 
-            losses: { increment: 1 }
-          }
-        });
-        standingsUpdates.push(`${game.awayTeam.name} beat ${game.homeTeam.name} ${awayScore}-${homeScore}`);
-        
-      } else {
-        // Tie/Draw - both teams get 1 point (no wins/losses for ties)
-        await prisma.team.update({
-          where: { id: game.homeTeamId },
-          data: { 
-            points: { increment: 1 }
-          }
-        });
-        await prisma.team.update({
-          where: { id: game.awayTeamId },
-          data: { 
-            points: { increment: 1 }
-          }
-        });
-        standingsUpdates.push(`${game.homeTeam.name} tied ${game.awayTeam.name} ${homeScore}-${awayScore}`);
-      }
-      
-      console.log(`🔄 [RESET STANDINGS] Processed: ${game.homeTeam.name} ${homeScore}-${awayScore} ${game.awayTeam.name}`);
+    if (currentSeason) {
+      await prisma.season.update({
+        where: { id: currentSeason.id },
+        data: { currentDay: 1 }
+      });
+      console.log(`📅 [COMPREHENSIVE RESET] Reset season ${currentSeason.id} to Day 1`);
     }
     
-    // Step 4: Get final standings to verify
+    // STEP 5: GENERATE 14-GAME ROUND-ROBIN SCHEDULE
+    if (!currentSeason) {
+      return res.status(404).json({ error: 'No active season found for schedule generation' });
+    }
+    
+    // Find or create schedule for this subdivision
+    let schedule = await prisma.schedule.findFirst({
+      where: {
+        seasonId: currentSeason.id,
+        division: targetDivision,
+        subdivision: targetSubdivision
+      }
+    });
+    
+    if (!schedule) {
+      schedule = await prisma.schedule.create({
+        data: {
+          seasonId: currentSeason.id,
+          division: targetDivision,
+          subdivision: targetSubdivision,
+          isActive: true
+        }
+      });
+    }
+    
+    console.log(`📋 [COMPREHENSIVE RESET] Using schedule ID: ${schedule.id}`);
+    
+    // Generate 14-game round-robin schedule
+    const games = [];
+    const teams = subdivisionTeams;
+    const seasonStartDate = new Date(currentSeason.startDate);
+    
+    // Round-robin algorithm: 8 teams, 14 days, 4 games per day
+    function generateRoundRobinSchedule(teams: any[]) {
+      const schedule = [];
+      const n = teams.length; // 8 teams
+      const totalRounds = (n - 1) * 2; // 14 rounds for double round-robin
+      
+      for (let round = 0; round < 14; round++) {
+        const dayGames = [];
+        
+        // Use a simple round-robin pairing algorithm
+        for (let i = 0; i < n / 2; i++) {
+          let home = (round + i) % n;
+          let away = (round + n - 1 - i) % n;
+          
+          // For second half of season, swap home/away
+          if (round >= 7) {
+            [home, away] = [away, home];
+          }
+          
+          if (home !== away) {
+            dayGames.push({
+              home: teams[home],
+              away: teams[away]
+            });
+          }
+        }
+        
+        schedule.push(dayGames);
+      }
+      
+      return schedule;
+    }
+    
+    const roundRobinSchedule = generateRoundRobinSchedule(teams);
+    
+    // Convert to database format
+    for (let day = 0; day < 14; day++) {
+      const dayGames = roundRobinSchedule[day];
+      
+      for (const matchup of dayGames) {
+        games.push({
+          homeTeamId: matchup.home.id,
+          awayTeamId: matchup.away.id,
+          gameDate: new Date(seasonStartDate.getTime() + (day * 24 * 60 * 60 * 1000)),
+          scheduleId: schedule.id,
+          matchType: 'LEAGUE' as const,
+          status: 'SCHEDULED' as const,
+          simulated: false,
+          homeScore: 0,
+          awayScore: 0
+        });
+      }
+      
+      console.log(`📅 [COMPREHENSIVE RESET] Day ${day + 1}: ${dayGames.length} games scheduled`);
+    }
+    
+    // Insert all games
+    const createdGames = await prisma.game.createMany({
+      data: games
+    });
+    
+    console.log(`✅ [COMPREHENSIVE RESET] Created ${createdGames.count} new games`);
+    
+    // STEP 6: VERIFY SCHEDULE AND PROVIDE COMPREHENSIVE FEEDBACK
     const finalStandings = await prisma.team.findMany({
-      where: { division: 8, subdivision: 'alpha' },
+      where: { division: targetDivision, subdivision: targetSubdivision },
       select: {
+        id: true,
         name: true,
         wins: true,
         losses: true,
@@ -1480,14 +1520,58 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
       ]
     });
     
+    // Verify schedule requirements
+    const gameStats: Record<number, { name: string; total: number; home: number; away: number; opponents: Set<number> }> = {};
+    
+    for (const team of finalStandings) {
+      gameStats[team.id] = {
+        name: team.name,
+        total: 0,
+        home: 0,
+        away: 0,
+        opponents: new Set()
+      };
+    }
+    
+    for (const game of games) {
+      gameStats[game.homeTeamId].total++;
+      gameStats[game.homeTeamId].home++;
+      gameStats[game.homeTeamId].opponents.add(game.awayTeamId);
+      
+      gameStats[game.awayTeamId].total++;
+      gameStats[game.awayTeamId].away++;
+      gameStats[game.awayTeamId].opponents.add(game.homeTeamId);
+    }
+    
+    const verification = finalStandings.map(team => {
+      const stats = gameStats[team.id];
+      return {
+        name: stats.name,
+        games: stats.total,
+        home: stats.home,
+        away: stats.away,
+        opponents: stats.opponents.size,
+        valid: stats.total === 14 && stats.home === 7 && stats.away === 7 && stats.opponents.size === 7
+      };
+    });
+    
     res.json({
       success: true,
-      message: `Successfully reset and recalculated standings for Division ${targetDivision} ${targetSubdivision} from ${completedGames.length} completed games`,
-      division: targetDivision,
-      subdivision: targetSubdivision,
-      gamesProcessed: completedGames.length,
-      standingsUpdates,
-      finalStandings
+      message: `🎉 COMPREHENSIVE RESET COMPLETE for Division ${targetDivision} ${targetSubdivision}`,
+      resetSummary: {
+        division: targetDivision,
+        subdivision: targetSubdivision,
+        teamsReset: finalStandings.length,
+        gamesCleared: deletedGames.count,
+        gamesCreated: createdGames.count,
+        seasonDay: 1,
+        scheduleId: schedule.id
+      },
+      verification,
+      finalStandings: finalStandings.map(team => ({
+        name: team.name,
+        record: `${team.wins}W-${team.losses}L-${team.points}pts`
+      }))
     });
     
   } catch (error: unknown) {
@@ -1500,7 +1584,7 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
 router.post('/fix-completed-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [STANDINGS FIX] Updating standings for completed games that were missed');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1599,7 +1683,7 @@ router.post('/fix-completed-standings', requireAuth, asyncHandler(async (req: Re
 router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [DAY 8 FIX] Fixing Day 8 games with proper simulation');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1644,7 +1728,7 @@ router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, re
         console.log(`🎮 [DAY 8 FIX] Simulating ${game.homeTeam.name} vs ${game.awayTeam.name}`);
         
         // Import the match simulation function
-        const { QuickMatchSimulation } = await import('../services/quickMatchSimulation.js');
+        const { QuickMatchSimulation } = await import('../services/enhancedSimulationEngine.js');
         
         // Run the full match simulation
         const simulationResult = await QuickMatchSimulation.simulateMatch(
@@ -1740,7 +1824,7 @@ router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, re
 router.get('/transactions', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [TRANSACTIONS] /api/teams/transactions route called');
   
-  const userId = req.user?.claims?.sub;
+  const userId = req.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }

@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { StatsService } from '../services/statsService.js';
+import { StatsService } from '../services/enhancedStatisticsService.js';
 import { asyncHandler } from '../services/errorService.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 

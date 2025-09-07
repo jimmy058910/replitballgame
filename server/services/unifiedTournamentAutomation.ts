@@ -1,5 +1,5 @@
 import { getPrismaClient } from "../database.js";
-import { QuickMatchSimulation } from './quickMatchSimulation.js';
+import { QuickMatchSimulation } from './enhancedSimulationEngine.js';
 // Using any types for Prisma enums to avoid import issues
 
 /**

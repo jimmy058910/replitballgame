@@ -18,9 +18,9 @@ export const TeamStatisticsSchema = z.object({
   draws: z.number().int().min(0),
   points: z.number().int().min(0),
   gamesPlayed: z.number().int().min(0),
-  goalsFor: z.number().int().min(0),
-  goalsAgainst: z.number().int().min(0),
-  goalDifference: z.number().int()
+  pointsFor: z.number().int().min(0),
+  pointsAgainst: z.number().int().min(0),
+  pointsDifference: z.number().int()
 });
 
 export type TeamStatistics = z.infer<typeof TeamStatisticsSchema>;
@@ -51,8 +51,9 @@ export class TeamStatisticsCalculator {
    */
   static async calculateTeamStatisticsFromGames(teamId: number, teamName?: string): Promise<TeamStatistics> {
     const prisma = await getPrismaClient();
+    const serviceName = 'TeamStatisticsCalculator';
     
-    logger.debug(`[${this.serviceName}] Calculating statistics for team`, { teamId, teamName });
+    logger.debug(`[${serviceName}] Calculating statistics for team`, { teamId, teamName });
     
     // Fetch all completed league games using standardized completion criteria
     // CRITICAL: Only include games with a valid scheduleId to avoid orphaned games from old seasons
@@ -88,19 +89,20 @@ export class TeamStatisticsCalculator {
         status: true,
         simulated: true,
         gameDate: true,
-        matchType: true
+        matchType: true,
+        scheduleId: true
       },
       orderBy: { gameDate: 'asc' }
     });
 
-    logger.debug(`[${this.serviceName}] Games retrieved for calculation`, { 
+    logger.debug(`[${serviceName}] Games retrieved for calculation`, { 
       teamId, 
       gameCount: completedGames.length 
     });
     
     // Log each game for debugging
     completedGames.forEach((game, index) => {
-      logger.debug(`[${this.serviceName}] Game ${index + 1}:`, {
+      logger.debug(`[${serviceName}] Game ${index + 1}:`, {
         gameId: game.id,
         scheduleId: game.scheduleId,
         homeTeamId: game.homeTeamId,
@@ -115,8 +117,8 @@ export class TeamStatisticsCalculator {
     let losses = 0;
     let draws = 0;
     let points = 0;
-    let goalsFor = 0;
-    let goalsAgainst = 0;
+    let pointsFor = 0;
+    let pointsAgainst = 0;
     
     for (const game of completedGames) {
       // Validate game completion criteria using standardized schema
@@ -127,7 +129,7 @@ export class TeamStatisticsCalculator {
       });
       
       if (!gameValidation.success) {
-        logger.warn(`[${this.serviceName}] Game failed completion criteria`, {
+        logger.warn(`[${serviceName}] Game failed completion criteria`, {
           gameId: game.id,
           teamId,
           criteria: gameValidation.error.message
@@ -144,14 +146,14 @@ export class TeamStatisticsCalculator {
       const teamScore = isHome ? game.homeScore : game.awayScore;
       const opponentScore = isHome ? game.awayScore : game.homeScore;
       
-      goalsFor += teamScore;
-      goalsAgainst += opponentScore;
+      pointsFor += teamScore;
+      pointsAgainst += opponentScore;
       
       // Standard win/loss/draw calculation logic
       if (teamScore > opponentScore) {
         wins++;
         points += 3; // 3 points for win
-        logger.debug(`[${this.serviceName}] Game result: WIN`, { 
+        logger.debug(`[${serviceName}] Game result: WIN`, { 
           gameId: game.id, 
           teamScore, 
           opponentScore 
@@ -159,7 +161,7 @@ export class TeamStatisticsCalculator {
       } else if (teamScore === opponentScore) {
         draws++;
         points += 1; // 1 point for draw
-        logger.debug(`[${this.serviceName}] Game result: DRAW`, { 
+        logger.debug(`[${serviceName}] Game result: DRAW`, { 
           gameId: game.id, 
           teamScore, 
           opponentScore 
@@ -167,7 +169,7 @@ export class TeamStatisticsCalculator {
       } else {
         losses++;
         // 0 points for loss
-        logger.debug(`[${this.serviceName}] Game result: LOSS`, { 
+        logger.debug(`[${serviceName}] Game result: LOSS`, { 
           gameId: game.id, 
           teamScore, 
           opponentScore 
@@ -182,15 +184,15 @@ export class TeamStatisticsCalculator {
       draws,
       points,
       gamesPlayed: wins + losses + draws,
-      goalsFor,
-      goalsAgainst,
-      goalDifference: goalsFor - goalsAgainst
+      pointsFor,
+      pointsAgainst,
+      pointsDifference: pointsFor - pointsAgainst
     };
     
     // Validate calculated statistics
     const validatedStats = TeamStatisticsSchema.parse(statistics);
     
-    logger.info(`[${this.serviceName}] Statistics calculated using standardized logic`, {
+    logger.info(`[${serviceName}] Statistics calculated using standardized logic`, {
       teamId,
       teamName,
       statistics: validatedStats,
@@ -276,9 +278,9 @@ export class TeamStatisticsCalculator {
       record: `${stats.wins}W - ${stats.draws}D - ${stats.losses}L`,
       points: stats.points,
       gamesPlayed: stats.gamesPlayed,
-      goalDifference: stats.goalDifference > 0 ? `+${stats.goalDifference}` : stats.goalDifference.toString(),
-      goalsFor: stats.goalsFor,
-      goalsAgainst: stats.goalsAgainst,
+      pointsDifference: stats.pointsDifference > 0 ? `+${stats.pointsDifference}` : stats.pointsDifference.toString(),
+      pointsFor: stats.pointsFor,
+      pointsAgainst: stats.pointsAgainst,
       winPercentage: stats.gamesPlayed > 0 ? 
         Math.round((stats.wins / stats.gamesPlayed) * 100) : 0
     };

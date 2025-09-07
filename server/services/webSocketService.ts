@@ -247,7 +247,7 @@ class WebSocketService {
           switch (data.command) {
             case 'start_match':
               // Use instant simulation instead of live match
-              const { QuickMatchSimulation } = await import('./quickMatchSimulation');
+              const { QuickMatchSimulation } = await import('./enhancedSimulationEngine');
               const simulationResult = await QuickMatchSimulation.simulateMatch(data.matchId);
               
               // Update match with final results

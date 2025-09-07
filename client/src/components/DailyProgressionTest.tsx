@@ -103,7 +103,7 @@ export default function DailyProgressionTest() {
           description: data.message || "Full day advancement completed successfully",
         });
         queryClient.invalidateQueries({ queryKey: ["/api/daily-progression/statistics"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/season/current-week"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/seasons/current-week"] });
       }
     },
     onError: (error: any) => {

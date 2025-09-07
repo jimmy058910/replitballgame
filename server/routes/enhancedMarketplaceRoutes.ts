@@ -346,4 +346,252 @@ router.post('/process-auto-delist', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/enhanced-marketplace/team-stats
+ * Get team's marketplace stats
+ */
+router.get('/team-stats', requireAuth, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const prisma = await getPrismaClient();
+    const userProfile = await prisma.userProfile.findFirst({
+      where: { userId },
+      include: { Team: true }
+    });
+
+    if (!userProfile || !userProfile.Team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    // Get active listings count using Enhanced Marketplace patterns
+    const activeListingsCount = await prisma.marketplaceListing.count({
+      where: {
+        sellerTeamId: userProfile.Team.id,
+        listingStatus: 'ACTIVE',
+        expiryTimestamp: {
+          gt: new Date()
+        }
+      }
+    });
+
+    // Get team player count
+    const playerCount = await prisma.player.count({
+      where: { teamId: userProfile.Team.id }
+    });
+
+    res.json({
+      activeListings: activeListingsCount,
+      maxListings: 3,
+      playerCount,
+      minPlayersRequired: 10,
+      canListMore: activeListingsCount < 3 && playerCount > 10
+    });
+  } catch (error) {
+    console.error('Error fetching team marketplace stats:', error);
+    res.status(500).json({ error: 'Failed to fetch team marketplace stats' });
+  }
+});
+
+/**
+ * GET /api/enhanced-marketplace/stats
+ * Get general marketplace statistics
+ */
+router.get('/stats', requireAuth, async (req, res) => {
+  try {
+    const prisma = await getPrismaClient();
+    
+    const [totalListings, activeListings, completedSales, totalVolume] = await Promise.all([
+      prisma.marketplaceListing.count(),
+      prisma.marketplaceListing.count({
+        where: {
+          listingStatus: 'ACTIVE',
+          expiryTimestamp: { gt: new Date() }
+        }
+      }),
+      prisma.marketplaceListing.count({
+        where: { listingStatus: 'SOLD' }
+      }),
+      prisma.marketplaceListing.aggregate({
+        where: { listingStatus: 'SOLD' },
+        _sum: { buyNowPrice: true }
+      })
+    ]);
+
+    res.json({
+      totalListings,
+      activeListings,
+      completedSales,
+      totalVolume: (totalVolume._sum.buyNowPrice?.toString()) || '0'
+    });
+  } catch (error) {
+    console.error('Error fetching marketplace stats:', error);
+    res.status(500).json({ error: 'Failed to fetch marketplace stats' });
+  }
+});
+
+/**
+ * POST /api/enhanced-marketplace/admin/process-expired
+ * Process expired auctions (admin endpoint)
+ */
+router.post('/admin/process-expired', requireAuth, async (req, res) => {
+  try {
+    // Add admin permission check here if needed
+    const prisma = await getPrismaClient();
+    
+    const expiredListings = await prisma.marketplaceListing.findMany({
+      where: {
+        listingStatus: 'ACTIVE',
+        expiryTimestamp: { lt: new Date() }
+      }
+    });
+
+    let processedCount = 0;
+    const results = [];
+
+    for (const listing of expiredListings) {
+      try {
+        if (listing.currentBid && listing.currentBid > 0) {
+          // Has winning bid - complete sale
+          await prisma.marketplaceListing.update({
+            where: { id: listing.id },
+            data: { listingStatus: 'SOLD' }
+          });
+          results.push({
+            listingId: listing.id,
+            action: 'SOLD',
+            winningBid: listing.currentBid.toString()
+          });
+        } else {
+          // No bids - mark as expired
+          await prisma.marketplaceListing.update({
+            where: { id: listing.id },
+            data: { listingStatus: 'EXPIRED' }
+          });
+          results.push({
+            listingId: listing.id,
+            action: 'EXPIRED'
+          });
+        }
+        processedCount++;
+      } catch (listingError) {
+        console.error(`Error processing listing ${listing.id}:`, listingError);
+        results.push({
+          listingId: listing.id,
+          action: 'ERROR',
+          error: listingError instanceof Error ? listingError.message : 'Unknown error'
+        });
+      }
+    }
+
+    res.json({
+      message: 'Expired auctions processed',
+      processedCount,
+      results
+    });
+  } catch (error) {
+    console.error('Error processing expired auctions:', error);
+    res.status(500).json({ error: 'Failed to process expired auctions' });
+  }
+});
+
+/**
+ * GET /api/enhanced-marketplace/calculate-min-price/:playerId
+ * Calculate minimum buy-now price for a player (helper endpoint)
+ */
+router.get('/calculate-min-price/:playerId', requireAuth, async (req, res) => {
+  try {
+    const playerId = parseInt(req.params.playerId);
+    
+    const prisma = await getPrismaClient();
+    const player = await prisma.player.findUnique({
+      where: { id: playerId }
+    });
+    
+    if (!player) {
+      return res.status(404).json({ error: 'Player not found' });
+    }
+
+    // Use Enhanced Marketplace's minimum price calculation
+    const minimumPrice = EnhancedMarketplaceService.calculateMinimumBuyNowPrice(player);
+    
+    res.json({ minimumPrice });
+  } catch (error) {
+    console.error('Error calculating minimum price:', error);
+    res.status(500).json({ error: 'Failed to calculate minimum price' });
+  }
+});
+
+/**
+ * POST /api/enhanced-marketplace/list-player
+ * Backward compatibility endpoint - matches Dynamic Marketplace API
+ * Creates listing with simplified parameters (price + duration)
+ */
+router.post('/list-player', requireAuth, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const prisma = await getPrismaClient();
+    const userProfile = await prisma.userProfile.findFirst({
+      where: { userId },
+      include: { Team: true }
+    });
+
+    if (!userProfile || !userProfile.Team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    const { playerId, price, duration } = req.body;
+
+    // Validation (matching Dynamic Marketplace validation)
+    if (!playerId || !price || !duration) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (price < 100) {
+      return res.status(400).json({ error: 'Start bid must be at least 100 credits' });
+    }
+
+    const validDurations = [12, 24, 48, 72, 168]; // 12h, 24h, 48h, 3d, 7d
+    if (!validDurations.includes(parseInt(duration))) {
+      return res.status(400).json({ error: 'Invalid auction duration' });
+    }
+
+    // Convert simple format to Enhanced Marketplace format:
+    // - startBid = 60% of price
+    // - buyNowPrice = full price
+    // - durationHours = duration
+    const startBid = Math.floor(parseInt(price) * 0.6);
+    const buyNowPrice = parseInt(price);
+    const durationHours = parseInt(duration);
+
+    const listing = await EnhancedMarketplaceService.createListing(
+      userProfile.Team.id,
+      parseInt(playerId),
+      startBid,
+      buyNowPrice,
+      durationHours
+    );
+
+    // Return success response matching Dynamic Marketplace format
+    res.json({ 
+      success: true, 
+      message: 'Player listed successfully',
+      listingId: listing.id 
+    });
+  } catch (error) {
+    console.error('Error listing player (compatibility endpoint):', error);
+    res.status(400).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to list player' 
+    });
+  }
+});
+
 export default router;

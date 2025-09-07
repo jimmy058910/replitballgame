@@ -4,7 +4,7 @@
  */
 
 import { getPrismaClient } from '../database.js';
-import { TeamStatisticsIntegrityService } from '../services/teamStatisticsIntegrityService.js';
+import { TeamStatisticsIntegrityService } from '../services/enhancedStatisticsService.js';
 import logger from '../utils/logger.js';
 
 async function fixOaklandCougarsStats() {

@@ -5,7 +5,7 @@ import { getPrismaClient } from "../database.js";
 import { generateRandomPlayer as generatePlayerForTeam } from '../services/leagueService.js';
 import { RBACService, Permission, UserRole } from '../services/rbacService.js';
 import { ErrorCreators, asyncHandler, logInfo, logError } from '../services/errorService.js';
-import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
+import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
 

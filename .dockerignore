@@ -1,43 +1,136 @@
-# Development files
-node_modules
-npm-debug.log*
+# ==========================================
+# Optimized Docker Ignore for Faster Builds
+# Phase 7A: Build Optimization
+# ==========================================
+
+# Dependencies (rebuilt in container)
+node_modules/
+**/node_modules/
+.pnpm-store/
+.yarn/
+
+# Build outputs (created fresh in container)
+dist/
+build/
+**/dist/
+**/build/
+.next/
+out/
+
+# Development environment files
 .env
 .env.local
+.env.local.example
 .env.development
-
-# Build outputs (will be created in container)
-dist
-build
+.env.test
+*.local
 
 # Version control
-.git
+.git/
 .gitignore
+.gitattributes
+.github/
 
 # Documentation
 *.md
+!README.md
 docs/
+CLAUDE.md
+REALM_RIVALRY_COMPLETE_DOCUMENTATION.md
 
-# Tests
+# Testing
+coverage/
+.nyc_output/
+*.test.js
+*.spec.js
+*.test.ts
+*.spec.ts
+__tests__/
+__mocks__/
 tests/
-*.test.*
-*.spec.*
 
-# Development tools
-.vscode
-.idea
-
-# Temporary files
-tmp/
-logs/
-*.log
-
-# OS generated files
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
 Thumbs.db
+*.sublime-*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+logs/
+*.log.*
+
+# Cloud SQL Proxy (local development)
+cloud_sql_proxy
+cloud_sql_proxy.exe
+
+# Temporary and backup files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.cache
+archive/
+backups/
+
+# Large test data files
+comprehensive_reset_result.json
+current_season.json
+debug_games.json
+final_reset_result.json
+reset_result.json
+schedule.json
+team.json
+*.consolidation_backup
+*.phase*_backup
+
+# Development scripts
+check-api-endpoints.cjs
+fix-*.cjs
+cleanup-*.cjs
+revert-*.cjs
+scripts/test-*.js
+scripts/debug-*.js
+
+# Build and deployment files (keep working ones)
+Dockerfile*
+!Dockerfile.step7-unified-fixed
+cloudbuild*.yaml
+!cloudbuild-deployment.yaml
+server-step7-unified.js
+
+# Database files
+*.sqlite
+*.db
+*.sqlite3
+prisma/migrations/dev/
+prisma/generated/client/*.tmp*
 
 # Replit specific
 .replit
 replit.nix
+.upm/
+.cache/
+.config/
 
 # Attached assets (not needed for deployment)
 attached_assets/
+
+# Package manager files (keep lock files)
+.npmrc
+.yarnrc
+.pnpm-debug.log
+!package.json
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml

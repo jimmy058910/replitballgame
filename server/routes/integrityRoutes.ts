@@ -11,7 +11,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import logger from '../utils/logger.js';
-import { TeamStatisticsIntegrityService } from '../services/teamStatisticsIntegrityService.js';
+import { TeamStatisticsIntegrityService } from '../services/enhancedStatisticsService.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = Router();

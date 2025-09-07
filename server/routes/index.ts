@@ -1,60 +1,58 @@
 import type { Express } from "express";
-// Domain routes (new domain-driven architecture) - TEMPORARILY DISABLED FOR STEP 4 FIX
-// REASON: Domain imports failing in production due to complex import chains
-// Will re-enable after Step 4 infrastructure is stable
-// import domainRoutes from "../domains/index.js";
 import authRoutes from "./authRoutes.js";
 import teamRoutes from "./teamRoutes.js";
-import playerRoutes from "./playerRoutes.js";
+// CONSOLIDATED: All player routes now in enhancedPlayerRoutes.js
+import enhancedPlayerRoutes from "./enhancedPlayerRoutes.js";
 import staffRoutes from "./staffRoutes.js";
-import leagueRoutes from "./leagueRoutes.js";
-import leagueManagementRoutes from "./leagueManagementRoutes.js";
-import matchRoutes from "./matchRoutes.js";
-import marketplaceRoutes from "./marketplaceRoutes.js";
+// CONSOLIDATED: All league routes now in enhancedLeagueRoutes.js
+import enhancedLeagueRoutes from "./enhancedLeagueRoutes.js";
+// CONSOLIDATED: matchRoutes moved to enhancedMatchRoutes.js
+// REMOVED: import marketplaceRoutes from "./marketplaceRoutes.js"; (unused - replaced by dynamicMarketplaceRoutes)
 import auctionRoutes from "./auctionRoutes.js";
-import storeRoutes from "./storeRoutes.js";
-import stadiumRoutes from "./stadiumRoutes.js";
-import tournamentRoutes from "./tournamentRoutes.js";
-import tournamentRewardRoutes from "./tournamentRewardRoutes.js";
-import newTournamentRoutes from "./newTournamentRoutes.js";
+// CONSOLIDATED: storeRoutes moved to enhancedFinanceRoutes.js
+// CONSOLIDATED: Stadium routes now in enhancedStadiumRoutes.js
+import enhancedStadiumRoutes from "./enhancedStadiumRoutes.js";
+// CONSOLIDATED: All tournament routes now in enhancedTournamentRoutes.js
+import enhancedTournamentRoutes from "./enhancedTournamentRoutes.js";
 import exhibitionRoutes from "./exhibitionRoutes.js";
 import notificationRoutes from "./notificationRoutes.js";
-import injuryRoutes from "./injuryRoutes.js";
-import injuryStaminaRoutes from "./injuryStaminaRoutes.js";
-import seasonRoutes from "./seasonRoutes.js";
-import inventoryRoutes from "./inventoryRoutes.js";
+// CONSOLIDATED: Injury routes now in enhancedInjuryRoutes.js
+import enhancedInjuryRoutes from "./enhancedInjuryRoutes.js";
+// PHASE 3H: Consolidated finance system (paymentRoutes + paymentHistoryRoutes + adSystemRoutes + storeRoutes)
+import enhancedFinanceRoutes from "./enhancedFinanceRoutes.js";
+// CONSOLIDATED: All season routes now in enhancedSeasonRoutes.js
+import enhancedSeasonRoutes from "./enhancedSeasonRoutes.js";
+// CONSOLIDATED: Inventory, equipment, consumable routes now in enhancedInventoryRoutes.js
+import enhancedInventoryRoutes from "./enhancedInventoryRoutes.js";
 import { systemRoutes } from "./systemRoutes.js";
 import superuserRoutes from "./superuserRoutes.js";
-import paymentRoutes from "./paymentRoutes.js";
-import adSystemRoutes from "./adSystemRoutes.js";
+// CONSOLIDATED: paymentRoutes moved to enhancedFinanceRoutes.js
+// CONSOLIDATED: adSystemRoutes moved to enhancedFinanceRoutes.js
 import scoutingRoutes from "./scoutingRoutes.js";
 import camaraderieRoutes from "./camaraderieRoutes.js";
 import statsRoutes from "./statsRoutes.js";
 import teamNameRoutes from "./teamNameRoutes.js";
-import paymentHistoryRoutes from "./paymentHistoryRoutes.js";
+// CONSOLIDATED: paymentHistoryRoutes moved to enhancedFinanceRoutes.js
 import tacticalRoutes from "./tacticalRoutes.js";
 import helpRoutes from "./helpRoutes.js";
 import agingRoutes from "./agingRoutes.js";
-import consumableRoutes from "./consumableRoutes.js";
-import playerSkillsRoutes from "./playerSkillsRoutes.js";
-import dynamicMarketplaceRoutes from "./dynamicMarketplaceRoutes.js";
+// CONSOLIDATED: consumableRoutes moved to enhancedInventoryRoutes.js
+// CONSOLIDATED: playerSkillsRoutes moved to enhancedPlayerRoutes.js
+// REMOVED: import dynamicMarketplaceRoutes from "./dynamicMarketplaceRoutes.js"; (consolidated into enhancedMarketplaceRoutes)
 import enhancedMarketplaceRoutes from "./enhancedMarketplaceRoutes.js";
-import playerAgingRetirementRoutes from "./playerAgingRetirementRoutes.js";
+// CONSOLIDATED: playerAgingRetirementRoutes moved to enhancedPlayerRoutes.js
 import { dailyProgressionRoutes } from "./dailyProgressionRoutes.js";
-import stadiumAtmosphereRoutes from "./stadiumAtmosphereRoutes.js";
-import seasonalFlowRoutes from "./seasonalFlowRoutes.js";
-import dailyTournamentRoutes from "./dailyTournamentRoutes.js";
+// CONSOLIDATED: stadiumAtmosphereRoutes moved to enhancedStadiumRoutes.js
+// CONSOLIDATED: seasonalFlowRoutes moved to enhancedSeasonRoutes.js
+// CONSOLIDATED: dailyTournamentRoutes moved to enhancedTournamentRoutes.js
 import contractInitializerRoutes from "./contractInitializerRoutes.js";
-import equipmentRoutes from "./equipmentRoutes.js";
+// CONSOLIDATED: equipmentRoutes moved to enhancedInventoryRoutes.js
 import tryoutRoutes from "./tryoutRoutes.js";
 import lateSignupRoutes from "./lateSignupRoutes.js";
-import tournamentStatusRoutes from "./tournamentStatusRoutes.js";
-import tournamentFixRoutes from "./tournamentFixRoutes.js";
-import tournamentHistoryRoutes from "./tournamentHistoryRoutes.js";
+// CONSOLIDATED: tournamentStatusRoutes, tournamentFixRoutes, tournamentHistoryRoutes moved to enhancedTournamentRoutes.js
 import ndaRoutes from "./ndaRoutes.js";
 import worldRoutes from "./worldRoutes.js";
-import leagueMatchesRoutes from "./leagueMatchesRoutes.js";
-// import { manualStandingsFixRouter } from "./manualStandingsFix.js"; // File not found - commented out
+// CONSOLIDATED: leagueMatchesRoutes moved to enhancedLeagueRoutes.js
 import teamTrendsRoutes from "./teamTrendsRoutes.js";
 import databaseTestRoutes from "./database-test.js";
 import debugEnvRoutes from "./debug-env.js";
@@ -63,6 +61,7 @@ import shareableMomentsRoutes from "./shareableMomentsRoutes.js";
 import careerHighlightsRoutes from "./careerHighlightsRoutes.js";
 import referralRoutes from "./referralRoutes.js";
 import criticalAlertsRoutes from "./criticalAlertsRoutes.js";
+// PHASE 3I: Consolidated match system (matchRoutes + enhancedMatchRoutes)
 import enhancedMatchRoutes from "./enhancedMatchRoutes.js";
 import testRoutes from "./testRoutes.js";
 import cacheRoutes from "./cacheRoutes.js";
@@ -71,9 +70,10 @@ import testAutomationRoutes from "./testAutomationRoutes.js";
 import resetRoutes from "./resetRoutes.js";
 import lateRegistrationRoutes from "./lateRegistrationRoutes.js";
 import manualStandingsComplete from "./manualStandingsComplete.js";
-import cleanupTournamentRoutes from "./cleanupTournamentRoutes.js";
+// CONSOLIDATED: cleanupTournamentRoutes moved to enhancedTournamentRoutes.js
 import simpleCleanupRoutes from "./simpleCleanupRoutes.js";
 import integrityRoutes from "./integrityRoutes.js";
+import timeFixRoutes from "./timeFixRoutes.js";
 
 
 // This function will be called by server/index.ts to set up all routes.
@@ -102,15 +102,12 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     next();
   });
   
-  // Mount domain routes (new architecture) - TEMPORARILY DISABLED FOR STEP 4 DEPLOYMENT FIX
-  // app.use("/api/v2", domainRoutes);
-  // Add basic /api/v2 test endpoint to ensure API routing works
+  // API v2 endpoint placeholder for future use
   app.get("/api/v2", (req: any, res: any) => {
     res.json({
       success: true,
-      message: "Step 4 API routing is working!",
-      timestamp: new Date().toISOString(),
-      version: "Step 4 Deployment Test"
+      message: "API v2 endpoint active",
+      timestamp: new Date().toISOString()
     });
   });
   console.log('🔍 [registerAllRoutes] Registered /api/v2 routes');
@@ -140,58 +137,70 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     console.error('❌ [registerAllRoutes] Error stack:', teamImportError.stack);
   }
   // REMOVED DUPLICATE: app.use("/api/teams", teamTrendsRoutes); - Causes route conflict with standings endpoint
-  app.use("/api/players", playerRoutes);
+  // CONSOLIDATED PLAYER ROUTES: All player functionality in one enhanced system
+  app.use("/api/players", enhancedPlayerRoutes);
   app.use("/api/staff", staffRoutes);
-  app.use("/api/leagues", leagueRoutes); // This will also cover /api/teams/division/:division if it's there
-  app.use("/api/league-management", leagueManagementRoutes); // Enterprise-grade league management system
+  // CONSOLIDATED LEAGUE ROUTES: All league functionality in one enhanced system
+  app.use("/api/leagues", enhancedLeagueRoutes); // Core league operations, standings, schedules
+  // Backward compatibility paths - all route to enhancedLeagueRoutes
+  app.use("/api/league-management", enhancedLeagueRoutes); // Enterprise-grade league management (admin operations)
+  app.use("/api/team-matches", enhancedLeagueRoutes); // League matches for team recent matches display
   app.use("/api/team-trends", teamTrendsRoutes); // Enhanced team trends for product-led growth data storytelling (moved from /api/teams to avoid conflict)
-  app.use("/api/matches", matchRoutes);
-  app.use("/api/enhanced-matches", enhancedMatchRoutes); // Enhanced match engine API endpoints
-  app.use("/api/team-matches", leagueMatchesRoutes); // League matches for team recent matches display
-  app.use("/api/marketplace", marketplaceRoutes);
-  // Add marketplace stats alias
-  app.use("/api/marketplace", dynamicMarketplaceRoutes);
-  // Enhanced marketplace with anti-sniping and escrow system
+  // CONSOLIDATED: Match system now in enhancedMatchRoutes
+  app.use("/api/matches", enhancedMatchRoutes);
+  app.use("/api/enhanced-matches", enhancedMatchRoutes); // Backward compatibility for enhanced match routes
+  // Consolidated marketplace - Enhanced marketplace handles all functionality
+  app.use("/api/marketplace", enhancedMarketplaceRoutes);
+  // Enhanced marketplace with anti-sniping and escrow system (same routes as /api/marketplace for compatibility)
   app.use("/api/enhanced-marketplace", enhancedMarketplaceRoutes);
   app.use("/api/auctions", auctionRoutes);
-  app.use("/api/store", storeRoutes);
-  app.use("/api/stadium", stadiumRoutes); // Covers /api/stadium and /api/stadium/revenue
-  app.use("/api/tournaments", tournamentRoutes);
-  app.use("/api/tournament-rewards", tournamentRewardRoutes);
-  app.use("/api/daily-tournaments", dailyTournamentRoutes);
-  app.use("/api/new-tournaments", newTournamentRoutes);
+  // CONSOLIDATED: Store system now in enhancedFinanceRoutes
+  app.use("/api/store", enhancedFinanceRoutes);
+  app.use("/api/stadium", enhancedStadiumRoutes); // Consolidated stadium and atmosphere routes
+  // CONSOLIDATED TOURNAMENT ROUTES: All tournament functionality in one enhanced system
+  app.use("/api/tournaments", enhancedTournamentRoutes);
+  // Backward compatibility paths - all route to enhancedTournamentRoutes
+  app.use("/api/tournament-rewards", enhancedTournamentRoutes);
+  app.use("/api/daily-tournaments", enhancedTournamentRoutes);
+  app.use("/api/new-tournaments", enhancedTournamentRoutes);
   app.use("/api/exhibitions", exhibitionRoutes);
   app.use("/api/notifications", notificationRoutes); // Covers /api/notifications and /api/demo/notifications
-  app.use("/api/injuries", injuryRoutes); // Covers /api/injuries, /api/medical-staff, /api/conditioning
-  app.use("/api/injury-stamina", injuryStaminaRoutes); // Covers comprehensive injury & stamina system
-  app.use("/api/seasons", seasonRoutes); // Covers /api/seasons, /api/playoffs, /api/contracts, /api/sponsorships
-  app.use("/api/inventory", inventoryRoutes); // Covers team inventory management
-  app.use("/api/season", seasonRoutes); // Frontend calls /api/season/current-cycle
+  app.use("/api/injuries", enhancedInjuryRoutes); // Consolidated injury and stamina management
+  app.use("/api/injury-stamina", enhancedInjuryRoutes); // Backward compatibility for stamina routes
+  // CONSOLIDATED SEASON ROUTES: All season functionality in one enhanced system
+  app.use("/api/seasons", enhancedSeasonRoutes); // Covers seasons, playoffs, contracts, sponsorships
+  app.use("/api/inventory", enhancedInventoryRoutes); // Consolidated inventory, equipment, consumables
+  app.use("/api/season", enhancedSeasonRoutes); // Frontend calls /api/season/current-cycle
   app.use("/api/system", systemRoutes); // Covers /api/system and /api/server
   app.use("/api/server", systemRoutes); // Covers /api/server endpoints like /api/server/time
   app.use("/api/superuser", superuserRoutes);
-  app.use("/api/payments", paymentRoutes);
-  app.use("/api/ads", adSystemRoutes);
+  // CONSOLIDATED: Payment and ad systems now in enhancedFinanceRoutes
+  app.use("/api/payments", enhancedFinanceRoutes);
+  app.use("/api/ads", enhancedFinanceRoutes);
   app.use("/api/reset", resetRoutes); // Schedule reset and regeneration endpoints  
   app.use("/api/scouting", scoutingRoutes); // Covers /api/teams/:teamId/scout and /api/teams/scoutable
   app.use("/api/camaraderie", camaraderieRoutes); // Covers team and player camaraderie management
   app.use("/api/stats", statsRoutes); // Covers comprehensive player and team statistics
   app.use("/api/team-names", teamNameRoutes); // Covers team name validation and suggestions
-  app.use("/api/payment-history", paymentHistoryRoutes); // Covers payment transaction history and tracking
+  // CONSOLIDATED: Payment history now in enhancedFinanceRoutes
+  app.use("/api/payment-history", enhancedFinanceRoutes); // Covers payment transaction history and tracking
   app.use("/api/tactics", tacticalRoutes); // Covers team tactical system and strategy management
   app.use("/api/tactical", tacticalRoutes); // Covers /api/tactical/formation endpoint
   app.use("/api/help", helpRoutes); // Covers help documentation and manual
   app.use("/api/aging", agingRoutes); // Covers player aging system and progression mechanics
   app.use("/api/world", worldRoutes); // Covers global rankings, world statistics, and hall of fame
-  app.use("/api/consumables", consumableRoutes); // Covers consumable system for league game enhancements
-  app.use("/api/player-skills", playerSkillsRoutes); // Covers player skills system and progression
-  app.use("/api/dynamic-marketplace", dynamicMarketplaceRoutes); // Covers dynamic auction marketplace with bidding
-  app.use("/api/player-aging", playerAgingRetirementRoutes); // Covers player aging, progression, and retirement system
-  app.use("/api/stadium-atmosphere", stadiumAtmosphereRoutes); // Covers integrated stadium, finance & atmosphere system
-  app.use("/api/seasonal-flow", seasonalFlowRoutes); // Covers seasonal flow algorithm for 17-day competitive cycles
+  app.use("/api/consumables", enhancedInventoryRoutes); // Backward compatibility for consumables
+  // CONSOLIDATED: Player skills now in enhancedPlayerRoutes at /api/players
+  app.use("/api/player-skills", enhancedPlayerRoutes); // Backward compatibility
+  // REMOVED: Duplicate dynamicMarketplaceRoutes registration (already mounted at /api/marketplace above)
+  // CONSOLIDATED: Player aging now in enhancedPlayerRoutes at /api/players
+  app.use("/api/player-aging", enhancedPlayerRoutes); // Backward compatibility
+  app.use("/api/stadium-atmosphere", enhancedStadiumRoutes); // Backward compatibility for atmosphere routes
+  // CONSOLIDATED: Seasonal flow now in enhancedSeasonRoutes
+  app.use("/api/seasonal-flow", enhancedSeasonRoutes); // Backward compatibility for seasonal flow
   app.use("/api/daily-progression", dailyProgressionRoutes); // Covers daily player progression and development system
   app.use("/api/contracts", contractInitializerRoutes); // Covers contract initialization and management
-  app.use("/api/equipment", equipmentRoutes); // Equipment management
+  app.use("/api/equipment", enhancedInventoryRoutes); // Backward compatibility for equipment
   app.use("/api/tryouts", tryoutRoutes); // Covers tryout system and candidate generation
   console.log('🔍 [registerAllRoutes] About to register late signup routes...');
   try {
@@ -215,9 +224,10 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     console.error('❌ [registerAllRoutes] Failed to import admin routes:', adminImportError.message);
     console.error('❌ [registerAllRoutes] Error stack:', adminImportError.stack);
   }
-  app.use("/api/tournament-status", tournamentStatusRoutes); // Covers late signup system for shortened Division 8 seasons
-  app.use("/api/tournament-fix", tournamentFixRoutes); // Emergency tournament fix endpoints
-  app.use("/api/tournament-history", tournamentHistoryRoutes); // Tournament history for completed tournaments
+  // CONSOLIDATED: All tournament management endpoints now in enhancedTournamentRoutes
+  app.use("/api/tournament-status", enhancedTournamentRoutes); // Tournament status & match management
+  app.use("/api/tournament-fix", enhancedTournamentRoutes); // Emergency tournament fixes
+  app.use("/api/tournament-history", enhancedTournamentRoutes); // Tournament history
   app.use("/api/nda", ndaRoutes); // NDA acceptance endpoints for pre-alpha testing
   app.use("/api/referrals", referralRoutes); // User referral system and tracking
   app.use("/api/data-viz", dataVisualizationRoutes); // Phase 3 Product-Led Growth Framework data visualization
@@ -232,9 +242,10 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/cache", cacheRoutes); // Cache management and statistics
   app.use("/api/cache-test", quickCacheTest); // Cache testing and demonstration
   app.use("/api/manual-standings", manualStandingsComplete); // Complete comprehensive standings fix
-  app.use("/api/tournament-cleanup", cleanupTournamentRoutes); // Emergency cleanup for stuck tournament registrations
+  app.use("/api/tournament-cleanup", enhancedTournamentRoutes); // Tournament cleanup & maintenance
   app.use("/api/simple-cleanup", simpleCleanupRoutes); // Simple cleanup using working Prisma patterns
   app.use("/api/integrity", integrityRoutes); // Data integrity management and team statistics synchronization
+  app.use("/api/time-fix", timeFixRoutes); // Critical Alpha Readiness: Fix all game times to proper EDT
 
   // Add missing /api/me endpoint that frontend expects (redirect to auth/user)
   app.get("/api/me", (req, res) => {

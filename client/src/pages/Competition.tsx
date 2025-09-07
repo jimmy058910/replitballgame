@@ -54,7 +54,7 @@ interface Team {
   losses: number;
   draws: number;
   points: number;
-  goalDifference?: number;
+  pointsDifference?: number;
   teamPower: number;
   teamCamaraderie: number;
   credits: number;
@@ -1002,8 +1002,8 @@ export default function Competition() {
   });
 
   const { data: rawCurrentCycle, isLoading: currentCycleLoading } = useQuery<SeasonalCycle>({
-    queryKey: ["/api/season/current-cycle"],
-    queryFn: () => apiRequest("/api/season/current-cycle"),
+    queryKey: ["/api/seasons/current-cycle"],
+    queryFn: () => apiRequest("/api/seasons/current-cycle"),
   });
 
   // Type assertion to fix property access issues
