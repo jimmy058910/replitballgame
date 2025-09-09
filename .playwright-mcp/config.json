@@ -1,0 +1,17 @@
+{
+  "browser": "chrome",
+  "channel": "chrome",
+  "headless": false,
+  "devtools": false,
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "defaultTimeout": 30000,
+  "navigationTimeout": 60000,
+  "baseURL": "http://localhost:5173",
+  "ignoreHTTPSErrors": true,
+  "permissions": ["clipboard-read", "clipboard-write"],
+  "locale": "en-US",
+  "timezoneId": "America/New_York"
+}

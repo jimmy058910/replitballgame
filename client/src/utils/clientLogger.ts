@@ -498,4 +498,4 @@ if (!clientLogger['isProduction']) {
 }
 
 export default clientLogger;
-export { ClientLogger, ClientPerformanceMonitor, LogLevel, ClientGameContext, ClientPerformanceMetrics };
+export { ClientLogger, LogLevel, ClientGameContext, ClientPerformanceMetrics };

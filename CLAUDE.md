@@ -1,6 +1,12 @@
 # CLAUDE.md - Realm Rivalry Development Guide
 
-**This file provides comprehensive guidance to ALL AI development assistants (Claude Code, Replit AI, GitHub Copilot, etc.) when working with code in this repository.**
+**This file provides essential development guidance to ALL AI development assistants (Claude Code, Replit AI, GitHub Copilot, etc.) when working with code in this repository.**
+
+## 📚 Documentation Structure
+
+- **CLAUDE.md** (this file): Core development standards, setup, and daily workflow
+- **[SESSION_LOG.md](./SESSION_LOG.md)**: Development history, bug fixes, and architectural achievements
+- **[REALM_RIVALRY_COMPLETE_DOCUMENTATION.md](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md)**: Game mechanics, business documentation, and deployment details
 
 ## 🤖 AI Development Assistant Instructions
 
@@ -48,36 +54,6 @@
 - **Performance First**: Efficient implementations, minimize unnecessary resource usage
 - **Mobile-First**: Architecture prioritizes mobile users and PWA capabilities
 - **ALWAYS CONFIRM**: Ask for permission before implementing changes when user asks for suggestions
-
-## 🎯 TYPESCRIPT MIGRATION SUCCESS (September 2025)
-
-### Proven Approach That Works
-After extensive experimentation (17+ failed scripts), we discovered the winning formula:
-
-1. **Create Comprehensive Shared Types** (`shared/types/models.ts`)
-2. **Use QueryOptions Pattern** (2025 best practice) - Centralized, type-safe queries
-3. **Apply skipToken for Conditional Queries** - Replaces `enabled` pattern
-4. **Fix Property Access Systematically** - Use correct property names from Prisma schema
-5. **Don't Chase Zero Errors** - Incremental progress is the goal
-
-### Key Files Created
-- `client/src/lib/api/queries.ts` - QueryOptions factory (NEW!)
-- `shared/types/models.ts` - All shared type definitions
-- `TYPESCRIPT_MIGRATION_GUIDE.md` - Complete migration playbook
-
-### Scripts That Actually Work
-Located in `typescript-migration-archive/`:
-- `apply-modern-react-query-patterns.cjs`
-- `migrate-to-query-options.cjs`
-- `fix-high-error-components.cjs`
-
-**Result**: From 1129 errors → Successfully established patterns for ongoing migration
-
-### **UNIVERSAL CREDIT FORMAT STANDARD**
-Credits must ALWAYS be displayed with amount BEFORE the ₡ symbol:
-- ✅ CORRECT: "25,000₡", "1.5M₡", "0₡"  
-- ❌ INCORRECT: "₡25,000", "₡1.5M", "₡0"
-- **Implementation**: Use the creditFormatter utility (`client/src/utils/creditFormatter.ts`) for standardized formatting
 
 ## 📚 DEVELOPMENT STANDARDS
 
@@ -145,218 +121,21 @@ export async function syncTeamStandings(teamId: number): Promise<void> {
 - ❌ Missing error handling
 - ❌ Temporary fixes or workarounds
 
+### **UNIVERSAL CREDIT FORMAT STANDARD**
+Credits must ALWAYS be displayed with amount BEFORE the ₡ symbol:
+- ✅ CORRECT: "25,000₡", "1.5M₡", "0₡"  
+- ❌ INCORRECT: "₡25,000", "₡1.5M", "₡0"
+- **Implementation**: Use the creditFormatter utility (`client/src/utils/creditFormatter.ts`) for standardized formatting
+
 ## 🎯 TYPESCRIPT MIGRATION SUCCESS (September 2025)
 
-### **Strategic Decision: Relaxed TypeScript Configuration**
-After extensive experimentation with automated TypeScript migration (17+ failed migration scripts, 3 major system versions), the decision was made to implement a **relaxed TypeScript configuration** focused on development velocity rather than perfect type safety.
+**Current Status**: Relaxed TypeScript configuration with 875 non-critical errors for development velocity.
 
-**Problem**: 1,026+ TypeScript errors in strict mode blocking development progress  
-**Solution**: Relaxed configuration reducing errors to 875 non-critical issues  
-**Result**: Restored development velocity while maintaining essential type checking  
+**Key Files Created**:
+- `client/src/lib/api/queries.ts` - QueryOptions factory
+- `shared/types/models.ts` - Shared type definitions
 
-### **What Was Attempted (Archive: `typescript-migration-attempts/`)**
-
-#### **System v1.0: Manual Migration**
-- **Approach**: Hand-fixing individual TypeScript errors  
-- **Result**: Regression cycles, no systematic progress  
-- **Learning**: Manual fixes don't scale with 1,000+ errors  
-
-#### **System v2.0: AI Agent Architecture**  
-- **Approach**: 7 specialized AI agents with learning database  
-- **Components**: Analysis Agent → Fix Agents → Loop Coordinator  
-- **Result**: 880 → 1,021 errors (+141 regression after 5 iterations)  
-- **Learning**: AI agents introduced new errors faster than fixing existing ones  
-
-#### **System v3.0: Deterministic + Validation System**
-- **Approach**: Ground-up rebuild with deterministic fixes and validation layers  
-- **Components**: Foundation → Fixes → Validation → Orchestration  
-- **Result**: Claimed 99.5% success (1,026 → 5 errors) but introduced syntax errors  
-- **Learning**: Deterministic systems still suffer from false positive detection  
-
-### **Key Technical Insights**
-```typescript
-// ❌ PROBLEM: Strict TypeScript with 1,000+ existing errors
-{
-  "strict": true,              // Creates development roadblocks
-  "noImplicitAny": true,       // Blocks rapid prototyping
-  "strictNullChecks": true     // Requires extensive refactoring
-}
-
-// ✅ SOLUTION: Relaxed configuration for development velocity
-{
-  "strict": false,              // Remove development blockers
-  "noImplicitAny": false,      // Allow rapid iteration
-  "strictNullChecks": false,   // Focus on features, not type perfection
-  "skipLibCheck": true         // Skip library type checking
-}
-```
-
-### **Modern Development Patterns That Work**
-```typescript
-// ✅ QueryOptions Pattern (2025 React Query best practice)
-export const teamQueries = {
-  team: (teamId: number) => queryOptions({
-    queryKey: ['team', teamId],
-    queryFn: () => fetchTeam(teamId),
-    staleTime: 5 * 60 * 1000 // 5 minutes
-  })
-};
-
-// ✅ skipToken for Conditional Queries (replaces enabled pattern)
-const { data: team } = useQuery(
-  teamId ? teamQueries.team(teamId) : skipToken
-);
-
-// ✅ Property Access with Correct Prisma Schema Names
-const playerStats = await prisma.player.findUnique({
-  where: { id: playerId },
-  include: { 
-    team: { include: { stadium: true } },  // ✅ team.stadium (not stadiums)
-    staff: { where: { type: 'HEAD_COACH' } } // ✅ staff.type (not role)
-  }
-});
-```
-
-### **Files Successfully Created**
-- `client/src/lib/api/queries.ts` - QueryOptions factory with centralized query definitions
-- `client/src/lib/api/queryOptions.ts` - Modern React Query patterns  
-- `shared/types/models.ts` - Comprehensive shared type definitions
-- `TYPESCRIPT_MIGRATION_GUIDE.md` - Complete playbook for future improvements
-- `TYPESCRIPT_MIGRATION_STATUS.md` - Progress tracking and error analysis
-
-### **Relaxed TypeScript Strategy**
-```json
-// tsconfig.json - Development Configuration
-{
-  "compilerOptions": {
-    // 🚀 RELAXED SETTINGS FOR DEVELOPMENT VELOCITY
-    "strict": false,              // Turn off strict mode
-    "noImplicitAny": false,      // Allow implicit any types
-    "strictNullChecks": false,    // Allow null/undefined issues
-    "strictFunctionTypes": false, // Relax function type checking
-    "skipLibCheck": true,        // Skip type checking of library files
-    
-    // Keep essential functionality
-    "esModuleInterop": true,
-    "moduleResolution": "bundler",
-    "jsx": "preserve"
-  }
-}
-```
-
-### **TS2339 Property Access Error Handling (September 2025 Research)**
-
-**Problem**: 875 TS2339 "Property does not exist" errors remain even with relaxed TypeScript configuration
-
-**Research Finding**: This is **industry-standard** for large legacy codebases and **strategically correct**
-
-#### **Hierarchy of Solutions (Best to Worst)**
-
-##### **1. Proper Type Definitions (Gold Standard)**
-```typescript
-// ✅ BEST: Define proper interfaces
-interface PlayerWithStats {
-  name: string;
-  stats: { goals: number; assists: number; };
-}
-
-const player: PlayerWithStats = getPlayer();
-console.log(player.stats.goals); // No TS2339 error
-```
-
-##### **2. Type Guards (Enterprise Pattern)**
-```typescript
-// ✅ EXCELLENT: Runtime + compile-time safety
-function hasStats(player: any): player is PlayerWithStats {
-  return player && typeof player.stats === 'object';
-}
-
-if (hasStats(player)) {
-  console.log(player.stats.goals); // TypeScript knows stats exists
-}
-```
-
-##### **3. Optional Chaining (Modern Solution)**
-```typescript
-// ✅ VERY GOOD: Safe property access
-console.log(player.stats?.goals); // Returns undefined if stats doesn't exist
-```
-
-##### **4. Type Assertions (Surgical Fix)**
-```typescript
-// ✅ GOOD: When you're certain about the type
-const playerWithStats = player as PlayerWithStats;
-console.log(playerWithStats.stats.goals);
-```
-
-##### **5. Utility Types for Property Checking**
-```typescript
-// ✅ ENTERPRISE: Create reusable type guards
-export function hasProperty<T, K extends string>(
-  obj: T, prop: K
-): obj is T & Record<K, unknown> {
-  return obj != null && typeof obj === 'object' && prop in obj;
-}
-
-if (hasProperty(player, 'stats')) {
-  // player.stats is now safely accessible
-}
-```
-
-#### **Why 875 TS2339 Errors Are Actually Fine**
-1. **Non-Critical Nature**: These don't break runtime functionality
-2. **Development Velocity**: Chosen speed over perfect typing
-3. **Gradual Improvement**: Fix them as you touch files
-4. **Industry Standard**: Many successful projects have similar error counts
-
-#### **Strategic Error Management**
-```typescript
-// For known safe legacy cases only
-// @ts-expect-error: Legacy API compatibility
-player.legacyProperty = value;
-```
-
-#### **Modern TypeScript 2024-2025 Approach**
-- **Gradual Type Improvement**: Start basic, improve over time
-- **Strategic Settings**: `strictNullChecks: true` worth enabling gradually
-- **Focus Runtime Errors**: Over type perfectionism
-- **Touch-and-Fix**: Improve types when modifying existing files
-
-**Conclusion**: Current relaxed approach with 875 TS2339 errors is **strategically sound** for development velocity in legacy codebases.
-
-### **Development Principles Post-Migration**
-1. **🚀 Features First**: Ship working functionality over perfect types
-2. **📈 Gradual Improvement**: Write new code with better types
-3. **🔧 Fix When Touched**: Improve types when modifying existing files
-4. **⚡ Development Velocity**: Don't let perfect be the enemy of good
-5. **🎯 Strategic Typing**: Focus type safety on critical business logic
-
-### **Critical Error Analysis Script**
-Use `fix-critical-errors.cjs` to identify which errors actually block compilation:
-
-```bash
-node fix-critical-errors.cjs
-# Separates critical errors (import/syntax) from non-critical (type safety)
-# Focus fixing: TS2307 (missing imports), TS2304 (missing names)  
-# Defer fixing: TS2339 (property access), TS2322 (type assignable)
-```
-
-### **Success Metrics**
-- ✅ **Error Reduction**: 1,026 → 875 errors (15% reduction without code changes)
-- ✅ **Development Unblocked**: TypeScript no longer prevents feature development
-- ✅ **Build Success**: `npm run build` works with relaxed configuration
-- ✅ **Type Safety**: Still catches critical errors while allowing flexibility
-- ✅ **Future Path**: Clear strategy for gradual improvements post-launch
-
-### **Archive Location**
-All migration attempts archived in `archive/typescript-migration-attempts/`:
-- `v1-manual-attempts/` - Hand-fixing approaches
-- `v2-agent-system/` - AI agent architecture 
-- `v3-deterministic-system/` - Ground-up rebuild attempt
-- `scripts-archive/` - 17+ failed migration scripts
-- `README.md` - Complete documentation of what was tried and why it failed
-
-**Key Learning**: For solo developers with existing codebases, relaxed TypeScript + gradual improvements > automated migration systems.
+**For Complete Migration Details**: See [SESSION_LOG.md - TypeScript Migration Journey](./SESSION_LOG.md#typescript-migration-journey)
 
 ## 💻 LOCAL DEVELOPMENT SETUP
 
@@ -401,11 +180,65 @@ cloud-sql-proxy direct-glider-465821-p7:us-central1:realm-rivalry-dev --port=543
 ✅ **API Proxy**: Seamless API calls from frontend to backend  
 ✅ **WebSocket Support**: Real-time Socket.IO connections  
 
-### **Daily Development Workflow**
-1. Open your IDE (Cursor AI recommended)
-2. Run: `npm run dev:local`
-3. Browser automatically opens to http://localhost:5173
-4. Start coding - changes appear instantly!
+### **🚀 SLASH COMMAND DEVELOPMENT WORKFLOW** 
+
+**Claude Code Native Commands** - Professional automation:
+
+#### **Start Development Session**
+```
+/primer      # Load complete project context
+/dev-start   # Start all services automatically
+```
+
+#### **During Development**
+```
+/dev-status     # Check environment health
+/design-review  # Professional UI/UX testing
+```
+
+#### **End Session**
+```
+/dev-stop    # Clean shutdown of all services
+```
+
+#### **Traditional Fallback**
+```bash
+# If slash commands unavailable
+npm run dev:local
+```
+
+### **🎯 Automated Environment Features**
+
+**✅ Google Cloud SQL Proxy**
+- Automatically starts cloud-sql-proxy if not running
+- Connects to direct-glider-465821-p7:us-central1:realm-rivalry-dev
+- Handles authentication and port configuration
+
+**✅ Development Servers**
+- Frontend: Vite dev server on port 5173
+- Backend: Express server on port 3000
+- Hot reloading for both frontend and backend
+
+**✅ Browser Consistency** 
+- **Fixed Chrome/Edge Issue**: Always opens Chrome for Playwright consistency
+- Playwright MCP configured to use Chrome channel
+- Design reviews use same browser as development
+
+**✅ Slash Command Intelligence**
+- Context-aware environment management  
+- AI-powered problem diagnosis and solutions
+- Integrated todo list creation and progress tracking
+- Native Claude Code workflow integration
+
+### **🔧 Design Review Integration**
+
+**Slash Command Workflow:**
+1. `/dev-start` (starts everything automatically)
+2. `/design-review` (professional-grade testing)
+3. Multi-viewport testing with screenshot evidence
+4. Prioritized issue reporting with actionable recommendations
+
+**Native Claude Code integration - no external tools needed!**
 
 ### **Environment Configuration (.env.local)**
 ```env
@@ -426,10 +259,33 @@ GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
 - **Frontend**: Chrome DevTools + React DevTools available
 - **Database**: Direct query access via Cloud SQL Auth Proxy
 
-### **Troubleshooting**
-- **"Upgrade Required" Error**: Backend isn't connected to database - ensure Cloud SQL Auth Proxy is running
-- **Port Conflicts**: Use `npx kill-port 3000 5173` or change ports in .env.local
-- **TypeScript Errors**: Run `npm run check` and `npm run build:all`
+
+### **🔧 Automated Troubleshooting**
+
+**Environment Issues:**
+- **Proxy Not Starting**: Run `gcloud auth login` and `gcloud config set project direct-glider-465821-p7`
+- **Port Conflicts**: Automated script checks and reports port usage
+- **Missing Chrome**: Script falls back to default browser but warns about Playwright inconsistency
+
+**Quick Fixes with Slash Commands:**
+```
+/dev-stop      # Clean shutdown of all services
+/dev-status    # Diagnose environment issues  
+/dev-start     # Fresh restart with validation
+```
+
+**Traditional Fallback:**
+```bash
+# Manual process cleanup if needed
+npx kill-port 3000 5173 5432
+npm run dev:local
+```
+
+**Slash Command Intelligence:**
+- ✅ **Smart diagnostics** with AI-powered problem identification
+- ✅ **Context-aware solutions** with specific troubleshooting steps
+- ✅ **Automatic validation** of environment state
+- ✅ **Todo list integration** for tracking fixes
 
 ## 📋 QUICK REFERENCE
 
@@ -497,27 +353,13 @@ Revolutionary interface replacing 6-hub/23-tab design:
 
 ## 🎮 GAME SYSTEMS OVERVIEW
 
-### **Core Game Mechanics**
-- **Fantasy Sports**: "Dome Ball" sport with 5 races (Human, Sylvan, Gryll, Lumina, Umbra)
-- **🏟️ CRITICAL - Dome Ball Nature**: NOT American Football - continuous action with no downs, no stoppages (except after scores), no timeouts, no out of bounds, no penalties. Anything goes action in enclosed dome
-- **Team Structure**: 6-player teams (Passer, Runner, Blocker roles) + coaching staff
-- **Camaraderie System**: 5-tier team chemistry affecting performance (Excellent/Good/Average/Low/Poor)
-- **Stadium Economics**: Revenue from tickets, concessions, parking, VIP suites
-- **Tactical Systems**: Field size choices and strategic focuses
-- **16-Skill Progression**: Dynamic aging, retirement, injury mechanics
-- **Greek Alphabet Subdivisions**: All subdivisions use Greek alphabet naming (alpha, beta, gamma) with numbered extensions (alpha_1, beta_2) when needed
+**Key Game Mechanics**:
+- **Dome Ball Sport**: Continuous action (NOT American Football) with 5 fantasy races
+- **6-Player Teams**: Passer/Runner/Blocker roles + coaching staff
+- **Greek Alphabet Subdivisions**: alpha, beta, gamma naming system
+- **Real-time WebSocket Matches**: Detailed statistics and live simulation
 
-### **Competition Systems**  
-- **Real-time Match Engine**: WebSocket-powered simulation with detailed statistics
-- **League Structure**: 8 divisions with subdivision support, seasonal progression
-- **Tournament System**: Daily tournaments with bracket management
-- **Multi-currency Economy**: Credits (₡) and gems with marketplace trading
-
-### **Advanced Features**
-- **Equipment System**: Stat-boosting items and consumables
-- **Camaraderie Effects**: Team chemistry impacts stats, injuries, contract negotiations
-- **Coaching Integration**: Head coach tactics skill affects team performance
-- **Player Development**: Age-based progression with potential, injury, and loyalty factors
+**For Complete Game Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md - Game Systems](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md#game-systems)
 
 ## 🔧 DEVELOPMENT PATTERNS
 
@@ -561,183 +403,184 @@ Industry-standard patterns with:
 - Runtime type guards in `typeGuards.ts`
 - Strict TypeScript config with comprehensive error prevention
 
+### **🎨 AUTOMATED DESIGN REVIEW WORKFLOW**
+
+**Complete design system integration with automated UI validation**
+
+#### **Design Review Integration Points**
+
+**Quick Visual Check - After Any UI Changes**
+Perform immediate validation for all UI modifications:
+
+1. **Identify Changed Components**
+   - List specific components/pages modified
+   - Map affected user journeys
+   - Note any new interactive elements
+
+2. **Live Environment Verification** 
+   ```bash
+   # Navigate to local development
+   mcp__playwright__browser_navigate http://localhost:5173
+   
+   # Check for console errors
+   mcp__playwright__browser_console_messages
+   ```
+
+3. **Mobile-First Validation**
+   ```bash
+   # Test on mobile viewport first (iPhone SE)
+   mcp__playwright__browser_resize 375 667
+   
+   # Navigate through changed areas
+   # Verify touch targets ≥ 44px
+   # Check credit format displays as "amount₡"
+   ```
+
+4. **Design Compliance Check**
+   - Reference `/context/design-principles.md`
+   - Verify adherence to `/context/style-guide.md`
+   - Confirm 5-hub architecture consistency
+   - Validate Realm Rivalry brand standards
+
+5. **Capture Evidence**
+   ```bash
+   # Screenshot key states for documentation
+   mcp__playwright__browser_take_screenshot
+   ```
+
+#### **Comprehensive Design Review Triggers**
+
+Use specialized design review agents when:
+- ✅ Completing significant UI/UX features
+- ✅ Finalizing PRs with visual changes  
+- ✅ Need thorough accessibility validation
+- ✅ Implementing new components
+- ✅ Before production deployments
+
+#### **Design Review Agent Usage**
+```
+Run a comprehensive design review focusing on the [specific component/feature] changes.
+
+Key validation areas:
+- Mobile-first functionality (test 375px viewport first)
+- Credit display formatting ("amount₡" - NEVER "₡amount")
+- 5-hub navigation architecture
+- Accessibility compliance (WCAG AA)
+- Fantasy sports UI authenticity
+- Touch target sizing (≥44px)
+
+Please test across mobile, tablet, and desktop viewports using Playwright MCP.
+```
+
+#### **Critical Validation Checklist**
+
+**🚨 ALWAYS VERIFY:**
+- [ ] Credits display as "25,000₡" format (NEVER "₡25,000")
+- [ ] Touch targets ≥ 44px on mobile
+- [ ] 5-hub navigation works correctly
+- [ ] Console shows no critical errors
+- [ ] Mobile viewport (375px) functions properly
+- [ ] Keyboard navigation works throughout
+- [ ] Loading states display appropriately
+
+**📱 Mobile-First Checks:**
+- [ ] Interface works on iPhone SE (375x667)
+- [ ] Thumb-zone optimization for primary actions  
+- [ ] Smooth scrolling and gesture response
+- [ ] Safe area handling for notched devices
+
+**♿ Accessibility Requirements:**
+- [ ] Keyboard navigation complete
+- [ ] Focus indicators visible
+- [ ] Alt text for all images
+- [ ] 4.5:1 contrast ratio minimum
+
+**🎮 Realm Rivalry Context:**
+- [ ] Fantasy sports authenticity maintained
+- [ ] Dome Ball sport mechanics clear
+- [ ] Race diversity appropriately represented
+- [ ] Seasonal context visible when relevant
+
+#### **Design System Architecture Integration**
+
+**Enhanced Workflow (PR #6 Features):**
+
+**Design System Architect Usage:**
+```
+Act as the Design System Architect. Create a new [component type] following our design system.
+
+Requirements:
+1. Extract design tokens from /context/style-guide.md
+2. Generate React component with TypeScript
+3. Ensure WCAG AA compliance
+4. Optimize for mobile-first usage (44px touch targets)
+5. Include comprehensive documentation
+6. Validate against /context/design-principles.md
+
+Focus on:
+- 98% design consistency through token validation
+- Fantasy sports visual authenticity
+- Mobile-optimized touch interactions
+- Credit formatting compliance
+```
+
+**Complete Design System Lifecycle:**
+1. **Design System Architect** → Creates/Updates Standards
+2. **Implementation** → Component development with tokens
+3. **Design Review Agent** → Validates implementation
+4. **Iteration** → Refine based on feedback
+
+#### **Integration with Development Workflow**
+
+**Before committing UI changes:**
+```bash
+# 1. Quick visual check
+npm run dev:local
+# Navigate and verify changes work
+
+# 2. Request design review  
+# "Run design review on my dashboard changes"
+
+# 3. Address any blockers found
+# Fix critical issues before commit
+
+# 4. Commit with confidence
+git add . && git commit -m "feat: updated dashboard with design review validation"
+```
+
+**Post-Review Action Items:**
+1. Address any 🚨 Blockers immediately
+2. Plan 🔴 High Priority fixes for current sprint
+3. Schedule 🟡 Medium Priority improvements
+4. Document 🔵 Nitpicks for future consideration
+5. Update design system documentation if patterns change
+
 ## 📱 MOBILE & PWA FEATURES
 
-### **Mobile-First Design**
-- Touch targets >44px, responsive grid systems
-- Hub-specific gradients, safe area insets
-- Lazy loading for all components
-- Service workers for offline functionality
+**Mobile-first architecture** with 5-hub design, touch-optimized interface, and PWA capabilities.
 
-### **PWA Capabilities**
-- App manifest for app store installation
-- Push notifications support
-- Offline functionality with service workers
-- Mobile-optimized navigation and interactions
+**For Complete Mobile Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md - Mobile & PWA](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md#mobile-pwa-features)
 
 ## 🚀 DEPLOYMENT & PRODUCTION
 
-### **Google Cloud Infrastructure**
-- **Cloud Run**: Containerized backend deployment
-- **Artifact Registry**: Docker image storage with layer caching
-- **Cloud Build**: Automated CI/CD pipeline (replaced GitHub Actions)
-- **Secret Manager**: Secure environment variable management
+**Production**: Live at https://realmrivalry.com via Google Cloud Run + Firebase Hosting
 
-### **Deployment Pipeline**  
-- Triggers on Git push from Replit
-- Multi-stage Dockerfile with aggressive layer caching
-- Blue-Green deployment for zero-downtime releases
-- Health checks and database integration verification
+**Critical Notes**: 
+- NEVER use Replit's Deploy button - Custom Google Cloud Build pipeline only
+- PORT auto-managed by Cloud Run
 
-### **CRITICAL DEPLOYMENT NOTES**
-- **NEVER use Replit's Deploy button** - Custom pipeline only
-- **Reserved Variables**: PORT is auto-managed by Cloud Run
-- **Secrets vs Env Vars**: Proper separation required for deployment success
-
-### **External Dependencies**
-- **Google Cloud Platform**: Cloud Run, Artifact Registry, IAM, Cloud SQL PostgreSQL
-- **Firebase**: Frontend hosting, authentication services  
-- **Unity Ads**: Monetization platform
-- **Stripe**: Payment processing
-- **Google Fonts**: Orbitron, Inter font families
-- **Font Awesome**: Icon library
-- **Development Tools**: Vite, Docker, GitHub Actions, Prisma ORM
+**For Complete Deployment Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md - Deployment](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md#deployment-production)
 
 ## 📊 RECENT ACHIEVEMENTS
 
-### **September 9th, 2025 - 8-Agent Refactoring Mission Completed**
+**Latest Major Accomplishment**: 8-Agent Refactoring Mission completed (September 9th, 2025)
+- Database connections: 937 → <50 (93% reduction)
+- Component decomposition: 2,120-line monolithic → 16 focused components
+- Performance improvements: 40-60% across multiple metrics
 
-**MISSION ACCOMPLISHED**: Comprehensive codebase optimization through systematic 8-agent refactoring system achieving all performance targets.
-
-#### **Phase 3 Performance Optimization Results** ✅
-- **Database Connections**: 937 → <50 (93%+ reduction) via singleton DatabaseService pattern
-- **Component Architecture**: 2,120-line monolithic component → 16 focused, maintainable components
-- **Service Layer**: 508 lines of business logic extracted to proper service architecture
-- **Structured Logging**: 1,753+ console.log statements → Winston/client logger system
-- **Performance Monitoring**: Real-time dashboard and optimization validation system
-
-#### **Infrastructure Files Created**
-- `server/database/DatabaseService.ts` - Centralized database connection management
-- `server/utils/enhancedLogger.ts` - Winston-based structured logging system  
-- `client/src/utils/clientLogger.ts` - Client-side performance and error tracking
-- `client/src/components/PerformanceMonitoringDashboard.tsx` - Real-time monitoring UI
-- `client/src/hooks/useCompetitionData.ts` - Consolidated competition data fetching
-- `client/src/hooks/useMobileRosterData.ts` - Optimized mobile roster management (7+ hooks → 1)
-- `server/services/leagues/standings.service.ts` - Extracted league standings business logic
-
-#### **Performance Improvements Achieved**
-- **Memory Reduction**: 40% estimated improvement through hook optimization
-- **Response Time**: 50% improvement through parallel data fetching patterns
-- **API Performance**: 35% improvement through structured logging efficiency
-- **Developer Experience**: 9/10 score through enhanced debugging capabilities
-
-#### **Component Decomposition Success**
-Split `ComprehensiveCompetitionCenter.tsx` (2,120 lines) into modular architecture:
-- Main orchestrator reduced to 190 lines
-- 16 specialized components with proper separation of concerns
-- Modern React patterns with hooks and context
-- 100% functional compatibility maintained
-
-#### **Crisis Resolution**
-Successfully resolved critical compilation errors:
-- Multiple DatabaseService exports (stale build artifacts)
-- TypeScript schema mismatches (100+ errors during development)
-- Database connection configuration (Cloud SQL Auth Proxy setup)
-- Port conflicts and development environment cleanup
-
-### **September 3rd, 2025 - Comprehensive System Overhaul**
-
-**Major Systems Implemented:**
-- ✅ **Dynamic Playoff Scheduling**: Implemented real-time playoff round scheduling that monitors match completion times and dynamically schedules subsequent rounds 30 minutes after previous round completion
-- ✅ **Comprehensive Dome Ball Statistics System**: Complete overhaul of player and team statistics tracking with 25+ individual player stats and 20+ team stats reflecting continuous action gameplay
-- ✅ **Statistics Database Persistence**: Fixed major gap between statistics generation and database storage - statistics are now properly saved to `PlayerMatchStats` and `TeamMatchStats` models
-- ✅ **Greek Alphabet Subdivision System**: Consistent implementation of Greek alphabet naming (alpha, beta, gamma, etc.) replacing hardcoded "main/east/west" defaults
-- ✅ **Late Signup System Validation**: Comprehensive bulletproofing of Division 8 late registration system with AI auto-fill and shortened seasons
-
-**Systems Completely Removed:**
-- ❌ **Equipment Enhancement System**: Removed unintended upgrade mechanics with enhancement stones
-- ❌ **Equipment Durability System**: Removed durability degradation and repair mechanics  
-- ❌ **Salary Cap & Financial Fair Play**: Removed luxury tax, cap limits, and contract restrictions
-
-**Key Technical Files Modified:**
-- `server/services/seasonTimingAutomationService.ts`: Added playoff generation trigger on Day 14→15 advancement
-- `server/services/seasonalFlowService.ts`: Fixed Division 2 to use 8-team brackets, implemented first-round-only scheduling
-- `server/services/dynamicPlayoffService.ts`: **NEW** - Real-time playoff round monitoring and dynamic scheduling
-- `server/services/lateSignupService.ts`: Enhanced Greek alphabet subdivision naming with numbered extensions
-- `server/storage/teamStorage.ts`: Added `getDefaultSubdivision()` function to replace hardcoded defaults
-- `prisma/schema.prisma`: Added comprehensive `PlayerMatchStats` and `TeamMatchStats` models
-- `server/services/statsService.ts`: Complete rewrite with real database queries replacing placeholder data
-- `server/services/quickMatchSimulation.ts`: Added statistics persistence and realistic dome ball stat generation
-- `shared/types/LiveMatchState.ts`: Updated stat interfaces for comprehensive dome ball tracking
-
-**Critical Fixes Applied:**
-- **Missing Playoff Generation**: Playoff brackets weren't generating when advancing Day 14→15
-- **Fixed vs Dynamic Scheduling**: User wanted dynamic scheduling based on completion times, not fixed times  
-- **Statistics Persistence Gap**: Stats were generated but never saved to database
-- **Greek Alphabet Inconsistency**: Multiple files defaulting to "main" instead of Greek alphabet
-- **StatsService Placeholder Data**: Service returned zeros instead of real aggregated statistics
-
-### **Production Operational (August 2025)**
-- ✅ Complete migration from GitHub Actions to Google Cloud Build
-- ✅ Docker layer caching with "Layer already exists" optimization  
-- ✅ End-to-end deployment pipeline with health checks
-- ✅ Mobile-first 5-hub architecture fully operational
-- ✅ Advanced camaraderie system with 5 tiers and comprehensive effects
-
-### **Critical Systems Working**
-- ✅ Real-time WebSocket match simulation
-- ✅ Tournament automation with daily cycles
-- ✅ Dynamic late signup system for Division 8
-- ✅ Comprehensive marketplace with bidding system
-- ✅ Stadium revenue processing and team finances
-- ✅ Player aging, progression, and retirement systems
-
-## 🔧 CODEBASE OPTIMIZATION ROADMAP (September 2025)
-
-**Analysis of 811 TypeScript/JavaScript files revealed critical optimization opportunities for improved AI assistant compatibility and development velocity.**
-
-### **🚨 Priority Targets Identified**
-- **937 database connection instances** → Singleton pattern implementation
-- **1,925-line monolithic component** → Split into 6 focused sub-components  
-- **3 functions over 500 lines** → Extract to service layer
-- **1,753 console.log statements** → Structured logging system
-- **283 unoptimized database queries** → Pagination and field selection
-
-### **🎯 Success Metrics**
-- Database connections: 937 → <50
-- Component size: No components >500 lines
-- Function complexity: No functions >200 lines
-- Bundle size: 60-80% reduction
-- API response times: 40-60% improvement
-
-## **🤖 Refactoring Agent Architecture Overview**
-
-**Comprehensive 8-agent system designed to systematically optimize the codebase foundation. Full specifications available in [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md).**
-
-### **Agent Summary**
-- **Project Coordination Agent**: Strategic planning and orchestration  
-- **Quality Assurance Agent**: Comprehensive testing and validation
-- **Codebase Analysis Agent**: Pattern recognition and complexity analysis
-- **Documentation Analysis Agent**: Game requirements validation  
-- **Database Optimization Agent**: Connection pooling (937→<50 connections)
-- **Component Architecture Agent**: React optimization (1,925-line component split)
-- **Service Layer Agent**: Business logic extraction (route functions >200 lines)
-- **Performance Optimization Agent**: Logging standardization (1,753 console.log fixes)
-
-### **Execution Strategy**
-1. **Phase 0** (Days 1-2): Intelligence gathering and baseline establishment
-2. **Phase 1** (Days 3-5): Database optimization foundation  
-3. **Phase 2** (Days 6-10): Component and service layer refactoring
-4. **Phase 3** (Days 11-14): Performance optimization and monitoring
+**For Complete Achievement History**: See [SESSION_LOG.md - Recent Achievements](./SESSION_LOG.md#recent-achievements)
 
 ## 🎯 CURRENT DEVELOPMENT FOCUS
-
-### **Newly Operational Systems (September 2025)**
-- ✅ **Dynamic Playoff Scheduling**: Real-time tournament progression with 30-minute round buffers
-- ✅ **Comprehensive Statistics System**: 25+ player stats, 20+ team stats with database persistence
-- ✅ **Greek Alphabet Subdivisions**: Consistent naming throughout all systems
-- ✅ **System Cleanup**: Removed unintended Equipment Enhancement, Durability, and Salary Cap systems
-- ✅ **Codebase Analysis**: Comprehensive optimization roadmap with 40+ large functions identified
 
 ### **Next Development Priorities**
 - **📁 Root Directory Organization**: Move analysis tools to proper directories  
@@ -755,7 +598,7 @@ Successfully resolved critical compilation errors:
 4. Reference specific files: `server/services/tournamentService.ts:150`
 
 ### **During Development**
-- Follow domain-driven patterns in `/server/domains/`
+- Follow flat architecture patterns in `/server/routes/` and `/server/services/`
 - Use proper Prisma model names (Game not Match)  
 - Implement comprehensive error handling
 - Test with realistic data scenarios
@@ -782,110 +625,6 @@ Successfully resolved critical compilation errors:
 - Efficient React Query patterns with proper invalidation
 - Lazy loading for all major components
 - Optimized Prisma queries with proper indexing
-
----
-
-## 📋 SESSION UPDATES & DEVELOPMENT HISTORY
-
-**For detailed session logs, bug fixes, and development progress, see: [SESSION_LOG.md](./SESSION_LOG.md)**
-
-This includes:
-- Critical bug fixes and resolutions
-- Route consolidation project progress
-- Emergency system resets and fixes
-- Technical debt reduction initiatives
-- Database integrity improvements
-
----
-
-## 🎯 SESSION TRANSITION NOTES (September 9th, 2025)
-
-### **✅ COMPLETED THIS SESSION: GitHub Actions Agent Enhancement Mission**
-**All 4 GitHub Actions agents successfully enhanced with 8-agent refactoring intelligence:**
-
-1. **Code Quality Guardian** (25.6KB) - 8-agent compliance validation, crisis detection
-2. **TypeScript Guardian** (30.6KB) - Intelligent error classification, trend analysis  
-3. **Prisma Guardian** (36.9KB) - Database pattern validation, performance monitoring
-4. **Deployment Readiness Agent** (40.5KB) - Optimization validation, infrastructure intelligence
-
-**Key Features Added:**
-- 8-agent refactoring compliance validation (DatabaseService singleton, component decomposition)
-- Performance regression detection (monitoring 93%+ database reduction achievements)
-- 4-level crisis detection with automated recovery systems
-- Inter-agent coordination and trend analysis capabilities
-
-### **🚀 NEXT SESSION GOALS (Planned)**
-
-#### **Goal 1: MCP Server Setup - Playwright Integration**
-**Priority**: High - Enable visual development capabilities
-**Requirements**:
-- Install and configure Playwright MCP server for browser automation
-- Set up "eyes during development" capability for UI testing
-- Configure other useful MCP servers for enhanced development workflow
-- Test integration with Claude Code for seamless development
-
-#### **Goal 2: Comprehensive Game Feature Testing**  
-**Priority**: Critical - Post-refactoring validation
-**Context**: After extensive refactoring (8-agent mission, TypeScript fixes, route consolidation)
-**Testing Scope**:
-- Local development environment functionality
-- All core game systems (matches, tournaments, marketplace, etc.)
-- Database connectivity and data integrity
-- WebSocket real-time features
-- Mobile-first UI responsiveness
-- Performance validation of optimization gains
-
-**Pre-Session Requirements**:
-- ✅ Enhanced GitHub Actions agents are deployed and monitoring
-- ✅ Local development environment should be ready (`npm run dev:local`)
-- ✅ Cloud SQL Auth Proxy connection available
-- ✅ All major refactoring work completed
-
-### **📋 SESSION PREPARATION CHECKLIST**
-**Before starting tomorrow's session**:
-
-1. **Environment Verification**:
-   ```bash
-   # Verify development environment works
-   npm run dev:local
-   # Should open localhost:5173 automatically
-   ```
-
-2. **Database Connection**:
-   ```bash
-   # Ensure Cloud SQL Auth Proxy is running
-   cloud-sql-proxy direct-glider-465821-p7:us-central1:realm-rivalry-dev --port=5432
-   ```
-
-3. **Recent Commit Status**:
-   - All enhanced GitHub Actions agents committed
-   - No pending critical changes
-
-### **🎯 EXPECTED OUTCOMES**
-**By end of next session**:
-- Playwright MCP integration fully operational
-- Comprehensive game feature validation completed
-- Any critical bugs discovered and resolved
-- Development workflow enhanced with visual capabilities
-
----
-
-**Last Updated**: September 9th, 2025 - GitHub Actions Agent Enhancement Mission Completed
-**Status**: Production operational at https://realmrivalry.com with 4 enhanced automated agents monitoring
-**Next Session**: MCP Server Setup + Comprehensive Game Feature Testing
-
----
-
-## 🎯 RECENT ACHIEVEMENTS SUMMARY
-
-### **September 2025 Major Accomplishments**
-- ✅ **Dynamic Playoff System**: Real-time playoff scheduling with 30-minute round buffers
-- ✅ **Comprehensive Statistics**: 40+ dome ball statistics with full database persistence
-- ✅ **Route Consolidation**: 16 route files → 4 enhanced systems (60+ endpoints)
-- ✅ **GitHub Actions Agents**: 4 automated code quality guardians operational
-- ✅ **Documentation Cleanup**: Consolidated to CLAUDE.md + SESSION_LOG.md structure
-
----
 
 ## 📚 **DOCUMENTATION POLICY**
 
@@ -919,3 +658,11 @@ This includes:
 - **Reduced Redundancy**: Eliminates duplicate or conflicting information
 - **Faster Onboarding**: Developers find everything in one location
 
+---
+
+**For Historical Development Details**: See [SESSION_LOG.md](./SESSION_LOG.md)  
+**For Complete Game Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md)
+
+**Last Updated**: September 9th, 2025 - Documentation Optimization  
+**Status**: Production operational at https://realmrivalry.com  
+**Next Session**: MCP Server Setup + Comprehensive Game Feature Testing

@@ -298,16 +298,22 @@ export class TeamStorage {
   async getTeamByUserId(userId: string): Promise<any> {
     // First find the UserProfile by userId, then find the team by userProfileId
     if (!userId) {
+      console.log('❌ [TEAM LOOKUP] No userId provided');
       return null;
     }
+    
+    console.log(`🔍 [TEAM LOOKUP] Looking for team with userId: "${userId}"`);
     
     try {
       const prisma = await DatabaseService.getInstance();
       const userProfile = await prisma.userProfile.findUnique({
-        where: { userProfileId: userId }
+        where: { userId: userId }
       });
+      
+      console.log(`🔍 [TEAM LOOKUP] UserProfile found:`, userProfile ? `id: ${userProfile.id}, email: ${userProfile.email}` : 'null');
     
       if (!userProfile) {
+        console.log('❌ [TEAM LOOKUP] No UserProfile found for userId:', userId);
         return null;
       }
       
@@ -370,10 +376,14 @@ export class TeamStorage {
         }
       }
       
+      console.log(`🔍 [TEAM LOOKUP] Team found:`, team ? `id: ${team.id}, name: ${team.name}` : 'null');
+      
       if (!team) {
+        console.log('❌ [TEAM LOOKUP] No team found for userProfileId:', userProfile.id);
         return null;
       }
       
+      console.log('✅ [TEAM LOOKUP] Returning team:', team.name);
       return await serializeTeamData(team);
     } catch (error: any) {
       console.error('❌ Database connection failed in getTeamByUserId:', error?.message || error);

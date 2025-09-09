@@ -210,7 +210,7 @@ const ModernStickyHeader: React.FC = () => {
   };
 
   const getNextMatchInfo = (): { text: string; isOffSeason: boolean } => {
-    if (!seasonData?.season) return { text: "Loading...", isOffSeason: false };
+    if (!seasonData?.season) return { text: "Season data loading...", isOffSeason: false };
     
     // If in off-season (Day 16-17)
     if (seasonData.season?.currentDay >= 16) {
@@ -299,7 +299,7 @@ const ModernStickyHeader: React.FC = () => {
   const credits = parseInt(String(finances?.credits || "0"));
   const gems = parseInt(String(finances?.gems || "0"));
   const unreadNotifications = (notifications && typeof notifications === 'object' && 'notifications' in notifications && Array.isArray(notifications.notifications)) ? notifications.notifications.filter((n: any) => !n.isRead).length : 0;
-  const seasonInfo = seasonData?.season?.currentDay ? `Day ${seasonData.season?.currentDay}/17` : 'Day 9/17';
+  const seasonInfo = seasonData?.season?.currentDay ? `Day ${seasonData.season?.currentDay}/17` : 'Loading...';
   const phaseDisplay = getSeasonPhase();
   
   // Enhanced display data
@@ -320,7 +320,7 @@ const ModernStickyHeader: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <header className="sticky top-0 z-50 bg-gray-900 border-b border-gray-700">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-purple-500/30">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             <button 
@@ -329,6 +329,17 @@ const ModernStickyHeader: React.FC = () => {
             >
               Realm Rivalry
             </button>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-purple-200">
+                🏆 Create your team and start your Dynasty today!
+              </div>
+              <button 
+                onClick={() => setLocation("/")}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 px-4 py-2 rounded-lg text-white font-medium transition-all duration-200 transform hover:scale-105"
+              >
+                Start Playing
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -444,7 +455,7 @@ const ModernStickyHeader: React.FC = () => {
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-white leading-tight">
-                    {team?.name || 'Team Name'}
+                    {team?.name || 'Loading team...'}
                   </h1>
                   <div className="flex items-center space-x-2 text-sm">
                     <Badge className="bg-purple-600/80 text-purple-100 text-xs px-2 py-0.5">
