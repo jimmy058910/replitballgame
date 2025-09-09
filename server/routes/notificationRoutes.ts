@@ -3,6 +3,8 @@ import { storage } from '../storage/index.js'; // Adjusted path
 import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { randomUUID } from "crypto"; // For demo notifications
+import type { Player, Team, Contract, League, Notification } from '@shared/types/models';
+
 // import { NotificationService } from '../services/notificationService.js'; // If using service methods here
 
 const router = Router();

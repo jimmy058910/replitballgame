@@ -1,0 +1,140 @@
+{
+  "modelMappings": {
+    "Team": {
+      "correct": ["id", "name", "userProfileId", "divisionId", "subdivisionId", "stadium", "finances", "players", "staff"],
+      "incorrect": {
+        "TeamFinance": "finances",
+        "TeamFinances": "finances",
+        "userId": "userProfileId",
+        "stadiums": "stadium",
+        "owner": "userProfile"
+      }
+    },
+    "Player": {
+      "correct": ["id", "firstName", "lastName", "age", "race", "position", "teamId", "value", "contract"],
+      "incorrect": {
+        "name": "firstName + ' ' + lastName",
+        "stats.goals": "goalsScored",
+        "stats.assists": "assists",
+        "stats.tackles": "tacklesWon",
+        "role": "position",
+        "skill": "overallRating"
+      }
+    },
+    "Stadium": {
+      "correct": ["id", "teamId", "capacity", "lightingScreensLevel", "concessionsLevel", "parkingLevel", "vipSuitesLevel"],
+      "computed": {
+        "ticketPrice": "lightingScreensLevel * 5",
+        "concessionPrice": "concessionsLevel * 2",
+        "parkingPrice": "parkingLevel * 1",
+        "vipSuitePrice": "vipSuitesLevel * 25",
+        "totalRevenue": "sum of all revenue sources"
+      },
+      "incorrect": {
+        "ticketPriceField": "ticketPrice (computed)",
+        "baseTicketPrice": "ticketPrice (computed)"
+      }
+    },
+    "Staff": {
+      "correct": ["id", "firstName", "lastName", "type", "teamId", "salary", "contractEndSeason"],
+      "incorrect": {
+        "role": "type",
+        "contract.salary": "salary",
+        "contract.endSeason": "contractEndSeason",
+        "name": "firstName + ' ' + lastName"
+      }
+    },
+    "Game": {
+      "correct": ["id", "homeTeamId", "awayTeamId", "homeScore", "awayScore", "season", "day", "matchType"],
+      "incorrect": {
+        "type": "matchType",
+        "homeTeam": "homeTeamId",
+        "awayTeam": "awayTeamId",
+        "match": "game (model renamed)"
+      }
+    },
+    "Tournament": {
+      "correct": ["id", "name", "type", "status", "startDate", "endDate", "teams"],
+      "removed": ["maxEntries", "entriesCount", "capacity"],
+      "incorrect": {
+        "maxTeams": "teams.length",
+        "currentEntries": "teams.length"
+      }
+    },
+    "TeamFinances": {
+      "correct": ["id", "teamId", "balance", "revenue", "expenses", "lastUpdated"],
+      "incorrect": {
+        "credits": "balance",
+        "totalRevenue": "revenue",
+        "totalExpenses": "expenses",
+        "updatedAt": "lastUpdated"
+      }
+    },
+    "Contract": {
+      "correct": ["id", "playerId", "teamId", "salary", "startSeason", "endSeason", "releaseClause"],
+      "incorrect": {
+        "player": "playerId",
+        "team": "teamId",
+        "value": "salary",
+        "duration": "endSeason - startSeason"
+      }
+    },
+    "UserProfile": {
+      "correct": ["id", "userId", "email", "firstName", "lastName", "teams"],
+      "incorrect": {
+        "Team": "teams",
+        "firebaseUid": "userId",
+        "displayName": "firstName + ' ' + lastName"
+      }
+    }
+  },
+  "relationshipMappings": {
+    "Team.finances": {
+      "type": "one-to-one",
+      "include": "{ finances: true }",
+      "access": "team.finances.balance"
+    },
+    "Team.stadium": {
+      "type": "one-to-one",
+      "include": "{ stadium: true }",
+      "access": "team.stadium.capacity"
+    },
+    "Team.players": {
+      "type": "one-to-many",
+      "include": "{ players: true }",
+      "access": "team.players[0].firstName"
+    },
+    "Player.contract": {
+      "type": "one-to-one",
+      "include": "{ contract: true }",
+      "access": "player.contract.salary"
+    },
+    "Player.matchStats": {
+      "type": "one-to-many",
+      "include": "{ matchStats: true }",
+      "access": "player.matchStats[0].goalsScored"
+    }
+  },
+  "commonMistakes": {
+    "pluralVsSingular": {
+      "pattern": "Using plural when schema has singular",
+      "examples": ["team.stadiums → team.stadium", "team.TeamFinances → team.finances"],
+      "fix": "Check Prisma schema for exact field name"
+    },
+    "nestedAccess": {
+      "pattern": "Accessing nested property without include",
+      "examples": ["team.players[0].name without including players"],
+      "fix": "Add include: { players: true } to query"
+    },
+    "computedProperties": {
+      "pattern": "Accessing non-existent computed fields",
+      "examples": ["stadium.ticketPrice", "player.fullName"],
+      "fix": "Calculate from actual fields or add to type definition"
+    },
+    "removedFields": {
+      "pattern": "Accessing fields that were removed from schema",
+      "examples": ["tournament.maxEntries", "player.stats"],
+      "fix": "Remove usage or find alternative field"
+    }
+  }
+}

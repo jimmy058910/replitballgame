@@ -1,0 +1,396 @@
+{
+  "success": true,
+  "errorsBefore": 1026,
+  "errorsAfter": 5,
+  "reduction": 1021,
+  "reductionPercentage": 99.5,
+  "improved": true,
+  "neutral": false,
+  "regressed": false,
+  "duration": "11.7s",
+  "categoriesProcessed": 218,
+  "extensionsApplied": 7,
+  "propertiesAdded": 11,
+  "message": "Successfully reduced errors by 99.5%",
+  "timestamp": "2025-09-09T01:37:02.859Z",
+  "categories": [
+    {
+      "property": "handle",
+      "type": "Router",
+      "count": 48,
+      "files": [
+        "server/routes/enhancedFinanceRoutes.ts",
+        "server/routes/enhancedInjuryRoutes.ts",
+        "server/routes/enhancedInventoryRoutes.ts",
+        "server/routes/enhancedMatchRoutes.ts",
+        "server/routes/enhancedStadiumRoutes.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "teaching",
+      "type": "Staff",
+      "count": 7,
+      "files": [
+        "client/src/components/StaffManagement.tsx",
+        "server/routes/teamRoutes.ts",
+        "server/services/contractService.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "gems",
+      "type": "{}",
+      "count": 7,
+      "files": [
+        "client/src/pages/Market.tsx"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "tactics",
+      "type": "Staff",
+      "count": 6,
+      "files": [
+        "client/src/components/StaffManagement.tsx",
+        "server/routes/tacticalRoutes.ts",
+        "server/routes/teamRoutes.ts",
+        "server/services/contractService.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "motivation",
+      "type": "Staff",
+      "count": 6,
+      "files": [
+        "client/src/components/StaffManagement.tsx",
+        "server/routes/tacticalRoutes.ts",
+        "server/routes/teamRoutes.ts",
+        "server/services/contractService.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "credits",
+      "type": "{}",
+      "count": 5,
+      "files": [
+        "client/src/components/StaffReleaseConfirmation.tsx",
+        "client/src/pages/Market.tsx"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "liveState",
+      "type": "NonNullable<TQueryFnData>",
+      "count": 5,
+      "files": [
+        "client/src/components/TextBasedMatchViewer.tsx"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "simulateGame",
+      "type": "QuickMatchSimulation",
+      "count": 5,
+      "files": [
+        "server/routes/enhancedTournamentRoutes.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "team",
+      "type": "{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; updatedAt: Date; profileImageUrl: string | null; bio: string | null; ... 4 more ...; ndaVersion: string | null; }",
+      "count": 5,
+      "files": [
+        "server/services/leagues/schedule.service.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "rosterPosition",
+      "type": "PlayerWithContract",
+      "count": 4,
+      "files": [
+        "client/src/components/MobileRosterHQ.tsx"
+      ],
+      "pattern": {
+        "pattern": "Property 'rosterPosition' does not exist on type 'Player'",
+        "fix": "Change rosterPosition type from number to string in PlayerWithContract",
+        "files": [
+          "MobileRosterHQ.tsx"
+        ],
+        "frequency": 12,
+        "tested": true,
+        "works": true
+      },
+      "solution": "Change rosterPosition type from number to string in PlayerWithContract"
+    },
+    {
+      "property": "status",
+      "type": "{}",
+      "count": 4,
+      "files": [
+        "client/src/components/SeasonChampionships.tsx"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "createdAt",
+      "type": "Player",
+      "count": 4,
+      "files": [
+        "client/src/components/TacticsLineupHub.tsx",
+        "client/src/components/UnifiedTeamChemistry.tsx"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "skills",
+      "type": "Player",
+      "count": 3,
+      "files": [
+        "client/src/components/PlayerSkillsManager.tsx"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "startDate",
+      "type": "{}",
+      "count": 3,
+      "files": [
+        "client/src/components/SeasonChampionships.tsx"
+      ],
+      "pattern": {
+        "pattern": "Property 'startDate' does not exist on type 'SeasonInfo'",
+        "fix": "Add startDate?: Date | string to SeasonInfo interface",
+        "files": [
+          "ComprehensiveCompetitionCenter.tsx"
+        ],
+        "frequency": 23,
+        "tested": true,
+        "works": true
+      },
+      "solution": "Add startDate?: Date | string to SeasonInfo interface"
+    },
+    {
+      "property": "development",
+      "type": "Staff",
+      "count": 3,
+      "files": [
+        "client/src/components/StaffManagement.tsx",
+        "server/routes/teamRoutes.ts",
+        "server/services/contractService.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "talentIdentification",
+      "type": "Staff",
+      "count": 3,
+      "files": [
+        "client/src/components/StaffManagement.tsx",
+        "server/routes/teamRoutes.ts",
+        "server/services/contractService.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "potentialAssessment",
+      "type": "Staff",
+      "count": 3,
+      "files": [
+        "client/src/components/StaffManagement.tsx",
+        "server/routes/teamRoutes.ts",
+        "server/services/contractService.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "physiology",
+      "type": "Staff",
+      "count": 3,
+      "files": [
+        "client/src/components/StaffManagement.tsx",
+        "server/routes/teamRoutes.ts",
+        "server/services/contractService.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "level",
+      "type": "Staff",
+      "count": 3,
+      "files": [
+        "client/src/components/StaffNegotiationModal.tsx",
+        "server/routes/teamRoutes.ts",
+        "server/services/contractService.ts"
+      ],
+      "pattern": null,
+      "solution": null
+    },
+    {
+      "property": "firstName",
+      "type": "FormationPlayer",
+      "count": 3,
+      "files": [
+        "client/src/components/TacticalFormation.tsx"
+      ],
+      "pattern": null,
+      "solution": null
+    }
+  ],
+  "extensions": {
+    "PlayerWithContract": {
+      "properties": [
+        {
+          "name": "rosterPosition",
+          "type": "string",
+          "optional": true,
+          "errors": 4,
+          "files": [
+            "client/src/components/MobileRosterHQ.tsx"
+          ]
+        },
+        {
+          "name": "isOnMarket",
+          "type": "boolean",
+          "optional": true,
+          "errors": 1,
+          "files": [
+            "client/src/components/MobileRosterHQ.tsx"
+          ]
+        }
+      ],
+      "reason": "Fixes 4 property access errors"
+    },
+    "{}": {
+      "properties": [
+        {
+          "name": "startDate",
+          "type": "Date | string",
+          "optional": true,
+          "errors": 3,
+          "files": [
+            "client/src/components/SeasonChampionships.tsx"
+          ]
+        }
+      ],
+      "reason": "Fixes 3 property access errors"
+    },
+    "Player": {
+      "properties": [
+        {
+          "name": "rosterPosition",
+          "type": "string",
+          "optional": true,
+          "errors": 2,
+          "files": [
+            "client/src/components/TacticsLineupHub.tsx"
+          ]
+        },
+        {
+          "name": "isOnMarket",
+          "type": "boolean",
+          "optional": true,
+          "errors": 1,
+          "files": [
+            "client/src/components/UnifiedTeamChemistry.tsx"
+          ]
+        }
+      ],
+      "reason": "Fixes 2 property access errors"
+    },
+    "Contract": {
+      "properties": [
+        {
+          "name": "startDate",
+          "type": "Date | string",
+          "optional": true,
+          "errors": 2,
+          "files": [
+            "server/routes/teamRoutes.ts"
+          ]
+        }
+      ],
+      "reason": "Fixes 2 property access errors"
+    },
+    "{ season: string; currentDay: number; phase: string; description: string; daysUntilPlayoffs?: number | undefined; daysUntilNewSeason?: number | undefined; }": {
+      "properties": [
+        {
+          "name": "startDate",
+          "type": "Date | string",
+          "optional": true,
+          "errors": 1,
+          "files": [
+            "client/src/components/ComprehensiveCompetitionCenter.tsx"
+          ]
+        },
+        {
+          "name": "seasonNumber",
+          "type": "number",
+          "optional": true,
+          "errors": 1,
+          "files": [
+            "client/src/components/ComprehensiveCompetitionCenter.tsx"
+          ]
+        }
+      ],
+      "reason": "Fixes 1 property access errors"
+    },
+    "MatchEvent": {
+      "properties": [
+        {
+          "name": "text",
+          "type": "string",
+          "optional": true,
+          "errors": 1,
+          "files": [
+            "client/src/components/GameSimulationUI.tsx"
+          ]
+        }
+      ],
+      "reason": "Fixes 1 property access errors"
+    },
+    "string": {
+      "properties": [
+        {
+          "name": "x",
+          "type": "string",
+          "optional": true,
+          "errors": 1,
+          "files": [
+            "client/src/components/TacticalFormation.tsx"
+          ]
+        },
+        {
+          "name": "y",
+          "type": "string",
+          "optional": true,
+          "errors": 1,
+          "files": [
+            "client/src/components/TacticalFormation.tsx"
+          ]
+        }
+      ],
+      "reason": "Fixes 1 property access errors"
+    }
+  }
+}

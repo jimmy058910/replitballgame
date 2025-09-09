@@ -1,5 +1,7 @@
 import { getPrismaClient } from "../database.js";
 import { getGameDurationMinutes, type MatchType } from '../utils/gameTimeUtils.js';
+import type { Player, League } from '@shared/types/models';
+
 
 export interface InjuryStaminaSettings {
   // Game mode base injury chances

@@ -7,22 +7,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Users, ArrowUp, ArrowDown, Save, RotateCcw, Settings } from "lucide-react";
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
-interface Player {
-  id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  stamina: number;
-  leadership: number;
-  agility: number;
-}
+
 
 interface TextTacticalManagerProps {
   players: Player[];
@@ -51,10 +38,10 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
       // Set substitution orders
       const subs = { passer: [] as string[], runner: [] as string[], blocker: [] as string[] };
       players.forEach(player => {
-        if (!savedStarters.includes(player.id)) {
+        if (!savedStarters.includes(String(player.id))) {
           const role = player.role.toLowerCase() as keyof typeof subs;
           if (role === 'passer' || role === 'runner' || role === 'blocker') {
-            subs[role].push(player.id);
+            subs[role].push(String(player.id));
           }
         }
       });
@@ -210,7 +197,7 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
 
   const resetToOptimal = () => {
     // Sort players by power rating
-    const sortedPlayers = players.sort((a, b) => getPlayerPower(b.id) - getPlayerPower(a.id));
+    const sortedPlayers = players.sort((a, b) => getPlayerPower(String(b.id)) - getPlayerPower(String(a.id)));
     
     const newStarters: string[] = [];
     const newSubs = { passer: [] as string[], runner: [] as string[], blocker: [] as string[] };
@@ -221,12 +208,12 @@ export default function TextTacticalManager({ players, savedFormation }: TextTac
     const blockers = sortedPlayers.filter(p => p.role.toLowerCase() === 'blocker');
     
     // Add required starters: 1 passer, 2 runners, 2 blockers
-    if (passers.length > 0) newStarters.push(passers[0].id);
+    if (passers.length > 0) newStarters.push(String(passers[0].id));
     if (runners.length >= 2) {
-      newStarters.push(runners[0].id, runners[1].id);
+      newStarters.push(String(runners[0].id), String(runners[1].id));
     }
     if (blockers.length >= 2) {
-      newStarters.push(blockers[0].id, blockers[1].id);
+      newStarters.push(String(blockers[0].id), String(blockers[1].id));
     }
     
     // Add best remaining player as wildcard

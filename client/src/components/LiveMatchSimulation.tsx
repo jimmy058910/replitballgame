@@ -10,6 +10,7 @@ import { apiRequest } from '@/lib/queryClient';
 import webSocketManager, { LiveMatchState as WSLiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/providers/AuthProvider';
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
 interface LiveMatchSimulationProps {
   matchId: string;
@@ -25,22 +26,7 @@ interface LiveMatchSimulationProps {
   };
 }
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: "Passer" | "Runner" | "Blocker";
-  teamId: string;
-  race?: string;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  stamina: number;
-  agility: number;
-  leadership: number;
-}
+
 
 interface GameEvent {
   time: number;
@@ -274,7 +260,7 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
       percentage: Math.floor((attendance / capacity) * 100),
       fanLoyalty,
       intimidationEffect,
-      fieldSize: atmosphereData.fieldSize || 'Standard',
+      fieldSize: atmosphereData?.fieldSize || 'Standard',
       homeFieldAdvantage,
       crowdNoise: atmosphereData.crowdNoise || Math.floor(Math.random() * 30) + 70
     };
@@ -457,7 +443,7 @@ export function LiveMatchSimulation({ matchId, team1, team2, initialLiveState, o
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Field Size</div>
-                <div className="font-semibold">{attendanceData.fieldSize}</div>
+                <div className="font-semibold">{attendanceData?.fieldSize}</div>
               </div>
             </div>
             <div className="pt-2 border-t">

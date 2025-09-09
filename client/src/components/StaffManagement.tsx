@@ -5,25 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
+import { staffQueryOptions } from "@/lib/api/queryOptions";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Users, TrendingUp, Shield, Search, UserCheck, Award } from "lucide-react";
+import type { Team, Staff, Contract } from '@shared/types/models';
 
-interface StaffMember {
-  id: string;
-  name: string;
-  type: string;
-  level: number;
-  salary?: number;
-  contractYears?: number;
-  motivation: number;
-  development: number;
-  teaching: number;
-  physiology: number;
-  talentIdentification: number;
-  potentialAssessment: number;
-  tactics: number;
-  age: number;
-}
+
+
 
 interface StaffManagementProps {
   teamId: string;
@@ -40,14 +28,12 @@ interface StaffTypeDefinition {
 }
 
 export default function StaffManagement({ teamId }: StaffManagementProps) {
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
 
-  const { data: rawStaff, isLoading, error } = useQuery<StaffMember[]>({
-    queryKey: [`/api/teams/${teamId}/staff`],
-    queryFn: () => apiRequest<StaffMember[]>(`/api/teams/${teamId}/staff`),
-    enabled: !!teamId,
-  });
-  const staff = (rawStaff || []) as StaffMember[];
+  const { data: staffData, isLoading, error } = useQuery(
+    staffQueryOptions.list(!!teamId) // Pass authentication flag
+  );
+  const staff = (staffData?.staff || []) as Staff[];
 
   const hireMutation = useMutation({
     mutationFn: async (staffData: any) => {
@@ -137,35 +123,35 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
     // Handle mapping between UI types and database types
     switch (type) {
       case "head_coach":
-        return staff?.find((member: StaffMember) => 
+        return staff?.find((member: Staff) => 
           member.type === "HEAD_COACH"
         );
       case "trainer_offense":
-        return staff?.find((member: StaffMember) => 
+        return staff?.find((member: Staff) => 
           member.type === "PASSER_TRAINER"
         );
       case "trainer_defense":
-        return staff?.find((member: StaffMember) => 
+        return staff?.find((member: Staff) => 
           member.type === "BLOCKER_TRAINER"
         );
       case "trainer_physical":
-        return staff?.find((member: StaffMember) => 
+        return staff?.find((member: Staff) => 
           member.type === "RUNNER_TRAINER"
         );
       case "recovery_specialist":
-        return staff?.find((member: StaffMember) => 
+        return staff?.find((member: Staff) => 
           member.type === "RECOVERY_SPECIALIST"
         );
       case "head_scout":
-        return staff?.find((member: StaffMember) => 
+        return staff?.find((member: Staff) => 
           member.type === "SCOUT" && member.name === "Tony Scout"
         );
       case "recruiting_scout":
-        return staff?.find((member: StaffMember) => 
+        return staff?.find((member: Staff) => 
           member.type === "SCOUT" && member.name === "Emma Talent"
         );
       default:
-        return staff?.find((member: StaffMember) => member.type === type);
+        return staff?.find((member: Staff) => member.type === type);
     }
   };
 
@@ -248,7 +234,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
               </div>
               
               <div className="space-y-2">
-                {staffType.primaryStats.map((statKey: keyof StaffMember) => {
+                {staffType.primaryStats.map((statKey: keyof Staff) => {
                   // Ensure currentStaff and the specific stat property exist and are numbers
                   const value = typeof currentStaff?.[statKey] === 'number' ? currentStaff[statKey] as number : 0;
                   return (
@@ -282,7 +268,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
               <p className="text-gray-500 mb-3">No {staffType.name} hired</p>
               <Button
                 onClick={() => {
-                  const newStaff: Partial<StaffMember> = { // Explicitly type newStaff
+                  const newStaff: Partial<Staff> = { // Explicitly type newStaff
                     type: staffType.type,
                     name: `${staffType.name} Candidate ${Math.floor(Math.random() * 999)}`, // More descriptive name
                     salary: calculateSalary(staffType.type, 1),
@@ -343,7 +329,7 @@ export default function StaffManagement({ teamId }: StaffManagementProps) {
         <div className="text-right">
           <p className="text-sm text-gray-600">Total Staff Salaries</p>
           <p className="text-xl font-bold">
-            {staff?.reduce((total: number, member: StaffMember) => {
+            {staff?.reduce((total: number, member: Staff) => {
               const staffType = staffTypes.find(s => s.type === member.type.toLowerCase() || 
                 (s.type === 'head_coach' && member.type === 'HEAD_COACH') ||
                 (s.type === 'trainer_offense' && member.type === 'PASSER_TRAINER') ||

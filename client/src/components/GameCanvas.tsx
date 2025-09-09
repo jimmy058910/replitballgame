@@ -3,6 +3,8 @@ import Game from '../game/Game';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
+import type { Player, Team } from '@shared/types/models';
+
 
 interface GameCanvasProps {
   matchId: string;

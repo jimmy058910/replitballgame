@@ -1,4 +1,6 @@
-import { getPrismaClient } from '../database.js';
+import { getPrismaClient, prisma } from '../database.js';
+import type { Team, Stadium } from '@shared/types/models';
+
 
 /**
  * Integrated Stadium, Finance & Atmosphere Service
@@ -416,7 +418,7 @@ export class StadiumAtmosphereService {
       player.kicking || 0
     ];
     
-    return Math.round(stats.reduce((sum, stat) => sum + stat, 0) / stats.length);
+    return Math.round(stats.reduce((sum: any, stat: any) => sum + stat, 0) / stats.length);
   }
 
   /**

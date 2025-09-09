@@ -14,6 +14,8 @@ import { getPrismaClient } from '../database.js';
 import { MarketplaceStatus, ListingActionType, type Prisma, type PaymentTransaction } from '../db';
 import { z } from 'zod';
 import logger from '../utils/logger.js';
+import type { Player, Team, TeamFinances, Stadium } from '@shared/types/models';
+
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -135,7 +137,7 @@ export class EnhancedEconomyService {
           data: {
             teamId: validated.teamId,
             transactionType: 'GEM_EXCHANGE',
-            creditsAmount: BigInt(creditsReceived),
+            creditsAmount: Number(creditsReceived),
             gemsAmount: validated.gemAmount,
             status: 'COMPLETED',
             description: `Exchanged ${validated.gemAmount} gems for ${creditsReceived} credits`
@@ -282,7 +284,7 @@ export class EnhancedEconomyService {
       atmosphereBonus: fanLoyalty > 80 ? Math.floor(actualAttendance * 2 * multiplier) : 0
     };
 
-    const totalRevenue = Object.values(breakdown).reduce((sum, val) => sum + val, 0);
+    const totalRevenue = Object.values(breakdown).reduce((sum: any, val: any) => sum + val, 0);
 
     const result = { totalRevenue, breakdown };
     this.setCache(cacheKey, result);
@@ -313,7 +315,7 @@ export class EnhancedEconomyService {
             data: {
               teamId: parseInt(teamId, 10),
               transactionType: 'STADIUM_REVENUE',
-              creditsAmount: BigInt(revenue.totalRevenue),
+              creditsAmount: Number(revenue.totalRevenue),
               status: 'COMPLETED',
               description: `Stadium revenue: ${isHomeGameDay ? 'Home game' : 'Daily'}`
             }
@@ -435,7 +437,7 @@ export class EnhancedEconomyService {
           data: {
             teamId: validated.teamId,
             transactionType: 'STADIUM_UPGRADE',
-            creditsAmount: BigInt(-cost),
+            creditsAmount: Number(-cost),
             status: 'COMPLETED',
             description: `Stadium upgrade: ${validated.upgradeType}`
           }
@@ -640,7 +642,7 @@ export class EnhancedEconomyService {
           data: {
             teamId: validated.sellerTeamId,
             transactionType: 'MARKETPLACE_LISTING_FEE',
-            creditsAmount: BigInt(-listingFee),
+            creditsAmount: Number(-listingFee),
             status: 'COMPLETED',
             description: `Listing fee for player ${player.firstName} ${player.lastName}`
           }
@@ -727,7 +729,7 @@ export class EnhancedEconomyService {
     await prisma.teamFinances.update({
       where: { teamId },
       data: { 
-        credits: BigInt(Math.max(0, totalCredits))
+        credits: Number(Math.max(0, totalCredits))
       }
     });
 
@@ -858,7 +860,7 @@ export class EnhancedEconomyService {
             data: {
               teamId: parseInt(teamId, 10),
               transactionType: 'REWARD',
-              creditsAmount: BigInt(rewards.credits),
+              creditsAmount: Number(rewards.credits),
               gemsAmount: rewards.gems || 0,
               status: 'COMPLETED',
               description: `Division ${division} ${rewardType} reward`
@@ -940,7 +942,7 @@ export class EnhancedEconomyService {
               data: {
                 teamId: parseInt(teamId, 10),
                 transactionType: 'MAINTENANCE',
-                creditsAmount: BigInt(-maintenanceCost),
+                creditsAmount: Number(-maintenanceCost),
                 status: 'COMPLETED',
                 description: 'Daily stadium maintenance'
               }
@@ -981,7 +983,7 @@ export class EnhancedEconomyService {
     const prisma = await getPrismaClient();
     
     const [teamFinance, team, stadium, stadiumRevenue, maintenanceCosts, activeListings, activeBids, recentTransactions] = await Promise.all([
-      prisma.teamFinances.findFirst({ where: { teamId: parseInt(teamId, 10) } }),
+      await prisma.teamFinances.findFirst({ where: { teamId: parseInt(teamId, 10) } }),
       prisma.team.findFirst({ where: { id: parseInt(teamId, 10) } }),
       prisma.stadium.findFirst({ where: { teamId: parseInt(teamId, 10) } }),
       this.calculateStadiumRevenue(teamId, true),
@@ -993,7 +995,7 @@ export class EnhancedEconomyService {
           isActive: true
         }
       }),
-      prisma.marketplaceBid.count({
+      await prisma.marketplaceBid.count({
         where: {
           bidderId: parseInt(teamId, 10),
           isWinning: true
@@ -1114,7 +1116,7 @@ export const PaymentHistoryService = {
       transactionType: "purchase",
       itemType,
       itemName,
-      creditsAmount: BigInt(creditsSpent > 0 ? -creditsSpent : 0),
+      creditsAmount: Number(creditsSpent > 0 ? -creditsSpent : 0),
       gemsAmount: gemsSpent > 0 ? -gemsSpent : 0,
       status: "COMPLETED",
       metadata
@@ -1133,7 +1135,7 @@ export const PaymentHistoryService = {
       transactionType: "admin_grant",
       itemType: creditsGranted > 0 ? "credits" : "gems",
       itemName: reason,
-      creditsAmount: BigInt(creditsGranted),
+      creditsAmount: Number(creditsGranted),
       gemsAmount: gemsGranted,
       status: "COMPLETED"
     });
@@ -1151,7 +1153,7 @@ export const PaymentHistoryService = {
       transactionType: "reward",
       itemType: creditsEarned > 0 ? "credits" : "gems",
       itemName: `${rewardType} Reward`,
-      creditsAmount: BigInt(creditsEarned),
+      creditsAmount: Number(creditsEarned),
       gemsAmount: gemsEarned,
       status: "COMPLETED"
     });

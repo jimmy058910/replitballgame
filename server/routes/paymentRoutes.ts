@@ -4,6 +4,8 @@ import { storage } from '../storage/index.js'; // Adjusted path
 import { getPrismaClient } from "../database.js"; // Add Prisma import
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod"; // For validation
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 

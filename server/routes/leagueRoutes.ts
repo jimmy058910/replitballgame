@@ -21,9 +21,111 @@ import {
 import { generateRandomPlayer } from '../services/leagueService.js';
 import { generateRandomName } from "../../shared/names.js";
 import gameConfig from "../config/game_config.json" with { type: "json" };
+import type { Player, Team, League } from '@shared/types/models';
+import { LeagueStandingsService } from '../services/leagues/standings.service.js';
+import { DomeBallStandingsService } from '../services/DomeBallStandingsService.js';
+import logger from '../utils/logger.js';
+
 // import { ABILITIES, rollForAbility } from "../../shared/abilities.js"; // Only if used directly in AI team gen
 
 const router = Router();
+
+// =============================================================================
+// SERVICE LAYER - STANDARDIZED ERROR HANDLING & UTILITIES
+// =============================================================================
+
+class ServiceError extends Error {
+  constructor(
+    message: string,
+    public cause?: Error,
+    public code?: string,
+    public statusCode: number = 500
+  ) {
+    super(message);
+    this.name = 'ServiceError';
+  }
+}
+
+const handleServiceError = (error: any, res: Response) => {
+  if (error instanceof ServiceError) {
+    logger.error('Service error occurred', {
+      message: error.message,
+      code: error.code,
+      statusCode: error.statusCode,
+      cause: error.cause?.message
+    });
+    return res.status(error.statusCode).json({ 
+      message: error.message,
+      code: error.code
+    });
+  }
+  
+  logger.error('Unexpected error', { error: error.message, stack: error.stack });
+  res.status(500).json({ message: "Internal server error" });
+};
+
+const validateDivisionParams = (params: any): { division: number } => {
+  const division = parseInt(params.division);
+  if (isNaN(division) || division < 1 || division > 8) {
+    throw new ServiceError("Invalid division parameter", undefined, "INVALID_DIVISION", 400);
+  }
+  return { division };
+};
+
+const getUserIdFromAuth = async (req: Request): Promise<string> => {
+  const userId = req.user?.uid;
+  if (!userId) {
+    throw new ServiceError("Authentication required", undefined, "AUTH_REQUIRED", 401);
+  }
+  return userId;
+};
+
+/**
+ * User Subdivision Resolution Service
+ * Handles Oakland Cougars dev lookup and Greek alphabet subdivisions
+ */
+class UserSubdivisionService {
+  static async resolveUserSubdivision(
+    userId: string, 
+    division: number
+  ): Promise<{ subdivision: string; userTeam?: any }> {
+    try {
+      let userTeam = await storage.teams.getTeamByUserId(userId);
+      let subdivision = userTeam?.subdivision || 'main';
+
+      logger.info('Resolving user subdivision', {
+        userId,
+        division,
+        teamFound: !!userTeam,
+        teamName: userTeam?.name,
+        teamSubdivision: userTeam?.subdivision
+      });
+
+      // Handle development case - Oakland Cougars lookup across all subdivisions
+      if (!userTeam || (userTeam && userTeam.name !== 'Oakland Cougars')) {
+        logger.info('Searching all subdivisions for Oakland Cougars (dev mode)');
+
+        const subdivisions = ['alpha', 'beta', 'gamma', 'main', 'delta', 'epsilon'];
+        
+        for (const sub of subdivisions) {
+          const teamsInSub = await storage.teams.getTeamsByDivisionAndSubdivision(division, sub);
+          const oaklandInSub = teamsInSub.find(team => team.name.includes('Oakland Cougars'));
+          
+          if (oaklandInSub) {
+            logger.info('Oakland Cougars found in subdivision', { subdivision: sub });
+            subdivision = sub;
+            break;
+          }
+        }
+      }
+
+      return { subdivision, userTeam };
+    } catch (error) {
+      logger.error('Error resolving user subdivision', { error, userId, division });
+      throw new ServiceError('Failed to resolve user subdivision', error);
+    }
+  }
+}
 
 /**
  * Helper function to get current season timing info
@@ -31,8 +133,8 @@ const router = Router();
 function getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; seasonNumber: number } {
   let currentDayInCycle = 5; // Default fallback
   
-  if (currentSeason && typeof currentSeason.currentDay === 'number') {
-    currentDayInCycle = currentSeason.currentDay;
+  if (currentSeason && typeof currentSeason?.currentDay === 'number') {
+    currentDayInCycle = currentSeason?.currentDay;
   } else if (currentSeason && typeof currentSeason.dayInCycle === 'number') {
     currentDayInCycle = currentSeason.dayInCycle;
   } else if (currentSeason && typeof currentSeason.day_in_cycle === 'number') {
@@ -370,7 +472,7 @@ async function createAITeamsForDivision(division: number) {
         team.id,
         position
       );
-      await storage.players.createPlayer({
+      await storage?.players.createPlayer({
         ...playerData,
         teamId: team.id,
       } as any);
@@ -395,515 +497,53 @@ function calculateTeamPower(players: any[]): number {
 }
 
 
-// League routes  
+// League routes - REFACTORED: Using DomeBallStandingsService for clean service layer architecture
 router.get('/:division/standings', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
-  console.log(`\n🚨🚨🚨 [CRITICAL DEBUG] LEAGUE STANDINGS ROUTE HIT!!! 🚨🚨🚨`);
-  console.log(`\n🚨 [ROUTE DEBUG] ENHANCED ROUTE HIT - LINE 399!`);
-  console.log(`\n🏆 [STANDINGS API] ========== REQUEST RECEIVED ==========`);
-  console.log(`🔍 [STANDINGS API] Division: ${req.params.division}`);
-  console.log(`🔍 [STANDINGS API] User: ${req.user?.uid}`);
-  console.log(`🔍 [STANDINGS API] Headers: ${JSON.stringify(req.headers.authorization?.substring(0, 50))}`);
-  console.log(`🔍 [STANDINGS API] Full URL: ${req.originalUrl}`);
+  logger.info('League standings endpoint hit', { 
+    division: req.params.division, 
+    userId: req.user?.uid,
+    url: req.originalUrl 
+  });
   
   try {
     const division = parseInt(req.params.division);
     if (isNaN(division) || division < 1 || division > 8) {
-      console.log(`❌ [STANDINGS API] Invalid division: ${req.params.division}`);
+      logger.warn('Invalid division parameter', { division: req.params.division });
       return res.status(400).json({ message: "Invalid division parameter" });
     }
     
-    // Get the user's team to determine their subdivision
     const userId = req.user?.uid;
     if (!userId) {
-      console.log(`❌ [STANDINGS API] No userId in token`);
+      logger.warn('Authentication required for standings');
       return res.status(401).json({ message: "Authentication required" });
     }
     
-    console.log(`🔍 [STANDINGS API] Looking for team with userId: ${userId}`);
-    
-    let userTeam = await storage.teams.getTeamByUserId(userId);
-    let userSubdivision = userTeam?.subdivision || 'main'; // Default to main where teams exist
-    
-    console.log(`🔍 [STANDINGS API] User team found:`, {
-      teamFound: !!userTeam,
-      teamName: userTeam?.name,
-      teamId: userTeam?.id,
-      teamDivision: userTeam?.division,
-      teamSubdivision: userTeam?.subdivision,
-      defaultSubdivision: userSubdivision
+    // Use DomeBallStandingsService to handle all business logic
+    const domeBallStandingsService = new DomeBallStandingsService();
+    const standingsResponse = await domeBallStandingsService.getDomeBallStandings({
+      division,
+      userId
     });
     
-    // CRITICAL DEBUG: If team found but wrong subdivision, force search for Oakland Cougars
-    if (userTeam && userTeam.name !== 'Oakland Cougars') {
-      console.log(`⚠️ [CRITICAL] Found team "${userTeam.name}" but user wants Oakland Cougars standings!`);
-      console.log(`🔍 [FORCED SEARCH] Searching all subdivisions for Oakland Cougars...`);
-      
-      // Force search for Oakland Cougars in all subdivisions
-      for (const sub of ['alpha', 'beta', 'gamma', 'main', 'delta', 'epsilon']) {
-        const teamsInSub = await storage.teams.getTeamsByDivisionAndSubdivision(division, sub);
-        console.log(`🔍 [${sub.toUpperCase()}] ${teamsInSub.length} teams:`, teamsInSub.map(t => t.name));
-        const oaklandInSub = teamsInSub.find(team => team.name.includes('Oakland Cougars'));
-        if (oaklandInSub) {
-          console.log(`✅ [FORCED FOUND] Oakland Cougars found in ${sub} subdivision!`);
-          userSubdivision = sub;
-          break;
-        }
-      }
-    }
+    // Extract standings array to maintain API compatibility
+    const sortedTeams = standingsResponse.standings;
     
-    // FLEXIBLE USER MATCHING: If no team found, check all subdivisions to find Oakland Cougars
-    // This handles authentication mismatches during development
-    if (!userTeam) {
-      console.log(`⚠️ [STANDINGS API] No team found for userId ${userId}, checking all subdivisions`);
-      
-      // Check alpha subdivision first (where Oakland Cougars likely is)
-      const teamsInAlpha = await storage.teams.getTeamsByDivisionAndSubdivision(division, 'alpha');
-      console.log(`🔍 [SUBDIVISION DEBUG] Alpha subdivision has ${teamsInAlpha.length} teams:`, teamsInAlpha.map(t => t.name));
-      const oaklandInAlpha = teamsInAlpha.find(team => team.name.includes('Oakland Cougars'));
-      if (oaklandInAlpha) {
-        console.log(`✅ [STANDINGS API] Found Oakland Cougars in alpha subdivision`);
-        userSubdivision = 'alpha';
-      } else {
-        console.log(`⚠️ [SUBDIVISION DEBUG] Oakland Cougars NOT found in alpha subdivision`);
-        
-        // Try main subdivision
-        const teamsInMain = await storage.teams.getTeamsByDivisionAndSubdivision(division, 'main');
-        console.log(`🔍 [SUBDIVISION DEBUG] Main subdivision has ${teamsInMain.length} teams:`, teamsInMain.map(t => t.name));
-        const oaklandInMain = teamsInMain.find(team => team.name.includes('Oakland Cougars'));
-        if (oaklandInMain) {
-          console.log(`✅ [STANDINGS API] Found Oakland Cougars in main subdivision`);
-          userSubdivision = 'main';
-        } else {
-          console.log(`⚠️ [SUBDIVISION DEBUG] Oakland Cougars NOT found in main subdivision either`);
-          console.log(`🔍 [SUBDIVISION DEBUG] Looking in other subdivisions...`);
-          
-          // Check all possible subdivisions
-          for (const sub of ['beta', 'gamma', 'delta', 'epsilon']) {
-            const teamsInSub = await storage.teams.getTeamsByDivisionAndSubdivision(division, sub);
-            const oaklandInSub = teamsInSub.find(team => team.name.includes('Oakland Cougars'));
-            if (oaklandInSub) {
-              console.log(`✅ [STANDINGS API] Found Oakland Cougars in ${sub} subdivision`);
-              userSubdivision = sub;
-              break;
-            }
-          }
-        }
-      }
-    }
-    
-    // Only get teams from the user's subdivision
-    let teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
-
-    if (teamsInDivision.length === 0) {
-      await createAITeamsForDivision(division);
-      teamsInDivision = await storage.teams.getTeamsByDivisionAndSubdivision(division, userSubdivision);
-    }
-
-    // CRITICAL: Hard cap at exactly 8 teams per subdivision
-    if (teamsInDivision.length > 8) {
-      teamsInDivision = teamsInDivision.slice(0, 8);
-    }
-    
-
-    // BULLETPROOF FIX: Use Schedule model to filter games for ONLY this division-subdivision
-    const prisma = await getPrismaClient();
-    
-    // Step 1: Get current season
-    const currentSeason = await storage.seasons.getCurrentSeason();
-    if (!currentSeason) {
-      console.log(`❌ [STANDINGS API] No active season found`);
-      return res.status(404).json({ message: "No active season" });
-    }
-    
-    // Step 2: BULLETPROOF - Use the working schedule ID that has games
-    console.log(`🔧 [BULLETPROOF] Looking for schedule with games for division ${division}-${userSubdivision}`);
-    
-    // First try the known working schedule ID from the logs
-    let schedule = await prisma.schedule.findUnique({
-      where: { id: '9831b211-05b2-4e8f-a164-1731634e7e21' },
-      include: { _count: { select: { games: true } } }
+    logger.info('Successfully returned standings', { 
+      division, 
+      userId, 
+      teamsCount: sortedTeams.length,
+      subdivision: standingsResponse.subdivision,
+      requestTime: standingsResponse.metadata.requestTime
     });
-    
-    if (!schedule || schedule._count.games === 0) {
-      console.log(`🔧 [BULLETPROOF] Working schedule not found, searching for any schedule with games...`);
-      // Find ANY schedule that has games for this division
-      const schedulesWithGames = await prisma.schedule.findMany({
-        where: {
-          seasonId: currentSeason.id,
-          games: { some: { 
-            OR: [
-              { homeTeam: { division, subdivision: userSubdivision } },
-              { awayTeam: { division, subdivision: userSubdivision } }
-            ]
-          }}
-        },
-        include: { _count: { select: { games: true } } },
-        orderBy: { _count: { games: 'desc' } }
-      });
-      
-      if (schedulesWithGames.length > 0) {
-        schedule = schedulesWithGames[0];
-        console.log(`🔧 [BULLETPROOF] Found schedule ${schedule.id} with ${schedule._count.games} games`);
-      } else {
-        console.log(`🔧 [BULLETPROOF] No schedules with games found, creating new one`);
-        // Create new schedule as fallback
-        schedule = await prisma.schedule.create({
-          data: {
-            seasonId: currentSeason.id,
-            division: division,
-            subdivision: userSubdivision,
-            isActive: true
-          }
-        });
-      }
-    } else {
-      console.log(`🔧 [BULLETPROOF] Using working schedule ${schedule.id} with ${schedule._count.games} games`);
-    }
-    
-    console.log(`✅ [STANDINGS API] Using schedule ID: ${schedule.id} for division ${division}-${userSubdivision}`);
-    
-    // Step 3: DEBUG - Get games to understand what exists
-    console.log(`🔍 [STANDINGS DEBUG] Looking for games with scheduleId: ${schedule.id}`);
-    
-    // First check all games in division to see what exists
-    const allDivisionGames = await prisma.game.findMany({
-      where: {
-        OR: [
-          { homeTeam: { division: division, subdivision: userSubdivision } },
-          { awayTeam: { division: division, subdivision: userSubdivision } }
-        ]
-      },
-      include: {
-        homeTeam: { select: { name: true, division: true, subdivision: true } },
-        awayTeam: { select: { name: true, division: true, subdivision: true } }
-      },
-      orderBy: { gameDate: 'asc' }
-    });
-    
-    console.log(`🔍 [STANDINGS DEBUG] Found ${allDivisionGames.length} total games in division ${division}-${userSubdivision}`);
-    console.log(`🔍 [STANDINGS DEBUG] Games breakdown:`, allDivisionGames.map(g => ({
-      id: g.id, 
-      scheduleId: g.scheduleId, 
-      homeTeam: g.homeTeam.name, 
-      awayTeam: g.awayTeam.name, 
-      homeScore: g.homeScore, 
-      awayScore: g.awayScore, 
-      status: g.status, 
-      simulated: g.simulated
-    })));
-    
-    // FORCE ALPHA FIX: Use the known working schedule ID first 
-    const workingScheduleId = '9831b211-05b2-4e8f-a164-1731634e7e21';
-    console.log(`🚨🚨🚨 [ALPHA FIX] FORCING SCHEDULE ID: ${workingScheduleId}`);
-    
-    // Try the known working schedule first - games with scores are completed
-    let allLeagueGames = await prisma.game.findMany({
-      where: {
-        scheduleId: workingScheduleId,
-        // Count games that have scores (completed) regardless of status field
-        homeScore: { not: null },
-        awayScore: { not: null },
-        OR: [
-          { matchType: 'LEAGUE' },
-          { matchType: 'PLAYOFF', tournamentId: null }
-        ]
-      },
-      orderBy: { gameDate: 'asc' }
-    });
-    
-    console.log(`🔥🔥🔥 [STANDINGS DEBUG] Found ${allLeagueGames.length} games with scores using scheduleId ${workingScheduleId}`);
-    
-    // If no games found with working schedule, try the original schedule
-    if (allLeagueGames.length === 0) {
-      allLeagueGames = await prisma.game.findMany({
-        where: {
-          scheduleId: schedule.id,
-          OR: [
-            { matchType: 'LEAGUE' },
-            { matchType: 'PLAYOFF', tournamentId: null }
-          ]
-        },
-        orderBy: { gameDate: 'asc' }
-      });
-      
-      console.log(`🔍 [STANDINGS DEBUG] Fallback: Found ${allLeagueGames.length} games with scheduleId ${schedule.id}`);
-    }
-    
-    // BULLETPROOF FIX: If no games found with scheduleId, use current season games only
-    if (allLeagueGames.length === 0 && allDivisionGames.length > 0) {
-      console.log(`🔧 [STANDINGS FIX] No games found with scheduleId ${schedule.id}, filtering by current season ${currentSeason.id}`);
-      
-      // CRITICAL: Only include games from current season to prevent cross-contamination
-      const currentSeasonGames = await prisma.game.findMany({
-        where: {
-          AND: [
-            {
-              OR: [
-                { homeTeam: { division: division, subdivision: userSubdivision } },
-                { awayTeam: { division: division, subdivision: userSubdivision } }
-              ]
-            },
-            {
-              OR: [
-                { matchType: 'LEAGUE' },
-                { matchType: 'PLAYOFF', tournamentId: null }
-              ]
-            },
-            {
-              // BULLETPROOF: Only games from current season schedule
-              scheduleId: { 
-                in: await prisma.schedule.findMany({
-                  where: { seasonId: currentSeason.id },
-                  select: { id: true }
-                }).then(schedules => schedules.map(s => s.id))
-              }
-            }
-          ]
-        },
-        include: {
-          homeTeam: { select: { name: true, division: true, subdivision: true } },
-          awayTeam: { select: { name: true, division: true, subdivision: true } }
-        },
-        orderBy: { gameDate: 'asc' }
-      });
-      
-      allLeagueGames = currentSeasonGames;
-      console.log(`🔧 [STANDINGS FIX] Using ${allLeagueGames.length} current season games (filtered from ${allDivisionGames.length} total)`);
-      console.log(`🔧 [STANDINGS FIX] Season-filtered games:`, allLeagueGames.map(g => ({
-        id: g.id, 
-        scheduleId: g.scheduleId, 
-        homeTeam: g.homeTeam.name, 
-        awayTeam: g.awayTeam.name, 
-        status: g.status,
-        simulated: g.simulated
-      })));
-    }
-    
-    
-    
-    
-    // Filter for completed games with flexible criteria
-    
-    const completedMatches = allLeagueGames.filter((match: any) => {
-      // Game is completed if it has COMPLETED status OR has both scores OR is marked as simulated
-      const hasCompletedStatus = match.status === 'COMPLETED';
-      const hasScores = (match.homeScore !== null && match.awayScore !== null);
-      const isSimulated = match.simulated === true;
-      
-      // EXPANDED CRITERIA: Include simulated games and games with any valid scores
-      const isCompleted = hasCompletedStatus || hasScores || isSimulated;
-      
-      
-      return isCompleted;
-    });
-    
-    
-    
-    // DYNAMIC STANDINGS: Calculate from found completed games instead of reading stale database values
-    teamsInDivision.forEach((team: any) => {
-      const teamMatches = completedMatches.filter((match: any) => 
-        match.homeTeamId === team.id || match.awayTeamId === team.id
-      );
-      
-      let wins = 0, losses = 0, draws = 0;
-      let totalScored = 0, totalAgainst = 0;
-      
-      teamMatches.forEach((match: any) => {
-        const isHome = match.homeTeamId === team.id;
-        const teamScore = isHome ? match.homeScore : match.awayScore;
-        const opponentScore = isHome ? match.awayScore : match.homeScore;
-        
-        totalScored += teamScore || 0;
-        totalAgainst += opponentScore || 0;
-        
-        if (teamScore > opponentScore) {
-          wins++;
-        } else if (teamScore < opponentScore) {
-          losses++;
-        } else {
-          draws++;
-        }
-      });
-      
-      // Update team with calculated values
-      team.wins = wins;
-      team.losses = losses;  
-      team.draws = draws;
-      team.points = (wins * 3) + (draws * 1);
-      team.totalScored = totalScored;
-      team.totalAgainst = totalAgainst;
-      team.scoreDifference = totalScored - totalAgainst;
-    });
-
-    // Enhanced standings with streak and additional stats
-    const enhancedTeams = teamsInDivision.map((team) => {
-      // Calculate REAL score totals from actual completed matches (using "scores" not "goals")
-      let totalScores = 0;
-      let scoresAgainst = 0;
-      
-      completedMatches.forEach((match: any) => {
-        if (match.homeTeamId === team.id) {
-          totalScores += match.homeScore || 0;
-          scoresAgainst += match.awayScore || 0;
-        } else if (match.awayTeamId === team.id) {
-          totalScores += match.awayScore || 0; 
-          scoresAgainst += match.homeScore || 0;
-        }
-      });
-      
-      const scoreDifference = totalScores - scoresAgainst;
-      
-      // Calculate current streak based on recent form
-      const wins = team.wins || 0;
-      const losses = team.losses || 0;
-      // Calculate draws from points since draws field doesn't exist in database
-      // Formula: draws = (total_points - wins*3) / 1
-      const totalPoints = team.points || 0;
-      const draws = Math.max(0, totalPoints - (wins * 3));
-      
-      // Simple streak calculation based on win/loss ratio
-      let streakType = 'N';
-      let currentStreak = 0;
-      
-      if (wins > losses) {
-        streakType = 'W';
-        currentStreak = Math.max(1, Math.min(wins - losses, 5));
-      } else if (losses > wins) {
-        streakType = 'L';
-        currentStreak = Math.max(1, Math.min(losses - wins, 5));
-      } else if (draws > 0) {
-        streakType = 'D';
-        currentStreak = Math.min(draws, 3);
-      }
-      
-      // FIXED: Calculate actual games played directly from completed matches
-      const teamMatches = completedMatches.filter((match: any) => 
-        match.homeTeamId === team.id || match.awayTeamId === team.id
-      );
-      const actualGamesPlayed = teamMatches.length;
-      
-      // CRITICAL: Every team should have exactly 6 games after Day 6 completion
-      if (actualGamesPlayed !== 6) {
-        console.log(`⚠️ [STANDINGS ISSUE] Team ${team.name} has ${actualGamesPlayed} games, should be 6!`);
-        console.log(`🔍 [DEBUG] ${team.name} games:`, teamMatches.map(m => `Game ${m.id} on ${m.gameDate}`));
-      }
-      
-      const cappedGamesPlayed = actualGamesPlayed; // Use actual count, no capping
-      
-      console.log(`🎮 [STANDINGS DEBUG] Team ${team.name}: ${actualGamesPlayed} games found`);
-      
-      // Force debug for teams with wrong count
-      if (actualGamesPlayed !== 6) {
-        console.log(`⚠️ [FORCE DEBUG] ${team.name} missing games - details:`, teamMatches.map(m => `${m.id}:${new Date(m.gameDate).toDateString()}`));
-      }
-      
-      
-      // Generate form string based on overall record
-      const totalGames = actualGamesPlayed; // Use actual games played
-      let form = 'N/A';
-      if (totalGames > 0) {
-        const winRate = wins / totalGames;
-        if (winRate >= 0.8) form = 'WWWWW';
-        else if (winRate >= 0.6) form = 'WWWDL';
-        else if (winRate >= 0.4) form = 'WLDWL';
-        else if (winRate >= 0.2) form = 'LLWLL';
-        else form = 'LLLLL';
-      }
-
-      return {
-        ...team,
-        draws: draws, // Use calculated draws value
-        currentStreak,
-        streakType,
-        form: form.slice(0, Math.min(5, totalGames)),
-        totalScores, // TS column
-        scoresAgainst, // SA column  
-        scoreDifference, // SD column (TS - SA)
-        played: cappedGamesPlayed,
-        gamesPlayed: cappedGamesPlayed // Add backup field name
-      };
-    });
-
-    // Helper function to calculate head-to-head record between two teams
-    const getHeadToHeadRecord = (teamA: any, teamB: any) => {
-      const h2hMatches = completedMatches.filter((match: any) => 
-        (match.homeTeamId === teamA.id && match.awayTeamId === teamB.id) ||
-        (match.homeTeamId === teamB.id && match.awayTeamId === teamA.id)
-      );
-      
-      let teamAWins = 0;
-      let teamBWins = 0;
-      let draws = 0;
-      
-      h2hMatches.forEach((match: any) => {
-        const homeScore = match.homeScore || 0;
-        const awayScore = match.awayScore || 0;
-        
-        if (homeScore > awayScore) {
-          if (match.homeTeamId === teamA.id) teamAWins++;
-          else teamBWins++;
-        } else if (awayScore > homeScore) {
-          if (match.awayTeamId === teamA.id) teamAWins++;
-          else teamBWins++;
-        } else {
-          draws++;
-        }
-      });
-      
-      return {
-        teamAWins,
-        teamBWins,
-        draws,
-        totalMatches: h2hMatches.length
-      };
-    };
-
-    const sortedTeams = enhancedTeams.sort((a: any, b: any) => {
-      const aPoints = a.points || 0;
-      const bPoints = b.points || 0;
-      const aWins = a.wins || 0;
-      const bWins = b.wins || 0;
-      const aLosses = a.losses || 0;
-      const bLosses = b.losses || 0;
-      const aScoreDiff = a.scoreDifference || 0;
-      const bScoreDiff = b.scoreDifference || 0;
-
-      // 1. Primary: Points (3 for win, 1 for draw, 0 for loss)
-      if (bPoints !== aPoints) return bPoints - aPoints;
-      
-      // 2. First Tiebreaker: Head-to-head record
-      if (aPoints === bPoints) {
-        const h2h = getHeadToHeadRecord(a, b);
-        if (h2h.totalMatches > 0) {
-          // If teams have played each other, use head-to-head wins
-          if (h2h.teamAWins !== h2h.teamBWins) {
-            return h2h.teamBWins - h2h.teamAWins; // More wins for team B = higher position for B
-          }
-        }
-      }
-      
-      // 3. Second Tiebreaker: Score Difference (SD = Total Scores - Scores Against)
-      if (bScoreDiff !== aScoreDiff) return bScoreDiff - aScoreDiff;
-      
-      // 4. Third Tiebreaker: Total Scores (offensive output)
-      const aTotalScores = a.totalScores || 0;
-      const bTotalScores = b.totalScores || 0;
-      if (bTotalScores !== aTotalScores) return bTotalScores - aTotalScores;
-      
-      // 5. Fourth Tiebreaker: Wins
-      if (bWins !== aWins) return bWins - aWins;
-      
-      // 6. Final Tiebreaker: Fewer losses
-      return aLosses - bLosses;
-    });
-
-    console.log(`✅ [STANDINGS API] Returning enhanced standings for ${sortedTeams.length} teams`);
-    console.log(`🏆 [STANDINGS API] ========== REQUEST COMPLETE ==========\n`);
     
     res.json(sortedTeams);
   } catch (error) {
-    console.error('❌ [STANDINGS API] ERROR:', error);
-    console.log(`💥 [STANDINGS API] ========== REQUEST FAILED ==========\n`);
+    logger.error('Error in standings endpoint', { 
+      error: error.message,
+      division: req.params.division,
+      userId: req.user?.uid,
+      stack: error.stack
+    });
     next(error);
   }
 });
@@ -924,7 +564,7 @@ router.get('/teams/:division', requireAuth, async (req: Request, res: Response, 
     }
 
     const teamsWithPower = await Promise.all(teamsInDivision.map(async (team) => {
-      const teamPlayers = await storage.players.getPlayersByTeamId(team.id); // Use playerStorage
+      const teamPlayers = await storage?.players.getPlayersByTeamId(team.id); // Use playerStorage
       const teamPower = calculateTeamPower(teamPlayers);
       return { ...team, teamPower };
     }));
@@ -987,7 +627,7 @@ router.post('/create-ai-teams', requireAuth, async (req: Request, res: Response,
             team.id,
             position
         );
-        await storage.players.createPlayer({
+        await storage?.players.createPlayer({
             ...playerData,
             teamId: team.id,
         } as any);
@@ -1063,8 +703,8 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
       fullSeason: currentSeason 
     });
     
-    if (currentSeason && typeof currentSeason.currentDay === 'number') {
-      currentDayInCycle = currentSeason.currentDay;
+    if (currentSeason && typeof currentSeason?.currentDay === 'number') {
+      currentDayInCycle = currentSeason?.currentDay;
       console.log('✅ [LEAGUE ROUTES] Using database value:', currentDayInCycle);
     } else {
       // Fallback to calculation if no database value
@@ -1528,7 +1168,7 @@ router.post('/fix-team-players/:teamId', requireAuth, async (req: Request, res: 
     }
     
     // Check if team already has players
-    const existingPlayers = await storage.players.getPlayersByTeamId(Number(teamId));
+    const existingPlayers = await storage?.players.getPlayersByTeamId(Number(teamId));
     if (existingPlayers.length > 0) {
       return res.status(400).json({ message: "Team already has players" });
     }
@@ -1555,7 +1195,7 @@ router.post('/fix-team-players/:teamId', requireAuth, async (req: Request, res: 
         team.id,
         position
       );
-      await storage.players.createPlayer({
+      await storage?.players.createPlayer({
         ...playerData,
         teamId: team.id,
       } as any);
@@ -1602,7 +1242,7 @@ router.post('/fix-existing-players/:teamId', requireAuth, async (req: Request, r
     }
     
     // Get existing players
-    const players = await storage.players.getPlayersByTeamId(Number(teamId));
+    const players = await storage?.players.getPlayersByTeamId(Number(teamId));
     if (players.length === 0) {
       return res.status(400).json({ message: "No players found for this team" });
     }
@@ -1626,7 +1266,7 @@ router.post('/fix-existing-players/:teamId', requireAuth, async (req: Request, r
       const { firstName, lastName } = generateRandomName(race.toLowerCase());
       
       // Update player with new name, race, and position
-      await storage.players.updatePlayer(player.id, {
+      await storage?.players.updatePlayer(player.id, {
         firstName,
         lastName,
         race: race as any,
@@ -1685,7 +1325,7 @@ router.post('/create-additional-teams', requireAuth, async (req: Request, res: R
             lastName,
             race.toLowerCase() as any
         );
-        await storage.players.createPlayer({
+        await storage?.players.createPlayer({
             ...playerData,
             teamId: newTeam.id,
         } as any);
@@ -2139,7 +1779,7 @@ router.post('/reset-division-7-alpha', requireAuth, async (req: Request, res: Re
       return res.status(404).json({ error: 'No active season found' });
     }
     
-    console.log(`📅 Found season: ${currentSeason.id} (currently Day ${currentSeason.currentDay})`);
+    console.log(`📅 Found season: ${currentSeason.id} (currently Day ${currentSeason?.currentDay})`);
     
     // Get all teams in Division 7 Alpha
     const division7AlphaTeams = await prisma.team.findMany({
@@ -2639,7 +2279,7 @@ router.get('/emergency-debug-division-7-alpha', async (req: Request, res: Respon
       data: {
         season: currentSeason ? {
           id: currentSeason.id,
-          currentDay: currentSeason.currentDay,
+          currentDay: currentSeason?.currentDay,
           startDate: currentSeason.startDate,
           phase: currentSeason.phase
         } : null,
@@ -2749,7 +2389,7 @@ router.get('/emergency-fix-schedule-season-link', async (req: Request, res: Resp
       success: true,
       message: '🔧 Schedule-season link fixed successfully!',
       data: {
-        currentSeason: { id: currentSeason.id, currentDay: currentSeason.currentDay },
+        currentSeason: { id: currentSeason.id, currentDay: currentSeason?.currentDay },
         correctedSchedule: { id: scheduleWithGames.id },
         gamesInSchedule: scheduleWithGames.games.length,
         emptySchedulesDeleted: emptySchedules.length
@@ -2865,7 +2505,7 @@ router.get('/emergency-simple-daily-schedule', async (req: Request, res: Respons
       return res.json({ 
         schedule: {}, 
         totalDays: 17, 
-        currentDay: currentSeason.currentDay,
+        currentDay: currentSeason?.currentDay,
         message: "No schedule found." 
       });
     }
@@ -2928,7 +2568,7 @@ router.get('/emergency-simple-daily-schedule', async (req: Request, res: Respons
     res.json({
       schedule: scheduleByDay,
       totalDays: 17,
-      currentDay: currentSeason.currentDay,
+      currentDay: currentSeason?.currentDay,
       seasonStartDate: currentSeason.startDate,
       totalGames,
       gamesPerDay,

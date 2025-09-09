@@ -1,4 +1,6 @@
 import { getPrismaClient } from '../db';
+import type { Stadium } from '@shared/types/models';
+
 
 /**
  * SponsorshipStorage class - Placeholder implementation

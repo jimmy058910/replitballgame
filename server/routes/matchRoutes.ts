@@ -7,6 +7,8 @@ import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections  
 // import { matchStateManager } from '../services/matchStateManager.js';
 import { getPrismaClient } from "../database.js";
+import type { Player, Team, Stadium } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -86,7 +88,7 @@ router.get('/:matchId/stadium-data', async (req: Request, res: Response, next: N
     };
     
     // Calculate total revenue
-    stadiumData.revenue.total = Object.values(stadiumData.revenue).reduce((sum, val) => sum + val, 0) - stadiumData.revenue.total;
+    stadiumData.revenue.total = Object.values(stadiumData.revenue).reduce((sum: any, val: any) => sum + val, 0) - stadiumData.revenue.total;
     
     res.json(stadiumData);
   } catch (error) {
@@ -169,7 +171,7 @@ router.get('/live', requireAuth, async (req: Request, res: Response, next: NextF
         tournamentName: (match as any).tournament?.name || (matchType === 'TOURNAMENT' ? 'Tournament Match' : null),
         priority: priority,
         userTeamInvolved: userTeamInvolved,
-        gameDate: match.gameDate || new Date().toISOString(),
+        gameDate: match.gameDate || new Date(),
         estimatedEndTime: null,
         viewers: (match as any).viewers || 0 // Mock viewer count for now
       };
@@ -293,7 +295,7 @@ router.get('/:matchId/debug', async (req: Request, res: Response, next: NextFunc
     res.json({
       debug: true,
       matchId: matchId,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       message: "Debug endpoint working"
     });
   } catch (error) {
@@ -305,7 +307,7 @@ router.get('/:matchId/debug', async (req: Request, res: Response, next: NextFunc
 // Simple test endpoint to check routing (must be before parameterized routes)
 router.get('/test', async (req: Request, res: Response) => {
   console.log("Simple test endpoint called");
-  res.json({ message: "Test endpoint working", timestamp: new Date().toISOString() });
+  res.json({ message: "Test endpoint working", timestamp: new Date() });
 });
 
 // Manual match start endpoint for tournament debugging
@@ -316,7 +318,7 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
     
     // Use instant simulation instead of live match
     const { QuickMatchSimulation } = await import('../services/quickMatchSimulation');
-    const simulationResult = await QuickMatchSimulation.simulateMatch(matchId);
+    const simulationResult = await QuickMatchSimulation.runQuickSimulation(matchId);
     
     // Update match status and score
     const prisma = await getPrismaClient();
@@ -394,7 +396,7 @@ router.get('/debug/:matchId', async (req: Request, res: Response) => {
     res.json({
       debug: true,
       matchId: matchId,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       message: "Debug endpoint working"
     });
   } catch (error) {
@@ -479,7 +481,7 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
         // Calculate MVP scores for all players
         for (const [playerId, stats] of Object.entries(playerStats)) {
           // Get player info
-          const player = await storage.players.getPlayerById(parseInt(playerId));
+          const player = await storage?.players.getPlayerById(parseInt(playerId));
           if (!player) continue;
           
           // Calculate MVP score: scores*10 + tackles*3 + passes*2 + catches*2 + yards*0.1
@@ -880,7 +882,7 @@ router.post('/:matchId/complete-now', requireAuth, async (req: any, res: Respons
       status: 'COMPLETED',
       homeScore: 0,
       awayScore: 0,
-      completedAt: new Date(),
+      updatedAt: new Date(),
       gameData: {
         events: [],
         finalScores: { home: 0, away: 0 },
@@ -918,14 +920,14 @@ router.post('/:id/simulate', requireAuth, async (req: Request, res: Response, ne
     const awayTeam = await storage.teams.getTeamById(match.awayTeamId); // Use teamStorage
     if (!homeTeam || !awayTeam) return res.status(404).json({ message: "One or both teams for the match not found." });
 
-    const homeTeamPlayers = await storage.players.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
-    const awayTeamPlayers = await storage.players.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
+    const homeTeamPlayers = await storage?.players.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
+    const awayTeamPlayers = await storage?.players.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
     if (homeTeamPlayers.length < 1 || awayTeamPlayers.length < 1) {
         return res.status(400).json({ message: "One or both teams do not have enough players to simulate." });
     }
 
     // Use QuickMatchSimulation instead of old simulation
-    const result = await QuickMatchSimulation.simulateMatch(id);
+    const result = await QuickMatchSimulation.runQuickSimulation(id);
 
     // Update match with final results
     await matchStorage.updateMatch(parseInt(id), {
@@ -992,8 +994,8 @@ router.post('/:matchId/simulate-play', requireAuth, async (req: Request, res: Re
 
     const eventTypes = ['pass', 'run', 'tackle', 'score', 'foul', 'interception'];
     const randomEventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-    const homePlayers = await storage.players.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
-    const awayPlayers = await storage.players.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
+    const homePlayers = await storage?.players.getPlayersByTeamId(match.homeTeamId); // Use playerStorage
+    const awayPlayers = await storage?.players.getPlayersByTeamId(match.awayTeamId); // Use playerStorage
     const allPlayers = [...homePlayers, ...awayPlayers];
     const randomPlayer = allPlayers.length > 0 ? allPlayers[Math.floor(Math.random() * allPlayers.length)] : { firstName: "Player", lastName: "", race: "Unknown", id: "unknown" };
 
@@ -1089,7 +1091,7 @@ router.patch('/:id/complete', requireAuth, async (req: any, res: Response, next:
       // Update match status
       const updatedMatch = await matchStorage.updateMatch(parseInt(id), {
         status: "COMPLETED", homeScore, awayScore,
-        completedAt: new Date(),
+        updatedAt: new Date(),
       });
       
       // Trigger standings update
@@ -1106,7 +1108,7 @@ router.patch('/:id/complete', requireAuth, async (req: any, res: Response, next:
       // Non-league matches (exhibition, tournament) - direct update is fine
       const updatedMatch = await matchStorage.updateMatch(parseInt(id), {
         status: "COMPLETED", homeScore, awayScore,
-        completedAt: new Date(),
+        updatedAt: new Date(),
       });
       res.json(updatedMatch);
     }
@@ -1189,7 +1191,7 @@ router.post('/exhibition/instant', requireAuth, async (req: any, res: Response, 
     
     // Use instant simulation instead of live match
     const { QuickMatchSimulation } = await import('../services/quickMatchSimulation');
-    const simulationResult = await QuickMatchSimulation.simulateMatch(newMatch.id.toString());
+    const simulationResult = await QuickMatchSimulation.runQuickSimulation(newMatch.id.toString());
     
     // Update match with final results
     await prisma.game.update({
@@ -1255,7 +1257,7 @@ router.post('/:id/quick-simulate', requireAuth, async (req: Request, res: Respon
     }
 
     // Run quick simulation
-    const result = await QuickMatchSimulation.simulateMatch(id);
+    const result = await QuickMatchSimulation.runQuickSimulation(id);
 
     // Update match status and score in database
     await prisma.game.update({
@@ -1333,7 +1335,7 @@ router.post('/:id/quick-simulate', requireAuth, async (req: Request, res: Respon
       message: "Match simulated successfully",
       simulation: result,
       matchStatus: "COMPLETED",
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
 
   } catch (error) {

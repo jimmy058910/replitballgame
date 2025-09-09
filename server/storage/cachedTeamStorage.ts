@@ -5,8 +5,9 @@
 
 import { storage } from './index.js';
 import { memoryCache } from '../utils/memoryCache';
-import type { Team } from "../db";
 import { getPrismaClient } from '../db';
+import type { Team } from '@shared/types/models';
+
 
 export class CachedTeamStorage {
   // Cache TTL configurations
@@ -21,7 +22,7 @@ export class CachedTeamStorage {
     
     return await memoryCache.getOrSet(
       cacheKey,
-      () => storage.teams.getTeamById(teamId),
+      async () => await storage.teams.$2TeamById(teamId),
       this.TEAM_DATA_TTL
     );
   }
@@ -42,7 +43,7 @@ export class CachedTeamStorage {
           select: { userId: true }
         });
         if (!userProfile) return null;
-        return storage.teams.getTeamByUserId(userProfile.userId);
+        return await storage.teams.$2TeamByUserId(userProfile.userId);
       },
       this.USER_TEAM_TTL
     );

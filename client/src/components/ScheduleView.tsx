@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import type { Player, Team, League } from '@shared/types/models';
+
 import { 
   Calendar, 
   Star, 
@@ -32,7 +34,7 @@ type ScheduleMatch = {
   awayScore?: number;
 };
 
-type Team = {
+type ScheduleTeam = {
   id: string;
   name: string;
   division: number;
@@ -61,7 +63,7 @@ type Match = {
 };
 
 interface ScheduleViewProps {
-  team?: Team;
+  team?: ScheduleTeam;
   seasonData?: SeasonData;
   dailySchedule?: DailySchedule;
   upcomingMatches?: Match[];
@@ -168,10 +170,10 @@ export default function ScheduleView({
                             <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
                             <div>
                               <h4 className="font-bold text-white text-lg">
-                                🆚 {Number(match.homeTeam.id) === Number(team?.id) ? match.awayTeam.name : match.homeTeam.name}
+                                🆚 {Number(match.homeTeam?.id) === Number(team?.id) ? match.awayTeam?.name : match.homeTeam?.name}
                               </h4>
                               <p className="text-blue-200 text-sm">
-                                {Number(match.homeTeam.id) === Number(team?.id) ? '🏠 Home' : '✈️ Away'} • {formatMatchTime(match.gameDate)}
+                                {Number(match.homeTeam?.id) === Number(team?.id) ? '🏠 Home' : '✈️ Away'} • {formatMatchTime(match.gameDate)}
                               </p>
                             </div>
                           </div>
@@ -208,10 +210,10 @@ export default function ScheduleView({
                         <Badge className="bg-blue-600 text-blue-100 text-xs">League</Badge>
                       </div>
                       <h4 className="font-bold text-white">
-                        🆚 {Number(match.homeTeam.id) === Number(team?.id) ? match.awayTeam.name : match.homeTeam.name}
+                        🆚 {Number(match.homeTeam?.id) === Number(team?.id) ? match.awayTeam?.name : match.homeTeam?.name}
                       </h4>
                       <p className="text-blue-200 text-sm">
-                        {Number(match.homeTeam.id) === Number(team?.id) ? '🏠 Home' : '✈️ Away'}
+                        {Number(match.homeTeam?.id) === Number(team?.id) ? '🏠 Home' : '✈️ Away'}
                       </p>
                       <p className="text-blue-300 text-xs">
                         {formatMatchDate(match.gameDate)} • {formatMatchTime(match.gameDate)}

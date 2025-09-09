@@ -2,43 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-
-interface TeamMatchStats {
-  teamId: string;
-  teamName: string;
-  gamesPlayed: number;
-  totalScore: number;
-  totalOffensiveYards: number;
-  passingYards: number;
-  rushingYards: number;
-  timeOfPossession: number;
-  turnovers: number;
-  totalKnockdowns: number;
-}
-
-interface PlayerMatchStats {
-  playerId: string;
-  playerName: string;
-  position: string;
-  gamesPlayed: number;
-  offensive: {
-    scores: number;
-    passingAttempts: number;
-    passesCompleted: number;
-    passingPercentage: number;
-    passingYards: number;
-    rushingYards: number;
-    catches: number;
-    receivingYards: number;
-    dropsFumbles: number;
-  };
-  defensive: {
-    tackles: number;
-    knockdownsInflicted: number;
-    interceptions: number;
-    passesDefended: number;
-  };
-}
+import type { TeamMatchStats, PlayerMatchStats } from "@shared/types/models";
 
 interface MatchStatsDisplay {
   matchId: string;
@@ -163,7 +127,7 @@ export function MatchStatsOverlay({
                 <div className="text-right">
                   <div className="font-medium">{matchStats.topPerformers.mostScores.playerName}</div>
                   <Badge variant="outline" className="text-xs h-4">
-                    {matchStats.topPerformers.mostScores.offensive.scores}
+                    {matchStats.topPerformers.mostScores?.offensive.scores}
                   </Badge>
                 </div>
               </div>
@@ -175,7 +139,7 @@ export function MatchStatsOverlay({
                 <div className="text-right">
                   <div className="font-medium">{matchStats.topPerformers.mostTackles.playerName}</div>
                   <Badge variant="outline" className="text-xs h-4">
-                    {matchStats.topPerformers.mostTackles.defensive.tackles}
+                    {matchStats.topPerformers.mostTackles?.defensive.tackles}
                   </Badge>
                 </div>
               </div>
@@ -187,7 +151,7 @@ export function MatchStatsOverlay({
                 <div className="text-right">
                   <div className="font-medium">{matchStats.topPerformers.mostKnockdowns.playerName}</div>
                   <Badge variant="outline" className="text-xs h-4">
-                    {matchStats.topPerformers.mostKnockdowns.defensive.knockdownsInflicted}
+                    {matchStats.topPerformers.mostKnockdowns?.defensive.knockdownsInflicted}
                   </Badge>
                 </div>
               </div>
@@ -199,9 +163,9 @@ export function MatchStatsOverlay({
                 <div className="text-right">
                   <div className="font-medium">{matchStats.topPerformers.mostYards.playerName}</div>
                   <Badge variant="outline" className="text-xs h-4">
-                    {(matchStats.topPerformers.mostYards.offensive.passingYards || 0) + 
-                     (matchStats.topPerformers.mostYards.offensive.rushingYards || 0) + 
-                     (matchStats.topPerformers.mostYards.offensive.receivingYards || 0)}
+                    {(matchStats.topPerformers.mostYards?.offensive.passingYards || 0) + 
+                     (matchStats.topPerformers.mostYards?.offensive.rushingYards || 0) + 
+                     (matchStats.topPerformers.mostYards?.offensive.receivingYards || 0)}
                   </Badge>
                 </div>
               </div>

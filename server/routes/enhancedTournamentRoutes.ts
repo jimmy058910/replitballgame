@@ -14,6 +14,8 @@ import { tournamentStorage } from '../storage/tournamentStorage.js';
 import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 import { getDivisionName } from "../../shared/divisionUtils.js";
 import moment from "moment-timezone";
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -948,7 +950,7 @@ router.post('/rewards/claim', requireAuth, async (req: any, res: Response, next:
       await prisma.team.update({
         where: { id: userProfile.Team.id },
         data: {
-          credits: { increment: BigInt(totalCredits) },
+          credits: { increment: Number(totalCredits) },
           gems: { increment: totalGems }
         }
       });
@@ -957,7 +959,7 @@ router.post('/rewards/claim', requireAuth, async (req: any, res: Response, next:
       const paymentService = new PaymentHistoryService();
       await paymentService.recordPayment({
         teamId: userProfile.Team.id,
-        amount: BigInt(totalCredits),
+        amount: Number(totalCredits),
         gems: totalGems,
         type: 'TOURNAMENT_REWARD',
         description: `Tournament rewards claimed: ${claimedTournaments.length} tournaments`,
@@ -1038,7 +1040,7 @@ router.post('/rewards/claim/:tournamentId', requireAuth, async (req: any, res: R
     await prisma.team.update({
       where: { id: userProfile.Team.id },
       data: {
-        credits: { increment: BigInt(reward.credits || 0) },
+        credits: { increment: Number(reward.credits || 0) },
         gems: { increment: reward.gems || 0 }
       }
     });
@@ -1426,7 +1428,7 @@ router.post('/admin/force-complete/:tournamentId', requireAuth, async (req: any,
           await prisma.team.update({
             where: { id: entry.teamId },
             data: {
-              credits: { increment: BigInt(reward.credits || 0) },
+              credits: { increment: Number(reward.credits || 0) },
               gems: { increment: reward.gems || 0 }
             }
           });

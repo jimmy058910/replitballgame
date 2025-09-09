@@ -1,5 +1,7 @@
 import Player from './Player';
 import Ball from './Ball';
+import type { Stadium } from '@shared/types/models';
+
 
 interface GameData {
   homeTeam: any;
@@ -121,7 +123,7 @@ class Game {
       const x = centerX - 100 + Math.cos(angle) * radius;
       const y = centerY + Math.sin(angle) * radius;
       
-      this.players.push(new Player(
+      this?.players.push(new Player(
         x, y, 
         `Home ${i + 1}`, 
         25, 25, 25, 
@@ -138,7 +140,7 @@ class Game {
       const x = centerX + 100 + Math.cos(angle) * radius;
       const y = centerY + Math.sin(angle) * radius;
       
-      this.players.push(new Player(
+      this?.players.push(new Player(
         x, y, 
         `Away ${i + 1}`, 
         25, 25, 25, 
@@ -152,10 +154,10 @@ class Game {
   public updateGameData(gameData: GameData) {
     // Update players from real game data - 6 players per team
     if (gameData.homeTeam?.players) {
-      this.updateTeamPlayers(gameData.homeTeam.players, '#3b82f6', 0);
+      this.updateTeamPlayers(gameData.homeTeam?.players, '#3b82f6', 0);
     }
     if (gameData.awayTeam?.players) {
-      this.updateTeamPlayers(gameData.awayTeam.players, '#ef4444', 6);
+      this.updateTeamPlayers(gameData.awayTeam?.players, '#ef4444', 6);
     }
 
     // Update ball position from game events and process speed control
@@ -181,8 +183,8 @@ class Game {
   private updateTeamPlayers(teamPlayers: any[], color: string, startIndex: number) {
     teamPlayers.forEach((playerData, index) => {
       const gamePlayerIndex = startIndex + index;
-      if (gamePlayerIndex < this.players.length) {
-        const player = this.players[gamePlayerIndex];
+      if (gamePlayerIndex < this?.players.length) {
+        const player = this?.players[gamePlayerIndex];
         player.updateFromGameData(playerData);
       }
     });
@@ -199,7 +201,7 @@ class Game {
     this.ball.setPosition(ballX, centerY + (Math.random() - 0.5) * 40);
     
     // Animate players toward ball with some variation - 6v6 formation
-    this.players.forEach((player, index) => {
+    this?.players.forEach((player, index) => {
       const ballPos = this.ball.getPosition();
       const playerPos = player.getPosition();
       const isHomeTeam = index < 6; // 6 players per team
@@ -252,7 +254,7 @@ class Game {
   private update(deltaTime: number = 16) {
     // Update game state, player positions, etc. with speed control
     const speedMultiplier = this.speedController.currentSpeed;
-    this.players.forEach(player => player.update(deltaTime * speedMultiplier));
+    this?.players.forEach(player => player.update(deltaTime * speedMultiplier));
     this.ball.update(this.canvas.width, this.canvas.height, deltaTime * speedMultiplier);
   }
 
@@ -264,7 +266,7 @@ class Game {
     this.renderDomeField();
 
     // Render players and ball
-    this.players.forEach(player => player.render(this.ctx));
+    this?.players.forEach(player => player.render(this.ctx));
     this.ball.render(this.ctx);
     
     // Render game info

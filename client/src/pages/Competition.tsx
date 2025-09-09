@@ -14,12 +14,23 @@ import ImprovedLiveMatches from "@/components/ImprovedLiveMatches";
 
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  teamQueryOptions, 
+  leagueQueryOptions, 
+  matchQueryOptions, 
+  tournamentQueryOptions, 
+  exhibitionQueryOptions,
+  seasonQueryOptions,
+  worldQueryOptions
+} from "@/lib/api/queryOptions";
 import { Trophy, Medal, Gamepad2, Calendar, Users, Clock, X, Target, Zap, HelpCircle } from "lucide-react";
 import { HelpIcon } from "@/components/help";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { getDivisionNameWithSubdivision } from "@shared/divisionUtils";
+import type { Player, Team, League } from '@shared/types/models';
+
 
 // Helper function to get team's current ranking position
 function getTeamRankPosition(standings: any[], teamId: string): string {

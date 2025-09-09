@@ -1,5 +1,6 @@
 import { getPrismaClient } from "../database.js";
-import type { Player } from "../db";
+import type { Player } from '@shared/types/models';
+
 
 export interface AgingResult {
   playerId: string;
@@ -168,7 +169,7 @@ export class AgingService {
       orderBy: { seasonNumber: 'desc' }
     });
     
-    const isOffSeason = currentSeason && currentSeason.currentDay >= 16;
+    const isOffSeason = currentSeason && currentSeason?.currentDay >= 16;
 
     // Step 1: Check for retirement (35+ only, and only during off season - Game Day 16+)
     if (player.age >= 35 && isOffSeason) {
@@ -177,7 +178,7 @@ export class AgingService {
       if (retirementCalc.willRetire) {
         // Mark player as retired and age them to their retirement age
         await prisma.player.update({
-          where: { id: player.id },
+          where: { id: Number(player.id) },
           data: { 
             age: player.age + 1,
             isRetired: true
@@ -216,7 +217,7 @@ export class AgingService {
         }
         
         await prisma.player.update({
-          where: { id: player.id },
+          where: { id: Number(player.id) },
           data: updateData
         });
 
@@ -233,7 +234,7 @@ export class AgingService {
     // Apply age update if needed
     if (Object.keys(ageUpdateData).length > 0) {
       await prisma.player.update({
-        where: { id: player.id },
+        where: { id: Number(player.id) },
         data: ageUpdateData
       });
     }

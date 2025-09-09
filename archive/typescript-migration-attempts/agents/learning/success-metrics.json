@@ -1,0 +1,230 @@
+{
+  "agentPerformance": {
+    "queryPatternAgent": {
+      "successRate": 1,
+      "totalErrors": 9,
+      "errorsFixed": 9,
+      "filesModified": 3,
+      "filesCompletelyFixed": 3,
+      "lastIteration": 5,
+      "status": "MISSION_COMPLETE"
+    },
+    "importFixerAgent": {
+      "successRate": 1,
+      "totalErrors": 68,
+      "errorsFixed": 68,
+      "filesModified": 11,
+      "filesCompletelyFixed": 11,
+      "lastIteration": 5,
+      "status": "EXCELLENT"
+    },
+    "prismaFieldFixerAgent": {
+      "successRate": 1,
+      "totalErrors": 7,
+      "errorsFixed": 7,
+      "filesModified": 3,
+      "filesCompletelyFixed": 3,
+      "lastIteration": 5,
+      "status": "TARGETED_SUCCESS"
+    },
+    "propertyAccessAgent": {
+      "successRate": 0.018,
+      "totalErrors": 557,
+      "errorsFixed": 10,
+      "filesModified": 4,
+      "filesCompletelyFixed": 1,
+      "lastIteration": 5,
+      "status": "NEEDS_REDESIGN"
+    }
+  },
+  "iterationHistory": [
+    {
+      "iteration": 1,
+      "startErrors": 997,
+      "endErrors": 993,
+      "reduction": 4,
+      "duration": "15 minutes"
+    },
+    {
+      "iteration": 2,
+      "startErrors": 1162,
+      "endErrors": 956,
+      "reduction": 206,
+      "duration": "18 minutes"
+    },
+    {
+      "iteration": 3,
+      "startErrors": 1049,
+      "endErrors": 951,
+      "reduction": 98,
+      "duration": "12 minutes"
+    },
+    {
+      "iteration": 4,
+      "startErrors": 951,
+      "endErrors": 953,
+      "reduction": -2,
+      "duration": "8 minutes",
+      "note": "Validation issues"
+    },
+    {
+      "iteration": 5,
+      "startErrors": 953,
+      "endErrors": 955,
+      "reduction": -2,
+      "duration": "10 minutes",
+      "note": "37 fixes applied, 39 issues exposed"
+    },
+    {
+      "iteration": 6,
+      "timestamp": "2025-09-08T19:40:32.282Z",
+      "results": [
+        {
+          "file": "server/routes/enhancedFinanceRoutes.ts",
+          "success": false,
+          "errorsBefore": 1,
+          "errorsAfter": 1,
+          "reduction": 0,
+          "duration": "3.6s"
+        },
+        {
+          "file": "server/services/enhancedTeamManagementService.ts",
+          "success": false,
+          "errorsBefore": 1,
+          "errorsAfter": 1,
+          "reduction": 0,
+          "duration": "3.6s"
+        },
+        {
+          "file": "server/services/enhancedCompetitionService.ts",
+          "success": false,
+          "errorsBefore": 1,
+          "errorsAfter": 1,
+          "reduction": 0,
+          "duration": "3.6s"
+        }
+      ]
+    },
+    {
+      "iteration": 6,
+      "timestamp": "2025-09-08T19:56:12.374Z",
+      "results": [
+        {
+          "file": "server/routes/enhancedFinanceRoutes.ts",
+          "success": false,
+          "errorsBefore": 1,
+          "errorsAfter": 1,
+          "reduction": 0,
+          "duration": "3.6s"
+        },
+        {
+          "file": "server/services/enhancedTeamManagementService.ts",
+          "success": false,
+          "errorsBefore": 1,
+          "errorsAfter": 1,
+          "reduction": 0,
+          "duration": "3.7s"
+        },
+        {
+          "file": "server/services/enhancedCompetitionService.ts",
+          "success": false,
+          "errorsBefore": 1,
+          "errorsAfter": 1,
+          "reduction": 0,
+          "duration": "3.7s"
+        }
+      ]
+    }
+  ],
+  "overallProgress": {
+    "baseline": 1288,
+    "current": 955,
+    "totalReduction": 333,
+    "percentComplete": 25.9,
+    "averageReductionPerIteration": 66.6,
+    "estimatedIterationsRemaining": 14
+  },
+  "errorDistribution": {
+    "TS2339": {
+      "description": "Property does not exist",
+      "count": 385,
+      "percentage": 40.3
+    },
+    "TS2322": {
+      "description": "Type assignability",
+      "count": 190,
+      "percentage": 19.9
+    },
+    "TS2304": {
+      "description": "Cannot find name",
+      "count": 139,
+      "percentage": 14.6
+    },
+    "TS2345": {
+      "description": "Argument type mismatch",
+      "count": 98,
+      "percentage": 10.3
+    },
+    "TS2307": {
+      "description": "Module resolution",
+      "count": 85,
+      "percentage": 8.9
+    },
+    "syntax": {
+      "description": "Syntax errors",
+      "count": 58,
+      "percentage": 6.1
+    }
+  },
+  "highPriorityFiles": [
+    {
+      "file": "server/routes/enhancedFinanceRoutes.ts",
+      "errors": 48,
+      "priority": "CRITICAL",
+      "reason": "Finances not working for users"
+    },
+    {
+      "file": "server/services/enhancedTeamManagementService.ts",
+      "errors": 23,
+      "priority": "HIGH"
+    },
+    {
+      "file": "server/services/enhancedCompetitionService.ts",
+      "errors": 21,
+      "priority": "HIGH"
+    },
+    {
+      "file": "server/routes/enhancedPlayerRoutes.ts",
+      "errors": 21,
+      "priority": "HIGH"
+    },
+    {
+      "file": "client/src/components/StatsDisplay.tsx",
+      "errors": 15,
+      "priority": "MEDIUM"
+    }
+  ],
+  "completedFiles": [
+    "client/src/pages/Team.tsx",
+    "client/src/components/ContractManagement.tsx",
+    "client/src/components/UnifiedInventoryHub.tsx",
+    "client/src/components/SeasonChampionships.tsx"
+  ],
+  "recommendations": {
+    "immediate": [
+      "Redesign Property Access Agent with schema-first approach",
+      "Fix server/routes/enhancedFinanceRoutes.ts to restore finances",
+      "Create property mapping database from Prisma schema"
+    ],
+    "shortTerm": [
+      "Implement batch processing for repetitive patterns",
+      "Create schema validation before property fixes",
+      "Target complete file fixes instead of partial"
+    ],
+    "longTerm": [
+      "Auto-generate TypeScript types from Prisma schema",
+      "Implement continuous learning system",
+      "Create web dashboard for monitoring"
+    ]
+  }
+}

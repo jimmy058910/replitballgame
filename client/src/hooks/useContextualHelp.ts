@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import type { Player, Team, Stadium } from '@shared/types/models';
+
 
 type HelpCategory = {
   [key: string]: string;

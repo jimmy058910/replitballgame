@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, Clock, Gift } from 'lucide-react';
 import { UnityAdsService } from '@/services/UnityAdsService';
 import { useToast } from '@/hooks/use-toast';
+import type { Team } from '@shared/types/models';
+
 
 interface HalftimeAdProps {
   onAdCompleted: (reward: number) => void;

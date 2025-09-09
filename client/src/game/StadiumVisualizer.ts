@@ -4,6 +4,8 @@
  */
 
 import { FacilityLevels } from '../../../shared/types/LiveMatchState';
+import type { Stadium } from '@shared/types/models';
+
 
 export class StadiumVisualizer {
   private canvas: HTMLCanvasElement;

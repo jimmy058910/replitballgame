@@ -1,5 +1,7 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, Player, $Enums } from "../db";
+import { PrismaClient, $Enums } from "../db";
+import type { Player } from '@shared/types/models';
+
 
 export class InjuryStorage {
   async updatePlayerInjury(playerId: number, injuryStatus: $Enums.InjuryStatus, recoveryPointsNeeded?: number, recoveryPointsCurrent?: number): Promise<Player | null> {

@@ -88,7 +88,7 @@ class PerformanceMonitor {
     }
 
     // Update average
-    const sum = this.metrics.queryTimes.reduce((a, b) => a + b, 0);
+    const sum = this.metrics.queryTimes.reduce((a: any, b: any) => a + b, 0);
     this.metrics.averageTime = sum / this.metrics.queryTimes.length;
 
     // Update peak
@@ -539,3 +539,6 @@ export {
 
 // Export singleton instance for backward compatibility
 export const enhancedDb = EnhancedDatabaseClient;
+
+// Export direct prisma client for backward compatibility
+export const prisma = EnhancedDatabaseClient.getClient();

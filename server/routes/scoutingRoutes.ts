@@ -2,6 +2,8 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from '../storage/index.js'; // Adjusted path
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
+import type { Player, Team } from '@shared/types/models';
+
 // import { z } from "zod"; // For validation if needed
 
 const router = Router();
@@ -106,7 +108,7 @@ router.get("/:teamId/scout", requireAuth, async (req: any, res: Response, next: 
 
     const prisma = await getPrismaClient();
     const [targetPlayers, targetStaffList, targetFinances, targetStadiumInfo] = await Promise.all([
-      storage.players.getPlayersByTeamId(parseInt(targetTeamId)),
+      storage?.players.getPlayersByTeamId(parseInt(targetTeamId)),
       storage.staff.getStaffByTeamId(parseInt(targetTeamId)),
       storage.teamFinances.getTeamFinances(parseInt(targetTeamId)),
       prisma.stadium.findUnique({ where: { teamId: parseInt(targetTeamId) } })

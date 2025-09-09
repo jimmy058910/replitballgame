@@ -397,7 +397,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                     <span className="font-medium">{currentSetup?.fieldSize || 'Standard'} Field</span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    {(fieldSizeEffects && currentSetup?.fieldSize) ? (fieldSizeEffects as any)[currentSetup.fieldSize]?.description : 'Balanced field configuration'}
+                    {(fieldSizeEffects && currentSetup?.fieldSize) ? (fieldSizeEffects as any)[currentSetup?.fieldSize]?.description : 'Balanced field configuration'}
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
@@ -406,7 +406,7 @@ export default function AdvancedTacticalEffectsManager({ teamId }: { teamId: str
                     <span className="font-medium">{currentSetup?.tacticalFocus || 'Balanced'}</span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    {(tacticalFocusEffects && currentSetup?.tacticalFocus) ? (tacticalFocusEffects as any)[currentSetup.tacticalFocus]?.description : 'Balanced approach'}
+                    {(tacticalFocusEffects && currentSetup?.tacticalFocus) ? (tacticalFocusEffects as any)[currentSetup?.tacticalFocus]?.description : 'Balanced approach'}
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">

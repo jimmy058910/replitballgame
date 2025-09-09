@@ -1,4 +1,4 @@
-import { getPrismaClient } from '../database.js';
+import { DatabaseService } from '../database/DatabaseService.js';
 import { PrismaClient, UserProfile } from "../db";
 
 // This interface defines the data structure expected from replitAuth.ts
@@ -39,7 +39,7 @@ export class UserStorage {
 
   async checkNDAAcceptance(userId: string): Promise<boolean> {
     // Checks if a user has accepted the NDA
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const user = await prisma.userProfile.findUnique({
       where: { userId: userId },
       select: { ndaAccepted: true },
@@ -51,7 +51,7 @@ export class UserStorage {
   async getUserByEmail(email: string): Promise<UserProfile | null> {
     if (!email) return null;
     // Fetches a user profile by their email, assuming email is unique as per schema
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     return prisma.userProfile.findUnique({
       where: { email: email },
     });
@@ -78,7 +78,7 @@ export class UserStorage {
   async updateUserReferralCode(userId: string, referralCode: string): Promise<UserProfile | null> {
     // Updates a user's referral code
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       return await prisma.userProfile.update({
         where: { userId: userId },
         data: { referralCode: referralCode },

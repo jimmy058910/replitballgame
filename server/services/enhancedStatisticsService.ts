@@ -21,6 +21,8 @@ import { z } from 'zod';
 import { getPrismaClient } from '../database.js';
 import logger from '../utils/logger.js';
 import { Prisma } from '@prisma/client';
+import type { Player, Team } from '@shared/types/models';
+
 
 // ============================================================================
 // TYPE DEFINITIONS & SCHEMAS
@@ -837,7 +839,7 @@ export class EnhancedStatisticsService {
       totalInterceptions += stat.interceptions || 0;
       totalBallStrips += stat.ballStrips || 0;
       passDeflections += stat.passDeflections || 0;
-      defensiveStops += stat.defensiveStops || 0;
+      defensiveStops += stat?.defensiveStops || 0;
       totalFumbles += stat.fumbles || 0;
       scoringOpportunities += stat.scoringOpportunities || 0;
       totalAttendance += stat.attendance || 0;
@@ -1033,7 +1035,7 @@ export class EnhancedStatisticsService {
       });
       
       const totalGames = games.length;
-      const totalPoints = games.reduce((sum, game) => 
+      const totalPoints = games.reduce((sum: any, game: any) => 
         sum + (game.homeScore || 0) + (game.awayScore || 0), 0
       );
       
@@ -1061,15 +1063,15 @@ export class EnhancedStatisticsService {
       const teamStats = await Promise.all(teamStatsPromises);
       
       // Find best teams
-      const highestScoringTeam = teamStats.reduce((best, team) => 
+      const highestScoringTeam = teamStats.reduce((best: any, team: any) => 
         team.pointsFor > best.pointsFor ? team : best
       );
       
-      const bestDefensiveTeam = teamStats.reduce((best, team) => 
+      const bestDefensiveTeam = teamStats.reduce((best: any, team: any) => 
         team.pointsAgainst < best.pointsAgainst ? team : best
       );
       
-      const mostWins = teamStats.reduce((best, team) => 
+      const mostWins = teamStats.reduce((best: any, team: any) => 
         team.wins > best.wins ? team : best
       );
       

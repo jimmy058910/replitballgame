@@ -1,0 +1,13 @@
+{
+  "id": "backup-1757381664655",
+  "timestamp": "2025-09-09T01:34:24.658Z",
+  "description": "Before: Property Mapper - Fix missing type properties",
+  "errorCount": 1026,
+  "errorBreakdown": {},
+  "files": [
+    "shared/types/models.ts",
+    "client/src/lib/api/queryOptions.ts",
+    "client/src/lib/api/apiTypes.ts",
+    "client/src/lib/api/typeGuards.ts"
+  ]
+}

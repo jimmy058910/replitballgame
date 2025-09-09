@@ -1,4 +1,5 @@
 import { getPrismaClient } from "../database.js";
+import { prisma } from '../database/enhancedDatabaseConfig';
 
 /**
  * Tournament Bracket Validator

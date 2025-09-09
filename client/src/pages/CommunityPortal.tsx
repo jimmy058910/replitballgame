@@ -39,6 +39,8 @@ import { FaDiscord, FaReddit, FaTwitch } from "react-icons/fa";
 import ReferralSystem from "@/components/ReferralSystem";
 import EmbeddedHelpManual from "@/components/EmbeddedHelpManual";
 import Roadmap from "@/components/Roadmap";
+import type { Player, Team } from '@shared/types/models';
+
 
 interface WorldRankings {
   teamPowerRankings: Array<{
@@ -77,8 +79,7 @@ export default function CommunityPortal() {
     }
   });
 
-  const { data: myTeam } = useQuery({
-    queryKey: ['/api/teams/my'],
+  const { data: myTeam } = useQuery<Team>({ queryKey: ["/api/teams/my"],
     queryFn: () => apiRequest('/api/teams/my'),
     enabled: isAuthenticated,
   });

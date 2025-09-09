@@ -1,0 +1,30 @@
+client/src/components/ComprehensiveCompetitionCenter.tsx(335,95): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/ComprehensiveCompetitionCenter.tsx(337,81): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/ComprehensiveCompetitionCenter.tsx(340,113): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/ComprehensiveCompetitionCenter.tsx(430,49): error TS2339: Property 'startDate' does not exist on type '{ season: string; currentDay: number; phase: string; description: string; daysUntilPlayoffs?: number; daysUntilNewSeason?: number; }'.
+client/src/components/ComprehensiveCompetitionCenter.tsx(697,39): error TS2339: Property 'seasonNumber' does not exist on type '{ season: string; currentDay: number; phase: string; description: string; daysUntilPlayoffs?: number; daysUntilNewSeason?: number; }'.
+client/src/components/DramaticTeamHQ.tsx(816,82): error TS2339: Property 'projectedIncome' does not exist on type 'TeamFinances | { credits: bigint; gems: bigint; }'.
+  Property 'projectedIncome' does not exist on type '{ credits: bigint; gems: bigint; }'.
+client/src/components/DynamicMarketplaceManager.tsx(623,31): error TS2322: Type '{ player: Player; showDetailedStats: boolean; showActions: false; }' is not assignable to type 'IntrinsicAttributes & PlayerCardProps'.
+  Property 'showDetailedStats' does not exist on type 'IntrinsicAttributes & PlayerCardProps'.
+client/src/components/EnhancedLoadingWrapper.tsx(146,8): error TS2322: Type 'P' is not assignable to type 'IntrinsicAttributes & ((PropsWithoutRef<P> & RefAttributes<Component<P, any, any>>) | PropsWithRef<P>)'.
+  Type 'object' is not assignable to type 'IntrinsicAttributes & ((PropsWithoutRef<P> & RefAttributes<Component<P, any, any>>) | PropsWithRef<P>)'.
+    Type 'P' is not assignable to type 'IntrinsicAttributes & PropsWithRef<P>'.
+      Type 'object' is not assignable to type 'IntrinsicAttributes & PropsWithRef<P>'.
+        Type 'object' is not assignable to type 'PropsWithRef<P>'.
+          Type 'P' is not assignable to type 'PropsWithRef<P>'.
+            Type 'object' is not assignable to type 'PropsWithRef<P>'.
+client/src/components/EnhancedLoadingWrapper.tsx(216,9): error TS2322: Type '() => void' is not assignable to type '() => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.
+client/src/components/EnhancedMarketplace.tsx(579,95): error TS2339: Property 'totalListings' does not exist on type '{ totalSales: number; totalPurchases: number; activeListings: number; activeBids: number; }'.
+client/src/components/EnhancedMarketplace.tsx(586,93): error TS2339: Property 'totalBids' does not exist on type '{ totalSales: number; totalPurchases: number; activeListings: number; activeBids: number; }'.
+client/src/components/EnhancedMarketplace.tsx(607,58): error TS2339: Property 'escrowAmount' does not exist on type '{ totalSales: number; totalPurchases: number; activeListings: number; activeBids: number; }'.
+client/src/components/FinancesTab.tsx(86,11): error TS2322: Type 'TeamFinances' is not assignable to type '{ credits: string; gems: string; escrowCredits: string; escrowGems: string; projectedIncome: string; projectedExpenses: string; lastSeasonRevenue: string; lastSeasonExpenses: string; }'.
+  Types of property 'credits' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+client/src/components/FinancesTab.tsx(405,14): error TS2339: Property 'staff' does not exist on type 'Contract'.
+client/src/components/FinancesTab.tsx(407,50): error TS2339: Property 'staff' does not exist on type 'Contract'.

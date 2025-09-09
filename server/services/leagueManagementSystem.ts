@@ -14,6 +14,8 @@ import { getPrismaClient } from '../database.js';
 import logger from '../utils/logger.js';
 import { z } from 'zod';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library.js';
+import type { Team, League } from '@shared/types/models';
+
 
 // =============================================================================
 // SCHEMAS & TYPES (Industry Standard Data Validation)
@@ -536,7 +538,7 @@ export class LeagueManagementService {
         totalTeams: teams.length,
         totalGames: gamesStats._count.id,
         completedGames: completedGamesStats._count.id,
-        lastUpdated: new Date()
+        updatedAt: new Date()
       }
     };
   }

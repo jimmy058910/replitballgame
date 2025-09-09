@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Users, Clock, Search } from "lucide-react"; // Removed Star, Eye as they are not directly used by TryoutSystem
 import UnifiedPlayerCard from "./UnifiedPlayerCard";
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 // Define interfaces for tryout system
 interface TeamFinancesData {
   credits: number;
@@ -23,22 +24,7 @@ interface Scout {
   isAvailable: boolean;
 }
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  race: string;
-  role: string;
-  age: number;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  stamina: number;
-  leadership: number;
-  agility: number;
-}
+
 
 interface ScoutData {
   effectiveness: number;
@@ -96,7 +82,10 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
   // Removed unused 'team' query. Credits are fetched from 'financesData'.
   const { data: financesData, isLoading: financesLoading } = useQuery<TeamFinancesData, Error>({
     queryKey: [`/api/teams/${teamId}/finances`],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/finances`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}/finances`);
+      return response;
+    },
     enabled: !!teamId,
   });
 
@@ -122,8 +111,7 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
   });
 
   // Calculate effective scout quality
-  const effectiveScoutQuality = teamScouts && teamScouts?.length > 0
-    // @ts-expect-error TS2345
+  const effectiveScoutQuality = teamScouts && teamScouts?.length > 0
     ? Math.max(...teamScouts.map((scout: Scout) => scout.quality ?? 50))
     : 50;
 
@@ -234,9 +222,7 @@ export default function TryoutSystem({ teamId, onNavigateToTaxiSquad }: TryoutSy
         return prev;
       }
     });
-  };
-
-  // @ts-expect-error TS2339
+  };
   const getPlayerRole = (candidate: TryoutCandidate): Player['position'] => {
     const stats = {
       throwing: candidate.throwing ?? 0,

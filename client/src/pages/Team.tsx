@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query"; // useMutation is not used, can be removed if not planned
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from '@/lib/queryClient';
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import TacticalManager from "@/components/TacticalManager";
 import PlayerDetailModal from "@/components/PlayerDetailModal";
@@ -20,55 +20,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { apiRequest } from "@/lib/queryClient";
 import { HelpIcon } from "@/components/help";
 
 // Performance-optimized components
 import { VirtualizedPlayerRoster } from "@/components/VirtualizedPlayerRoster";
 import { useOptimizedQuery, useTeamQuery, usePlayersQuery, useInvalidateQueries } from "@/hooks/useOptimizedQuery";
+import { teamQueryOptions } from '@/lib/api/queryOptions';
+import { skipToken } from '@tanstack/react-query';
 
 // Type interfaces for API responses
-interface Team {
-  id: string;
-  name: string;
-  division: number;
-  wins: number;
-  losses: number;
-  draws: number;
-  points: number;
-  teamPower: number;
-  teamCamaraderie: number;
-  credits: number;
-  players?: Player[];
-  finances?: {
-    credits: string;
-    gems: string;
-  };
-}
-
-interface Player {
-  id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  race: string;
-  age: number;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  stamina: number;
-  leadership: number;
-  agility: number;
-}
-
 interface Formation {
   [key: string]: any;
 }
 
+interface PlayerWithRole extends Player {
+  role?: string;
+}
+
+interface DetailedPlayer extends Player {
+  speed: number;
+  power: number;
+  catching: number;
+  blocking: number;
+  tackling: number;
+  passing: number;
+  leadership: number;
+  workEthic: number;
+  sportsmanship: number;
+  durability: number;
+  consistency: number;
+  determination: number;
+}
+
 // Helper function to determine player role based on attributes
 import { getPlayerRole as centralizedGetPlayerRole } from "../../../shared/playerUtils";
+import type { Player, Team, Staff, Contract, Stadium, League, Notification, MarketplaceListing, MarketplaceBid } from '@shared/types/models';
+import { teamQueries } from '@/lib/api/queries';
 
 function getPlayerRole(player: any): string {
   return centralizedGetPlayerRole(player);
@@ -76,7 +63,6 @@ function getPlayerRole(player: any): string {
 
 export default function TeamPage() {
   const [selectedRole, setSelectedRole] = useState<string>("all");
-  // @ts-expect-error TS2304
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithRole | null>(null);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
@@ -88,13 +74,8 @@ export default function TeamPage() {
   const [inventoryFilter, setInventoryFilter] = useState("equipment");
   const [stadiumSubTab, setStadiumSubTab] = useState("overview");
 
-  // Optimized queries with caching
-  const { data: team, isLoading: isLoadingTeam } = useQuery<Team>({
-    queryKey: ["/api/teams/my"],
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    // @ts-expect-error TS2769
-    cacheTime: 5 * 60 * 1000, // 5 minutes
-  });
+  // Modernized queries with queryOptions pattern
+  const { data: team, isLoading: isLoadingTeam } = useQuery(teamQueryOptions.myTeamLegacy());
   
   // Use players data from team query instead of separate API call
   const players: Player[] = team?.players || [];
@@ -105,15 +86,19 @@ export default function TeamPage() {
 
   const { data: formation } = useQuery<Formation>({
     queryKey: [`/api/teams/${team?.id}/formation`],
-    // @ts-expect-error TS2339
-    enabled: !!team?.id,
+    queryFn: team?.id 
+      ? async () => {
+          const response = await apiRequest(`/api/teams/${team.id}/formation`);
+          return response as Formation;
+        }
+      : skipToken,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Add roles to players and filter - use database role field directly
-  // @ts-expect-error TS2339
-  const playersWithRoles = players?.map((player: any) => ({
+  const playersWithRoles: PlayerWithRole[] = players?.map((player: Player) => ({
     ...player,
-    role: player.role || getPlayerRole(player) // Prefer database role over calculated
+    role: (player as any).role || getPlayerRole(player) // Prefer database role over calculated
   })) || [];
 
   const filteredPlayers = playersWithRoles.filter((player: any) => 
@@ -149,7 +134,6 @@ export default function TeamPage() {
   }
 
   // Function to adapt PlayerWithRole to DetailedPlayer
-  // @ts-expect-error TS2304
   const adaptPlayerForDetailModal = (player: PlayerWithRole | null): DetailedPlayer | null => {
     if (!player) return null;
     return {
@@ -163,19 +147,19 @@ export default function TeamPage() {
       leadership: Number(player.leadership),
       agility: Number(player.agility),
       salary: Number(player.contract?.salary || 0),
-      contractSeasons: player.contractSeasons ?? 0, // Default if null
-      contractStartSeason: player.contractStartSeason ?? 0, // Default if null
-      contractValue: Number(player.contractValue),
+      contractSeasons: player.contract?.length ?? 0, // Use contract.length instead
+      contractStartSeason: 0, // Property doesn't exist in schema
+      contractValue: Number(player.contract?.salary ?? 0),
       camaraderie: player.camaraderie ?? 50,
-      // Ensure potential fields are string | null
-      speedPotential: player.speedPotential?.toString() ?? null,
-      powerPotential: player.powerPotential?.toString() ?? null,
-      throwingPotential: player.throwingPotential?.toString() ?? null,
-      catchingPotential: player.catchingPotential?.toString() ?? null,
-      kickingPotential: player.kickingPotential?.toString() ?? null,
-      staminaPotential: player.staminaPotential?.toString() ?? null,
-      leadershipPotential: player.leadershipPotential?.toString() ?? null,
-      agilityPotential: player.agilityPotential?.toString() ?? null,
+      // Potential fields don't exist in schema - use potentialRating instead
+      speedPotential: null, // Not available in current schema
+      powerPotential: null, // Not available in current schema
+      throwingPotential: null, // Not available in current schema
+      catchingPotential: null, // Not available in current schema
+      kickingPotential: null, // Not available in current schema
+      staminaPotential: null, // Not available in current schema
+      leadershipPotential: null, // Not available in current schema
+      agilityPotential: null, // Not available in current schema
       // helmetItem, chestItem etc. are not part of SharedPlayer, they are added in PlayerDetailModal
     };
   };
@@ -187,9 +171,7 @@ export default function TeamPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            {/*
-             // @ts-expect-error TS2339 */}
-            <h1 className="font-orbitron text-3xl font-bold">{team.name}</h1>
+            <h1 className="font-orbitron text-3xl font-bold">{team?.name || ''}</h1>
             <div className="flex space-x-2">
               <Button 
                 variant="outline" 
@@ -289,10 +271,9 @@ export default function TeamPage() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {playersWithRoles
-                        // @ts-expect-error TS7006
-                        .filter(player => {
+                        .filter((player: PlayerWithRole) => {
                           if (selectedRole === 'all') return true;
-                          if (selectedRole === 'taxi-squad') return (player.rosterPosition || 0) >= 13;
+                          if (selectedRole === 'taxi-squad') return false; // rosterPosition doesn't exist in schema
                           return player.role?.toLowerCase() === selectedRole;
                         })
                         .map((player: any) => (
@@ -316,15 +297,12 @@ export default function TeamPage() {
               </TabsContent>
 
               <TabsContent value="medical">
-                {/*
-                 // @ts-expect-error TS2339 */}
                 <InjuryStaminaManager teamId={team?.id?.toString() || ''} />
               </TabsContent>
 
               <TabsContent value="recruiting">
                 <TryoutSystem 
-                  // @ts-expect-error TS2339
-                  teamId={team?.id || ''} 
+                  teamId={team?.id?.toString() || ''} 
                   onNavigateToTaxiSquad={() => {
                     setRosterSubTab("players");
                     setSelectedRole("taxi-squad");
@@ -344,8 +322,6 @@ export default function TeamPage() {
               </TabsList>
 
               <TabsContent value="current">
-                {/*
-                 // @ts-expect-error TS2339 */}
                 <StaffManagement teamId={team?.id} />
               </TabsContent>
 
@@ -364,9 +340,7 @@ export default function TeamPage() {
               </TabsContent>
 
               <TabsContent value="camaraderie">
-                {/*
-                 // @ts-expect-error TS2339 */}
-                <UnifiedTeamChemistry teamId={team?.id || ''} />
+                <UnifiedTeamChemistry teamId={team?.id?.toString() || ''} />
               </TabsContent>
             </Tabs>
           </TabsContent>
@@ -380,9 +354,7 @@ export default function TeamPage() {
               </TabsList>
 
               <TabsContent value="lineup">
-                {/*
-                 // @ts-expect-error TS2339 */}
-                <TacticsLineupHub teamId={team?.id || ''} />
+                <TacticsLineupHub teamId={team?.id?.toString() || ''} />
               </TabsContent>
 
               <TabsContent value="strategy">
@@ -400,8 +372,6 @@ export default function TeamPage() {
               </TabsList>
 
               <TabsContent value="overview">
-                {/*
-                 // @ts-expect-error TS2339 */}
                 <TeamFinances teamId={team?.id} />
               </TabsContent>
 
@@ -414,9 +384,7 @@ export default function TeamPage() {
                       <div className="mt-4 p-4 bg-gray-700 rounded-lg">
                         <p className="text-sm text-gray-400">Total Season Salary</p>
                         <p className="text-2xl font-bold text-green-400">
-                          {/*
-                           // @ts-expect-error TS7006 */}
-                          {playersWithRoles.reduce((total, player) => total + (player.contract?.salary || 0), 0).toLocaleString()}₡
+                          {playersWithRoles.reduce((total: number, player: PlayerWithRole) => total + ((player as any).contract?.salary || 0), 0).toLocaleString()}₡
                         </p>
                       </div>
                     )}
@@ -424,9 +392,7 @@ export default function TeamPage() {
                   <CardContent>
                     {playersWithRoles && playersWithRoles.length > 0 ? (
                       <div className="space-y-4">
-                        {/*
-                         // @ts-expect-error TS7006 */}
-                        {playersWithRoles.map((player) => {
+                        {playersWithRoles.map((player: PlayerWithRole) => {
                           const role = player.role || getPlayerRole(player); // Use database role first
                           const getRoleStyle = (role: string) => {
                             switch (role.toLowerCase()) {
@@ -496,15 +462,11 @@ export default function TeamPage() {
           </TabsContent>
 
           <TabsContent value="inventory">
-            {/*
-             // @ts-expect-error TS2339 */}
-            <UnifiedInventoryHub teamId={team?.id || ''} />
+            <UnifiedInventoryHub teamId={team?.id?.toString() || ''} />
           </TabsContent>
 
           <TabsContent value="stadium">
-            {/*
-             // @ts-expect-error TS2339 */}
-            <StadiumAtmosphereManager teamId={team?.id || ''} />
+            <StadiumAtmosphereManager teamId={team?.id?.toString() || ''} />
           </TabsContent>
 
 
@@ -519,8 +481,7 @@ export default function TeamPage() {
           }}
           onContractNegotiate={(playerId) => { // playerId is string
             setShowPlayerModal(false);
-            // @ts-expect-error TS7006
-            const playerToNegotiate = playersWithRoles.find(p => p.id === playerId);
+            const playerToNegotiate = playersWithRoles.find((p: PlayerWithRole) => p.id === playerId);
             if (playerToNegotiate) {
               setSelectedPlayer(playerToNegotiate);
               setShowContractModal(true);
@@ -547,7 +508,7 @@ export default function TeamPage() {
             lastName: selectedPlayer.lastName,
             race: selectedPlayer.race,
             age: selectedPlayer.age, // age is number | string in PlayerWithRole, ContractNegotiation expects string | number
-            salary: selectedPlayer.salary, // salary is number in PlayerWithRole, ContractNegotiation expects number
+            salary: selectedPlayer.contract?.salary ?? 0, // Use contract.salary instead
           } : null}
           isOpen={showContractModal}
           onClose={() => {

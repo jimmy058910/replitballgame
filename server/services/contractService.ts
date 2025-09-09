@@ -1,5 +1,6 @@
 import { getPrismaClient } from "../database.js";
-import type { Player, Staff, Team } from "../db";
+import type { Player, Team, Staff } from '@shared/types/models';
+
 
 export interface ContractCalculation {
   baseSalary: number;

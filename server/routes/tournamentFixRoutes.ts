@@ -33,7 +33,7 @@ router.post('/start-tournament-matches/:tournamentId', requireAuth, async (req, 
     // Start instant simulation for each match
     for (const match of matches) {
       try {
-        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
         
         // Update match status and score immediately
         await prisma.game.update({

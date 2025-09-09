@@ -17,11 +17,16 @@ import rateLimit from "express-rate-limit";
 import session from "express-session";
 import http from "http";
 import fs from "fs";
+import logger, { PerformanceMonitor } from './utils/enhancedLogger.js';
 
 // Main startup function
 async function startServer() {
   try {
-    console.log('🚀 Starting Realm Rivalry Server...');
+    logger.info('🚀 Starting Realm Rivalry Server...', {
+      category: 'server_startup',
+      environment: process.env.NODE_ENV || 'development',
+      port: process.env.PORT || (process.env.NODE_ENV === 'production' ? '8080' : '5000')
+    });
     
     const app = express();
     const httpServer = http.createServer(app);
@@ -113,7 +118,10 @@ async function startServer() {
     // Initialize Cloud SQL proxy for development - ESSENTIAL FOR OAKLAND COUGARS ACCESS
     const nodeEnv = process.env.NODE_ENV || 'development';
     if (nodeEnv === 'development') {
-      console.log('🔧 [PROXY INIT] Starting Cloud SQL Auth Proxy for development...');
+      logger.info('🔧 Starting Cloud SQL Auth Proxy for development...', {
+        category: 'proxy_initialization',
+        environment: 'development'
+      });
       
       // Direct proxy startup - bypass module import issues
       const { spawn } = await import('child_process');
@@ -126,7 +134,10 @@ async function startServer() {
         
         if (credentialsContent) {
           fs.writeFileSync(credentialsPath, credentialsContent, { mode: 0o600 });
-          console.log('✅ [PROXY INIT] Credentials file created');
+          logger.info('✅ Credentials file created for Cloud SQL proxy', {
+            category: 'proxy_initialization',
+            credentialsPath
+          });
           
           // Start proxy process
           const proxyArgs = [
@@ -140,35 +151,61 @@ async function startServer() {
           });
           
           proxyProcess.stdout?.on('data', (data) => {
-            console.log(`📋 [PROXY] ${data.toString().trim()}`);
+            logger.debug('Cloud SQL Proxy stdout', {
+              category: 'proxy_output',
+              output: data.toString().trim()
+            });
           });
           
           proxyProcess.stderr?.on('data', (data) => {
-            console.log(`⚠️ [PROXY] ${data.toString().trim()}`);
+            logger.warn('Cloud SQL Proxy stderr', {
+              category: 'proxy_output',
+              output: data.toString().trim()
+            });
           });
           
           // Wait for proxy to be ready
           await new Promise(resolve => setTimeout(resolve, 3000));
-          console.log('✅ [PROXY INIT] Cloud SQL Auth Proxy started for Oakland Cougars access');
+          logger.info('✅ Cloud SQL Auth Proxy started successfully', {
+            category: 'proxy_initialization',
+            status: 'ready',
+            target: 'Oakland Cougars database access'
+          });
           
         } else {
-          console.log('⚠️ [PROXY INIT] No service account key found');
+          logger.warn('⚠️ No service account key found for Cloud SQL proxy', {
+            category: 'proxy_initialization',
+            issue: 'missing_credentials'
+          });
         }
       } catch (error) {
-        console.log('⚠️ [PROXY INIT] Failed to start proxy:', (error as Error).message);
+        logger.error('⚠️ Failed to start Cloud SQL proxy', error as Error, {
+          category: 'proxy_initialization',
+          phase: 'startup'
+        });
       }
     }
 
     // Database initialization (lazy - will initialize when first needed)
-    console.log('🔄 Database will initialize lazily when first accessed');
+    logger.info('🔄 Database will initialize lazily when first accessed', {
+      category: 'database_initialization',
+      strategy: 'lazy_loading'
+    });
     const { getPrismaClient } = await import('./database.js');
     
     // CRITICAL: Make database connection truly non-blocking for Cloud Run startup
     // Test connection asynchronously without blocking server startup
     getPrismaClient().then(() => {
-      console.log('✅ Database connection verified');
+      logger.info('✅ Database connection verified', {
+        category: 'database_initialization',
+        status: 'connected'
+      });
     }).catch((error: Error) => {
-      console.log('⚠️ Database will retry connection when needed:', error.message);
+      logger.warn('⚠️ Database will retry connection when needed', {
+        category: 'database_initialization',
+        status: 'retry_pending',
+        error: error.message
+      });
     });
 
     // CRITICAL FIX: Ensure API routes have absolute precedence over Vite
@@ -208,10 +245,16 @@ async function startServer() {
     });
     
     // Register all API routes BEFORE Vite middleware
-    console.log('🔧 Registering API routes...');
+    logger.info('🔧 Registering API routes...', {
+      category: 'api_routes',
+      phase: 'registration'
+    });
     const { registerAllRoutes } = await import('./routes/index.js');
     await registerAllRoutes(app);
-    console.log('✅ API routes registered');
+    logger.info('✅ API routes registered successfully', {
+      category: 'api_routes',
+      phase: 'completed'
+    });
 
     // Add final API protection middleware before Vite
     app.use('/api/*', (req, res, next) => {
@@ -223,7 +266,10 @@ async function startServer() {
     });
 
     // Setup WebSocket servers with proper path separation
-    console.log('🔌 Initializing WebSocket servers...');
+    logger.info('🔌 Initializing WebSocket servers...', {
+      category: 'websocket_initialization',
+      phase: 'starting'
+    });
     
     // Initialize Socket.IO server for live matches and real-time features
     const { Server: SocketIOServer } = await import('socket.io');
@@ -239,27 +285,51 @@ async function startServer() {
     // Setup Socket.IO WebSocket service
     const { setupWebSocketServer } = await import('./services/webSocketService.js');
     await setupWebSocketServer(io);
-    console.log('✅ Socket.IO server initialized on path /socket.io/');
+    logger.info('✅ Socket.IO server initialized successfully', {
+      category: 'websocket_initialization',
+      service: 'socket.io',
+      path: '/socket.io/',
+      transports: ['websocket', 'polling']
+    });
 
     // Setup native WebSocket server for development only (to avoid conflicts)
     if (process.env.NODE_ENV !== 'production') {
-      console.log('🔧 Setting up development WebSocket manager...');
+      logger.info('🔧 Setting up development WebSocket manager...', {
+        category: 'websocket_initialization',
+        service: 'native_websocket',
+        environment: 'development'
+      });
       const { webSocketManager } = await import('./websocket/webSocketManager.js');
       webSocketManager.initialize(httpServer);
-      console.log('✅ Development WebSocket manager initialized on path /ws');
+      logger.info('✅ Development WebSocket manager initialized', {
+        category: 'websocket_initialization',
+        service: 'native_websocket',
+        path: '/ws',
+        environment: 'development'
+      });
     }
 
     // Setup Vite in development
     if (process.env.NODE_ENV !== 'production') {
-      console.log('🛠️ Setting up Vite development server...');
+      logger.info('🛠️ Setting up Vite development server...', {
+        category: 'vite_setup',
+        environment: 'development'
+      });
       const { setupVite } = await import("./vite.js");
       await setupVite(app, httpServer);
-      console.log('✅ Vite development server configured');
+      logger.info('✅ Vite development server configured', {
+        category: 'vite_setup',
+        status: 'ready'
+      });
     }
 
     // Error handler (must be last)
     app.use((error: any, req: any, res: any, next: any) => {
-      console.error('❌ Server error:', error);
+      logger.error('❌ Server error occurred', error, {
+        category: 'server_error',
+        requestPath: req.path,
+        method: req.method
+      });
       res.status(500).json({ error: 'Internal server error' });
     });
 
@@ -269,50 +339,100 @@ async function startServer() {
     
     const host = process.env.HOST || "localhost";
     httpServer.listen(port, host, async () => {
-      console.log(`✅ Server running on ${host}:${port}`);
-      console.log('🎯 All systems operational');
+      logger.info(`✅ Server running successfully`, {
+        category: 'server_startup',
+        host,
+        port,
+        environment: process.env.NODE_ENV || 'development',
+        status: 'operational'
+      });
+      logger.info('🎯 All systems operational', {
+        category: 'server_startup',
+        phase: 'complete'
+      });
       
       // Initialize automation services for game simulation
       try {
-        console.log('🚀 Starting season timing automation for game simulation...');
+        logger.info('🚀 Starting season timing automation for game simulation...', {
+          category: 'automation_startup',
+          service: 'season_timing',
+          gameType: 'dome_ball'
+        });
         const { SeasonTimingAutomationService } = await import('./services/seasonTimingAutomationService.js');
         const automationService = SeasonTimingAutomationService.getInstance();
         await automationService.start();
-        console.log('✅ Season timing automation initialized - games will simulate 4-10 PM EDT');
+        logger.info('✅ Season timing automation initialized successfully', {
+          category: 'automation_startup',
+          service: 'season_timing',
+          schedule: '4-10 PM EDT',
+          gameType: 'dome_ball',
+          status: 'active'
+        });
       } catch (error) {
-        console.error('⚠️ Season timing automation failed:', error);
+        logger.error('⚠️ Season timing automation failed to start', error, {
+          category: 'automation_startup',
+          service: 'season_timing'
+        });
       }
 
       // Initialize tournament automation 
       try {
-        console.log('🚀 Starting tournament automation for fully automated tournaments...');
+        logger.info('🚀 Starting tournament automation for fully automated tournaments...', {
+          category: 'automation_startup',
+          service: 'tournament_automation',
+          gameType: 'dome_ball'
+        });
         const { UnifiedTournamentAutomation } = await import('./services/unifiedTournamentAutomation.js');
         UnifiedTournamentAutomation.initializeAutomation();
-        console.log('✅ Tournament automation initialized - tournaments will start, progress, and complete automatically');
+        logger.info('✅ Tournament automation initialized successfully', {
+          category: 'automation_startup',
+          service: 'tournament_automation',
+          features: ['auto_start', 'auto_progress', 'auto_complete'],
+          gameType: 'dome_ball',
+          status: 'active'
+        });
       } catch (error) {
-        console.error('⚠️ Tournament automation failed:', error);
+        logger.error('⚠️ Tournament automation failed to start', error, {
+          category: 'automation_startup',
+          service: 'tournament_automation'
+        });
       }
     });
 
     // Graceful shutdown
     process.on('SIGTERM', () => {
-      console.log('🔄 Shutting down gracefully...');
+      logger.info('🔄 Shutting down gracefully...', {
+        category: 'server_shutdown',
+        signal: 'SIGTERM'
+      });
       httpServer.close(() => {
-        console.log('✅ Server closed');
+        logger.info('✅ Server closed successfully', {
+          category: 'server_shutdown',
+          status: 'complete'
+        });
         process.exit(0);
       });
     });
 
     process.on('SIGINT', () => {
-      console.log('🔄 Shutting down gracefully...');
+      logger.info('🔄 Shutting down gracefully...', {
+        category: 'server_shutdown',
+        signal: 'SIGINT'
+      });
       httpServer.close(() => {
-        console.log('✅ Server closed');
+        logger.info('✅ Server closed successfully', {
+          category: 'server_shutdown',
+          status: 'complete'
+        });
         process.exit(0);
       });
     });
 
   } catch (error) {
-    console.error('💥 Server startup failed:', error);
+    logger.error('💥 Server startup failed', error, {
+      category: 'server_startup',
+      phase: 'startup_failure'
+    });
     process.exit(1);
   }
 }

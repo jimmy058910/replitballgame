@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Bell, X, Clock, Trophy, Users, Target, DollarSign, AlertCircle, CheckCircle, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { League, Notification } from '@shared/types/models';
+
 // Define notification types for the system
 interface NotificationType {
   id: string;
@@ -129,8 +131,7 @@ export default function NotificationSystem() {
   // Real-time notification popup for urgent notifications
   useEffect(() => {
     if (notifications) {
-      const newUrgentNotifications = notifications.filter(
-        // @ts-expect-error TS2367
+      const newUrgentNotifications = notifications.filter(
         (n: NotificationType) => !n.isRead && n.priority === "urgent" // Use NotificationType
       );
       
@@ -235,11 +236,9 @@ export default function NotificationSystem() {
                     onClick={() => {
                       if (!notification.isRead) {
                         markReadMutation.mutate(notification.id);
-                      }
-                      // @ts-expect-error TS2339
-                      if (notification.actionUrl) {
-                        // @ts-expect-error TS2339
-                        window.location.href = notification.actionUrl;
+                      }
+                      if ((notification as any).actionUrl) {
+                        window.location.href = (notification as any).actionUrl;
                       }
                     }}
                   >

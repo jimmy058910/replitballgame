@@ -1,4 +1,6 @@
-import { Contract, getPrismaClient } from "../db";
+import { getPrismaClient } from "../db";
+import type { Contract } from '@shared/types/models';
+
 
 // MINIMAL STUB: Contract storage simplified to match actual schema
 // Original had 24 compilation errors due to schema mismatch

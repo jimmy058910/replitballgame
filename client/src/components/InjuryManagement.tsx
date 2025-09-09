@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Player, Staff } from "@shared/types/models";
 import { 
   Heart, 
   AlertTriangle, 
@@ -46,14 +47,10 @@ interface PlayerInjury {
   actualRecovery?: string;
 }
 
-interface MedicalStaff {
-  id: string;
-  name: string;
-  specialty: string;
-  experience: number;
-  effectiveness: number;
-  salary: number;
-  contractLength: number;
+interface MedicalStaff extends Staff {
+  specialty?: string;
+  experience?: number;
+  effectiveness?: number;
 }
 
 interface PlayerConditioning {
@@ -113,12 +110,6 @@ export default function InjuryManagement({ teamId }: { teamId: string }) {
   const { toast } = useToast();
 
   // Define Player type for useQuery
-  interface Player {
-    id: string;
-    name: string;
-    // Add other relevant player properties
-  }
-
   // Fetch team injuries
   const { data: injuries = [], isLoading: injuriesLoading } = useQuery<PlayerInjury[]>({
     queryKey: ["/api/injuries", teamId],
@@ -570,7 +561,7 @@ function NewInjuryForm({ players, onSubmit }: { players: any[], onSubmit: (data:
           </SelectTrigger>
           <SelectContent>
             {players.map((player) => (
-              <SelectItem key={player.id} value={player.id}>{player.name}</SelectItem>
+              <SelectItem key={player.id} value={player.id}>{`${player.firstName} ${player.lastName}`}</SelectItem>
             ))}
           </SelectContent>
         </Select>

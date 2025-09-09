@@ -1,5 +1,7 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, League, LeagueStanding } from "../db";
+import { PrismaClient, LeagueStanding } from "../db";
+import type { League } from '@shared/types/models';
+
 
 export class LeagueStorage {
   async createLeague(leagueData: {
@@ -7,7 +9,7 @@ export class LeagueStorage {
     name: string;
     seasonId: number;
   }): Promise<League> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const newLeague = await prisma.league.create({
       data: {
         division: leagueData.division,
@@ -25,7 +27,7 @@ export class LeagueStorage {
   }
 
   async getLeagueById(id: number): Promise<League | null> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const league = await prisma.league.findUnique({
       where: { id },
       include: {
@@ -39,7 +41,7 @@ export class LeagueStorage {
   }
 
   async getActiveLeagueByDivision(division: number, seasonId?: number): Promise<League | null> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const league = await prisma.league.findFirst({
       where: {
         division,
@@ -58,7 +60,7 @@ export class LeagueStorage {
 
   async updateLeague(id: number, updates: Partial<League>): Promise<League | null> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const updatedLeague = await prisma.league.update({
         where: { id },
         data: updates,
@@ -78,7 +80,7 @@ export class LeagueStorage {
 
   // League Standings methods
   async getLeagueStandings(leagueId: number): Promise<LeagueStanding[]> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     return await prisma.leagueStanding.findMany({
       where: { leagueId },
       orderBy: [
@@ -89,7 +91,7 @@ export class LeagueStorage {
   }
 
   async getTeamStandingInLeague(teamId: number, leagueId: number): Promise<LeagueStanding | null> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const standing = await prisma.leagueStanding.findFirst({
       where: {
         teamId,
@@ -116,7 +118,7 @@ export class LeagueStorage {
     const pointDifferential = standingData.pointDifferential ?? 
       ((standingData.pointsFor ?? 0) - (standingData.pointsAgainst ?? 0));
 
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const standing = await prisma.leagueStanding.upsert({
       where: {
         leagueId_teamId: {
@@ -155,7 +157,7 @@ export class LeagueStorage {
 
   async deleteLeagueStanding(leagueId: number, teamId: number): Promise<boolean> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       await prisma.leagueStanding.delete({
         where: {
           leagueId_teamId: {

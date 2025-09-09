@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-09-08T20:55:00Z",
+  "iteration": 7,
+  "fixes": {
+    "argumentTypeErrors": 97,
+    "fixesApplied": 8,
+    "stringNumberConversions": 5,
+    "callbackTypeUpdates": 2,
+    "undefinedParameterFixes": 1,
+    "setStateTypeFixes": 1
+  },
+  "details": [
+    {
+      "file": "client/src/components/ComprehensiveCompetitionCenter.tsx",
+      "changes": [
+        "Fixed 3 tournament query parameter conflicts - team?.id to String(team.id)",
+        "Applied String() conversion for availableTournaments, myTournaments, and history queries"
+      ],
+      "errorsBefore": 3,
+      "errorsAfter": 0
+    },
+    {
+      "file": "client/src/components/ContractManagement.tsx",
+      "changes": [
+        "Fixed string/number conversion for team ID in contracts query",
+        "Fixed callback parameter mismatch - changed PlayerData to Player in map functions"
+      ],
+      "errorsBefore": 2,
+      "errorsAfter": 0
+    },
+    {
+      "file": "client/src/components/InjuryStaminaManager.tsx",
+      "changes": [
+        "Fixed undefined parameter issue in getInjuryStatusColor function",
+        "Added fallback value 'Healthy' for undefined injuryStatus"
+      ],
+      "errorsBefore": 1,
+      "errorsAfter": 0
+    },
+    {
+      "file": "client/src/components/MobileRosterHQ.tsx",
+      "changes": [
+        "Fixed setState type conflict - changed RosterStaff to Staff for selectedStaff state",
+        "Fixed 2 mutation parameter conflicts - applied String() conversion to player.id"
+      ],
+      "errorsBefore": 3,
+      "errorsAfter": 0
+    }
+  ],
+  "remainingErrors": [
+    "EnhancedMarketplace.tsx - callback parameter mismatch (MarketplaceListing vs MarketplaceListingWithDetails)",
+    "SeasonChampionships.tsx - multiple callback parameter mismatches in map functions",
+    "PlayerSkillsManager.tsx - string/number state assignment issue",
+    "StaffManagement.tsx - number to string parameter conversion needed",
+    "StaffNegotiationModal.tsx - number to string parameter conversion needed"
+  ],
+  "patterns": {
+    "mostCommon": "string | number passed to string parameter",
+    "solution": "String() conversion before passing parameters",
+    "secondMostCommon": "Callback parameter type mismatches",
+    "solution2": "Update callback parameter types to match array element types"
+  },
+  "summary": {
+    "errorsBefore": 97,
+    "errorsFixed": 8,
+    "errorsRemaining": "~89",
+    "successRate": "8.2%",
+    "nextSteps": "Continue with remaining callback parameter mismatches and string/number conversions"
+  }
+}

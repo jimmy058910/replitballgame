@@ -12,6 +12,8 @@ import storeConfig from "../config/store_config.json" with { type: "json" };
 import { EnhancedGameEconomyService } from '../services/enhancedGameEconomyService.js';
 import { PaymentHistoryService } from '../services/paymentHistoryService.js';
 import fs from "fs";
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -399,7 +401,7 @@ router.post('/watch-ad', requireAuth, async (req: any, res: Response, next: Next
     //     rewardType, 
     //     rewardAmount, 
     //     completed: true, 
-    //     completedAt: new Date()
+    //     updatedAt: new Date()
     // });
 
     const message = placement === 'halftimeVideo' 

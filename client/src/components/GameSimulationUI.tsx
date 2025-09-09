@@ -6,19 +6,20 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Play, Pause, Clock, Users, Trophy, Zap, Target, Activity, Eye } from 'lucide-react';
-// @ts-expect-error TS2440
+import { Play, Pause, Clock, Users, Trophy, Zap, Target, Activity, Eye } from 'lucide-react';
 import webSocketManager, { LiveMatchState, MatchEvent, WebSocketCallbacks } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import GameCanvas from './GameCanvas';
+import clientLogger from '@/utils/clientLogger';
+import type { Player, Team, Match } from '@shared/types/models';
 
 interface GameSimulationUIProps {
   matchId: string;
   userId: string;
-  team1: any;
-  team2: any;
-  initialLiveState?: any;
+  team1: Team;
+  team2: Team;
+  initialLiveState?: LiveMatchState;
   onMatchComplete?: (finalState: LiveMatchState) => void;
   enhancedData?: {
     atmosphereEffects?: any;
@@ -26,23 +27,6 @@ interface GameSimulationUIProps {
     playerStats?: any;
     mvpPlayers?: any;
   };
-}
-
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: "Passer" | "Runner" | "Blocker";
-  teamId: string;
-  race?: string;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  stamina: number;
-  agility: number;
-  leadership: number;
 }
 
 interface AtmosphereData {
@@ -55,12 +39,6 @@ interface EnhancedMatchData {
 
 interface TeamFormation {
   formationJson: string | object;
-}
-
-interface MatchEvent {
-  type: string;
-  description: string;
-  text?: string;
 }
 
 interface KeyPerformer {
@@ -154,7 +132,15 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
         // Set up callbacks
         const callbacks: WebSocketCallbacks = {
           onMatchUpdate: (state: LiveMatchState) => {
-            console.log('🎮 GameSimulationUI: Match state update received:', state);
+            clientLogger.matchEvent('Match state update received', {
+              matchId,
+              homeTeam: team1.name,
+              awayTeam: team2.name,
+              currentMinute: state.gameTime,
+              score: { home: state.team1Score, away: state.team2Score },
+              phase: state.gamePhase || 'regular',
+              component: 'GameSimulationUI'
+            });
             setLiveState(prevState => {
               // Prevent race conditions by only updating if state is newer
               if (!prevState || state.lastUpdateTime >= (prevState.lastUpdateTime || 0)) {
@@ -165,7 +151,14 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             setEvents(state.gameEvents || []);
           },
           onMatchEvent: (event: MatchEvent) => {
-            console.log('🎯 GameSimulationUI: Match event received:', event);
+            clientLogger.info('Match event received', {
+              matchId,
+              eventType: event.type,
+              eventDescription: event.description,
+              gameTime: event.gameTime,
+              component: 'GameSimulationUI',
+              category: 'match_event'
+            });
             setEvents(prev => [event, ...prev]);
 
             // Show important events as toast notifications
@@ -179,7 +172,14 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             }
           },
           onMatchComplete: (data) => {
-            console.log('🏁 GameSimulationUI: Match completed:', data);
+            clientLogger.matchEvent('Match completed', {
+              matchId,
+              homeTeam: team1.name,
+              awayTeam: team2.name,
+              finalScore: { home: data.team1Score, away: data.team2Score },
+              phase: 'completed',
+              component: 'GameSimulationUI'
+            });
             setLiveState(data.finalState);
             setEvents(data.finalState.gameEvents || []);
             
@@ -190,7 +190,11 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             // Add a small delay to ensure database update is complete
             setTimeout(() => {
               queryClient.invalidateQueries({ queryKey: [`/api/matches/${matchId}`] });
-              console.log('🔄 Match data query invalidated after match completion');
+              clientLogger.debug('Match data query invalidated after completion', {
+                matchId,
+                component: 'GameSimulationUI',
+                action: 'query_invalidation'
+              });
             }, 1000);
             
             if (onMatchComplete) {
@@ -224,7 +228,12 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             });
           },
           onConnectionStatus: (connected: boolean) => {
-            console.log('🔌 Connection status update:', connected);
+            clientLogger.info('WebSocket connection status changed', {
+              matchId,
+              connected,
+              component: 'GameSimulationUI',
+              category: 'websocket_connection'
+            });
             setIsConnected(connected);
             if (connected) {
               toast({
@@ -244,7 +253,11 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
             setSpectatorCount(count);
           },
           onError: (error) => {
-            console.error('🔥 GameSimulationUI: WebSocket error:', error);
+            clientLogger.error('WebSocket error occurred', error, {
+              matchId,
+              component: 'GameSimulationUI',
+              category: 'websocket_error'
+            });
             toast({
               title: '❌ Connection Error',
               description: 'Lost connection to live match. Trying to reconnect...',
@@ -256,7 +269,11 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
 
         // Register callbacks with WebSocket manager
         webSocketManager.setCallbacks(callbacks);
-        console.log('🔧 GameSimulationUI: Callbacks registered with WebSocket manager');
+        clientLogger.debug('WebSocket callbacks registered successfully', {
+          matchId,
+          component: 'GameSimulationUI',
+          callbacks: ['onStateUpdate', 'onEvent', 'onComplete', 'onConnectionChange', 'onError']
+        });
 
         // Join match room
         await webSocketManager.joinMatch(matchId);
@@ -265,7 +282,11 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
         setIsConnected(true);
         setIsLoading(false);
       } catch (error) {
-        console.error('Failed to initialize WebSocket:', error);
+        clientLogger.error('Failed to initialize WebSocket connection', error, {
+          matchId,
+          component: 'GameSimulationUI',
+          phase: 'initialization'
+        });
         setIsLoading(false);
         toast({
           title: '❌ Connection Failed',
@@ -308,8 +329,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   };
 
   const getAttendanceData = () => {
-    // Use authentic stadium API data first, then enhanced match data fallback
-    // @ts-expect-error TS2339
+    // Use authentic stadium API data first, then enhanced match data fallback
     const apiStadiumData = stadiumData?.data || {};
     const apiAtmosphereData = atmosphereData?.data || {};
     const enhancedAtmosphereData = enhancedData?.atmosphereEffects || {};
@@ -340,35 +360,70 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
     const halftimeEvent = liveState?.gameEvents?.find(e => e.type === 'halftime');
     const finalEvent = liveState?.gameEvents?.find(e => e.type === 'match_complete');
 
-    console.log('🔍 MVP Debug - Enhanced Match Data:', enhancedMatchData);
-    console.log('🔍 MVP Debug - Enhanced Data:', enhancedData);
-    console.log('🔍 MVP Debug - Halftime Event:', halftimeEvent);
-    console.log('🔍 MVP Debug - Final Event:', finalEvent);
+    clientLogger.debug('MVP calculation data analysis', {
+      component: 'GameSimulationUI',
+      matchId,
+      hasEnhancedMatchData: !!enhancedMatchData,
+      hasEnhancedData: !!enhancedData,
+      hasHalftimeEvent: !!halftimeEvent,
+      hasFinalEvent: !!finalEvent,
+      category: 'mvp_calculation'
+    });
 
     // Check enhanced match data for MVP data first (from the API endpoint)
     let mvpData = (enhancedMatchData as any)?.mvpData || null;
 
     if (finalEvent?.data?.mvp) {
       mvpData = finalEvent.data.mvp;
-      console.log('🎯 Using MVP data from final event:', mvpData);
+      clientLogger.debug('MVP data source: final event', {
+        component: 'GameSimulationUI',
+        matchId,
+        mvpPlayerCount: mvpData?.length || 0,
+        source: 'final_event'
+      });
     } else if (halftimeEvent?.data?.mvp) {
       mvpData = halftimeEvent.data.mvp;
-      console.log('🎯 Using MVP data from halftime event:', mvpData);
+      clientLogger.debug('MVP data source: halftime event', {
+        component: 'GameSimulationUI',
+        matchId,
+        mvpPlayerCount: mvpData?.length || 0,
+        source: 'halftime_event'
+      });
     } else if ((enhancedMatchData as any)?.mvpData) {
       mvpData = (enhancedMatchData as any).mvpData;
-      console.log('🎯 Using MVP data from enhanced match data:', mvpData);
+      clientLogger.debug('MVP data source: enhanced match data', {
+        component: 'GameSimulationUI',
+        matchId,
+        mvpPlayerCount: mvpData?.length || 0,
+        source: 'enhanced_match_data'
+      });
     } else if (enhancedData?.mvpPlayers) {
       mvpData = {
         homeMVP: { playerName: enhancedData.mvpPlayers.home, score: 100 },
         awayMVP: { playerName: enhancedData.mvpPlayers.away, score: 100 }
       };
-      console.log('🎯 Using MVP data from enhanced data mvpPlayers:', mvpData);
+      clientLogger.debug('MVP data source: enhanced data mvpPlayers', {
+        component: 'GameSimulationUI',
+        matchId,
+        mvpPlayerCount: mvpData?.length || 0,
+        source: 'enhanced_data_mvp_players'
+      });
     } else if ((enhancedData as any)?.mvpData) {
       mvpData = (enhancedData as any).mvpData;
-      console.log('🎯 Using MVP data from enhanced data mvpData:', mvpData);
+      clientLogger.debug('MVP data source: enhanced data mvpData', {
+        component: 'GameSimulationUI',
+        matchId,
+        mvpPlayerCount: mvpData?.length || 0,
+        source: 'enhanced_data_mvp_data'
+      });
     }
 
-    console.log('🔍 Final MVP Data being used:', mvpData);
+    clientLogger.info('MVP data finalized for display', {
+      component: 'GameSimulationUI',
+      matchId,
+      mvpPlayerCount: mvpData?.length || 0,
+      hasMvpData: !!mvpData
+    });
 
     // Get player stats from game events
     const getPlayerStats = (playerName: string) => {
@@ -469,10 +524,22 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   const getFieldPlayers = () => {
     // Helper function to get players from formation data
     const getFormationPlayers = (players: Player[], formation: any, teamName: string) => {
-      console.log(`🔍 Formation Debug - ${teamName}:`, { formation, players: players?.length });
+      clientLogger.debug(`Formation analysis for ${teamName}`, {
+        component: 'GameSimulationUI',
+        matchId,
+        teamName,
+        hasFormation: !!formation,
+        playerCount: players?.length || 0,
+        category: 'formation_debug'
+      });
       
       if (!formation || !formation.formationJson) {
-        console.log(`⚠️ No formation data for ${teamName}, using first 6 players`);
+        clientLogger.warn(`No formation data available for ${teamName}`, {
+          component: 'GameSimulationUI',
+          matchId,
+          teamName,
+          fallback: 'first_6_players'
+        });
         return players?.slice(0, 6) || [];
       }
 
@@ -481,29 +548,72 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
           ? JSON.parse(formation.formationJson) 
           : formation.formationJson;
 
-        console.log(`📋 Formation data parsed for ${teamName}:`, formationData);
+        clientLogger.debug(`Formation data parsed successfully for ${teamName}`, {
+          component: 'GameSimulationUI',
+          matchId,
+          teamName,
+          hasStarters: !!formationData?.starters,
+          starterCount: formationData?.starters?.length || 0
+        });
 
         if (formationData.starters && Array.isArray(formationData.starters)) {
-          console.log(`🎯 Using formation starters for ${teamName}:`, formationData.starters);
+          clientLogger.debug(`Using formation starters for ${teamName}`, {
+            component: 'GameSimulationUI',
+            matchId,
+            teamName,
+            starterIds: formationData.starters?.map(s => s.id) || []
+          });
           
           // Get players based on formation starters (formation data stores objects with id and role properties)
           const starterPlayers = formationData.starters.map((starter: any) => {
             const player = players?.find(p => p.id === starter.id);
-            console.log(`🔍 Looking for player ${starter.id} for ${teamName}:`, player ? `Found: ${player.firstName} ${player.lastName}` : 'Not found');
+            if (player) {
+              clientLogger.debug(`Player found for formation`, {
+                component: 'GameSimulationUI',
+                matchId,
+                teamName,
+                playerId: starter.id,
+                playerName: `${player.firstName} ${player.lastName}`
+              });
+            } else {
+              clientLogger.warn(`Player not found for formation`, {
+                component: 'GameSimulationUI',
+                matchId,
+                teamName,
+                playerId: starter.id
+              });
+            }
             return player;
           }).filter(Boolean);
           
-          console.log(`✅ Found ${starterPlayers.length} formation starters for ${teamName}`);
+          clientLogger.info(`Formation starters resolved for ${teamName}`, {
+            component: 'GameSimulationUI',
+            matchId,
+            teamName,
+            starterCount: starterPlayers.length,
+            expectedCount: formationData.starters?.length || 0
+          });
           
           // If we have starters, use them; otherwise fallback to first 6
           return starterPlayers.length > 0 ? starterPlayers : players?.slice(0, 6) || [];
         }
       } catch (error) {
-        console.error(`❌ Error parsing formation data for ${teamName}:`, error);
+        clientLogger.error(`Formation data parsing failed for ${teamName}`, error, {
+          component: 'GameSimulationUI',
+          matchId,
+          teamName,
+          fallback: 'first_6_players'
+        });
       }
       
       // Fallback to first 6 players
-      console.log(`⚠️ Using fallback first 6 players for ${teamName}`);
+      clientLogger.warn(`Using fallback players for ${teamName}`, {
+        component: 'GameSimulationUI',
+        matchId,
+        teamName,
+        playerCount: players?.length || 0,
+        fallbackCount: 6
+      });
       return players?.slice(0, 6) || [];
     };
 
@@ -575,8 +685,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
       {/* Post-Match Summary - Show when match is finished */}
-      {/*
-       // @ts-expect-error TS2367 */}
+      
       {liveState?.status === 'FINISHED' && (
         <div className="mb-6">
           <Card>
@@ -599,7 +708,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Scoreboard */}
+        {/* Scoreboard  */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -887,8 +996,7 @@ export function GameSimulationUI({ matchId, userId, team1, team2, initialLiveSta
                     </div>
                     <div className="flex-1">
                       <div className="text-sm">
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        
                         {event.description || event.text || "Match event"}
                       </div>
                       {event.type && (

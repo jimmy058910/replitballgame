@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Users, Heart, TrendingUp, Award, Info, Target, Activity, Eye, HelpCircle } from 'lucide-react';
 import PlayerDetailModal from './PlayerDetailModal';
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
 interface CamaraderieEffects {
   teamCamaraderie: number;
@@ -34,16 +35,7 @@ interface CamaraderieSummary {
   concernedPlayers: any[];
 }
 
-interface Player {
-  id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  camaraderieScore: number;
-  race: string;
-  age: number;
-  role: string;
-}
+
 
 // Helper function to get camaraderie color and status (updated to match new tier system)
 function getCamaraderieInfo(camaraderie: number): { color: string; status: string; emoji: string; bgColor: string } {

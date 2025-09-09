@@ -34,6 +34,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 // Direct imports for testing - bypassing lazy loading
 import Dashboard from "@/pages/Dashboard";
 import CompetitionCenter from "@/pages/CompetitionCenter";
+import type { Team } from '@shared/types/models';
+
 
 // New 5-Hub Architecture Components with error handling - Dashboard routes to DramaticTeamHQ
 const LazyDashboard = lazy(() => import("@/pages/Dashboard").catch(() => ({ default: () => <div>Loading Team HQ...</div> })));

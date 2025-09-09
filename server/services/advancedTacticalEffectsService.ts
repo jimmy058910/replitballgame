@@ -1,4 +1,6 @@
 import { getPrismaClient } from '../database.js';
+import type { Team } from '@shared/types/models';
+
 
 export class AdvancedTacticalEffectsService {
 
@@ -128,18 +130,18 @@ export class AdvancedTacticalEffectsService {
     switch (gameSituation) {
       case 'winning_big':
         // Protect the lead - conservative play
-        modifiedEffects.offensiveAggressiveness *= 0.6;
+        modifiedEffects?.offensiveAggressiveness *= 0.6;
         modifiedEffects.passRiskTolerance *= 0.4;
         modifiedEffects.runningDepth *= 0.7;
-        modifiedEffects.defensivePositioning *= 1.2;
+        modifiedEffects?.defensivePositioning *= 1.2;
         break;
 
       case 'losing_big':
         // Desperate measures - all-out attack mode
-        modifiedEffects.offensiveAggressiveness *= 1.8;
+        modifiedEffects?.offensiveAggressiveness *= 1.8;
         modifiedEffects.passRiskTolerance *= 2.0;
         modifiedEffects.runningDepth *= 1.5;
-        modifiedEffects.defensiveVulnerability *= 1.8;
+        modifiedEffects?.defensiveVulnerability *= 1.8;
         break;
 
       case 'late_close':
@@ -199,7 +201,7 @@ export class AdvancedTacticalEffectsService {
     const fieldEffects = (this.FIELD_SIZE_EFFECTS as any)[fieldSize];
 
     // Get tactical focus effects
-    const tacticalFocus = team.tacticalFocus || 'Balanced';
+    const tacticalFocus = team?.tacticalFocus || 'Balanced';
     const baseTacticalEffects = (this.TACTICAL_FOCUS_EFFECTS as any)[tacticalFocus];
 
     // Get head coach tactics rating
@@ -380,7 +382,7 @@ export class AdvancedTacticalEffectsService {
     });
 
     const fieldSize = team.homeField || 'STANDARD';
-    const tacticalFocus = team.tacticalFocus || 'Balanced';
+    const tacticalFocus = team?.tacticalFocus || 'Balanced';
 
     return {
       fieldSize,

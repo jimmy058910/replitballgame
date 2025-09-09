@@ -13,6 +13,8 @@ const router = Router();
 
 // Import timezone utilities for current cycle calculation
 import { getServerTimeInfo, EASTERN_TIMEZONE, getEasternTimeAsDate } from "../../shared/timezone.js";
+import type { Player, Team, Contract } from '@shared/types/models';
+
 
 // Zod Schemas for validation
 const playoffStartSchema = z.object({
@@ -56,7 +58,7 @@ router.get('/current', requireAuth, async (req: Request, res: Response, next: Ne
 // DEBUG: Test route to verify routing works
 router.get('/debug-test', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   console.log('🔍 [DEBUG] Debug test route called!');
-  res.json({ success: true, message: 'Debug test route working', timestamp: new Date().toISOString() });
+  res.json({ success: true, message: 'Debug test route working', timestamp: new Date() });
 });
 
 // Get current season cycle (day-by-day info)
@@ -68,7 +70,7 @@ router.get('/current-week', requireAuth, async (req: Request, res: Response, nex
     let season = "Season 0";
     
     if (currentSeason) {
-      week = Math.ceil((currentSeason.currentDay || 1) / 7) || 1; // Simple week calculation
+      week = Math.ceil((currentSeason?.currentDay || 1) / 7) || 1; // Simple week calculation
       season = `Season ${currentSeason.seasonNumber || 0}`;
     }
     
@@ -96,8 +98,8 @@ router.get('/current-cycle', requireAuth, async (req: Request, res: Response, ne
     console.log('🔍 [current-cycle] Type of currentDay:', typeof currentSeason?.currentDay);
     console.log('🔍 [current-cycle] Value of currentDay:', currentSeason?.currentDay);
     
-    if (currentSeason && typeof currentSeason.currentDay === 'number') {
-      currentDayInCycle = currentSeason.currentDay;
+    if (currentSeason && typeof currentSeason?.currentDay === 'number') {
+      currentDayInCycle = currentSeason?.currentDay;
       seasonNumber = currentSeason.seasonNumber || 0;
       console.log('✅ [current-cycle] Using database value:', { currentDayInCycle, seasonNumber });
     } else {
@@ -190,7 +192,7 @@ router.get('/current-cycle', requireAuth, async (req: Request, res: Response, ne
       details: dynamicDetail,
       // DEBUG MARKER to confirm this endpoint is being called
       debugSource: "seasonRoutes.ts-current-cycle",
-      debugTimestamp: new Date().toISOString()
+      debugTimestamp: new Date()
     });
   } catch (error) {
     console.error("Error fetching current season cycle:", error);
@@ -430,7 +432,7 @@ router.post('/daily-progression', requireAuth, async (req: Request, res: Respons
     
     // Process each player for daily progression
     for (const player of players) {
-      result.playersProcessed++;
+      result?.playersProcessed++;
       
       // Simulate daily progression chance (1% + age modifier)
       const ageModifier = player.age <= 22 ? 0.02 : player.age >= 29 ? -0.01 : 0;

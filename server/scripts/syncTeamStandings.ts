@@ -6,6 +6,8 @@
  */
 
 import { getPrismaClient } from '../database.js';
+import type { Team } from '@shared/types/models';
+
 
 interface TeamStanding {
   teamId: number;

@@ -45,6 +45,8 @@ import {
   Info
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import type { Team, League } from '@shared/types/models';
+
 
 interface InventoryItem {
   id: string;

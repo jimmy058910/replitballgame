@@ -363,3 +363,6 @@ export const databaseInfo = {
   isDevelopment: nodeEnv !== 'production',
   isProduction: nodeEnv === 'production'
 };
+
+// Export optimized DatabaseService for use throughout the application
+export { DatabaseService } from './database/DatabaseService.js';

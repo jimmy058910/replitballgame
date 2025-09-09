@@ -23,6 +23,8 @@ import FinancialCenter from "@/components/FinancialCenter";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
 import StadiumOverview from "@/components/StadiumOverview";
 import StadiumAtmosphereManager from "@/components/StadiumAtmosphereManager";
+import type { Player, Stadium, Team, StoreItem } from '@shared/types/models';
+
 import { 
   Store, 
   Users, 
@@ -82,10 +84,8 @@ interface GemPackage {
   name: string;
   price: number; // USD price
   gems: number;
-  bonus?: number; // bonus gems
-  // @ts-expect-error TS2687
-  popular?: boolean;
-  // @ts-expect-error TS2687
+  bonus?: number; // bonus gems
+  popular?: boolean;
   description?: string;
 }
 
@@ -130,14 +130,12 @@ interface ContractData {
 
 interface GemPackage {
   id: string;
-  name: string;
-  // @ts-expect-error TS2687
+  name: string;
   description: string;
   gems: number;
   bonus?: number;
   price: number;
-  currency: string;
-  // @ts-expect-error TS2687
+  currency: string;
   popular: boolean;
 }
 
@@ -204,8 +202,7 @@ export default function MarketDistrict() {
   }, [location]);
 
   // Get team and financial data
-  const { data: team } = useQuery({
-    queryKey: ['/api/teams/my'],
+  const { data: team } = useQuery<Team>({ queryKey: ["/api/teams/my"],
     queryFn: () => apiRequest('/api/teams/my'),
     enabled: isAuthenticated,
   });

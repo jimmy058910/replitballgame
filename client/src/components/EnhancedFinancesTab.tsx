@@ -58,6 +58,8 @@ import {
   User
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import type { Player, Staff, Contract, Team } from '@shared/types/models';
+
 
 interface FinancialData {
   credits: number;
@@ -85,18 +87,35 @@ interface FinancialData {
   };
 }
 
-interface Contract {
-  id: string;
-  playerName?: string;
-  staffName?: string;
-  role: string;
-  annualSalary: number;
-  yearsRemaining: number;
-  totalCommitment: number;
-  type: 'player' | 'staff';
-}
+// Contract interface removed - using imported type
 
 // Transaction interface removed - PaymentHistory has its own transaction types
+
+// API Response type guards following 2025 TypeScript best practices
+interface ContractsApiResponse {
+  players?: Array<{
+    id: string | number;
+    firstName: string;
+    lastName: string;
+    role: string;
+    salary: number;
+    contractLength?: number;
+    contractId?: string | number;
+    playerId?: string | number;
+  }>;
+  staff?: Array<{
+    id: string | number;
+    firstName: string;
+    lastName: string;
+    type: string;
+    salary: number;
+  }>;
+}
+
+// Type guard for contracts API response
+function isContractsApiResponse(data: unknown): data is ContractsApiResponse {
+  return typeof data === 'object' && data !== null;
+}
 
 interface EnhancedFinancesTabProps {
   teamId: string;
@@ -111,8 +130,7 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
   const [isTransactionDetailOpen, setIsTransactionDetailOpen] = useState(false);
 
   // Get team data from the Market District's team query (should already be loaded)
-  const { data: teamFromMarket } = useQuery({
-    queryKey: ['/api/teams/my'],
+  const { data: teamFromMarket } = useQuery<Team>({ queryKey: ["/api/teams/my"],
     enabled: false // Don't fetch again, should use cached data
   });
 
@@ -238,17 +256,22 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
     }
   };
 
-  // Map contracts data from the API response
-  // @ts-expect-error TS2339
-  const contractsList: Contract[] = contractsData?.players ? contractsData.players.map((player: any) => ({
-    id: player.id?.toString() || 'unknown',
-    playerName: `${player.firstName} ${player.lastName}`,
-    staffName: undefined,
-    role: player.role,
-    annualSalary: player.salary || 0,
+  // Map contracts data from the API response
+  // Use type guard to safely access API data
+  const typedContractsData = isContractsApiResponse(contractsData) ? contractsData : null;
+  const contractsList: Contract[] = typedContractsData?.players ? typedContractsData.players.map((player) => ({
+    id: Number(player.contractId || player.id || 0),
+    playerId: Number(player.playerId || player.id || 0),
+    salary: player.salary || 0,
+    length: player.contractLength || 0,
     yearsRemaining: player.contractLength || 0,
-    totalCommitment: (player.salary || 0) * (player.contractLength || 0),
-    type: 'player' as const
+    signedAt: new Date().toISOString(),
+    player: {
+      id: Number(player.id || 0),
+      firstName: player.firstName,
+      lastName: player.lastName,
+      role: player.role,
+    } as Player
   })) : [];
   const transactionsList = rawTransactions
     .filter((t: any) => {
@@ -573,18 +596,14 @@ export function EnhancedFinancesTab({ teamId }: EnhancedFinancesTabProps) {
                     <TableRow key={contract.id} className="border-gray-700 hover:bg-gray-700/50">
                       <TableCell className="text-white">
                         <div className="flex items-center gap-2">
-                          {contract.type === 'player' ? (
-                            <User className="w-4 h-4 text-blue-400" />
-                          ) : (
-                            <Users className="w-4 h-4 text-green-400" />
-                          )}
-                          {contract.playerName || contract.staffName}
+                          <User className="w-4 h-4 text-blue-400" />
+                          {contract.player ? `${contract.player.firstName} ${contract.player.lastName}` : 'Unknown Player'}
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-300">{contract.role}</TableCell>
-                      <TableCell className="text-green-400">{formatCurrency(contract.annualSalary)}</TableCell>
+                      <TableCell className="text-gray-300">{contract.player?.role || 'N/A'}</TableCell>
+                      <TableCell className="text-green-400">{formatCurrency(contract.salary)}</TableCell>
                       <TableCell className="text-gray-300">{contract.yearsRemaining} years</TableCell>
-                      <TableCell className="text-yellow-400">{formatCurrency(contract.totalCommitment)}</TableCell>
+                      <TableCell className="text-yellow-400">{formatCurrency(contract.salary * contract.yearsRemaining)}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="ghost" className="text-blue-400 hover:text-blue-300">
                           <Eye className="w-4 h-4" />

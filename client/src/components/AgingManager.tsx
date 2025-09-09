@@ -8,6 +8,8 @@ import { Clock, Users, TrendingDown, Calendar, AlertTriangle, Info } from 'lucid
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { StatHelpIcon } from './help/StatHelpIcon';
+import type { Player, League } from '@shared/types/models';
+
 
 interface AgingStats {
   averageAge: number;
@@ -42,7 +44,7 @@ interface DeclineCalculation {
 interface PlayerAgingData {
   player: {
     id: string;
-    name: string;
+    firstName: string; lastName: string;
     age: number;
     careerInjuries: number;
     gamesPlayedLastSeason: number;
@@ -273,7 +275,7 @@ export default function AgingManager() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-4 p-4 border rounded-md">
                     <div>
-                      <h3 className="font-semibold">{playerAging.player.name}</h3>
+                      <h3 className="font-semibold">{`${playerAging.player.firstName} ${playerAging.player.lastName}`}</h3>
                       <p className="text-sm text-muted-foreground">
                         Age {playerAging.player.age} • {playerAging.player.careerInjuries} injuries • 
                         {playerAging.player.gamesPlayedLastSeason} games last season
@@ -404,7 +406,7 @@ export default function AgingManager() {
                       <div className="space-y-2">
                         {(processSeasonAging.data as any).retiredPlayers.map((player: any, index: number) => (
                           <div key={index} className="flex justify-between items-center p-2 border rounded">
-                            <span>{player.name}</span>
+                            <span>{`${player.firstName} ${player.lastName}`}</span>
                             <Badge variant="destructive">Retired</Badge>
                           </div>
                         ))}
@@ -418,7 +420,7 @@ export default function AgingManager() {
                       <div className="space-y-2">
                         {(processSeasonAging.data as any).declinedPlayers.map((player: any, index: number) => (
                           <div key={index} className="flex justify-between items-center p-2 border rounded">
-                            <span>{player.name}</span>
+                            <span>{`${player.firstName} ${player.lastName}`}</span>
                             <Badge variant="secondary">Declined</Badge>
                           </div>
                         ))}

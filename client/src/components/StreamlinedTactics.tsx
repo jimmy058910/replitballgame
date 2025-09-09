@@ -7,6 +7,8 @@ import { Progress } from "./ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { Sword, AlertTriangle, Save, RotateCcw, Target, Shield, Zap } from "lucide-react";
+import type { Team } from '@shared/types/models';
+
 
 interface StreamlinedTacticsProps {
   teamId: string;
@@ -60,8 +62,8 @@ export default function StreamlinedTactics({ teamId }: StreamlinedTacticsProps) 
   // Initialize state from API data
   useEffect(() => {
     if (tacticalData) {
-      setSelectedFieldSize(tacticalData.fieldSize);
-      setSelectedTacticalFocus(tacticalData.tacticalFocus);
+      setSelectedFieldSize(tacticalData?.fieldSize);
+      setSelectedTacticalFocus(tacticalData?.tacticalFocus);
     }
   }, [tacticalData]);
 
@@ -114,8 +116,8 @@ export default function StreamlinedTactics({ teamId }: StreamlinedTacticsProps) 
 
   const handleReset = () => {
     if (tacticalData) {
-      setSelectedFieldSize(tacticalData.fieldSize);
-      setSelectedTacticalFocus(tacticalData.tacticalFocus);
+      setSelectedFieldSize(tacticalData?.fieldSize);
+      setSelectedTacticalFocus(tacticalData?.tacticalFocus);
     }
   };
 

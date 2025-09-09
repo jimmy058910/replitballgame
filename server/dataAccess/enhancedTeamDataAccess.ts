@@ -237,8 +237,8 @@ export class EnhancedTeamDataAccess {
           include: QueryHelpers.getTeamIncludes(options)
         });
 
-        if (team?.finances) {
-          team.finances = QueryHelpers.serializeFinances(team.finances);
+        if (team?.TeamFinance) {
+          team?.TeamFinance = QueryHelpers.serializeFinances(team?.TeamFinance);
         }
 
         return team;
@@ -271,8 +271,8 @@ export class EnhancedTeamDataAccess {
           include: QueryHelpers.getTeamIncludes(options)
         });
 
-        if (team?.finances) {
-          team.finances = QueryHelpers.serializeFinances(team.finances);
+        if (team?.TeamFinance) {
+          team?.TeamFinance = QueryHelpers.serializeFinances(team?.TeamFinance);
         }
 
         return team;
@@ -363,7 +363,7 @@ export class EnhancedTeamDataAccess {
       await tx.teamFinances.create({
         data: {
           teamId: team.id,
-          credits: BigInt(50000),
+          credits: Number(50000),
           gems: 0
         }
       });
@@ -374,7 +374,7 @@ export class EnhancedTeamDataAccess {
           teamId: team.id,
           name: `${teamData.name} Arena`,
           capacity: 1000,
-          ticketPrice: BigInt(10),
+          ticketPrice: Number(10),
           facilitiesLevel: 1
         }
       });
@@ -706,10 +706,10 @@ export class EnhancedTeamDataAccess {
         if (stadium) {
           return {
             ...stadium,
-            ticketPrice: stadium.ticketPrice.toString(),
-            concessionPrice: stadium.concessionPrice?.toString() || '5',
-            parkingPrice: stadium.parkingPrice?.toString() || '3',
-            vipSuitePrice: stadium.vipSuitePrice?.toString() || '100'
+            ticketPrice: (15 + stadium.lightingScreensLevel * 5).toString(),
+            concessionPrice: (5 + stadium.concessionsLevel * 2).toString(),
+            parkingPrice: (3 + stadium.parkingLevel * 1).toString(),
+            vipSuitePrice: (100 + stadium.vipSuitesLevel * 25).toString()
           } as any;
         }
 

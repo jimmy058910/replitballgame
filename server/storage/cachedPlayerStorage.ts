@@ -5,7 +5,8 @@
 
 import { storage } from './index.js';
 import { memoryCache } from '../utils/memoryCache';
-import type { Player } from "../db";
+import type { Player } from '@shared/types/models';
+
 
 export class CachedPlayerStorage {
   private readonly PLAYERS_TTL = 8 * 60 * 1000; // 8 minutes (changes during training/games)
@@ -14,12 +15,12 @@ export class CachedPlayerStorage {
   /**
    * Get players by team with caching
    */
-  async getPlayersByTeam(teamId: number): Promise<Player[]> {
+  async getPlayersByTeamId(teamId: number): Promise<Player[]> {
     const cacheKey = `players:team:${teamId}`;
     
     return await memoryCache.getOrSet(
       cacheKey,
-      () => storage.players.getPlayersByTeamId(teamId),
+      () => storage?.players.getPlayersByTeamId(teamId),
       this.PLAYERS_TTL
     );
   }
@@ -32,7 +33,7 @@ export class CachedPlayerStorage {
     
     return await memoryCache.getOrSet(
       cacheKey,
-      () => storage.players.getPlayerById(playerId),
+      () => storage?.players.getPlayerById(playerId),
       this.PLAYER_TTL
     );
   }
@@ -41,7 +42,7 @@ export class CachedPlayerStorage {
    * Update player and invalidate cache
    */
   async updatePlayer(playerId: number, updateData: any): Promise<Player> {
-    const player = await storage.players.updatePlayer(playerId, updateData);
+    const player = await storage?.players.updatePlayer(playerId, updateData);
     
     if (!player) {
       throw new Error(`Player with ID ${playerId} not found`);

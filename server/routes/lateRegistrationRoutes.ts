@@ -8,6 +8,8 @@ import { Router } from 'express';
 import { LateRegistrationSystem } from '../services/lateRegistrationSystem.js';
 import { DailyAutomationService } from '../services/dailyAutomationService.js';
 import { requireAuth } from '../middleware/firebaseAuth.js';
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 

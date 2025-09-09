@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getPrismaClient } from "../database.js";
 import { calculateGameRevenue, calculateAttendance } from '../../shared/stadiumSystem.js';
+import type { Stadium } from '@shared/types/models';
+
 // LiveMatchState type import removed - not needed for this endpoint
 
 const router = Router();
@@ -113,7 +115,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
     }
 
     // Calculate team averages for enhanced stats
-    const homePlayerAvg = match.homeTeam.players.reduce((acc: any, p: any) => {
+    const homePlayerAvg = match.homeTeam?.players.reduce((acc: any, p: any) => {
       return {
         speed: acc.speed + p.speed,
         power: acc.power + p.power,
@@ -124,7 +126,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
       };
     }, { speed: 0, power: 0, throwing: 0, catching: 0, stamina: 0, count: 0 });
 
-    const awayPlayerAvg = match.awayTeam.players.reduce((acc: any, p: any) => {
+    const awayPlayerAvg = match.awayTeam?.players.reduce((acc: any, p: any) => {
       return {
         speed: acc.speed + p.speed,
         power: acc.power + p.power,
@@ -161,7 +163,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
       homeTeamStrength: Math.round(homeStrength),
       awayTeamStrength: Math.round(awayStrength),
       mvpPlayers: {
-        home: match.homeTeam.players
+        home: match.homeTeam?.players
           .slice(0, 3)
           .map((p: any) => ({
             id: p.id,
@@ -170,7 +172,7 @@ router.get('/matches/:matchId/enhanced-data', async (req, res) => {
             power: Math.round((p.speed + p.power + p.throwing + p.catching) / 4),
             stamina: p.dailyStaminaLevel
           })),
-        away: match.awayTeam.players
+        away: match.awayTeam?.players
           .slice(0, 3)
           .map((p: any) => ({
             id: p.id,

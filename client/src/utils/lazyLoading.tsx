@@ -5,6 +5,8 @@
 import { lazy, Suspense, ComponentType } from 'react';
 import { Loader2 } from 'lucide-react';
 import React from 'react';
+import type { Team } from '@shared/types/models';
+
 
 /**
  * Loading component for lazy-loaded routes

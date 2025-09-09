@@ -28,7 +28,7 @@ import { leagueStorage } from '../storage/leagueStorage.js';
 import { matchStorage } from '../storage/matchStorage.js';
 import { seasonStorage } from '../storage/seasonStorage.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
-import { getPrismaClient } from "../database.js";
+import { DatabaseService } from "../database/DatabaseService.js";
 import { dynamicSeasonService } from '../services/dynamicSeasonService.js';
 import { 
   LeagueManagementService, 
@@ -51,6 +51,8 @@ import {
 import { generateRandomPlayer } from '../services/leagueService.js';
 import { generateRandomName } from "../../shared/names.js";
 import gameConfig from "../config/game_config.json" with { type: "json" };
+import type { Team, League } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -90,7 +92,7 @@ async function getUserTeamOrDefault(req: any): Promise<any> {
   }
   
   // Return default team for public access (Oakland Cougars in Division 7 Alpha)
-  const prisma = await getPrismaClient();
+  const prisma = await DatabaseService.getInstance();
   const defaultTeam = await prisma.team.findFirst({
     where: { 
       division: 7,
@@ -104,7 +106,7 @@ async function getUserTeamOrDefault(req: any): Promise<any> {
 /**
  * BigInt serialization helper for financial data
  */
-function serializeBigInt(obj: any): any {
+function serializeNumber(obj: any): any {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -114,13 +116,13 @@ function serializeBigInt(obj: any): any {
   }
   
   if (Array.isArray(obj)) {
-    return obj.map(serializeBigInt);
+    return obj.map(serializeNumber);
   }
   
   if (typeof obj === 'object') {
     const result: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      result[key] = serializeBigInt(value);
+      result[key] = serializeNumber(value);
     }
     return result;
   }
@@ -134,8 +136,8 @@ function serializeBigInt(obj: any): any {
 function getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; seasonNumber: number } {
   let currentDayInCycle = 5; // Default fallback
   
-  if (currentSeason && typeof currentSeason.currentDay === 'number') {
-    currentDayInCycle = currentSeason.currentDay;
+  if (currentSeason && typeof currentSeason?.currentDay === 'number') {
+    currentDayInCycle = currentSeason?.currentDay;
   } else if (currentSeason && typeof currentSeason.dayInCycle === 'number') {
     currentDayInCycle = currentSeason.dayInCycle;
   } else if (currentSeason && typeof currentSeason.day_in_cycle === 'number') {
@@ -175,7 +177,7 @@ function calculateTeamPower(players: any[]): number {
       player.agility || 0
     ];
     
-    const overallRating = attributes.reduce((sum, val) => sum + val, 0) / attributes.length;
+    const overallRating = attributes.reduce((sum: any, val: any) => sum + val, 0) / attributes.length;
     return total + overallRating;
   }, 0);
 }
@@ -228,7 +230,7 @@ router.get('/:division/standings', async (req: Request, res: Response, next: Nex
       });
     }
 
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get current season for context
     const currentSeason = await seasonStorage.getCurrentSeason();
@@ -303,9 +305,9 @@ router.get('/:division/standings', async (req: Request, res: Response, next: Nex
         });
 
         // Calculate team power and player stats
-        const teamPower = calculateTeamPower(team.players);
-        const avgPlayerRating = team.players.length > 0 
-          ? teamPower / team.players.length 
+        const teamPower = calculateTeamPower(team?.players);
+        const avgPlayerRating = team?.players.length > 0 
+          ? teamPower / team?.players.length 
           : 0;
 
         // Calculate form (recent 5 games)
@@ -336,9 +338,9 @@ router.get('/:division/standings', async (req: Request, res: Response, next: Nex
           credits: team.credits?.toString() || "0",
           teamPower,
           avgPlayerRating: Math.round(avgPlayerRating),
-          playerCount: team.players.length,
+          playerCount: team?.players.length,
           form,
-          lastUpdated: new Date().toISOString()
+          updatedAt: new Date()
         };
       } catch (teamError) {
         console.warn(`⚠️ Error processing team ${team.id}:`, teamError);
@@ -361,7 +363,7 @@ router.get('/:division/standings', async (req: Request, res: Response, next: Nex
           avgPlayerRating: 0,
           playerCount: 0,
           form: '',
-          lastUpdated: new Date().toISOString()
+          updatedAt: new Date()
         };
       }
     }));
@@ -383,7 +385,7 @@ router.get('/:division/standings', async (req: Request, res: Response, next: Nex
       standings: sortedStandings,
       meta: {
         totalTeams: sortedStandings.length,
-        lastUpdated: new Date().toISOString(),
+        updatedAt: new Date(),
         apiVersion: '1.0'
       }
     });
@@ -414,10 +416,10 @@ router.get('/teams/:division', requireAuth, async (req: Request, res: Response, 
     res.json({
       success: true,
       division,
-      teams: serializeBigInt(teams),
+      teams: serializeNumber(teams),
       meta: {
         totalTeams: teams.length,
-        lastUpdated: new Date().toISOString()
+        updatedAt: new Date()
       }
     });
   } catch (error) {
@@ -441,7 +443,7 @@ router.post('/create-ai-teams', requireAuth, async (req: Request, res: Response,
     }
 
     const createdTeams = [];
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
 
     for (let i = 0; i < count; i++) {
       // Generate AI team
@@ -452,7 +454,7 @@ router.post('/create-ai-teams', requireAuth, async (req: Request, res: Response,
           name: teamName,
           division: parseInt(division),
           subdivision: subdivision.toLowerCase(),
-          credits: BigInt(gameConfig.team.startingCredits),
+          credits: Number(gameConfig.team.startingCredits),
           isAIControlled: true,
           wins: 0,
           losses: 0,
@@ -469,7 +471,7 @@ router.post('/create-ai-teams', requireAuth, async (req: Request, res: Response,
           data: {
             ...player,
             teamId: newTeam.id,
-            salary: BigInt(player.salary)
+            salary: Number(player.salary)
           }
         });
         players.push(newPlayer);
@@ -559,7 +561,7 @@ router.get('/daily-schedule', async (req: Request, res: Response, next: NextFunc
     const userTeam = await getUserTeamOrDefault(req);
     console.log(`📅 Fetching daily schedule for team: ${userTeam.name} (Division ${userTeam.division})`);
 
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await seasonStorage.getCurrentSeason();
     const seasonInfo = getCurrentSeasonInfo(currentSeason);
 
@@ -653,13 +655,13 @@ router.get('/daily-schedule', async (req: Request, res: Response, next: NextFunc
     res.json({
       schedule: scheduleByDay,  // This is what frontend expects at top level
       totalDays: 17,
-      currentDay: seasonInfo.currentDayInCycle,
+      currentDay: seasonInfo?.currentDayInCycle,
       seasonStartDate: startDate.toISOString(), // Add season start date for real-life date calculations
       organizedByDay: scheduleByDay,
       message: `Retrieved ${games.length} games`,
       // Additional data for compatibility
       success: true,
-      userTeam: serializeBigInt(userTeam),
+      userTeam: serializeNumber(userTeam),
       gamesRemaining
     });
 
@@ -680,7 +682,7 @@ router.get('/:division/schedule', requireAuth, async (req: Request, res: Respons
       return res.status(400).json({ error: "Invalid division number" });
     }
 
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await seasonStorage.getCurrentSeason();
 
     // Get schedule for division
@@ -740,7 +742,7 @@ router.get('/matches/recent', requireAuth, async (req: any, res, next) => {
     const userTeam = await getUserTeam(req);
     console.log(`🔍 Fetching league matches for team ${userTeam.id} (${userTeam.name})`);
 
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
 
     // Get all matches for this team (both home and away)
     const allMatches = await prisma.game.findMany({
@@ -861,7 +863,7 @@ router.post('/management/regenerate', adminRateLimit, async (req: Request, res: 
       data: {
         ...result,
         requestId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
       },
       meta: {
         apiVersion: '1.0',
@@ -907,7 +909,7 @@ router.post('/management/regenerate', adminRateLimit, async (req: Request, res: 
       success: false,
       error: 'Internal server error during league regeneration',
       requestId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
   }
 });
@@ -940,7 +942,7 @@ router.get('/management/standings/:division/:subdivision', requireAuth, async (r
       meta: {
         requestId,
         apiVersion: '1.0',
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         cacheExpiry: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes
       }
     });
@@ -978,7 +980,7 @@ router.post('/management/recalculate-statistics/:teamId', adminRateLimit, requir
       data: {
         teamId,
         statistics,
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
       },
       meta: {
         requestId,
@@ -1020,15 +1022,15 @@ router.post('/management/recalculate-statistics/:teamId', adminRateLimit, requir
  */
 router.get('/management/system-health', adminRateLimit, requireAuth, async (req: Request, res: Response) => {
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Check database connectivity
     const dbHealth = await prisma.$queryRaw`SELECT 1 as health`;
     
     // Check key metrics
     const [totalTeams, totalGames, completedGames] = await Promise.all([
-      prisma.team.count(),
-      prisma.game.count({ where: { matchType: 'LEAGUE' } }),
+      await prisma.team.count(),
+      await prisma.game.count({ where: { matchType: 'LEAGUE' } }),
       prisma.game.count({ where: { matchType: 'LEAGUE', status: 'COMPLETED' } })
     ]);
     
@@ -1036,7 +1038,7 @@ router.get('/management/system-health', adminRateLimit, requireAuth, async (req:
       database: {
         status: 'healthy',
         connectionActive: !!dbHealth,
-        lastChecked: new Date().toISOString()
+        lastChecked: new Date()
       },
       league: {
         totalTeams,
@@ -1047,7 +1049,7 @@ router.get('/management/system-health', adminRateLimit, requireAuth, async (req:
       system: {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
       }
     };
     
@@ -1057,7 +1059,7 @@ router.get('/management/system-health', adminRateLimit, requireAuth, async (req:
       data: healthMetrics,
       meta: {
         apiVersion: '1.0',
-        checkTime: new Date().toISOString()
+        checkTime: new Date()
       }
     });
     
@@ -1068,7 +1070,7 @@ router.get('/management/system-health', adminRateLimit, requireAuth, async (req:
       success: false,
       status: 'unhealthy',
       error: 'System health check failed',
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
   }
 });
@@ -1083,7 +1085,7 @@ router.get('/management/system-health', adminRateLimit, requireAuth, async (req:
  */
 router.get('/debug-games-status', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await seasonStorage.getCurrentSeason();
     
     // Get game status counts
@@ -1114,11 +1116,11 @@ router.get('/debug-games-status', requireAuth, async (req: Request, res: Respons
     
     res.json({
       success: true,
-      currentSeason: serializeBigInt(currentSeason),
+      currentSeason: serializeNumber(currentSeason),
       gameStatusCounts,
       recentGames,
       meta: {
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
       }
     });
     
@@ -1136,7 +1138,7 @@ router.get('/emergency-reset-division-7-alpha', async (req: Request, res: Respon
   try {
     console.log('🚨 EMERGENCY RESET: Division 7 Alpha comprehensive reset starting...');
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get current season
     const currentSeason = await prisma.season.findFirst({
@@ -1289,7 +1291,7 @@ router.get('/emergency-debug-division-7-alpha', async (req: Request, res: Respon
   try {
     console.log('🔍 EMERGENCY DEBUG: Division 7 Alpha schedule investigation starting...');
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get current season
     const currentSeason = await prisma.season.findFirst({
@@ -1340,7 +1342,7 @@ router.get('/emergency-debug-division-7-alpha', async (req: Request, res: Respon
       success: true,
       message: 'Division 7 Alpha debug analysis complete',
       data: {
-        currentSeason: serializeBigInt(currentSeason),
+        currentSeason: serializeNumber(currentSeason),
         teams: teamGameCounts,
         schedules: schedules.length,
         totalGames: allGames.length,
@@ -1368,7 +1370,7 @@ router.post('/fix-team-players/:teamId', requireAuth, async (req: Request, res: 
       return res.status(400).json({ error: 'Invalid team ID' });
     }
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Check if team exists
     const team = await prisma.team.findUnique({
@@ -1380,9 +1382,9 @@ router.post('/fix-team-players/:teamId', requireAuth, async (req: Request, res: 
       return res.status(404).json({ error: 'Team not found' });
     }
     
-    console.log(`🔧 Fixing players for team: ${team.name} (current: ${team.players.length} players)`);
+    console.log(`🔧 Fixing players for team: ${team.name} (current: ${team?.players.length} players)`);
     
-    const playersNeeded = 6 - team.players.length;
+    const playersNeeded = 6 - team?.players.length;
     
     if (playersNeeded <= 0) {
       return res.json({
@@ -1390,7 +1392,7 @@ router.post('/fix-team-players/:teamId', requireAuth, async (req: Request, res: 
         message: 'Team already has sufficient players',
         data: {
           teamName: team.name,
-          currentPlayers: team.players.length
+          currentPlayers: team?.players.length
         }
       });
     }
@@ -1403,7 +1405,7 @@ router.post('/fix-team-players/:teamId', requireAuth, async (req: Request, res: 
         data: {
           ...player,
           teamId: teamId,
-          salary: BigInt(player.salary)
+          salary: Number(player.salary)
         }
       });
       newPlayers.push(newPlayer);
@@ -1418,7 +1420,7 @@ router.post('/fix-team-players/:teamId', requireAuth, async (req: Request, res: 
         teamId,
         teamName: team.name,
         playersAdded: newPlayers.length,
-        totalPlayers: team.players.length + newPlayers.length
+        totalPlayers: team?.players.length + newPlayers.length
       }
     });
     
@@ -1439,7 +1441,7 @@ router.post('/fix-team-contracts/:teamId', requireAuth, async (req: Request, res
       return res.status(400).json({ error: 'Invalid team ID' });
     }
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get team with players
     const team = await prisma.team.findUnique({
@@ -1454,12 +1456,12 @@ router.post('/fix-team-contracts/:teamId', requireAuth, async (req: Request, res
     console.log(`💰 Fixing contracts for team: ${team.name}`);
     
     // Calculate total salary
-    const totalSalary = team.players.reduce((sum: any, player: any) => 
-      sum + (player.salary || BigInt(0)), BigInt(0)
+    const totalSalary = team?.players.reduce((sum: any, player: any) => 
+      sum + (player.salary || Number(0)), Number(0)
     );
     
     // Update team finances if needed
-    const minCredits = BigInt(1000000); // 1M minimum
+    const minCredits = Number(1000000); // 1M minimum
     const updatedCredits = team.credits < minCredits ? minCredits : team.credits;
     
     if (team.credits < minCredits) {
@@ -1477,7 +1479,7 @@ router.post('/fix-team-contracts/:teamId', requireAuth, async (req: Request, res
         teamName: team.name,
         totalSalary: totalSalary.toString(),
         credits: updatedCredits.toString(),
-        playerCount: team.players.length
+        playerCount: team?.players.length
       }
     });
     
@@ -1499,7 +1501,7 @@ router.post('/dev-setup-test-user', async (req: Request, res: Response, next: Ne
   try {
     console.log('🔧 DEV: Setting up test user for Oakland Cougars...');
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find Oakland Cougars team
     const oaklandCougars = await prisma.team.findFirst({
@@ -1570,7 +1572,7 @@ router.post('/generate-schedule', requireAuth, async (req: Request, res: Respons
     
     console.log(`🏗️ Generating ${scheduleType} schedule for Division ${division}-${subdivision} with ${teams.length} teams`);
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await seasonStorage.getCurrentSeason();
     
     if (!currentSeason) {
@@ -1663,7 +1665,7 @@ router.post('/clear-and-regenerate', requireAuth, async (req: Request, res: Resp
     
     console.log(`🔄 Clearing and regenerating Division ${division}-${subdivision}, preserveTeams: ${preserveTeams}`);
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await seasonStorage.getCurrentSeason();
     
     // Get teams in the division/subdivision
@@ -1763,7 +1765,7 @@ router.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({
     success: false,
     error: 'Internal server error in league system',
-    timestamp: new Date().toISOString(),
+    timestamp: new Date(),
     path: req.path
   });
 });

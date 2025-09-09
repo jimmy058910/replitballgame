@@ -5,6 +5,8 @@
 
 import { storage, type IAppStorage } from "./storage/index.js";
 import { getPrismaClient } from "./database.js"; // Use Prisma instead of Drizzle
+import type { Player, Team } from '@shared/types/models';
+
 
 // Export the aggregated storage instance
 export { storage };
@@ -19,7 +21,7 @@ export type { IAppStorage };
 // All individual storage methods (e.g., getUser, createTeam) that were part of the old IStorage
 // are now accessed via the specific storage modules within the main 'storage' object, e.g.:
 // storage.users.getUser()
-// storage.teams.createTeam()
+// storage.Team.createTeam()
 // etc.
 //
 // Files that previously did:
@@ -28,7 +30,7 @@ export type { IAppStorage };
 //
 // Will now effectively be doing (without changing their import line):
 // import { storage } from "./storage/index"; // (as re-exported by this file)
-// await storage.teams.createTeam(...);
+// await storage.Team.createTeam(...);
 //
 // This allows a phased update of consumer files. New files or refactored files
 // can choose to import more granularly, e.g.:
@@ -36,7 +38,7 @@ export type { IAppStorage };
 // await teamStorage.createTeam(...);
 // OR
 // import { storage } from "./storage/index";
-// await storage.teams.createTeam(...);
+// await storage.Team.createTeam(...);
 
 // Integrating methods from feature/detailed-match-stats
 // These methods should ideally be in a specific storage module like matchStorage.ts,

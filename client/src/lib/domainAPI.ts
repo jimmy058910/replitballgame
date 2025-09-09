@@ -1,6 +1,9 @@
 // Domain API client for new domain-driven architecture
 import { apiRequest } from './queryClient';
 
+// Re-export apiRequest for direct usage
+export { apiRequest };
+
 // Tournament domain API
 export const tournamentAPI = {
   // Register for tournament
@@ -142,8 +145,7 @@ export const authAPI = {
 // Helper function to check domain API health
 export const checkDomainHealth = async () => {
   try {
-    const response = await apiRequest(`/api/v2/health`, 'GET');
-    // @ts-expect-error TS18046
+    const response = await apiRequest(`/api/v2/health`, 'GET');
     return response.success;
   } catch (error) {
     console.error('Domain health check failed:', error);

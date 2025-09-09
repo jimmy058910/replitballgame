@@ -4,6 +4,8 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Trophy, Star, TrendingUp, Users, DollarSign, Download, Share2, Play } from 'lucide-react';
+import type { Player, Team, Stadium, League } from '@shared/types/models';
+
 
 interface PostMatchSummaryProps {
   matchData: {
@@ -196,7 +198,7 @@ const PostMatchSummary: React.FC<PostMatchSummaryProps> = ({ matchData, onClose 
                 <div className="space-y-2">
                   {keyPlayers.map((player, index) => (
                     <div key={index} className="flex justify-between items-center p-2 rounded bg-muted/50">
-                      <span className="font-medium">{player.name}</span>
+                      <span className="font-medium">{`${player.firstName} ${player.lastName}`}</span>
                       <span className="text-sm text-muted-foreground">{player.contribution}</span>
                     </div>
                   ))}

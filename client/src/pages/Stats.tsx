@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, TrendingUp, Users, Award } from "lucide-react";
 import StatsDisplay from "@/components/StatsDisplay";
-import { apiRequest } from "@/lib/queryClient";
+import { statsQueryOptions } from "@/lib/api/queryOptions";
+import type { Player, Team, Staff, Contract, TeamFinances, Stadium, League, Notification, MarketplaceListing, MarketplaceBid } from '@shared/types/models';
 
 interface PlayerLeaderboards {
   scoring: any[];
@@ -28,30 +29,24 @@ export default function Stats() {
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
 
   // Fetch player leaderboards
-  const { data: playerLeaderboards, isLoading: playersLoading } = useQuery({
-    queryKey: ['/api/stats/leaderboards/players'],
-    queryFn: () => apiRequest('/api/stats/leaderboards/players')
-  });
+  const { data: playerLeaderboards, isLoading: playersLoading } = useQuery(
+    statsQueryOptions.playerLeaderboards()
+  );
 
   // Fetch team leaderboards
-  const { data: teamLeaderboards, isLoading: teamsLoading } = useQuery({
-    queryKey: ['/api/stats/leaderboards/teams'],
-    queryFn: () => apiRequest('/api/stats/leaderboards/teams')
-  });
+  const { data: teamLeaderboards, isLoading: teamsLoading } = useQuery(
+    statsQueryOptions.teamLeaderboards()
+  );
 
   // Fetch specific player stats
-  const { data: playerStats, isLoading: playerStatsLoading } = useQuery({
-    queryKey: ['/api/stats/player', searchPlayerId],
-    queryFn: () => apiRequest(`/api/stats/player/${searchPlayerId}`),
-    enabled: !!searchPlayerId
-  });
+  const { data: playerStats, isLoading: playerStatsLoading } = useQuery(
+    statsQueryOptions.playerStats(searchPlayerId || undefined)
+  );
 
   // Fetch specific team stats
-  const { data: teamStats, isLoading: teamStatsLoading } = useQuery({
-    queryKey: ['/api/stats/team', searchTeamId],
-    queryFn: () => apiRequest(`/api/stats/team/${searchTeamId}`),
-    enabled: !!searchTeamId
-  });
+  const { data: teamStats, isLoading: teamStatsLoading } = useQuery(
+    statsQueryOptions.teamStats(searchTeamId || undefined)
+  );
 
   const handlePlayerSearch = () => {
     if (searchPlayerId.trim()) {
@@ -116,14 +111,12 @@ export default function Stats() {
                       
                       <TabsContent value="scoring" className="mt-4">
                         <div className="space-y-2">
-                          {/*
-                           // @ts-expect-error TS2339 */}
-                          {playerLeaderboards?.scoring?.length > 0 ? (
-                            // @ts-expect-error TS18046
+                          {/* */}
+                          {playerLeaderboards?.scoring?.length > 0 ? (
                             playerLeaderboards.scoring.map((player: any, index: number) => (
                               <div key={player.playerId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {player.playerName}</span>
-                                <span className="text-green-600 font-bold">{player.offensive.scores} scores</span>
+                                <span className="text-green-600 font-bold">{player?.offensive.scores} scores</span>
                               </div>
                             ))
                           ) : (
@@ -134,14 +127,12 @@ export default function Stats() {
 
                       <TabsContent value="passing" className="mt-4">
                         <div className="space-y-2">
-                          {/*
-                           // @ts-expect-error TS2339 */}
-                          {playerLeaderboards?.passing?.length > 0 ? (
-                            // @ts-expect-error TS18046
+                          {/* */}
+                          {playerLeaderboards?.passing?.length > 0 ? (
                             playerLeaderboards.passing.map((player: any, index: number) => (
                               <div key={player.playerId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {player.playerName}</span>
-                                <span className="text-blue-600 font-bold">{player.offensive.passingYards} yards</span>
+                                <span className="text-blue-600 font-bold">{player?.offensive.passingYards} yards</span>
                               </div>
                             ))
                           ) : (
@@ -152,14 +143,12 @@ export default function Stats() {
 
                       <TabsContent value="rushing" className="mt-4">
                         <div className="space-y-2">
-                          {/*
-                           // @ts-expect-error TS2339 */}
-                          {playerLeaderboards?.rushing?.length > 0 ? (
-                            // @ts-expect-error TS18046
+                          {/* */}
+                          {playerLeaderboards?.rushing?.length > 0 ? (
                             playerLeaderboards.rushing.map((player: any, index: number) => (
                               <div key={player.playerId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {player.playerName}</span>
-                                <span className="text-orange-600 font-bold">{player.offensive.rushingYards} yards</span>
+                                <span className="text-orange-600 font-bold">{player?.offensive.rushingYards} yards</span>
                               </div>
                             ))
                           ) : (
@@ -170,14 +159,12 @@ export default function Stats() {
 
                       <TabsContent value="defense" className="mt-4">
                         <div className="space-y-2">
-                          {/*
-                           // @ts-expect-error TS2339 */}
-                          {playerLeaderboards?.defense?.length > 0 ? (
-                            // @ts-expect-error TS18046
+                          {/* */}
+                          {playerLeaderboards?.defense?.length > 0 ? (
                             playerLeaderboards.defense.map((player: any, index: number) => (
                               <div key={player.playerId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {player.playerName}</span>
-                                <span className="text-red-600 font-bold">{player.defensive.tackles} tackles</span>
+                                <span className="text-red-600 font-bold">{player?.defensive.tackles} tackles</span>
                               </div>
                             ))
                           ) : (
@@ -212,10 +199,8 @@ export default function Stats() {
                       
                       <TabsContent value="scoring" className="mt-4">
                         <div className="space-y-2">
-                          {/*
-                           // @ts-expect-error TS2339 */}
-                          {teamLeaderboards?.scoring?.length > 0 ? (
-                            // @ts-expect-error TS18046
+                          {/* */}
+                          {teamLeaderboards?.scoring?.length > 0 ? (
                             teamLeaderboards.scoring.map((team: any, index: number) => (
                               <div key={team.teamId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {team.teamName}</span>
@@ -230,10 +215,8 @@ export default function Stats() {
 
                       <TabsContent value="offense" className="mt-4">
                         <div className="space-y-2">
-                          {/*
-                           // @ts-expect-error TS2339 */}
-                          {teamLeaderboards?.offense?.length > 0 ? (
-                            // @ts-expect-error TS18046
+                          {/* */}
+                          {teamLeaderboards?.offense?.length > 0 ? (
                             teamLeaderboards.offense.map((team: any, index: number) => (
                               <div key={team.teamId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {team.teamName}</span>
@@ -248,10 +231,8 @@ export default function Stats() {
 
                       <TabsContent value="defense" className="mt-4">
                         <div className="space-y-2">
-                          {/*
-                           // @ts-expect-error TS2339 */}
-                          {teamLeaderboards?.defense?.length > 0 ? (
-                            // @ts-expect-error TS18046
+                          {/* */}
+                          {teamLeaderboards?.defense?.length > 0 ? (
                             teamLeaderboards.defense.map((team: any, index: number) => (
                               <div key={team.teamId} className="flex justify-between items-center p-2 rounded bg-gray-50 dark:bg-gray-800">
                                 <span className="font-medium">#{index + 1} {team.teamName}</span>

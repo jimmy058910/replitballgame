@@ -1,11 +1,13 @@
-import { getPrismaClient } from '../database.js';
-import { PrismaClient, Player, Race, PlayerRole, InjuryStatus } from "../db";
+import { DatabaseService } from '../database/DatabaseService.js';
+import { PrismaClient, Race, PlayerRole, InjuryStatus } from "../db";
+import type { Player } from '@shared/types/models';
+
 
 
 
 export class PlayerStorage {
   async getAllPlayersWithStats(): Promise<any[]> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const players = await prisma.player.findMany({
       include: {
         team: {
@@ -45,7 +47,7 @@ export class PlayerStorage {
     camaraderieScore?: number;
     [key: string]: any; // Allow additional fields
   }): Promise<Player> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const newPlayer = await prisma.player.create({
       data: {
         teamId: playerData.teamId,
@@ -72,7 +74,7 @@ export class PlayerStorage {
   }
 
   async getPlayerById(id: number): Promise<Player | null> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const player = await prisma.player.findUnique({
       where: { id: parseInt(id.toString()) },
       include: {
@@ -87,7 +89,7 @@ export class PlayerStorage {
 
   async getPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Get main roster players (contracted players) - excludes taxi squad
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const mainRosterPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
@@ -117,7 +119,7 @@ export class PlayerStorage {
 
   async getTaxiSquadPlayersByTeamId(teamId: number): Promise<Player[]> {
     // TAXI SQUAD LOGIC: Players without contracts AND (Jordan Strong/Fair OR tryout history)
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const taxiSquadPlayers = await prisma.player.findMany({
       where: {
         teamId: parseInt(teamId.toString()),
@@ -157,7 +159,7 @@ export class PlayerStorage {
 
   async getAllPlayersByTeamId(teamId: number): Promise<Player[]> {
     // Fetches all players associated with a team, including those on marketplace
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     return await prisma.player.findMany({
       where: { teamId: parseInt(teamId.toString()) },
       include: {
@@ -172,7 +174,7 @@ export class PlayerStorage {
 
   async updatePlayer(id: number, updates: Partial<Player>): Promise<Player | null> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const updatedPlayer = await prisma.player.update({
         where: { id },
         data: updates,
@@ -191,7 +193,7 @@ export class PlayerStorage {
 
   async deletePlayer(id: number): Promise<boolean> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       await prisma.player.delete({
         where: { id }
       });
@@ -203,7 +205,7 @@ export class PlayerStorage {
   }
 
   async getMarketplacePlayers(): Promise<Player[]> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     return await prisma.player.findMany({
       where: { isOnMarket: true },
       include: {
@@ -224,7 +226,7 @@ export class PlayerStorage {
     // Promotes a taxi squad player to MAIN ROSTER
     // CRITICAL: Never moves main roster players to taxi squad - taxi squad is for recruited players only
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const player = await prisma.player.findUnique({
         where: { id: parseInt(playerId.toString()) }
       });
@@ -290,7 +292,7 @@ export class PlayerStorage {
 
   async releasePlayerFromTaxiSquad(playerId: number): Promise<boolean> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       await prisma.player.delete({
         where: { id: playerId }
       });
@@ -303,7 +305,7 @@ export class PlayerStorage {
 
   async releasePlayerFromMainRoster(playerId: number): Promise<boolean> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       await prisma.player.delete({
         where: { id: playerId }
       });
@@ -319,7 +321,7 @@ export class PlayerStorage {
     reason?: string;
     releaseFee?: number;
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const player = await prisma.player.findUnique({
       where: { id: playerId },
       include: {
@@ -347,7 +349,7 @@ export class PlayerStorage {
     }
 
     // Use proper main roster vs taxi squad detection (contract-based)
-    const allPlayers = player.team.players;
+    const allPlayers = player.team?.players;
     const totalPlayers = allPlayers.length;
     const mainRosterPlayers = allPlayers.filter((p: any) => p.contract !== null);
     const taxiSquadPlayers = allPlayers.filter((p: any) => p.contract === null);

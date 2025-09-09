@@ -5,7 +5,8 @@
 
 import { stadiumEffectsCalculator, type StadiumData } from './stadiumEffects.js';
 import { configManager } from './configManager.js';
-import type { Stadium } from "../db";
+import type { Stadium } from '@shared/types/models';
+
 
 export interface EnhancedStadiumEffects {
   intimidationFactor: number;

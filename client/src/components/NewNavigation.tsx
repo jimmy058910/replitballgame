@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationSystem from "@/components/NotificationSystem";
 import { Badge } from "@/components/ui/badge";
+import type { Team } from '@shared/types/models';
+
 import { 
   Home, Users, Trophy, ShoppingCart, Globe, 
   Menu, LogOut, Coins, UserPlus, LogIn, Command, 
@@ -15,13 +17,7 @@ import {
 // Using text logo for deployment compatibility
 
 // Enhanced interface for team data
-interface Team {
-  id: string;
-  name: string;
-  credits: number;
-  division: number;
-  subdivision?: string;
-}
+
 
 interface Finances {
   credits: number;
@@ -41,8 +37,8 @@ export default function NewNavigation() {
 
   // Use finances data from team query instead of separate API call
   const finances = team ? {
-    credits: parseInt(String(team.credits || 0)),
-    gems: 0 // Will be updated when team interface includes finances
+    credits: parseInt(String(team.finances?.credits ?? 0)),
+    gems: parseInt(String(team.finances?.gems ?? 0))
   } : null;
 
   // New 5-hub navigation system

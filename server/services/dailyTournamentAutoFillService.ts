@@ -11,6 +11,8 @@
 import { getPrismaClient } from '../database.js';
 import moment from 'moment-timezone';
 import { randomUUID } from 'crypto';
+import type { Player, Team } from '@shared/types/models';
+
 
 // AI team names for tournament auto-fill
 const TOURNAMENT_AI_TEAMS = [

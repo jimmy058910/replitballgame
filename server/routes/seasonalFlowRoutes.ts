@@ -5,6 +5,8 @@ import { RBACService, Permission } from '../services/rbacService.js';
 import { asyncHandler } from '../services/errorService.js';
 import { storage } from '../storage/index.js';
 import { getPrismaClient } from '../database.js';
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -546,7 +548,7 @@ router.post('/emergency-populate-current-season', requireAuth, async (req, res) 
     if (currentSeason) {
       let scheduleResult: { matchesGenerated: number; leaguesProcessed: any[] } = { matchesGenerated: 0, leaguesProcessed: [] };
       
-      if (currentSeason.currentDay < 14) {
+      if (currentSeason?.currentDay < 14) {
         // Only generate schedules if we're before playoff brackets are generated
         scheduleResult = await SeasonalFlowService.generateSeasonSchedule(currentSeason.seasonNumber);
       } else {
@@ -560,8 +562,8 @@ router.post('/emergency-populate-current-season', requireAuth, async (req, res) 
           matchesGenerated: scheduleResult.matchesGenerated,
           leaguesProcessed: scheduleResult.leaguesProcessed?.length || 0,
           seasonNumber: currentSeason.seasonNumber,
-          currentDay: currentSeason.currentDay,
-          note: currentSeason.currentDay >= 14 ? 'Schedule generation skipped - playoff brackets already generated' : 'Schedule generated successfully'
+          currentDay: currentSeason?.currentDay,
+          note: currentSeason?.currentDay >= 14 ? 'Schedule generation skipped - playoff brackets already generated' : 'Schedule generated successfully'
         }
       });
     } else {

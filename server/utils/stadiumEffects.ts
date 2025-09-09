@@ -5,6 +5,8 @@
  */
 
 import { configManager } from './configManager.js';
+import type { Stadium } from '@shared/types/models';
+
 
 export interface StadiumEffects {
   intimidationFactor: number;    // 0-100 scale

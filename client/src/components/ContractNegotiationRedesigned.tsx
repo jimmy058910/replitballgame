@@ -12,9 +12,10 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Star, User, Calendar, DollarSign, Clock, TrendingUp, AlertCircle } from "lucide-react";
+import type { Player } from "@shared/types/models";
 
 interface ContractNegotiationProps {
-  player: any;
+  player: Player;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -40,6 +41,19 @@ interface ContractInfo {
   currentSeason: number;
   contractEndsAfterSeason: number;
   nextContractStartsSeason: number;
+}
+
+interface ContractNegotiationData {
+  calculation: ContractCalculation;
+  contractInfo: ContractInfo;
+}
+
+interface SubmitOfferResponse {
+  accepted: boolean;
+  feedback?: string;
+  startSeason?: number;
+  endSeason?: number;
+  signingBonus?: number;
 }
 
 interface NegotiationResponse {
@@ -94,45 +108,48 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
   const [negotiationHistory, setNegotiationHistory] = useState<any[]>([]);
 
   // Fetch contract calculations and current contract info
-  const { data: contractData, isLoading: isLoadingContract } = useQuery({
+  const { data: contractData, isLoading: isLoadingContract } = useQuery<ContractNegotiationData>({
     queryKey: ['/api/players', player?.id, 'contract-negotiation-data'],
-    queryFn: () => apiRequest(`/api/players/${player.id}/contract-negotiation-data`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/players/${player.id}/contract-negotiation-data`);
+      return response as ContractNegotiationData;
+    },
     enabled: !!player?.id && isOpen,
   });
 
   // Fetch live negotiation feedback as user adjusts offer
   const { data: negotiationFeedback, isLoading: isLoadingFeedback } = useQuery<NegotiationResponse>({
     queryKey: ['/api/players', player?.id, 'negotiation-feedback', offerSalary, offerYears],
-    queryFn: () => apiRequest(`/api/players/${player.id}/negotiation-feedback`, 'POST', {
-      salary: offerSalary,
-      years: offerYears
-    }),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/players/${player.id}/negotiation-feedback`, 'POST', {
+        salary: offerSalary,
+        years: offerYears
+      });
+      return response as NegotiationResponse;
+    },
     enabled: !!player?.id && offerSalary > 0 && offerYears > 0,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
 
   // Initialize offer values when contract data loads
-  useEffect(() => {
-    // @ts-expect-error TS2339
-    if (contractData?.calculation) {
-      // @ts-expect-error TS2339
+  useEffect(() => {
+    if (contractData?.calculation) {
       setOfferSalary(contractData.calculation.marketValue);
     }
   }, [contractData]);
 
   // Submit offer mutation
   const submitOfferMutation = useMutation({
-    mutationFn: async (offer: { salary: number; years: number }) => {
-      return apiRequest(`/api/players/${player.id}/negotiate-contract`, 'POST', offer);
+    mutationFn: async (offer: { salary: number; years: number }): Promise<SubmitOfferResponse> => {
+      const response = await apiRequest(`/api/players/${player.id}/negotiate-contract`, 'POST', offer);
+      return response as SubmitOfferResponse;
     },
-    onSuccess: (data) => {
-      // @ts-expect-error TS18046
+    onSuccess: (data) => {
       if (data.accepted) {
         toast({
-          title: "Contract Accepted!",
-          // @ts-expect-error TS18046
-          description: `New contract runs Season ${data.startSeason}-${data.endSeason}. ${data.signingBonus.toLocaleString()}₡ bonus paid now.`,
+          title: "Contract Accepted!",
+          description: `New contract runs Season ${data.startSeason}-${data.endSeason}. ${data?.signingBonus?.toLocaleString() || '0'}₡ bonus paid now.`,
         });
         queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
         queryClient.invalidateQueries({ queryKey: ['/api/players'] });
@@ -142,15 +159,13 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
         setNegotiationHistory(prev => [...prev, {
           salary: offerSalary,
           years: offerYears,
-          result: 'rejected',
-          // @ts-expect-error TS18046
+          result: 'rejected',
           feedback: data.feedback,
           date: new Date().toLocaleDateString()
         }]);
         
         toast({
-          title: "Offer Rejected",
-          // @ts-expect-error TS18046
+          title: "Offer Rejected",
           description: data.feedback,
           variant: "destructive"
         });
@@ -167,11 +182,8 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
 
   if (!player) {
     return null;
-  }
-
-  // @ts-expect-error TS2339
-  const calculation = contractData?.calculation as ContractCalculation;
-  // @ts-expect-error TS2339
+  }
+  const calculation = contractData?.calculation as ContractCalculation;
   const contractInfo = contractData?.contractInfo as ContractInfo;
   const isOfferValid = offerSalary >= (calculation?.salaryRange?.min || 0) && 
                      offerSalary <= (calculation?.salaryRange?.max || Infinity) &&

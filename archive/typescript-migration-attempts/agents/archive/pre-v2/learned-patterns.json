@@ -1,0 +1,95 @@
+{
+  "lastUpdated": "2025-01-09T17:00:00Z",
+  "iteration": 1,
+  "patterns": {
+    "localInterfaceRenaming": {
+      "pattern": "Rename local interface to avoid conflicts",
+      "successRate": 100,
+      "attempts": 8,
+      "successes": 8,
+      "averageImpact": 1.5,
+      "examples": [
+        "Team → RosterTeam in MobileRosterHQ.tsx",
+        "Player → RosterPlayer in MobileRosterHQ.tsx", 
+        "Staff → NegotiationStaff in StaffNegotiationModal.tsx"
+      ],
+      "category": "imports"
+    },
+    "queryOptionsWithSkipToken": {
+      "pattern": "Replace enabled with skipToken",
+      "successRate": 87.5,
+      "attempts": 24,
+      "successes": 21,
+      "averageImpact": 1.2,
+      "examples": [
+        "teamQueryOptions.myTeam(authenticated ? undefined : skipToken)",
+        "financeQueryOptions.teamFinances(teamId ?? skipToken)",
+        "seasonQueryOptions.currentCycle(authenticated ? undefined : skipToken)"
+      ],
+      "category": "query-patterns"
+    },
+    "optionalChainingWithDefaults": {
+      "pattern": "Optional chaining with nullish coalescing",
+      "successRate": 100,
+      "attempts": 10,
+      "successes": 10,
+      "averageImpact": 2.0,
+      "examples": [
+        "team.finances?.credits ?? 0",
+        "listing.seller?.name ?? 'Unknown'",
+        "tournament.creditsWon ?? 0"
+      ],
+      "category": "property-access"
+    },
+    "prismaFieldCorrection": {
+      "pattern": "Correct Prisma field names to match schema",
+      "successRate": 100,
+      "attempts": 15,
+      "successes": 15,
+      "averageImpact": 1.0,
+      "examples": [
+        "playerSkills → skills",
+        "isStarter → starter", 
+        "startDate → signedAt",
+        "team.userId → team.userProfileId (CRITICAL)"
+      ],
+      "category": "prisma-fields"
+    },
+    "exportMappingFixes": {
+      "pattern": "Fix export mapping mismatches",
+      "successRate": 100,
+      "attempts": 3,
+      "successes": 3,
+      "averageImpact": 1.3,
+      "examples": [
+        "PlayerContract → PlayerWithContract",
+        "PlayerInjuryStatus → Player"
+      ],
+      "category": "imports"
+    }
+  },
+  "effectiveStrategies": [
+    "Rename local interfaces instead of removing them (preserves existing logic)",
+    "Use skipToken for conditional queries (2025 React Query best practice)",
+    "Apply optional chaining with numeric defaults for financial properties",
+    "Verify Prisma field names against actual schema before changing code",
+    "Check shared types exports for correct import names"
+  ],
+  "highImpactFiles": [
+    {
+      "file": "client/src/components/ComprehensiveCompetitionCenter.tsx",
+      "reduction": 13,
+      "patterns": ["localInterfaceRenaming", "queryOptionsWithSkipToken"]
+    },
+    {
+      "file": "client/src/pages/CommandCenter.tsx",
+      "reduction": 12,
+      "patterns": ["queryOptionsWithSkipToken"]
+    },
+    {
+      "file": "client/src/components/MobileRosterHQ.tsx",
+      "reduction": 8,
+      "patterns": ["localInterfaceRenaming"]
+    }
+  ]
+}

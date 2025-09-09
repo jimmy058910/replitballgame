@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { seasonQueryOptions, leagueQueryOptions, playoffQueryOptions, championshipQueryOptions } from "@/lib/api/queryOptions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Crown, Calendar, Users, Target, Medal, Zap, TrendingUp } from "lucide-react";
 import { FloatingNotification, PulseWrapper, HoverCard, AnimatedCounter } from "@/components/MicroInteractions"; // Removed AnimatedNotificationProps
+import type { League } from '@shared/types/models';
+
 
 interface Season {
   id: string;
@@ -51,24 +54,13 @@ export default function SeasonChampionships() {
     championTeam?: ChampionTeam; // For history display
   }
 
-  const { data: currentSeason } = useQuery<Season>({ // Typed currentSeason
-    queryKey: ["/api/seasons/current"],
-  });
+  const { data: currentSeason } = useQuery(seasonQueryOptions.current());
 
-  const { data: playoffs = [] } = useQuery<PlayoffMatch[]>({ // Typed playoffs, default to empty array
-    queryKey: ["/api/playoffs", selectedDivision],
-    enabled: !!selectedDivision, // Ensure selectedDivision is not null/undefined
-  });
+  const { data: playoffs = [] } = useQuery(playoffQueryOptions.byDivision(selectedDivision));
 
-  const { data: leagueStandings = [] } = useQuery<any[]>({ // Typed leagueStandings, default to empty array
-    queryKey: [`/api/leagues/${selectedDivision}/standings`], // FIXED: Use correct endpoint format
-    enabled: !!selectedDivision,
-    staleTime: 0, // EMERGENCY: No cache - force fresh data
-  });
+  const { data: leagueStandings = [] } = useQuery(leagueQueryOptions.standings(selectedDivision));
 
-  const { data: championshipHistory = [] } = useQuery<ChampionshipSeason[]>({ // Typed championshipHistory, default to empty array
-    queryKey: ["/api/seasons/champions"],
-  });
+  const { data: championshipHistory = [] } = useQuery(championshipQueryOptions.history());
 
   const startPlayoffsMutation = useMutation({
     mutationFn: (data: { seasonId: string; division: number }) =>

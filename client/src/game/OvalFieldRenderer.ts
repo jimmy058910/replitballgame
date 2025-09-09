@@ -4,6 +4,8 @@
  */
 
 import { LiveMatchState, MatchEvent, FieldPlayer } from '../../../shared/types/LiveMatchState';
+import type { Player } from '@shared/types/models';
+
 
 export class OvalFieldRenderer {
   private canvas: HTMLCanvasElement;
@@ -102,10 +104,10 @@ export class OvalFieldRenderer {
     ];
 
     players.forEach((player, index) => {
-      if (player.position) {
+      if (player.role) {
         this.playerPositions.set(`${teamPrefix}_${index}`, {
-          x: player.position.x,
-          y: player.position.y
+          x: player.role.x,
+          y: player.role.y
         });
       }
     });
@@ -349,7 +351,7 @@ export class OvalFieldRenderer {
     players.forEach((player, index) => {
       const pos = this.playerPositions.get(`${teamPrefix}_${index}`);
       if (pos) {
-        this.renderPlayer(pos.x, pos.y, color, player.name, player.role, player.stamina);
+        this.renderPlayer(pos.x, pos.y, color, `${player.firstName} ${player.lastName}`, player.role, player.stamina);
       }
     });
   }

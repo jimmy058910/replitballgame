@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { Player, Team } from '@shared/types/models';
+
 
 // Define a basic Player type for this modal's needs
 interface PlayerForListing {
@@ -48,7 +50,7 @@ export default function PlayerListingModal({ player, isOpen, onClose }: PlayerLi
     onSuccess: () => {
       toast({
         title: "Player Listed",
-        description: `${player.name} has been listed on the marketplace successfully!`,
+        description: `${`${player.firstName} ${player.lastName}`} has been listed on the marketplace successfully!`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       queryClient.invalidateQueries({ queryKey: ["/api/marketplace"] });
@@ -106,7 +108,7 @@ export default function PlayerListingModal({ player, isOpen, onClose }: PlayerLi
                 {player.race === "Orc" && "👹"}
               </div>
               <div>
-                <CardTitle className="text-lg">{player.name}</CardTitle>
+                <CardTitle className="text-lg">{`${player.firstName} ${player.lastName}`}</CardTitle>
                 <CardDescription>
                   {player.race} • Age {player.age}
                 </CardDescription>
@@ -123,8 +125,7 @@ export default function PlayerListingModal({ player, isOpen, onClose }: PlayerLi
               <div>Speed: {player.speed}</div>
               <div>Agility: {player.agility}</div>
               <div>Power: {player.power}</div>
-              {/*
-               // @ts-expect-error TS2339 */}
+              {/* */}
               <div>Stamina: {player.staminaAttribute}</div>
             </div>
           </CardContent>

@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { Beaker, Shield, Target, AlertCircle, Sparkles } from "lucide-react";
+import type { League } from '@shared/types/models';
+
 
 interface TeamInventory {
   id: string;
@@ -114,11 +116,9 @@ export function ConsumableManager({ teamId, onConsumableActivated }: ConsumableM
         effectData: { description: effect.description, stats: effect.stats }
       });
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/consumables/team/${teamId}`] });
-      // @ts-expect-error TS18046
-      if (data.consumable && onConsumableActivated) {
-        // @ts-expect-error TS18046
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/consumables/team/${teamId}`] });
+      if (data.consumable && onConsumableActivated) {
         onConsumableActivated(data.consumable);
       }
     }

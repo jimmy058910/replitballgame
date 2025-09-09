@@ -2,6 +2,8 @@ import { Router, Response, NextFunction } from 'express';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { injuryStaminaService } from '../services/injuryStaminaService.js';
 import { getPrismaClient } from "../database.js";
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 

@@ -10,49 +10,10 @@ import {
   Menu, LogOut, Coins, UserPlus, LogIn
 } from "lucide-react";
 
-// Type interfaces for API responses - match the actual API response exactly
-interface Finances {
-  id: number;
-  teamId: number;
-  credits: string;
-  gems: string;
-  escrowCredits: string;
-  escrowGems: string;
-  projectedIncome: string;
-  projectedExpenses: string;
-  lastSeasonRevenue: string;
-  lastSeasonExpenses: string;
-  facilitiesMaintenanceCost: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Import types from our centralized types file
+import type { Team, TeamFinances } from "@shared/types/models";
 
-interface Team {
-  id: number;
-  userProfileId: number;
-  name: string;
-  logoUrl: string | null;
-  isAI: boolean;
-  createdAt: string;
-  updatedAt: string;
-  camaraderie: number;
-  fanLoyalty: number;
-  homeField: string;
-  tacticalFocus: string;
-  leagueId: number | null;
-  division: number;
-  subdivision: string;
-  wins: number;
-  losses: number;
-  points: number;
-  finances: Finances;
-  stadium: any;
-  players: any[];
-  staff: any[];
-  teamPower: number;
-  teamCamaraderie: number;
-}
-
+// Component-specific types
 interface StoreData {
   adsWatchedToday: number;
   rewardedAdsCompletedToday: number;
@@ -65,12 +26,17 @@ export default function Navigation() {
 
   const { data: team, isLoading: teamLoading, error: teamError } = useQuery<Team>({
     queryKey: ["/api/teams/my"],
-    enabled: isAuthenticated && !isLoading, // Proper auth check restored
+    queryFn: async () => {
+      // Type the API response properly
+      const response = await fetch('/api/teams/my');
+      return response.json() as Promise<Team>;
+    },
+    enabled: isAuthenticated && !isLoading,
     retry: 3,
     staleTime: 30000,
   });
 
-  // Use credits from team.finances data (already included in team response)  
+  // Use credits from team?.finances data (already included in team response)  
   const credits = parseInt(String(team?.finances?.credits || "0"));
   const premiumCurrency = parseInt(String(team?.finances?.gems || "0"));
 
@@ -168,8 +134,7 @@ export default function Navigation() {
                 {/* Non-authenticated user buttons */}
                 <Button
                   size="sm"
-                  variant="ghost"
-                  // @ts-expect-error TS2322
+                  variant="ghost"
                   onClick={login}
                   className="hidden sm:flex h-8 px-3 text-xs text-blue-400 hover:bg-blue-400 hover:text-white"
                 >

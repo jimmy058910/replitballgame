@@ -1,5 +1,5 @@
-// @ts-expect-error TS2307
-import type { Player } from "./schema";
+
+import type { Player } from "./types/models";
 import { getPlayerRole as getPlayerRoleUtil } from "./playerUtils";
 
 export interface Ability {
@@ -24,8 +24,6 @@ export interface Ability {
 }
 
 import abilitiesData from './config/abilities.json' with { type: "json" };
-
-// @ts-expect-error TS2322
 export const ABILITIES: Record<string, Ability> = abilitiesData;
 
 export function getAbilityById(id: string): Ability | undefined {

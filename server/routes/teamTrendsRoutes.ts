@@ -2,6 +2,8 @@ import { Router, type Request, type Response } from 'express';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { asyncHandler } from '../services/errorService.js';
 import { getPrismaClient } from "../database.js";
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -27,6 +29,8 @@ router.get('/trends', requireAuth, asyncHandler(async (req: any, res: Response) 
       include: {
         _count: {
           select: {
+            homeMatches: true,
+            awayMatches: true
           }
         }
       }
@@ -54,7 +58,7 @@ router.get('/trends', requireAuth, asyncHandler(async (req: any, res: Response) 
     });
 
     // Get historical team data (simulate trend by analyzing recent performance)
-    const totalGames = (team._count as any).homeGames + (team._count as any).awayGames;
+    const totalGames = (team._count as any).homeMatches + (team._count as any).awayMatches;
     const winRate = totalGames > 0 ? ((team.wins || 0) / totalGames) * 100 : 0;
     
     // Calculate power trend based on recent team performance
@@ -166,7 +170,7 @@ router.get('/player-spotlight', requireAuth, asyncHandler(async (req: any, res: 
     return res.status(404).json({ error: 'Team not found' });
   }
 
-  const spotlightPlayers = team.players.map((player: any, index: number) => {
+  const spotlightPlayers = team?.players.map((player: any, index: number) => {
     const power = Math.round(((player.speed || 20) + (player.power || 20) + (player.agility || 20) + 
                              (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20) + 
                              (player.staminaAttribute || 20) + (player.leadership || 20)) / 8);

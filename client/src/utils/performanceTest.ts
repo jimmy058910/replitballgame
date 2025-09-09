@@ -3,6 +3,8 @@
  * Verify optimization implementations are working correctly
  */
 import { performance } from 'perf_hooks';
+import type { Player } from '@shared/types/models';
+
 
 interface PerformanceMetrics {
   componentLoadTime: number;

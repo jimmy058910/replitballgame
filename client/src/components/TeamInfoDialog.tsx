@@ -9,46 +9,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Users, Trophy, TrendingUp, Star, Shield, ChevronDown, DollarSign, Home, Building } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 // Define interfaces for team info dialog
-interface Team {
-  id: string;
-  name: string;
-  division: number;
-  subdivision?: string;
-  wins: number;
-  losses: number;
-  draws: number;
-  points: number;
-  goalDifference: number;
-  teamPower: number;
-  teamCamaraderie: number;
-  credits: number;
-  userProfileId?: string;
-  logoUrl?: string;
-  fanLoyalty?: number;
-  homeField?: string;
-  tacticalFocus?: string;
-  leagueId?: string;
-}
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  race: string;
-  role: string;
-  age: number;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  stamina: number;
-  leadership: number;
-  agility: number;
-}
+
+
 
 // Import centralized division utilities
 import { getDivisionNameWithSubdivision as getCanonicalDivisionName } from '../../../shared/divisionUtils';
+import type { Player, Team, Staff, Contract, TeamFinances, Stadium } from '@shared/types/models';
+import { teamQueries } from '@/lib/api/queries';
 
 // Helper function to get division name with subdivision
 const getDivisionNameWithSubdivision = (division: number, subdivision?: string) => {
@@ -66,42 +34,56 @@ interface TeamInfoDialogProps {
 type ScoutingLevel = 1 | 2 | 3;
 
 export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDialogProps) {
-  const { data: teamInfo, isLoading: teamInfoLoading, error: teamInfoError } = useQuery<Team, Error>({
+  const { data: teamInfo, isLoading: teamInfoLoading, error: teamInfoError } = useQuery<Team>({
     queryKey: [`/api/teams/${teamId}`],
-    queryFn: () => apiRequest(`/api/teams/${teamId}`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}`);
+      return response as Team;
+    },
     enabled: !!teamId && isOpen,
   });
 
-  const { data: players, isLoading: playersLoading, error: playersError } = useQuery<Player[], Error>({
+  const { data: players, isLoading: playersLoading, error: playersError } = useQuery<Player[]>({
     queryKey: [`/api/teams/${teamId}/players`],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/players`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}/players`);
+      return response as Player[];
+    },
     enabled: !!teamId && isOpen,
   });
 
-  const { data: myTeam, isLoading: myTeamLoading, error: myTeamError } = useQuery<Team, Error>({
-    queryKey: ["/api/teams/my"],
-    queryFn: () => apiRequest("/api/teams/my"),
+  const { data: myTeam, isLoading: myTeamLoading, error: myTeamError } = useQuery({
+    ...teamQueries.myTeam(),
     enabled: isOpen,
   });
 
   // Fetch team finances for salary calculations
-  const { data: teamFinances } = useQuery({
+  const { data: teamFinances } = useQuery<TeamFinances>({
     queryKey: [`/api/teams/${teamId}/finances`],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/finances`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}/finances`);
+      return response as TeamFinances;
+    },
     enabled: !!teamId && isOpen,
   });
 
   // Fetch stadium data for facilities overview
-  const { data: stadium } = useQuery({
+  const { data: stadium } = useQuery<Stadium>({
     queryKey: [`/api/teams/${teamId}/stadium`],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/stadium`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}/stadium`);
+      return response as Stadium;
+    },
     enabled: !!teamId && isOpen,
   });
 
   // Fetch staff data for salary calculations
-  const { data: staff } = useQuery({
+  const { data: staff } = useQuery<Staff[]>({
     queryKey: [`/api/teams/${teamId}/staff`],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/staff`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}/staff`);
+      return response as Staff[];
+    },
     enabled: !!teamId && isOpen,
   });
 
@@ -119,32 +101,27 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
     // Sum player salaries - use Contract data if available or fallback to teamFinances
     if (players) {
       players.forEach(player => {
-        // Contract data might be in player.contracts array or separate contracts array
-        // @ts-expect-error TS2339
+        // Contract data might be in player.contracts array or separate contracts array
         const salary = player.contract?.salary || player.contracts?.[0]?.salary || 15000; // Default salary fallback
         totalPlayerSalaries += salary;
       });
     }
 
     // Sum staff salaries - use Contract data if available
-    if (staff) {
-      // @ts-expect-error TS2339
-      staff.forEach((staffMember: any) => {
+    if (staff) {
+      staff.forEach((staffMember: Staff) => {
         // Staff contracts might be structured differently
-        const salary = staffMember.contract?.salary || staffMember.contracts?.[0]?.salary || 8000; // Default staff salary fallback  
+        const salary = staffMember.salary || 8000; // Default staff salary fallback  
         totalStaffSalaries += salary;
       });
     }
 
     // Use teamFinances data if available for more accurate calculations
     if (teamFinances) {
-      return {
-        // @ts-expect-error TS2339
-        totalPlayerSalaries: teamFinances.playerSalaries || totalPlayerSalaries,
-        // @ts-expect-error TS2339
-        totalStaffSalaries: teamFinances.staffSalaries || totalStaffSalaries,
-        // @ts-expect-error TS2339
-        totalSalaries: teamFinances.playerSalaries + teamFinances.staffSalaries || totalPlayerSalaries + totalStaffSalaries
+      return {
+        totalPlayerSalaries: totalPlayerSalaries,
+        totalStaffSalaries: totalStaffSalaries,
+        totalSalaries: totalPlayerSalaries + totalStaffSalaries
       };
     }
 
@@ -159,8 +136,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
   const calculateTeamCamaraderie = () => {
     if (!players || players.length === 0) return 50; // Default fallback
     
-    const totalCamaraderie = players.reduce((sum, player) => {
-      // @ts-expect-error TS2339
+    const totalCamaraderie = players.reduce((sum, player) => {
       return sum + (player.camaraderieScore || 50);
     }, 0);
     
@@ -322,8 +298,7 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                 <div className="text-xs text-gray-400 uppercase">Team Power</div>
               </div>
               <div className="text-center bg-gray-700/50 rounded-lg p-3">
-                {/*
-                 // @ts-expect-error TS2339 */}
+                {/* */}
                 <div className="text-xl font-bold text-yellow-400">#{teamInfo.globalRank || "33"}</div>
                 <div className="text-xs text-gray-400 uppercase">Global Rank</div>
               </div>
@@ -419,12 +394,10 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-400">Capacity:</span>
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        {/* */}
                         <span className="text-white font-semibold">{stadium?.capacity?.toLocaleString() || "5,000"}</span>
                       </div>
-                      {/*
-                       // @ts-expect-error TS2339 */}
+                      {/* */}
                       <Progress value={((stadium?.capacity || 5000) / 40000) * 100} className="h-2 mb-2" />
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
@@ -442,32 +415,27 @@ export default function TeamInfoDialog({ teamId, isOpen, onClose }: TeamInfoDial
                     <div className="grid grid-cols-3 gap-3">
                       <div className="text-center bg-gray-600/50 rounded p-2">
                         <div className="text-white font-semibold">Concessions</div>
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        {/* */}
                         <div className="text-gray-400 text-sm">Level {stadium?.concessionsLevel || 1}</div>
                       </div>
                       <div className="text-center bg-gray-600/50 rounded p-2">
                         <div className="text-white font-semibold">Parking</div>
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        {/* */}
                         <div className="text-gray-400 text-sm">Level {stadium?.parkingLevel || 1}</div>
                       </div>
                       <div className="text-center bg-gray-600/50 rounded p-2">
                         <div className="text-white font-semibold">VIP Suites</div>
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        {/* */}
                         <div className="text-gray-400 text-sm">Level {stadium?.vipSuitesLevel || 0}</div>
                       </div>
                       <div className="text-center bg-gray-600/50 rounded p-2">
                         <div className="text-white font-semibold">Merchandise</div>
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        {/* */}
                         <div className="text-gray-400 text-sm">Level {stadium?.merchandisingLevel || 1}</div>
                       </div>
                       <div className="text-center bg-gray-600/50 rounded p-2">
                         <div className="text-white font-semibold">Lighting</div>
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        {/* */}
                         <div className="text-gray-400 text-sm">Level {stadium?.lightingScreensLevel || 1}</div>
                       </div>
                       <div className="text-center bg-gray-600/50 rounded p-2">

@@ -1,6 +1,8 @@
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import Navigation from "@/components/Navigation";
 import DramaticTeamHQ from "@/components/DramaticTeamHQ";
+import type { Team } from '@shared/types/models';
+
 
 // Dashboard now exclusively uses DramaticTeamHQ component
 

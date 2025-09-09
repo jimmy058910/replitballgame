@@ -1,5 +1,7 @@
 import { getPrismaClient } from "../database.js";
 import { nanoid } from "nanoid";
+import type { Player } from '@shared/types/models';
+
 import type { 
   Prisma
 } from "../db";

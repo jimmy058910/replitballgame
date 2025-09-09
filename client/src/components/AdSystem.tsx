@@ -5,6 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { Play, Gift, X, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Team, League } from '@shared/types/models';
+
 
 interface AdSystemProps {
   isOpen: boolean;

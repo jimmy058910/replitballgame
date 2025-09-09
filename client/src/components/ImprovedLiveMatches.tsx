@@ -4,6 +4,8 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Trophy, Users, Gamepad2 } from "lucide-react";
+import type { Team, League } from '@shared/types/models';
+
 
 interface LiveMatch {
   id: string;

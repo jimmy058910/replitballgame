@@ -1,5 +1,7 @@
 import { getPrismaClient } from "../database.js";
 import { logInfo, logError, ErrorCreators } from "./errorService.js";
+import type { Player, Team, Contract } from '@shared/types/models';
+
 
 /**
  * Comprehensive Team & Player Camaraderie System

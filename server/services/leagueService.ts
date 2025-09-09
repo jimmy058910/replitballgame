@@ -2,6 +2,8 @@ import type { Prisma } from "../db";
 import { generateRandomName, getFullName } from "../../shared/names.js";
 import { generatePotential } from "../../shared/potentialSystem.js";
 import gameConfig from "../config/game_config.json" with { type: "json" };
+import type { Player } from '@shared/types/models';
+
 
 export function generateRandomPlayer(name: string | null, race: string, teamId: number, position?: string): any {
   // Convert race to lowercase for switch statement, but store original for return
@@ -182,7 +184,7 @@ export async function processEndOfSeasonSkillProgression(playerId: number): Prom
   const { storage } = await import("../storage/index");
   
   try {
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player) {
       throw new Error(`Player with ID ${playerId} not found`);
     }
@@ -223,7 +225,7 @@ export async function processEndOfSeasonSkillProgression(playerId: number): Prom
             const newValue = Math.min(40, currentValue + 1); // Cap at 40
             
             // Update the player's stat
-            await storage.players.updatePlayer(playerId, {
+            await storage?.players.updatePlayer(playerId, {
               [statEntry.stat]: newValue
             });
             
@@ -235,7 +237,7 @@ export async function processEndOfSeasonSkillProgression(playerId: number): Prom
     }
     
     // Reset games played counter for next season
-    await storage.players.updatePlayer(playerId, {
+    await storage?.players.updatePlayer(playerId, {
     });
     
   } catch (error) {

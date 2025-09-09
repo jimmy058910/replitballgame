@@ -4,28 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamInfoDialog from "@/components/TeamInfoDialog";
 import { Trophy } from "lucide-react";
 import { getDivisionName, getDivisionNameWithSubdivision } from "@shared/divisionUtils";
+import { leagueQueryOptions } from "@/lib/api/queryOptions";
+import type { Team } from '@shared/types/models';
+
 
 interface LeagueStandingsProps {
   division: number;
 }
 
-interface Team {
-  id: string;
-  name: string;
-  wins: number;
-  losses: number;
-  draws: number;
-  points: number;
-  division: number;
-  subdivision?: string;
-  currentStreak: number;
-  streakType: string;
-  form: string;
-  scoreDifference: number;
-  played: number;
-  totalScores?: number; // TS - Total Scores For
-  scoresAgainst?: number; // SA - Scores Against
-}
+
 
 export default function LeagueStandings({ division }: LeagueStandingsProps) {
   console.log("🏆 STANDINGS COMPONENT START - Division:", division);
@@ -34,15 +21,9 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
     const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const { data: rawStandings, isLoading, error } = useQuery<Team[]>({
-      queryKey: [`/api/leagues/${division}/standings`],
-      staleTime: 0, // EMERGENCY: No cache - force fresh data  
-      gcTime: 0, // EMERGENCY: No retention - force fresh data
-      refetchOnMount: true,
-      refetchOnWindowFocus: true, // EMERGENCY: Force refetch to get corrected data
-      refetchInterval: false, // Disable auto-refetch to prevent loops
-      retry: 1, // Single retry
-    });
+    const { data: rawStandings, isLoading, error } = useQuery(
+      leagueQueryOptions.standings(division)
+    );
     
     console.log("🏆 STANDINGS QUERY RESULT:", { 
       hasData: !!rawStandings, 
@@ -69,9 +50,9 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
   if (standings.length > 0) {
     console.log("STANDINGS DEBUG - First team data:", {
       name: standings[0].name,
-      totalScores: standings[0].totalScores,
-      scoresAgainst: standings[0].scoresAgainst,
-      scoreDifference: standings[0].scoreDifference
+      totalScores: (standings[0] as any).totalScores ?? 0,
+      scoresAgainst: (standings[0] as any).scoresAgainst ?? 0,
+      scoreDifference: (standings[0] as any).scoreDifference ?? 0
     });
   }
 
@@ -132,7 +113,7 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                 <tbody>
                   {(rawStandings || []).map((team: Team, index: number) => {
                     // Highlight the current user's team regardless of position
-                    const isPlayerTeam = currentUserTeam && team.id === currentUserTeam.id;
+                    const isPlayerTeam = currentUserTeam && String(team.id) === String(currentUserTeam.id);
                     const position = index + 1;
                     
                     return (
@@ -179,25 +160,25 @@ export default function LeagueStandings({ division }: LeagueStandingsProps) {
                             className={`font-medium cursor-pointer hover:underline ${
                               isPlayerTeam ? "text-primary-400" : "text-white"
                             }`}
-                            onClick={() => handleTeamClick(team.id)}
+                            onClick={() => handleTeamClick(String(team.id))}
                             title={`${team.name} - Click to view team info`}
                           >
                             {team.name}
                           </div>
                         </td>
-                        <td className="text-center py-2 text-gray-300">{team.played}</td>
-                        <td className="text-center py-2 text-green-400 font-medium">{team.wins}</td>
+                        <td className="text-center py-2 text-gray-300">{(team as any).played ?? 0}</td>
+                        <td className="text-center py-2 text-green-400 font-medium">{team.wins ?? 0}</td>
                         <td className="text-center py-2 text-yellow-400">{team.draws ?? 0}</td>
-                        <td className="text-center py-2 text-red-400">{team.losses}</td>
-                        <td className="text-center py-2 text-blue-400">{team.totalScores ?? 0}</td>
-                        <td className="text-center py-2 text-orange-400">{team.scoresAgainst ?? 0}</td>
+                        <td className="text-center py-2 text-red-400">{team.losses ?? 0}</td>
+                        <td className="text-center py-2 text-blue-400">{(team as any).totalScores ?? 0}</td>
+                        <td className="text-center py-2 text-orange-400">{(team as any).scoresAgainst ?? 0}</td>
                         <td className={`text-center py-2 font-medium ${
-                          team.scoreDifference > 0 ? "text-green-400" :
-                          team.scoreDifference < 0 ? "text-red-400" : "text-gray-400"
+                          ((team as any).scoreDifference ?? 0) > 0 ? "text-green-400" :
+                          ((team as any).scoreDifference ?? 0) < 0 ? "text-red-400" : "text-gray-400"
                         }`}>
-                          {team.scoreDifference > 0 ? '+' : ''}{team.scoreDifference}
+                          {((team as any).scoreDifference ?? 0) > 0 ? '+' : ''}{(team as any).scoreDifference ?? 0}
                         </td>
-                        <td className="text-center py-2 font-bold text-white">{team.points}</td>
+                        <td className="text-center py-2 font-bold text-white">{team.points ?? 0}</td>
                       </tr>
                     );
                   })}

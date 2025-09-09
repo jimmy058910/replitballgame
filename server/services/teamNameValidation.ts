@@ -1,5 +1,7 @@
 import { profanity } from '@2toad/profanity';
 import { getPrismaClient } from '../database.js';
+import type { Team, Staff } from '@shared/types/models';
+
 
 // Configure the profanity filter - FIXED: Allow legitimate team name words
 profanity.addWords([

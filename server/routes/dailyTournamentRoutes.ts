@@ -5,6 +5,8 @@ import { getPrismaClient } from "../database.js";
 import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
 import { StandingsUpdateService } from '../services/standingsUpdateService.js';
 import moment from "moment-timezone";
+import type { Team } from '@shared/types/models';
+
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
 
@@ -157,7 +159,7 @@ router.post("/instant-match", requireAuth, async (req: any, res: Response, next:
 
     // Use instant simulation instead of live match
     try {
-      const simulationResult = await QuickMatchSimulation.simulateMatch(newMatch.id.toString());
+      const simulationResult = await QuickMatchSimulation.runQuickSimulation(newMatch.id.toString());
       
       // Update match status and score immediately
       await prisma.game.update({
@@ -284,7 +286,7 @@ router.post("/challenge-opponent", requireAuth, async (req: any, res: Response, 
 
     // Use instant simulation instead of live match
     try {
-      const simulationResult = await QuickMatchSimulation.simulateMatch(newMatch.id.toString());
+      const simulationResult = await QuickMatchSimulation.runQuickSimulation(newMatch.id.toString());
       
       // Update match status and score immediately
       await prisma.game.update({

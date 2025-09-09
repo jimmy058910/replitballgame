@@ -6,13 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, DollarSign, Users, ShoppingBag, Shirt } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-// Define financial types for this component
-interface Team {
-  id: string;
-  name: string;
-  credits: number;
-}
+import type { Team, Player, Contract } from "@shared/types/models";
 
+// API Response types
 interface TeamFinancesData {
   totalRevenue: number;
   totalExpenses: number;
@@ -24,20 +20,13 @@ interface TeamFinancesProps {
   teamId: string;
 }
 
-interface PlayerContract {
+interface PlayerContractResponse {
   id: number;
   salary: number;
   length: number;
-  signingBonus: number;
-  startDate: string;
-  player: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    race: string;
-    age: number;
-    role: string;
-  };
+  signingBonus?: number;
+  startDate?: string;
+  player: Player;
 }
 
 interface FinancialData {
@@ -68,7 +57,7 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
   });
 
   // Fetch player contracts
-  const { data: contractsData, isLoading: contractsLoading } = useQuery<{contracts: PlayerContract[], totalContracts: number}, Error>({
+  const { data: contractsData, isLoading: contractsLoading } = useQuery<{contracts: PlayerContractResponse[], totalContracts: number}, Error>({
     queryKey: [`/api/teams/${teamId}/contracts`],
     queryFn: () => apiRequest(`/api/teams/${teamId}/contracts`),
     enabled: !!teamId,
@@ -98,22 +87,14 @@ export default function TeamFinances({ teamId }: TeamFinancesProps) {
   // Use real financial data from API response
   const currentFinances = financesData ? {
     // Convert string fields to numbers
-    credits: parseInt(String(financesData.credits)),
-    // @ts-expect-error TS2339
-    gems: financesData.gems || 0,
-    // @ts-expect-error TS2339
-    projectedIncome: parseInt(String(financesData.projectedIncome || '0')),
-    // @ts-expect-error TS2339
-    projectedExpenses: parseInt(String(financesData.projectedExpenses || '0')),
-    // @ts-expect-error TS2339
-    lastSeasonRevenue: parseInt(String(financesData.lastSeasonRevenue || '0')),
-    // @ts-expect-error TS2339
-    lastSeasonExpenses: parseInt(String(financesData.lastSeasonExpenses || '0')),
-    // @ts-expect-error TS2339
-    facilitiesMaintenanceCost: parseInt(String(financesData.facilitiesMaintenanceCost || '0')),
-    // @ts-expect-error TS2339
-    playerSalaries: financesData.playerSalaries || 0,
-    // @ts-expect-error TS2339
+    credits: parseInt(String(financesData.credits)),
+    gems: financesData.gems || 0,
+    projectedIncome: parseInt(String(financesData.projectedIncome || '0')),
+    projectedExpenses: parseInt(String(financesData.projectedExpenses || '0')),
+    lastSeasonRevenue: parseInt(String(financesData.lastSeasonRevenue || '0')),
+    lastSeasonExpenses: parseInt(String(financesData.lastSeasonExpenses || '0')),
+    facilitiesMaintenanceCost: parseInt(String(financesData.facilitiesMaintenanceCost || '0')),
+    playerSalaries: financesData.playerSalaries || 0,
     staffSalaries: financesData.staffSalaries || 0,
     totalExpenses: financesData.totalExpenses || 0,
     netIncome: financesData.netIncome || 0,

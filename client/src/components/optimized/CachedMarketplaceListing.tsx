@@ -9,21 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Coins, Clock, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import type { Player, MarketplaceListing } from '@shared/types/models';
 
-interface MarketplaceListing {
-  id: number;
-  player: any;
-  startingBid: number;
-  currentBid: number;
-  buyNowPrice: number;
-  endsAt: string;
-  bids: any[];
-  createdAt: string;
-  seller: {
-    id: number;
-    name: string;
-  };
-}
 
 interface CachedMarketplaceListingProps {
   listing: MarketplaceListing;
@@ -63,8 +50,7 @@ const CachedMarketplaceListing: React.FC<CachedMarketplaceListingProps> = memo((
         {/* Player Card */}
         <div className="cursor-pointer" onClick={() => onPlayerClick(listing.player)}>
           <UnifiedPlayerCard
-            player={listing.player}
-            // @ts-expect-error TS2322
+            player={listing.player}
             variant="marketplace"
             onClick={() => onPlayerClick(listing.player)}
           />

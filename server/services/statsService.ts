@@ -1,4 +1,7 @@
 import { getPrismaClient } from "../database.js";
+import { prisma } from '../database/enhancedDatabaseConfig';
+import type { Player, Team, League } from '@shared/types/models';
+
 
 // Only track stats from meaningful match types (exclude exhibitions)
 const MEANINGFUL_MATCH_TYPES = ['LEAGUE', 'PLAYOFF'] as const;
@@ -172,7 +175,7 @@ export class StatsService {
       }
 
       // Aggregate all statistics
-      const aggregated = matchStats.reduce((acc, stat) => ({
+      const aggregated = matchStats.reduce((acc: any, stat: any) => ({
         minutesPlayed: acc.minutesPlayed + stat.minutesPlayed,
         performanceRating: acc.performanceRating + (stat.performanceRating || 0),
         camaraderieContribution: acc.camaraderieContribution + stat.camaraderieContribution,
@@ -277,11 +280,11 @@ export class StatsService {
       // Calculate averages
       if (result.gamesPlayed > 0) {
         result.averages = {
-          scoresPerGame: Math.round((result.offensive.scores / result.gamesPlayed) * 10) / 10,
-          assistsPerGame: Math.round((result.offensive.assists / result.gamesPlayed) * 10) / 10,
-          passingYardsPerGame: Math.round((result.offensive.passingYards / result.gamesPlayed) * 10) / 10,
-          rushingYardsPerGame: Math.round((result.offensive.rushingYards / result.gamesPlayed) * 10) / 10,
-          tacklesPerGame: Math.round((result.defensive.tackles / result.gamesPlayed) * 10) / 10,
+          scoresPerGame: Math.round((result?.offensive.scores / result.gamesPlayed) * 10) / 10,
+          assistsPerGame: Math.round((result?.offensive.assists / result.gamesPlayed) * 10) / 10,
+          passingYardsPerGame: Math.round((result?.offensive.passingYards / result.gamesPlayed) * 10) / 10,
+          rushingYardsPerGame: Math.round((result?.offensive.rushingYards / result.gamesPlayed) * 10) / 10,
+          tacklesPerGame: Math.round((result?.defensive.tackles / result.gamesPlayed) * 10) / 10,
           performanceRatingAvg: result.performanceRating
         };
       }
@@ -325,7 +328,7 @@ export class StatsService {
       }
 
       // Aggregate team statistics
-      const aggregated = teamStats.reduce((acc, stat) => ({
+      const aggregated = teamStats.reduce((acc: any, stat: any) => ({
         timeOfPossession: acc.timeOfPossession + stat.timeOfPossession,
         possessionPercentage: acc.possessionPercentage + stat.possessionPercentage,
         averageFieldPosition: acc.averageFieldPosition + stat.averageFieldPosition,
@@ -345,7 +348,7 @@ export class StatsService {
         totalInterceptions: acc.totalInterceptions + stat.totalInterceptions,
         totalBallStrips: acc.totalBallStrips + stat.totalBallStrips,
         passDeflections: acc.passDeflections + stat.passDeflections,
-        defensiveStops: acc.defensiveStops + stat.defensiveStops,
+        defensiveStops: acc?.defensiveStops + stat?.defensiveStops,
         totalFumbles: acc.totalFumbles + stat.totalFumbles,
         turnoverDifferential: acc.turnoverDifferential + stat.turnoverDifferential,
         physicalDominance: acc.physicalDominance + stat.physicalDominance,
@@ -395,7 +398,7 @@ export class StatsService {
         totalInterceptions: aggregated.totalInterceptions,
         totalBallStrips: aggregated.totalBallStrips,
         passDeflections: aggregated.passDeflections,
-        defensiveStops: aggregated.defensiveStops,
+        defensiveStops: aggregated?.defensiveStops,
         
         // Physical & Flow Metrics
         totalFumbles: aggregated.totalFumbles,
@@ -526,7 +529,7 @@ export class StatsService {
         totalInterceptions: teamMatchStat.totalInterceptions,
         totalBallStrips: teamMatchStat.totalBallStrips,
         passDeflections: teamMatchStat.passDeflections,
-        defensiveStops: teamMatchStat.defensiveStops,
+        defensiveStops: teamMatchStat?.defensiveStops,
         totalFumbles: teamMatchStat.totalFumbles,
         turnoverDifferential: teamMatchStat.turnoverDifferential,
         physicalDominance: teamMatchStat.physicalDominance,
@@ -573,12 +576,12 @@ export class StatsService {
       }
 
       // Find top performers
-      const mostScores = playerStats.reduce((prev, curr) => curr.scores > prev.scores ? curr : prev);
-      const mostYards = playerStats.reduce((prev, curr) => 
+      const mostScores = playerStats.reduce((prev: any, curr: any) => curr.scores > prev.scores ? curr : prev);
+      const mostYards = playerStats.reduce((prev: any, curr: any) => 
         (curr.rushingYards + curr.receivingYards) > (prev.rushingYards + prev.receivingYards) ? curr : prev);
-      const mostTackles = playerStats.reduce((prev, curr) => curr.tackles > prev.tackles ? curr : prev);
-      const mostKnockdowns = playerStats.reduce((prev, curr) => curr.knockdowns > prev.knockdowns ? curr : prev);
-      const mvpPerformance = playerStats.reduce((prev, curr) => 
+      const mostTackles = playerStats.reduce((prev: any, curr: any) => curr.tackles > prev.tackles ? curr : prev);
+      const mostKnockdowns = playerStats.reduce((prev: any, curr: any) => curr.knockdowns > prev.knockdowns ? curr : prev);
+      const mvpPerformance = playerStats.reduce((prev: any, curr: any) => 
         (curr.performanceRating || 0) > (prev.performanceRating || 0) ? curr : prev);
 
       const convertToPlayerStats = (stat: any): PlayerStats => {
@@ -750,7 +753,7 @@ export class StatsService {
         passing: playerStats.sort((a, b) => (b.averages?.passingYardsPerGame || 0) - (a.averages?.passingYardsPerGame || 0)).slice(0, 10),
         rushing: playerStats.sort((a, b) => (b.averages?.rushingYardsPerGame || 0) - (a.averages?.rushingYardsPerGame || 0)).slice(0, 10),
         defense: playerStats.sort((a, b) => (b.averages?.tacklesPerGame || 0) - (a.averages?.tacklesPerGame || 0)).slice(0, 10),
-        physicality: playerStats.sort((a, b) => b.defensive.knockdowns - a.defensive.knockdowns).slice(0, 10)
+        physicality: playerStats.sort((a, b) => b?.defensive.knockdowns - a?.defensive.knockdowns).slice(0, 10)
       };
     } catch (error) {
       console.error('Error getting player leaderboards:', error);

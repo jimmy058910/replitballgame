@@ -30,8 +30,7 @@ export const LandscapeOrientation: React.FC<LandscapeOrientationProps> = ({ chil
     // Try to lock orientation to landscape if possible
     if ('screen' in window && 'orientation' in window.screen) {
       const orientation = window.screen.orientation;
-      if ('lock' in orientation) {
-        // @ts-expect-error TS18046
+      if ('lock' in orientation) {
         orientation.lock('landscape').catch((err: any) => {
           console.log('Orientation lock not supported:', err);
         });

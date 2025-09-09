@@ -1,0 +1,100 @@
+client/src/components/DynamicMarketplaceManager.tsx(342,64): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+client/src/components/DynamicMarketplaceManager.tsx(402,56): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+client/src/components/DynamicMarketplaceManager.tsx(623,31): error TS2322: Type '{ player: Player; showDetailedStats: boolean; showActions: false; }' is not assignable to type 'IntrinsicAttributes & PlayerCardProps'.
+  Property 'showDetailedStats' does not exist on type 'IntrinsicAttributes & PlayerCardProps'.
+client/src/components/DynamicMarketplaceManager.tsx(710,62): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+client/src/components/DynamicMarketplaceManager.tsx(774,64): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+client/src/components/EnhancedFinancesTab.tsx(243,52): error TS2339: Property 'players' does not exist on type '{}'.
+client/src/components/EnhancedFinancesTab.tsx(243,76): error TS2339: Property 'players' does not exist on type '{}'.
+client/src/components/EnhancedInventoryHub.tsx(356,39): error TS7006: Parameter 'item' implicitly has an 'any' type.
+client/src/components/EnhancedLoadingWrapper.tsx(146,8): error TS2322: Type 'P' is not assignable to type 'IntrinsicAttributes & ((PropsWithoutRef<P> & RefAttributes<Component<P, any, any>>) | PropsWithRef<P>)'.
+  Type 'object' is not assignable to type 'IntrinsicAttributes & ((PropsWithoutRef<P> & RefAttributes<Component<P, any, any>>) | PropsWithRef<P>)'.
+    Type 'P' is not assignable to type 'IntrinsicAttributes & PropsWithRef<P>'.
+      Type 'object' is not assignable to type 'IntrinsicAttributes & PropsWithRef<P>'.
+        Type 'object' is not assignable to type 'PropsWithRef<P>'.
+          Type 'P' is not assignable to type 'PropsWithRef<P>'.
+            Type 'object' is not assignable to type 'PropsWithRef<P>'.
+client/src/components/EnhancedLoadingWrapper.tsx(216,9): error TS2322: Type '(() => void) | undefined' is not assignable to type '(() => Promise<void>) | undefined'.
+  Type '() => void' is not assignable to type '() => Promise<void>'.
+    Type 'void' is not assignable to type 'Promise<void>'.
+client/src/components/EnhancedMarketplace.tsx(25,29): error TS2440: Import declaration conflicts with local declaration of 'MarketplaceListing'.
+client/src/components/EnhancedMarketplace.tsx(111,73): error TS2345: Argument of type '{ method: string; body: string; }' is not assignable to parameter of type 'string'.
+client/src/components/EnhancedMarketplace.tsx(133,77): error TS2345: Argument of type '{ method: string; }' is not assignable to parameter of type 'string'.
+client/src/components/EnhancedMarketplace.tsx(182,38): error TS2339: Property 'listings' does not exist on type '{}'.
+client/src/components/EnhancedMarketplace.tsx(199,38): error TS2339: Property 'listings' does not exist on type '{}'.
+client/src/components/EnhancedMarketplace.tsx(336,35): error TS2339: Property 'listings' does not exist on type '{}'.
+client/src/components/EnhancedMarketplace.tsx(462,31): error TS2339: Property 'pagination' does not exist on type '{}'.
+client/src/components/EnhancedMarketplace.tsx(476,58): error TS2339: Property 'pagination' does not exist on type '{}'.
+client/src/components/EnhancedMarketplace.tsx(483,60): error TS2339: Property 'pagination' does not exist on type '{}'.
+client/src/components/EnhancedMarketplace.tsx(506,37): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(512,22): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(516,23): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(563,40): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(569,22): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(573,23): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(624,73): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(631,73): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(638,77): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(645,76): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/EnhancedMarketplace.tsx(652,38): error TS18046: 'dashboardData' is of type 'unknown'.
+client/src/components/ErrorBoundary.tsx(96,27): error TS18049: 'errorInfo.componentStack' is possibly 'null' or 'undefined'.
+client/src/components/FinancesTab.tsx(25,9): error TS2322: Type '({ id: string | number; playerId: string | number; salary: any; length: any; startDate: any; player: Player; } | { id: number; staffId: number; salary: string; length: number; startDate: any; staff: Staff; })[]' is not assignable to type 'Contract[]'.
+  Type '{ id: string | number; playerId: string | number; salary: any; length: any; startDate: any; player: Player; } | { id: number; staffId: number; salary: string; length: number; startDate: any; staff: Staff; }' is not assignable to type 'Contract'.
+    Property 'yearsRemaining' is missing in type '{ id: string | number; playerId: string | number; salary: any; length: any; startDate: any; player: Player; }' but required in type 'Contract'.
+client/src/components/FinancesTab.tsx(29,23): error TS2339: Property 'salary' does not exist on type 'Player'.
+client/src/components/FinancesTab.tsx(30,22): error TS2339: Property 'contractLength' does not exist on type 'Player'.
+client/src/components/FinancesTab.tsx(31,25): error TS2339: Property 'contractStartDate' does not exist on type 'Player'.
+client/src/components/FinancesTab.tsx(39,24): error TS2339: Property 'contractStartDate' does not exist on type 'Staff'.
+client/src/components/FinancesTab.tsx(44,28): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/FinancesTab.tsx(45,25): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/FinancesTab.tsx(46,36): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/FinancesTab.tsx(47,38): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/FinancesTab.tsx(83,11): error TS2322: Type 'TeamFinances' is not assignable to type '{ credits: string; gems: string; escrowCredits: string; escrowGems: string; projectedIncome: string; projectedExpenses: string; lastSeasonRevenue: string; lastSeasonExpenses: string; }'.
+  Types of property 'credits' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+client/src/components/FinancesTab.tsx(323,50): error TS2339: Property 'staffId' does not exist on type 'Contract'.
+client/src/components/FinancesTab.tsx(402,14): error TS2339: Property 'staff' does not exist on type 'Contract'.
+client/src/components/FinancesTab.tsx(404,50): error TS2339: Property 'staff' does not exist on type 'Contract'.
+client/src/components/FinancesTab.tsx(405,27): error TS2345: Argument of type 'number | "0"' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/FinancesTab.tsx(435,62): error TS2339: Property 'startDate' does not exist on type 'Contract'.
+client/src/components/FinancialCenter.tsx(80,44): error TS2304: Cannot find name 'PlayerContract'.
+client/src/components/FinancialCenter.tsx(82,31): error TS2304: Cannot find name 'PlayerContract'.
+client/src/components/FinancialCenter.tsx(143,20): error TS2304: Cannot find name 'PlayerContract'.
+client/src/components/FinancialCenter.tsx(436,27): error TS2322: Type '{ teamId: string; }' is not assignable to type 'IntrinsicAttributes & PaymentHistoryProps'.
+  Property 'teamId' does not exist on type 'IntrinsicAttributes & PaymentHistoryProps'.
+client/src/components/GameSimulationUI.tsx(291,41): error TS2339: Property 'data' does not exist on type '{}'.
+client/src/components/GameSimulationUI.tsx(558,8): error TS2367: This comparison appears to be unintentional because the types '"live" | "completed" | "paused"' and '"FINISHED"' have no overlap.
+client/src/components/GameSimulationUI.tsx(871,53): error TS2339: Property 'text' does not exist on type 'MatchEvent'.
+client/src/components/InjuryStaminaManager.tsx(36,63): error TS2304: Cannot find name 'PlayerInjuryStatus'.
+client/src/components/InjuryStaminaManager.tsx(39,42): error TS2304: Cannot find name 'PlayerInjuryStatus'.
+client/src/components/InjuryStaminaManager.tsx(217,64): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+client/src/components/InjuryStaminaManager.tsx(288,31): error TS18048: 'selectedPlayerData.dailyStaminaLevel' is possibly 'undefined'.
+client/src/components/InventoryDisplay.tsx(94,43): error TS18046: 'value' is of type 'unknown'.
+client/src/components/LandscapeOrientation.tsx(35,9): error TS18046: 'orientation.lock' is of type 'unknown'.
+client/src/components/LeagueStandings.tsx(21,63): error TS2304: Cannot find name 'Team'.
+client/src/components/LeagueStandings.tsx(38,47): error TS2304: Cannot find name 'Team'.
+client/src/components/LeagueStandings.tsx(117,52): error TS2304: Cannot find name 'Team'.
+client/src/components/LineupRosterBoard.tsx(40,53): error TS2339: Property 'isStarter' does not exist on type 'Player'.
+client/src/components/LineupRosterBoard.tsx(42,51): error TS2339: Property 'isStarter' does not exist on type 'Player'.
+client/src/components/LineupRosterBoard.tsx(135,52): error TS2322: Type 'string | number' is not assignable to type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/LineupRosterBoard.tsx(145,72): error TS2339: Property 'name' does not exist on type 'Player'.
+client/src/components/LineupRosterBoard.tsx(176,52): error TS2322: Type 'string | number' is not assignable to type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/LineupRosterBoard.tsx(186,72): error TS2339: Property 'name' does not exist on type 'Player'.
+client/src/components/MatchStatsOverlay.tsx(130,22): error TS18048: 'matchStats.topPerformers.mostScores.offensive' is possibly 'undefined'.
+client/src/components/MatchStatsOverlay.tsx(142,22): error TS18048: 'matchStats.topPerformers.mostTackles.defensive' is possibly 'undefined'.
+client/src/components/MatchStatsOverlay.tsx(154,22): error TS18048: 'matchStats.topPerformers.mostKnockdowns.defensive' is possibly 'undefined'.
+client/src/components/MatchStatsOverlay.tsx(166,23): error TS18048: 'matchStats.topPerformers.mostYards.offensive' is possibly 'undefined'.
+client/src/components/MatchStatsOverlay.tsx(167,23): error TS18048: 'matchStats.topPerformers.mostYards.offensive' is possibly 'undefined'.

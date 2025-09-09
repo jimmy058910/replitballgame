@@ -5,6 +5,8 @@ import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 import { ContractService } from '../services/contractService.js';
 import { getPrismaClient } from '../storage/index.js';
+import type { Player, Team, Contract } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -26,7 +28,7 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
       return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const players = await storage.players.getPlayersByTeamId(userTeam.id);
+    const players = await storage?.players.getPlayersByTeamId(userTeam.id);
     res.json(players);
   } catch (error) {
     console.error("Error fetching players:", error);
@@ -41,7 +43,7 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
 router.get('/:playerId', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const { playerId } = req.params;
-    const player = await storage.players.getPlayerById(parseInt(playerId));
+    const player = await storage?.players.getPlayerById(parseInt(playerId));
     
     if (!player) {
       return res.status(404).json({ message: "Player not found" });
@@ -68,7 +70,7 @@ router.get('/:playerId/contract-value', requireAuth, async (req: any, res: Respo
         return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const player = await storage.players.getPlayerById(parseInt(playerId));
+    const player = await storage?.players.getPlayerById(parseInt(playerId));
     if (!player || player.teamId !== userTeam.id) {
       return res.status(404).json({ message: "Player not found on your team or does not exist." });
     }
@@ -113,7 +115,7 @@ router.post('/:playerId/negotiate', requireAuth, async (req: any, res: Response,
         return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const player = await storage.players.getPlayerById(parseInt(playerId));
+    const player = await storage?.players.getPlayerById(parseInt(playerId));
     if (!player || player.teamId !== userTeam.id) {
       return res.status(404).json({ message: "Player not found on your team or does not exist." });
     }
@@ -163,7 +165,7 @@ router.get('/:playerId/contract-negotiation-data', requireAuth, async (req: any,
       return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const player = await storage.players.getPlayerById(parseInt(playerId));
+    const player = await storage?.players.getPlayerById(parseInt(playerId));
     if (!player || player.teamId !== userTeam.id) {
       return res.status(404).json({ message: "Player not found on your team." });
     }
@@ -229,7 +231,7 @@ router.post('/:playerId/negotiation-feedback', requireAuth, async (req: any, res
       return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const player = await storage.players.getPlayerById(parseInt(playerId));
+    const player = await storage?.players.getPlayerById(parseInt(playerId));
     if (!player || player.teamId !== userTeam.id) {
       return res.status(404).json({ message: "Player not found on your team." });
     }
@@ -296,7 +298,7 @@ router.post('/:playerId/negotiate-contract', requireAuth, async (req: any, res: 
       return res.status(404).json({ message: "Your team was not found." });
     }
 
-    const player = await storage.players.getPlayerById(parseInt(playerId));
+    const player = await storage?.players.getPlayerById(parseInt(playerId));
     if (!player || player.teamId !== userTeam.id) {
       return res.status(404).json({ message: "Player not found on your team." });
     }
@@ -346,7 +348,7 @@ router.post('/:playerId/negotiate-contract', requireAuth, async (req: any, res: 
 //     }
 
 //     const playerId = req.params.id;
-//     const player = await storage.players.getPlayerById(parseInt(playerId));
+//     const player = await storage?.players.getPlayerById(parseInt(playerId));
 
 //     if (!player || player.teamId !== team.id) {
 //       return res.status(404).json({ message: "Player not found or not owned by your team." });

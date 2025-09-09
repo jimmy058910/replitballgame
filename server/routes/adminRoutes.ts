@@ -7,6 +7,8 @@ import { MatchStatusFixer } from '../utils/matchStatusFixer.js';
 import { TournamentBracketGenerator } from '../utils/tournamentBracketGenerator.js';
 import { UnifiedTournamentAutomation } from '../services/unifiedTournamentAutomation';
 import { TeamStandingsSyncService } from '../scripts/syncTeamStandings.js';
+import type { Team } from '@shared/types/models';
+
 // No auth import needed for now - will use simple endpoint
 
 const router = Router();
@@ -44,7 +46,7 @@ router.post('/force-advance-to-day-7', async (req, res) => {
     console.log('🔥 [ADMIN] CRITICAL FIX: Manually advancing to Day 7...');
     
     const { getPrismaClient } = await import('../database');
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get current season
     const currentSeason = await prisma.season.findFirst({
@@ -58,7 +60,7 @@ router.post('/force-advance-to-day-7', async (req, res) => {
       });
     }
     
-    console.log(`🔥 Current season Day ${currentSeason.currentDay} -> advancing to Day 7`);
+    console.log(`🔥 Current season Day ${currentSeason?.currentDay} -> advancing to Day 7`);
     
     // Force update to Day 7
     await prisma.season.update({
@@ -71,7 +73,7 @@ router.post('/force-advance-to-day-7', async (req, res) => {
     res.json({
       success: true,
       message: 'Season manually advanced to Day 7',
-      previousDay: currentSeason.currentDay,
+      previousDay: currentSeason?.currentDay,
       newDay: 7,
       seasonId: currentSeason.id,
       timestamp: new Date().toISOString()
@@ -92,7 +94,7 @@ router.post('/force-complete-day-6-games', async (req, res) => {
     console.log('🔥 [ADMIN] Force completing all overdue Day 6 games...');
     
     const { getPrismaClient } = await import('../database');
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find all SCHEDULED games that should have been completed by now
     const now = new Date();
@@ -336,7 +338,7 @@ router.post('/fix-division-7-schedule', async (req: Request, res: Response) => {
     console.log('🔧 [ADMIN] Fixing Division 7 Alpha schedule issues...');
     
     const { getPrismaClient } = await import('../database');
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get Division 7 Alpha teams
     const teams = await prisma.team.findMany({
@@ -490,7 +492,7 @@ router.get('/check-tournament-games', async (req: Request, res: Response) => {
     console.log('🔍 [ADMIN] Checking tournament games...');
     
     const { getPrismaClient } = await import('../database');
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find games with the IDs from the screenshot (10117, 10118, etc.)
     const tournamentGames = await prisma.game.findMany({
@@ -540,7 +542,7 @@ router.get('/check-tournament-games', async (req: Request, res: Response) => {
 router.post('/fix-corrupted-games', async (req: Request, res: Response) => {
   try {
     const { getPrismaClient } = await import('../database');
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Fix games 10117, 10118, 10120 - they should be LEAGUE games, not tournament games
     const corruptedGameIds = [10117, 10118, 10120];
@@ -646,7 +648,7 @@ router.post('/regenerate-division-7-alpha', async (req: Request, res: Response) 
     console.log('🔥 [ADMIN] Starting Division 7 Alpha schedule regeneration...');
     
     const { getPrismaClient } = await import('../database.js');
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Step 1: Get all Division 7 Alpha teams
     const divisionTeams = await prisma.team.findMany({
@@ -805,7 +807,7 @@ router.post('/fix-team-stats/:teamName', async (req: Request, res: Response) => 
     const { getPrismaClient } = await import('../database.js');
     const { TeamStatisticsIntegrityService } = await import('../services/enhancedStatisticsService.js');
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find team by name (case-insensitive search)
     const team = await prisma.team.findFirst({
@@ -862,7 +864,7 @@ router.post('/quick-fix-division-7-alpha', async (req: Request, res: Response) =
     console.log('🚀 [QUICK FIX] Starting Division 7 Alpha schedule regeneration...');
     
     const { getPrismaClient } = await import('../database.js');
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Step 1: Get all Division 7 Alpha teams
     const divisionTeams = await prisma.team.findMany({

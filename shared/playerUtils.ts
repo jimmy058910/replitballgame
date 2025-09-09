@@ -1,5 +1,5 @@
-// @ts-expect-error TS2307
-import type { Player } from "./schema";
+
+import type { Player } from "./types/models";
 
 /**
  * Determines a player's optimal role based on their stats

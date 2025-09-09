@@ -1,5 +1,7 @@
 import { getPrismaClient } from '../database.js';
 import { getEasternTime } from '../../shared/timezone.js';
+import type { Team } from '@shared/types/models';
+
 
 /**
  * Dynamic Season Service
@@ -323,8 +325,8 @@ export class DynamicSeasonService {
 
       // Check if current day matches calculation
       const calculatedDay = await this.getCurrentSeasonDay();
-      if (currentSeason.currentDay !== calculatedDay) {
-        issues.push(`Current day mismatch: DB=${currentSeason.currentDay}, Calculated=${calculatedDay}`);
+      if (currentSeason?.currentDay !== calculatedDay) {
+        issues.push(`Current day mismatch: DB=${currentSeason?.currentDay}, Calculated=${calculatedDay}`);
       }
 
       // Check for Division 8 shortened seasons

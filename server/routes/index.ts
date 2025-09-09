@@ -74,6 +74,8 @@ import manualStandingsComplete from "./manualStandingsComplete.js";
 import simpleCleanupRoutes from "./simpleCleanupRoutes.js";
 import integrityRoutes from "./integrityRoutes.js";
 import timeFixRoutes from "./timeFixRoutes.js";
+import type { Player, Team, Stadium, League } from '@shared/types/models';
+
 
 
 // This function will be called by server/index.ts to set up all routes.

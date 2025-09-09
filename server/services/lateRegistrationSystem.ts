@@ -13,7 +13,9 @@
  */
 
 import { getPrismaClient } from '../database.js';
-import type { Team, Game, PrismaClient } from '../db';
+import type { Game, PrismaClient } from '../db';
+import type { Team } from '@shared/types/models';
+
 
 // Greek alphabet for subdivision naming
 const GREEK_SUBDIVISIONS = [

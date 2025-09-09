@@ -1,4 +1,6 @@
 import { getPrismaClient } from '../database.js';
+import type { Team } from '@shared/types/models';
+
 
 /**
  * Ensures UserProfile records exist for all teams in the database.

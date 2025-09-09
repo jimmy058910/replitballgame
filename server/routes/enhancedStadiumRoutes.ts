@@ -15,6 +15,8 @@ import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService.js';
 import { RBACService, Permission } from '../services/rbacService.js';
+import type { Player, Team, Stadium } from '@shared/types/models';
+
 import {
   calculateFanLoyalty,
   calculateHomeAdvantage,
@@ -77,15 +79,15 @@ async function getUserTeamWithStadium(userId: string) {
 /**
  * Helper to serialize BigInt values for JSON response
  */
-function serializeBigInt(obj: any): any {
+function serializeNumber(obj: any): any {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj === 'bigint') return Number(obj);
   if (obj instanceof Date) return obj.toISOString();
-  if (Array.isArray(obj)) return obj.map(serializeBigInt);
+  if (Array.isArray(obj)) return obj.map(serializeNumber);
   if (typeof obj === 'object') {
     const result: any = {};
     for (const key in obj) {
-      result[key] = serializeBigInt(obj[key]);
+      result[key] = serializeNumber(obj[key]);
     }
     return result;
   }
@@ -126,7 +128,7 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
 
     res.json({
       success: true,
-      data: serializeBigInt({
+      data: serializeNumber({
         stadium,
         availableUpgrades,
         events,
@@ -213,7 +215,7 @@ router.post('/upgrade', requireAuth, async (req: any, res: Response, next: NextF
     await prisma.teamFinances.update({
       where: { teamId: team.id },
       data: { 
-        credits: BigInt(Number(finances.credits || 0) - upgrade.upgradeCost)
+        credits: Number(Number(finances.credits || 0) - upgrade.upgradeCost)
       }
     });
 
@@ -282,7 +284,7 @@ router.post('/field-size', requireAuth, async (req: any, res: Response, next: Ne
     await prisma.teamFinances.update({
       where: { teamId: team.id },
       data: { 
-        credits: BigInt(Number(finances.credits || 0) - changeCost)
+        credits: Number(Number(finances.credits || 0) - changeCost)
       }
     });
 
@@ -352,7 +354,7 @@ router.get('/revenue/:teamId', requireAuth, async (req: any, res: Response, next
 
     res.json({
       success: true,
-      data: serializeBigInt({
+      data: serializeNumber({
         stadium,
         fanLoyalty,
         projectedAttendance: attendanceData,
@@ -381,7 +383,7 @@ router.get('/atmosphere/team/:teamId/analytics', requireAuth, async (req, res) =
     
     res.json({
       success: true,
-      data: serializeBigInt(analytics)
+      data: serializeNumber(analytics)
     });
   } catch (error) {
     console.error('Error getting stadium analytics:', error);
@@ -405,7 +407,7 @@ router.get('/atmosphere/team/:teamId/matchday', requireAuth, async (req, res) =>
     
     res.json({
       success: true,
-      data: serializeBigInt(atmosphere)
+      data: serializeNumber(atmosphere)
     });
   } catch (error) {
     console.error('Error calculating matchday atmosphere:', error);
@@ -429,7 +431,7 @@ router.get('/atmosphere/team/:teamId/revenue', requireAuth, async (req, res) => 
     
     res.json({
       success: true,
-      data: serializeBigInt(revenue)
+      data: serializeNumber(revenue)
     });
   } catch (error) {
     console.error('Error calculating home game revenue:', error);
@@ -461,7 +463,7 @@ router.post('/atmosphere/team/:teamId/loyalty/calculate', requireAuth, RBACServi
     
     res.json({
       success: true,
-      data: serializeBigInt(loyaltyUpdate)
+      data: serializeNumber(loyaltyUpdate)
     });
   } catch (error) {
     console.error('Error calculating end-of-season loyalty:', error);
@@ -492,7 +494,7 @@ router.post('/atmosphere/league/loyalty/process', requireAuth, RBACService.requi
     
     res.json({
       success: true,
-      data: serializeBigInt(results),
+      data: serializeNumber(results),
       message: `Processed loyalty updates for ${results.teamsProcessed} teams`
     });
   } catch (error) {
@@ -750,7 +752,7 @@ router.get('/atmosphere/revenue-breakdown', requireAuth, async (req: any, res) =
       atmosphereBonus: fanLoyalty > 80 ? Math.floor(actualAttendance * 2) : 0
     };
     
-    const totalRevenue = Object.values(breakdown).reduce((sum, val) => sum + val, 0);
+    const totalRevenue = Object.values(breakdown).reduce((sum: any, val: any) => sum + val, 0);
     
     res.json({
       success: true,

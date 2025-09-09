@@ -18,6 +18,7 @@
  */
 
 import { getPrismaClient } from '../database.js';
+import { prisma } from '../database/enhancedDatabaseConfig';
 import { z } from 'zod';
 import logger from '../utils/logger.js';
 import { randomUUID } from 'crypto';
@@ -757,7 +758,7 @@ export class EnhancedCompetitionService {
       
       // Get active tournaments by type
       const [daily, midSeason, playoffs, allActive] = await Promise.all([
-        prisma.tournament.count({
+        await prisma.tournament.count({
           where: { 
             status: 'IN_PROGRESS',
             type: 'DAILY_DIVISIONAL'

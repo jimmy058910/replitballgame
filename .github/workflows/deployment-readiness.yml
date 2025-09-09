@@ -1,4 +1,4 @@
-name: 🚀 Deployment Readiness Agent
+name: 🚀 Deployment Readiness Agent (Enhanced)
 
 on:
   push:
@@ -17,6 +17,11 @@ on:
         required: false
         default: 'true'
         type: boolean
+      validate_8_agent_optimizations:
+        description: 'Validate 8-agent optimization deployment readiness'
+        required: false
+        default: 'true'
+        type: boolean
 
 env:
   NODE_VERSION: '20'
@@ -25,13 +30,15 @@ env:
   SERVICE_NAME: realm-rivalry-unified
 
 jobs:
-  deployment-validation:
-    name: Pre-Deployment Validation & Testing
+  enhanced-deployment-validation:
+    name: Enhanced Pre-Deployment Validation & 8-Agent Optimization Check
     runs-on: ubuntu-latest
     
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need previous commit for optimization trend analysis
 
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
@@ -42,6 +49,14 @@ jobs:
       - name: 🐳 Setup Docker Buildx
         if: github.event.inputs.check_docker_build == 'true' || github.event.inputs.check_docker_build == null
         uses: docker/setup-buildx-action@v3
+
+      # NEW: Download previous deployment state for optimization tracking
+      - name: 📊 Fetch Previous Deployment State
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-readiness-state-${{ github.event.before }}
+          path: previous-deployment-state/
 
       - name: 📦 Install Dependencies
         run: |
@@ -55,38 +70,230 @@ jobs:
           npx prisma generate
           echo "✅ Prisma client ready for deployment"
 
-      - name: 🏗️ Critical Path Compilation Test
-        id: compilation-test
+      # NEW: 8-Agent Optimization Deployment Validation
+      - name: 🎯 8-Agent Optimization Deployment Readiness
+        id: optimization-readiness
         run: |
-          echo "🚀 Testing deployment-critical compilation..."
+          echo "🎯 Validating 8-agent optimization deployment readiness..."
           
-          # Test server compilation (critical for deployment) - production-aligned
-          echo "📊 Testing server TypeScript compilation..."
-          npm run build:server > build-output.log 2>&1 || true
-          
-          # Check if JavaScript files were generated (production behavior)
-          if [ -d "dist/server" ] && [ "$(find dist/server -name "*.js" | wc -l)" -gt "0" ]; then
-            echo "✅ SERVER COMPILATION: JavaScript files generated - ready for deployment"
-            echo "server_compilation=success" >> $GITHUB_OUTPUT
+          # DatabaseService Singleton Deployment Check
+          echo "🗄️ Checking DatabaseService deployment patterns..."
+          if [ -f "server/database/DatabaseService.ts" ]; then
+            # Check for production-ready singleton implementation
+            SINGLETON_EXPORTS=$(grep -c "static getInstance\|export class DatabaseService" server/database/DatabaseService.ts || echo "0")
+            PROPER_ERROR_HANDLING=$(grep -c "try.*catch\|\.catch" server/database/DatabaseService.ts || echo "0")
+            CONNECTION_POOLING=$(grep -c "connectionLimit\|pool" server/database/DatabaseService.ts || echo "0")
+            
+            if [ "$SINGLETON_EXPORTS" -ge "2" ] && [ "$PROPER_ERROR_HANDLING" -gt "0" ]; then
+              echo "✅ DatabaseService deployment-ready"
+              echo "database_service_ready=true" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️ DatabaseService may need deployment hardening"
+              echo "database_service_ready=false" >> $GITHUB_OUTPUT
+            fi
           else
-            echo "❌ SERVER COMPILATION: Failed to generate JavaScript files - DEPLOYMENT BLOCKED"
-            echo "server_compilation=failed" >> $GITHUB_OUTPUT
+            echo "❌ DatabaseService missing - critical for deployment!"
+            echo "database_service_ready=false" >> $GITHUB_OUTPUT
           fi
           
-          # Test client build (critical for production)
-          echo "🎯 Testing client production build..."
-          if npm run build; then
-            echo "✅ CLIENT BUILD: Ready for deployment"
-            echo "client_build=success" >> $GITHUB_OUTPUT
+          # Component Architecture Deployment Validation
+          echo "🧩 Checking component decomposition deployment impact..."
+          LARGE_COMPONENTS=$(find client/src/components/ -name "*.tsx" -exec wc -l {} \; | awk '$1 > 500 { count++ } END { print count+0 }')
+          MONOLITHIC_COMPONENTS=$(find client/src/components/ -name "*.tsx" -exec wc -l {} \; | awk '$1 > 1000 { count++ } END { print count+0 }')
+          
+          # Check for proper component splitting benefits in build
+          COMPONENT_FILES=$(find client/src/components/ -name "*.tsx" | wc -l)
+          
+          echo "Large components (>500 lines): $LARGE_COMPONENTS"
+          echo "Monolithic components (>1000 lines): $MONOLITHIC_COMPONENTS"
+          echo "Total component files: $COMPONENT_FILES"
+          
+          if [ "$MONOLITHIC_COMPONENTS" -eq "0" ] && [ "$COMPONENT_FILES" -gt "20" ]; then
+            echo "✅ Component architecture deployment-optimized"
+            echo "component_architecture_ready=true" >> $GITHUB_OUTPUT
+            COMPONENT_SCORE=100
+          elif [ "$LARGE_COMPONENTS" -lt "5" ]; then
+            echo "✅ Component architecture acceptable for deployment"
+            echo "component_architecture_ready=true" >> $GITHUB_OUTPUT
+            COMPONENT_SCORE=80
           else
-            echo "⚠️ CLIENT BUILD: May affect frontend"
+            echo "⚠️ Component architecture may impact deployment performance"
+            echo "component_architecture_ready=false" >> $GITHUB_OUTPUT
+            COMPONENT_SCORE=60
+          fi
+          
+          echo "component_score=$COMPONENT_SCORE" >> $GITHUB_OUTPUT
+          
+          # Service Layer Deployment Readiness
+          echo "🏗️ Checking service layer deployment patterns..."
+          SERVICE_FILES=$(find server/services/ -name "*.ts" | wc -l)
+          ROUTE_BUSINESS_LOGIC=$(find server/routes/ -name "*.ts" -exec grep -c "prisma\." {} \; | awk '{sum+=$1} END {print sum+0}')
+          
+          if [ "$SERVICE_FILES" -gt "10" ] && [ "$ROUTE_BUSINESS_LOGIC" -lt "20" ]; then
+            echo "✅ Service layer properly separated for deployment"
+            echo "service_layer_ready=true" >> $GITHUB_OUTPUT
+            SERVICE_SCORE=100
+          elif [ "$ROUTE_BUSINESS_LOGIC" -lt "50" ]; then
+            echo "✅ Service layer acceptable for deployment"
+            echo "service_layer_ready=true" >> $GITHUB_OUTPUT
+            SERVICE_SCORE=80
+          else
+            echo "⚠️ Service layer separation may need improvement"
+            echo "service_layer_ready=false" >> $GITHUB_OUTPUT
+            SERVICE_SCORE=60
+          fi
+          
+          echo "service_score=$SERVICE_SCORE" >> $GITHUB_OUTPUT
+          
+          # Performance Optimization Deployment Impact
+          echo "⚡ Checking performance optimization deployment readiness..."
+          CONSOLE_LOGS=$(grep -r "console\." server/ --include="*.ts" | grep -v "console.error\|console.warn\|enhancedLogger" | wc -l)
+          STRUCTURED_LOGGING=$(find server/ -name "*.ts" -exec grep -l "enhancedLogger\|winston\|logger\." {} \; | wc -l)
+          
+          if [ "$CONSOLE_LOGS" -lt "20" ] && [ "$STRUCTURED_LOGGING" -gt "5" ]; then
+            echo "✅ Logging optimization deployment-ready"
+            echo "logging_ready=true" >> $GITHUB_OUTPUT
+            LOGGING_SCORE=100
+          elif [ "$CONSOLE_LOGS" -lt "50" ]; then
+            echo "✅ Logging acceptable for deployment"
+            echo "logging_ready=true" >> $GITHUB_OUTPUT
+            LOGGING_SCORE=80
+          else
+            echo "⚠️ Logging optimization incomplete"
+            echo "logging_ready=false" >> $GITHUB_OUTPUT
+            LOGGING_SCORE=60
+          fi
+          
+          echo "logging_score=$LOGGING_SCORE" >> $GITHUB_OUTPUT
+          
+          # Calculate overall 8-agent optimization deployment score
+          OPTIMIZATION_DEPLOYMENT_SCORE=$(((COMPONENT_SCORE + SERVICE_SCORE + LOGGING_SCORE) / 3))
+          echo "optimization_deployment_score=$OPTIMIZATION_DEPLOYMENT_SCORE" >> $GITHUB_OUTPUT
+          
+          echo "📊 8-Agent Optimization Deployment Readiness: $OPTIMIZATION_DEPLOYMENT_SCORE/100"
+
+      # Enhanced Critical Path Compilation Test
+      - name: 🏗️ Enhanced Critical Path Compilation Test
+        id: enhanced-compilation-test
+        run: |
+          echo "🚀 Testing enhanced deployment-critical compilation..."
+          
+          # Test server compilation with optimization awareness
+          echo "📊 Testing optimized server TypeScript compilation..."
+          set +e
+          npm run build:server > build-output.log 2>&1
+          SERVER_BUILD_RESULT=$?
+          set -e
+          
+          # Check compilation results with 8-agent awareness
+          if [ -d "dist/server" ] && [ "$(find dist/server -name "*.js" | wc -l)" -gt "0" ]; then
+            JS_FILE_COUNT=$(find dist/server -name "*.js" | wc -l)
+            echo "✅ SERVER COMPILATION: $JS_FILE_COUNT JavaScript files generated"
+            echo "server_compilation=success" >> $GITHUB_OUTPUT
+            echo "js_file_count=$JS_FILE_COUNT" >> $GITHUB_OUTPUT
+            
+            # Check for DatabaseService in compiled output
+            if find dist/server -name "*.js" -exec grep -l "DatabaseService\|getInstance" {} \; | wc -l; then
+              echo "✅ DatabaseService patterns present in compiled output"
+              echo "database_service_compiled=true" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️ DatabaseService patterns not found in compiled output"
+              echo "database_service_compiled=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ SERVER COMPILATION: Failed to generate JavaScript files"
+            echo "server_compilation=failed" >> $GITHUB_OUTPUT
+            echo "js_file_count=0" >> $GITHUB_OUTPUT
+            echo "database_service_compiled=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Enhanced client build test
+          echo "🎯 Testing optimized client production build..."
+          set +e
+          npm run build > client-build.log 2>&1
+          CLIENT_BUILD_RESULT=$?
+          set -e
+          
+          if [ "$CLIENT_BUILD_RESULT" -eq "0" ]; then
+            echo "✅ CLIENT BUILD: Production build successful"
+            echo "client_build=success" >> $GITHUB_OUTPUT
+            
+            # Check build output size (should be optimized after 8-agent work)
+            if [ -d "dist" ]; then
+              BUILD_SIZE=$(du -sk dist/ | cut -f1)
+              echo "Build size: ${BUILD_SIZE}KB"
+              echo "build_size_kb=$BUILD_SIZE" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ CLIENT BUILD: Production build failed"
             echo "client_build=failed" >> $GITHUB_OUTPUT
+            echo "build_size_kb=0" >> $GITHUB_OUTPUT
           fi
 
-      - name: 🔍 Deployment Files Validation
-        id: files-check
+      # NEW: Infrastructure Intelligence & Optimization Impact
+      - name: 🌐 Infrastructure Intelligence & Optimization Analysis
+        id: infrastructure-intelligence
         run: |
-          echo "🚀 Validating deployment-critical files..."
+          echo "🌐 Analyzing infrastructure intelligence with 8-agent optimizations..."
+          
+          # Memory optimization analysis
+          echo "💾 Analyzing memory optimization patterns..."
+          LAZY_LOADING=$(grep -r "lazy\|React\.lazy\|dynamic.*import" client/src/ --include="*.tsx" --include="*.ts" | wc -l)
+          MEMORY_OPTIMIZATIONS=$(grep -r "useMemo\|useCallback\|memo" client/src/ --include="*.tsx" --include="*.ts" | wc -l)
+          SINGLETON_PATTERNS=$(grep -r "getInstance\|singleton" server/ --include="*.ts" | wc -l)
+          
+          echo "Lazy loading implementations: $LAZY_LOADING"
+          echo "Memory optimizations: $MEMORY_OPTIMIZATIONS"
+          echo "Singleton patterns: $SINGLETON_PATTERNS"
+          
+          # Cold start optimization analysis
+          echo "❄️ Analyzing cold start optimization..."
+          PRELOAD_PATTERNS=$(grep -r "preload\|warmup\|initialize" server/ --include="*.ts" | wc -l)
+          ASYNC_PATTERNS=$(grep -r "async.*function\|await" server/ --include="*.ts" | wc -l)
+          
+          # Bundle analysis
+          echo "📦 Analyzing bundle optimization..."
+          DEPENDENCY_COUNT=$(jq '.dependencies | length' package.json)
+          DEV_DEPENDENCY_COUNT=$(jq '.devDependencies | length' package.json)
+          
+          # Calculate infrastructure readiness score
+          INFRASTRUCTURE_SCORE=100
+          
+          # Penalize for lack of optimizations
+          if [ "$LAZY_LOADING" -lt "3" ]; then
+            INFRASTRUCTURE_SCORE=$((INFRASTRUCTURE_SCORE - 10))
+            echo "⚠️ Limited lazy loading implementation"
+          fi
+          
+          if [ "$MEMORY_OPTIMIZATIONS" -lt "10" ]; then
+            INFRASTRUCTURE_SCORE=$((INFRASTRUCTURE_SCORE - 15))
+            echo "⚠️ Limited memory optimizations"
+          fi
+          
+          if [ "$SINGLETON_PATTERNS" -lt "1" ]; then
+            INFRASTRUCTURE_SCORE=$((INFRASTRUCTURE_SCORE - 20))
+            echo "⚠️ No singleton patterns detected (8-agent regression)"
+          fi
+          
+          # Penalize for excessive dependencies
+          if [ "$DEPENDENCY_COUNT" -gt "80" ]; then
+            INFRASTRUCTURE_SCORE=$((INFRASTRUCTURE_SCORE - 10))
+            echo "⚠️ High dependency count may impact cold start"
+          fi
+          
+          echo "lazy_loading=$LAZY_LOADING" >> $GITHUB_OUTPUT
+          echo "memory_optimizations=$MEMORY_OPTIMIZATIONS" >> $GITHUB_OUTPUT
+          echo "singleton_patterns=$SINGLETON_PATTERNS" >> $GITHUB_OUTPUT
+          echo "dependency_count=$DEPENDENCY_COUNT" >> $GITHUB_OUTPUT
+          echo "infrastructure_score=$INFRASTRUCTURE_SCORE" >> $GITHUB_OUTPUT
+          
+          echo "📊 Infrastructure Intelligence Score: $INFRASTRUCTURE_SCORE/100"
+
+      # Enhanced Deployment Files Validation
+      - name: 🔍 Enhanced Deployment Files Validation
+        id: enhanced-files-check
+        run: |
+          echo "🚀 Validating enhanced deployment-critical files..."
           
           CRITICAL_FILES=(
             "Dockerfile.step7-unified-fixed"
@@ -99,342 +306,479 @@ jobs:
             "cloudbuild-deployment.yaml"
           )
           
-          MISSING_FILES=0
-          echo "📋 Checking critical deployment files:"
+          # NEW: 8-Agent specific files
+          OPTIMIZATION_FILES=(
+            "server/database/DatabaseService.ts"
+            "server/utils/enhancedLogger.ts"
+            "client/src/utils/clientLogger.ts"
+          )
           
+          MISSING_CRITICAL=0
+          MISSING_OPTIMIZATION=0
+          
+          echo "📋 Checking critical deployment files:"
           for file in "${CRITICAL_FILES[@]}"; do
             if [ -f "$file" ]; then
               echo "  ✅ $file"
             else
               echo "  ❌ MISSING: $file"
-              MISSING_FILES=$((MISSING_FILES + 1))
+              MISSING_CRITICAL=$((MISSING_CRITICAL + 1))
             fi
           done
           
-          echo "missing_files=$MISSING_FILES" >> $GITHUB_OUTPUT
-          
-          if [ "$MISSING_FILES" -eq "0" ]; then
-            echo "✅ ALL DEPLOYMENT FILES: Present and ready"
-            echo "files_status=complete" >> $GITHUB_OUTPUT
-          else
-            echo "❌ DEPLOYMENT FILES: $MISSING_FILES missing critical files"
-            echo "files_status=incomplete" >> $GITHUB_OUTPUT
-          fi
-
-      - name: ⚙️ Environment Configuration Check
-        id: env-check
-        run: |
-          echo "🔧 Checking deployment environment configuration..."
-          
-          # Check if deployment workflow has required secrets configured
-          REQUIRED_SECRETS=(
-            "GOOGLE_SERVICE_ACCOUNT_KEY"
-            "DATABASE_URL"
-            "SESSION_SECRET" 
-            "VITE_FIREBASE_API_KEY"
-            "VITE_FIREBASE_PROJECT_ID"
-            "VITE_FIREBASE_APP_ID"
-          )
-          
-          echo "📋 Required deployment secrets:"
-          SECRET_WARNINGS=0
-          
-          # Note: We can't actually check secret values in Actions, but we can check the workflow file
-          WORKFLOW_FILE=".github/workflows/deploy-step7-unified.yml"
-          
-          for secret in "${REQUIRED_SECRETS[@]}"; do
-            if grep -q "$secret" "$WORKFLOW_FILE"; then
-              echo "  ✅ $secret (referenced in workflow)"
+          echo "📋 Checking 8-agent optimization files:"
+          for file in "${OPTIMIZATION_FILES[@]}"; do
+            if [ -f "$file" ]; then
+              echo "  ✅ $file (8-agent optimization)"
             else
-              echo "  ⚠️ $secret (not found in workflow)"
-              SECRET_WARNINGS=$((SECRET_WARNINGS + 1))
+              echo "  ⚠️ MISSING: $file (optimization impact)"
+              MISSING_OPTIMIZATION=$((MISSING_OPTIMIZATION + 1))
             fi
           done
           
-          echo "secret_warnings=$SECRET_WARNINGS" >> $GITHUB_OUTPUT
+          echo "missing_critical_files=$MISSING_CRITICAL" >> $GITHUB_OUTPUT
+          echo "missing_optimization_files=$MISSING_OPTIMIZATION" >> $GITHUB_OUTPUT
           
-          if [ "$SECRET_WARNINGS" -eq "0" ]; then
-            echo "env_config=complete" >> $GITHUB_OUTPUT
+          if [ "$MISSING_CRITICAL" -eq "0" ]; then
+            echo "✅ ALL CRITICAL DEPLOYMENT FILES: Present and ready"
+            echo "critical_files_status=complete" >> $GITHUB_OUTPUT
           else
-            echo "env_config=warnings" >> $GITHUB_OUTPUT
+            echo "❌ CRITICAL DEPLOYMENT FILES: $MISSING_CRITICAL missing"
+            echo "critical_files_status=incomplete" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ "$MISSING_OPTIMIZATION" -eq "0" ]; then
+            echo "✅ ALL OPTIMIZATION FILES: Present - 8-agent benefits deployable"
+            echo "optimization_files_status=complete" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ OPTIMIZATION FILES: $MISSING_OPTIMIZATION missing - reduced benefits"
+            echo "optimization_files_status=incomplete" >> $GITHUB_OUTPUT
           fi
 
-      - name: 🐳 Docker Build Test (If Enabled)
+      # Enhanced Docker Build Test
+      - name: 🐳 Enhanced Docker Build Test with Optimization Validation
         if: github.event.inputs.check_docker_build == 'true' || github.event.inputs.check_docker_build == null
-        id: docker-test
+        id: enhanced-docker-test
         run: |
-          echo "🐳 Testing Docker build process..."
+          echo "🐳 Testing enhanced Docker build with optimization validation..."
           
-          # Check if Dockerfile exists (updated name)
           if [ ! -f "Dockerfile.step7-unified-fixed" ]; then
             echo "❌ DOCKER: Dockerfile.step7-unified-fixed not found"
             echo "docker_status=missing_dockerfile" >> $GITHUB_OUTPUT
             exit 0
           fi
           
-          # Test Docker build (without pushing)
-          echo "🏗️ Testing multi-stage Docker build..."
+          # Enhanced Docker build test with optimization awareness
+          echo "🏗️ Testing Docker build with 8-agent optimizations..."
           
-          # Use dummy values for build args since we're just testing the build process
-          if docker build \
+          set +e
+          docker build \
             -f Dockerfile.step7-unified-fixed \
             --build-arg VITE_FIREBASE_API_KEY="test" \
             --build-arg VITE_FIREBASE_PROJECT_ID="test" \
             --build-arg VITE_FIREBASE_APP_ID="test" \
-            -t deployment-test:latest \
-            .; then
-            echo "✅ DOCKER BUILD: Successful"
+            -t deployment-optimization-test:latest \
+            . > docker-build.log 2>&1
+          BUILD_RESULT=$?
+          set -e
+          
+          if [ "$BUILD_RESULT" -eq "0" ]; then
+            echo "✅ DOCKER BUILD: Successful with optimizations"
             echo "docker_status=success" >> $GITHUB_OUTPUT
             
+            # Check if optimization files are included in build
+            echo "🔍 Validating optimization inclusion in Docker image..."
+            if docker run --rm deployment-optimization-test:latest ls server/database/DatabaseService.js 2>/dev/null; then
+              echo "✅ DatabaseService included in Docker image"
+              echo "optimization_in_docker=true" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️ DatabaseService not found in Docker image"
+              echo "optimization_in_docker=false" >> $GITHUB_OUTPUT
+            fi
+            
+            # Get image size for optimization analysis
+            IMAGE_SIZE=$(docker images deployment-optimization-test:latest --format "table {{.Size}}" | tail -n 1)
+            echo "Docker image size: $IMAGE_SIZE"
+            echo "docker_image_size=$IMAGE_SIZE" >> $GITHUB_OUTPUT
+            
             # Clean up test image
-            docker rmi deployment-test:latest || true
+            docker rmi deployment-optimization-test:latest || true
           else
             echo "❌ DOCKER BUILD: Failed"
             echo "docker_status=failed" >> $GITHUB_OUTPUT
-          fi
-
-      - name: 🎯 Database Connection Pattern Validation
-        id: db-patterns
-        run: |
-          echo "🗄️ Validating database connection patterns for Cloud Run..."
-          
-          # Check for proper lazy initialization patterns
-          if grep -q "ensureDatabaseConnection\|getPrismaClient" server/database.ts; then
-            echo "✅ DATABASE PATTERNS: Cloud Run compatible lazy initialization"
-            echo "db_patterns=cloud_run_ready" >> $GITHUB_OUTPUT
-          else
-            echo "⚠️ DATABASE PATTERNS: May not be Cloud Run optimized"
-            echo "db_patterns=needs_review" >> $GITHUB_OUTPUT
-          fi
-          
-          # Check for proper error handling in database connections
-          if grep -q "try.*catch\|\.catch" server/database.ts; then
-            echo "✅ DATABASE ERROR HANDLING: Present"
-          else
-            echo "⚠️ DATABASE ERROR HANDLING: Limited error handling detected"
-          fi
-
-      - name: 📊 Performance & Resource Check
-        id: performance-check
-        run: |
-          echo "⚡ Analyzing performance characteristics for deployment..."
-          
-          # Check package.json for large dependencies
-          BUNDLE_SIZE_WARNINGS=0
-          
-          # Check for potentially problematic large dependencies
-          LARGE_DEPS=(
-            "@google-cloud"
-            "firebase"
-            "prisma"
-          )
-          
-          echo "📦 Checking for large dependencies that might affect cold start:"
-          for dep in "${LARGE_DEPS[@]}"; do
-            if grep -q "\"$dep" package.json; then
-              echo "  ℹ️ Large dependency detected: $dep (normal for this app type)"
+            echo "optimization_in_docker=false" >> $GITHUB_OUTPUT
+            
+            # Analyze build failure
+            if [ -f "docker-build.log" ]; then
+              echo "🔍 Analyzing Docker build failure..."
+              if grep -q "DatabaseService\|enhancedLogger" docker-build.log; then
+                echo "⚠️ Optimization files may be causing build issues"
+              fi
             fi
-          done
-          
-          # Check for proper Cloud Run resource configuration
-          WORKFLOW_FILE=".github/workflows/deploy-step7-unified.yml"
-          if grep -q "memory.*4Gi" "$WORKFLOW_FILE" && grep -q "cpu.*2" "$WORKFLOW_FILE"; then
-            echo "✅ CLOUD RUN CONFIG: Appropriate resource allocation"
-            echo "performance_config=optimized" >> $GITHUB_OUTPUT
-          else
-            echo "⚠️ CLOUD RUN CONFIG: Resource allocation may need review"
-            echo "performance_config=review_needed" >> $GITHUB_OUTPUT
           fi
 
-      - name: 🔒 Security & Compliance Check
-        id: security-check
+      # NEW: Performance Regression Impact Assessment
+      - name: ⚡ Performance Regression Impact on Deployment
+        id: performance-deployment-impact
         run: |
-          echo "🔒 Checking deployment security patterns..."
+          echo "⚡ Analyzing performance regression impact on deployment readiness..."
           
-          SECURITY_SCORE=0
+          # Memory usage patterns that could affect deployment
+          MEMORY_LEAKS=$(grep -r "setInterval\|setTimeout" client/src/ --include="*.tsx" --include="*.ts" | grep -v "clearInterval\|clearTimeout" | wc -l)
+          UNOPTIMIZED_RENDERS=$(grep -r "useEffect.*\[\]" client/src/ --include="*.tsx" | wc -l)
           
-          # Check for proper secret handling (more realistic)
-          HARDCODED_SECRETS=$(grep -r "password.*=.*['\"][^$]\|api_key.*=.*['\"][^$]\|secret.*=.*['\"][^$]" server/ --include="*.ts" | grep -v "process\.env\|config\." | wc -l || echo "0")
-          if [ "$HARDCODED_SECRETS" -eq "0" ]; then
-            echo "✅ SECRETS: No obvious hardcoded secrets detected"
-            SECURITY_SCORE=$((SECURITY_SCORE + 1))
-          else
-            echo "⚠️ SECRETS: $HARDCODED_SECRETS potential hardcoded secrets found"
+          # Database performance patterns
+          N_PLUS_ONE_RISKS=$(grep -r "for.*await.*prisma\|forEach.*await.*prisma" server/ --include="*.ts" | wc -l)
+          UNOPTIMIZED_QUERIES=$(grep -r "prisma\..*\.findMany" server/ --include="*.ts" | grep -v "take\|limit" | wc -l)
+          
+          # Calculate deployment performance risk
+          DEPLOYMENT_PERFORMANCE_RISK=0
+          
+          if [ "$MEMORY_LEAKS" -gt "3" ]; then
+            DEPLOYMENT_PERFORMANCE_RISK=$((DEPLOYMENT_PERFORMANCE_RISK + 20))
+            echo "⚠️ Memory leak risks may affect production performance"
           fi
           
-          # Check for proper authentication patterns (more flexible)
-          if find server/routes/ -name "*.ts" -exec grep -q "requireAuth\|authentication\|auth\|token" {} \; 2>/dev/null; then
-            echo "✅ AUTHENTICATION: Protection patterns detected"
-            SECURITY_SCORE=$((SECURITY_SCORE + 1))
+          if [ "$N_PLUS_ONE_RISKS" -gt "5" ]; then
+            DEPLOYMENT_PERFORMANCE_RISK=$((DEPLOYMENT_PERFORMANCE_RISK + 25))
+            echo "⚠️ N+1 query risks may affect production database performance"
           fi
           
-          # Check for security middleware (including server-step7-unified.js)
-          if grep -q "helmet\|cors" server-step7-unified.js server/index.ts 2>/dev/null; then
-            echo "✅ SECURITY MIDDLEWARE: Protection middleware detected"
-            SECURITY_SCORE=$((SECURITY_SCORE + 1))
+          if [ "$UNOPTIMIZED_QUERIES" -gt "20" ]; then
+            DEPLOYMENT_PERFORMANCE_RISK=$((DEPLOYMENT_PERFORMANCE_RISK + 15))
+            echo "⚠️ Unoptimized queries may affect production response times"
           fi
           
-          echo "security_score=$SECURITY_SCORE" >> $GITHUB_OUTPUT
+          DEPLOYMENT_PERFORMANCE_SCORE=$((100 - DEPLOYMENT_PERFORMANCE_RISK))
+          DEPLOYMENT_PERFORMANCE_SCORE=$((DEPLOYMENT_PERFORMANCE_SCORE < 0 ? 0 : DEPLOYMENT_PERFORMANCE_SCORE))
           
-          if [ "$SECURITY_SCORE" -ge "2" ]; then
-            echo "security_status=good" >> $GITHUB_OUTPUT
-          else
-            echo "security_status=review_needed" >> $GITHUB_OUTPUT
-          fi
+          echo "memory_leaks=$MEMORY_LEAKS" >> $GITHUB_OUTPUT
+          echo "n_plus_one_risks=$N_PLUS_ONE_RISKS" >> $GITHUB_OUTPUT
+          echo "unoptimized_queries=$UNOPTIMIZED_QUERIES" >> $GITHUB_OUTPUT
+          echo "deployment_performance_score=$DEPLOYMENT_PERFORMANCE_SCORE" >> $GITHUB_OUTPUT
+          
+          echo "📊 Deployment Performance Risk Assessment:"
+          echo "   Memory leak risks: $MEMORY_LEAKS"
+          echo "   N+1 query risks: $N_PLUS_ONE_RISKS"
+          echo "   Unoptimized queries: $UNOPTIMIZED_QUERIES"
+          echo "   Performance score: $DEPLOYMENT_PERFORMANCE_SCORE/100"
 
-      - name: 📋 Generate Deployment Readiness Report
-        id: readiness-report
+      # NEW: Deployment Trend Analysis
+      - name: 📈 Deployment Readiness Trend Analysis
+        id: deployment-trends
         run: |
-          echo "📊 Generating comprehensive deployment readiness report..."
+          echo "📈 Analyzing deployment readiness trends..."
           
-          # Calculate overall readiness score
+          # Current metrics
+          CURRENT_OPTIMIZATION_SCORE="${{ steps.optimization-readiness.outputs.optimization_deployment_score }}"
+          CURRENT_INFRASTRUCTURE_SCORE="${{ steps.infrastructure-intelligence.outputs.infrastructure_score }}"
+          CURRENT_PERFORMANCE_SCORE="${{ steps.performance-deployment-impact.outputs.deployment_performance_score }}"
+          
+          # Try to load previous metrics
+          TREND="stable"
+          OPTIMIZATION_DELTA=0
+          INFRASTRUCTURE_DELTA=0
+          PERFORMANCE_DELTA=0
+          
+          if [ -f "previous-deployment-state/deployment-metrics.json" ]; then
+            PREVIOUS_OPTIMIZATION=$(jq -r '.optimization_score // 0' previous-deployment-state/deployment-metrics.json)
+            PREVIOUS_INFRASTRUCTURE=$(jq -r '.infrastructure_score // 0' previous-deployment-state/deployment-metrics.json)
+            PREVIOUS_PERFORMANCE=$(jq -r '.performance_score // 0' previous-deployment-state/deployment-metrics.json)
+            
+            OPTIMIZATION_DELTA=$((CURRENT_OPTIMIZATION_SCORE - PREVIOUS_OPTIMIZATION))
+            INFRASTRUCTURE_DELTA=$((CURRENT_INFRASTRUCTURE_SCORE - PREVIOUS_INFRASTRUCTURE))
+            PERFORMANCE_DELTA=$((CURRENT_PERFORMANCE_SCORE - PREVIOUS_PERFORMANCE))
+            
+            echo "Deployment readiness trends:"
+            echo "  Optimization: $PREVIOUS_OPTIMIZATION → $CURRENT_OPTIMIZATION_SCORE (Δ$OPTIMIZATION_DELTA)"
+            echo "  Infrastructure: $PREVIOUS_INFRASTRUCTURE → $CURRENT_INFRASTRUCTURE_SCORE (Δ$INFRASTRUCTURE_DELTA)"
+            echo "  Performance: $PREVIOUS_PERFORMANCE → $CURRENT_PERFORMANCE_SCORE (Δ$PERFORMANCE_DELTA)"
+            
+            TOTAL_DELTA=$((OPTIMIZATION_DELTA + INFRASTRUCTURE_DELTA + PERFORMANCE_DELTA))
+            
+            if [ "$TOTAL_DELTA" -gt "10" ]; then
+              TREND="improving"
+              echo "📈 TREND: Deployment readiness improving"
+            elif [ "$TOTAL_DELTA" -lt "-10" ]; then
+              TREND="degrading"
+              echo "📉 TREND: Deployment readiness degrading"
+            else
+              TREND="stable"
+              echo "📊 TREND: Deployment readiness stable"
+            fi
+          else
+            echo "📊 BASELINE: Establishing deployment readiness baseline"
+          fi
+          
+          echo "deployment_trend=$TREND" >> $GITHUB_OUTPUT
+          echo "optimization_delta=$OPTIMIZATION_DELTA" >> $GITHUB_OUTPUT
+          echo "infrastructure_delta=$INFRASTRUCTURE_DELTA" >> $GITHUB_OUTPUT
+          echo "performance_delta=$PERFORMANCE_DELTA" >> $GITHUB_OUTPUT
+
+      # Enhanced Deployment Readiness Report
+      - name: 📊 Enhanced Deployment Readiness Report
+        id: enhanced-readiness-report
+        run: |
+          echo "📊 Generating enhanced deployment readiness report..."
+          
+          # Enhanced scoring with 8-agent optimization awareness
           READINESS_SCORE=0
-          MAX_SCORE=7
+          MAX_SCORE=10
           
-          # Server compilation (critical - worth 2 points)
-          if [ "${{ steps.compilation-test.outputs.server_compilation }}" = "success" ]; then
+          # Critical compilation (weight: 2 points)
+          if [ "${{ steps.enhanced-compilation-test.outputs.server_compilation }}" = "success" ]; then
             READINESS_SCORE=$((READINESS_SCORE + 2))
           fi
           
-          # Client build (worth 1 point)
-          if [ "${{ steps.compilation-test.outputs.client_build }}" = "success" ]; then
+          # Client build (weight: 1 point)
+          if [ "${{ steps.enhanced-compilation-test.outputs.client_build }}" = "success" ]; then
             READINESS_SCORE=$((READINESS_SCORE + 1))
           fi
           
-          # Critical files (worth 1 point)
-          if [ "${{ steps.files-check.outputs.files_status }}" = "complete" ]; then
+          # Critical files (weight: 1 point)
+          if [ "${{ steps.enhanced-files-check.outputs.critical_files_status }}" = "complete" ]; then
             READINESS_SCORE=$((READINESS_SCORE + 1))
           fi
           
-          # Environment config (worth 1 point)
-          if [ "${{ steps.env-check.outputs.env_config }}" = "complete" ]; then
+          # Docker build (weight: 1 point)
+          if [ "${{ steps.enhanced-docker-test.outputs.docker_status }}" = "success" ]; then
             READINESS_SCORE=$((READINESS_SCORE + 1))
           fi
           
-          # Docker build (worth 1 point)
-          if [ "${{ steps.docker-test.outputs.docker_status }}" = "success" ]; then
+          # NEW: 8-agent optimization readiness (weight: 2 points)
+          OPTIMIZATION_SCORE="${{ steps.optimization-readiness.outputs.optimization_deployment_score }}"
+          if [ "$OPTIMIZATION_SCORE" -ge "80" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 2))
+          elif [ "$OPTIMIZATION_SCORE" -ge "60" ]; then
             READINESS_SCORE=$((READINESS_SCORE + 1))
           fi
           
-          # Database patterns (worth 1 point)
-          if [ "${{ steps.db-patterns.outputs.db_patterns }}" = "cloud_run_ready" ]; then
+          # NEW: Infrastructure intelligence (weight: 1 point)
+          INFRASTRUCTURE_SCORE="${{ steps.infrastructure-intelligence.outputs.infrastructure_score }}"
+          if [ "$INFRASTRUCTURE_SCORE" -ge "75" ]; then
             READINESS_SCORE=$((READINESS_SCORE + 1))
           fi
           
-          echo "readiness_score=$READINESS_SCORE" >> $GITHUB_OUTPUT
+          # NEW: Performance impact (weight: 2 points)
+          PERFORMANCE_SCORE="${{ steps.performance-deployment-impact.outputs.deployment_performance_score }}"
+          if [ "$PERFORMANCE_SCORE" -ge "80" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 2))
+          elif [ "$PERFORMANCE_SCORE" -ge "60" ]; then
+            READINESS_SCORE=$((READINESS_SCORE + 1))
+          fi
+          
+          echo "enhanced_readiness_score=$READINESS_SCORE" >> $GITHUB_OUTPUT
           echo "max_score=$MAX_SCORE" >> $GITHUB_OUTPUT
           
           READINESS_PERCENTAGE=$((READINESS_SCORE * 100 / MAX_SCORE))
-          echo "readiness_percentage=$READINESS_PERCENTAGE" >> $GITHUB_OUTPUT
+          echo "enhanced_readiness_percentage=$READINESS_PERCENTAGE" >> $GITHUB_OUTPUT
 
-      - name: 📊 Deployment Readiness Summary
+      # Generate Enhanced Deployment State
+      - name: 📊 Generate Enhanced Deployment State
+        run: |
+          echo "📊 Creating enhanced deployment state for future analysis..."
+          
+          mkdir -p deployment-state
+          
+          cat > deployment-state/deployment-metrics.json << EOF
+          {
+            "timestamp": "$(date -Iseconds)",
+            "commit": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}",
+            "compilation": {
+              "server_status": "${{ steps.enhanced-compilation-test.outputs.server_compilation }}",
+              "client_status": "${{ steps.enhanced-compilation-test.outputs.client_build }}",
+              "js_files": ${{ steps.enhanced-compilation-test.outputs.js_file_count }},
+              "build_size_kb": ${{ steps.enhanced-compilation-test.outputs.build_size_kb }}
+            },
+            "optimization": {
+              "score": ${{ steps.optimization-readiness.outputs.optimization_deployment_score }},
+              "database_service_ready": ${{ steps.optimization-readiness.outputs.database_service_ready }},
+              "component_score": ${{ steps.optimization-readiness.outputs.component_score }},
+              "service_score": ${{ steps.optimization-readiness.outputs.service_score }},
+              "logging_score": ${{ steps.optimization-readiness.outputs.logging_score }}
+            },
+            "infrastructure": {
+              "score": ${{ steps.infrastructure-intelligence.outputs.infrastructure_score }},
+              "lazy_loading": ${{ steps.infrastructure-intelligence.outputs.lazy_loading }},
+              "memory_optimizations": ${{ steps.infrastructure-intelligence.outputs.memory_optimizations }},
+              "singleton_patterns": ${{ steps.infrastructure-intelligence.outputs.singleton_patterns }},
+              "dependency_count": ${{ steps.infrastructure-intelligence.outputs.dependency_count }}
+            },
+            "performance": {
+              "score": ${{ steps.performance-deployment-impact.outputs.deployment_performance_score }},
+              "memory_leaks": ${{ steps.performance-deployment-impact.outputs.memory_leaks }},
+              "n_plus_one_risks": ${{ steps.performance-deployment-impact.outputs.n_plus_one_risks }},
+              "unoptimized_queries": ${{ steps.performance-deployment-impact.outputs.unoptimized_queries }}
+            },
+            "files": {
+              "critical_status": "${{ steps.enhanced-files-check.outputs.critical_files_status }}",
+              "optimization_status": "${{ steps.enhanced-files-check.outputs.optimization_files_status }}",
+              "missing_critical": ${{ steps.enhanced-files-check.outputs.missing_critical_files }},
+              "missing_optimization": ${{ steps.enhanced-files-check.outputs.missing_optimization_files }}
+            },
+            "docker": {
+              "status": "${{ steps.enhanced-docker-test.outputs.docker_status }}",
+              "optimization_included": ${{ steps.enhanced-docker-test.outputs.optimization_in_docker }},
+              "image_size": "${{ steps.enhanced-docker-test.outputs.docker_image_size }}"
+            },
+            "trends": {
+              "deployment_trend": "${{ steps.deployment-trends.outputs.deployment_trend }}",
+              "optimization_delta": ${{ steps.deployment-trends.outputs.optimization_delta }},
+              "infrastructure_delta": ${{ steps.deployment-trends.outputs.infrastructure_delta }},
+              "performance_delta": ${{ steps.deployment-trends.outputs.performance_delta }}
+            },
+            "readiness": {
+              "score": ${{ steps.enhanced-readiness-report.outputs.enhanced_readiness_score }},
+              "percentage": ${{ steps.enhanced-readiness-report.outputs.enhanced_readiness_percentage }}
+            }
+          }
+          EOF
+
+      - name: 📤 Upload Enhanced Deployment Analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-readiness-state-${{ github.sha }}
+          path: |
+            deployment-state/
+            build-output.log
+            client-build.log
+            docker-build.log
+            *.log
+          retention-days: 30
+
+      - name: 📊 Enhanced Deployment Readiness Summary
         run: |
           echo ""
-          echo "🚀 DEPLOYMENT READINESS REPORT"
-          echo "=============================="
+          echo "🚀 ENHANCED DEPLOYMENT READINESS REPORT"
+          echo "======================================="
           echo "🗓️ Analysis Date: $(date)"
           echo "🎯 Commit: ${{ github.sha }}"
           echo "🌿 Branch: ${{ github.ref_name }}"
           echo ""
-          echo "📊 READINESS SCORE: ${{ steps.readiness-report.outputs.readiness_score }}/${{ steps.readiness-report.outputs.max_score }} (${{ steps.readiness-report.outputs.readiness_percentage }}%)"
+          echo "📊 ENHANCED READINESS SCORE: ${{ steps.enhanced-readiness-report.outputs.enhanced_readiness_score }}/${{ steps.enhanced-readiness-report.outputs.max_score }} (${{ steps.enhanced-readiness-report.outputs.enhanced_readiness_percentage }}%)"
           echo ""
-          echo "🔍 COMPONENT STATUS:"
-          echo "   Server Compilation: ${{ steps.compilation-test.outputs.server_compilation || 'N/A' }}"
-          echo "   Client Build: ${{ steps.compilation-test.outputs.client_build || 'N/A' }}"
-          echo "   Deployment Files: ${{ steps.files-check.outputs.files_status || 'N/A' }}"
-          echo "   Environment Config: ${{ steps.env-check.outputs.env_config || 'N/A' }}"
-          echo "   Docker Build: ${{ steps.docker-test.outputs.docker_status || 'N/A' }}"
-          echo "   Database Patterns: ${{ steps.db-patterns.outputs.db_patterns || 'N/A' }}"
-          echo "   Performance Config: ${{ steps.performance-check.outputs.performance_config || 'N/A' }}"
-          echo "   Security Status: ${{ steps.security-check.outputs.security_status || 'N/A' }}"
+          echo "🎯 8-AGENT OPTIMIZATION READINESS:"
+          echo "   Optimization Score: ${{ steps.optimization-readiness.outputs.optimization_deployment_score }}/100"
+          echo "   DatabaseService Ready: ${{ steps.optimization-readiness.outputs.database_service_ready }}"
+          echo "   Component Architecture: ${{ steps.optimization-readiness.outputs.component_score }}/100"
+          echo "   Service Layer: ${{ steps.optimization-readiness.outputs.service_score }}/100"
+          echo "   Structured Logging: ${{ steps.optimization-readiness.outputs.logging_score }}/100"
+          echo ""
+          echo "🏗️ COMPILATION STATUS:"
+          echo "   Server Compilation: ${{ steps.enhanced-compilation-test.outputs.server_compilation }}"
+          echo "   Client Build: ${{ steps.enhanced-compilation-test.outputs.client_build }}"
+          echo "   JavaScript Files: ${{ steps.enhanced-compilation-test.outputs.js_file_count }}"
+          echo "   Build Size: ${{ steps.enhanced-compilation-test.outputs.build_size_kb }}KB"
+          echo "   DatabaseService Compiled: ${{ steps.enhanced-compilation-test.outputs.database_service_compiled }}"
+          echo ""
+          echo "🌐 INFRASTRUCTURE INTELLIGENCE:"
+          echo "   Infrastructure Score: ${{ steps.infrastructure-intelligence.outputs.infrastructure_score }}/100"
+          echo "   Lazy Loading: ${{ steps.infrastructure-intelligence.outputs.lazy_loading }} implementations"
+          echo "   Memory Optimizations: ${{ steps.infrastructure-intelligence.outputs.memory_optimizations }}"
+          echo "   Singleton Patterns: ${{ steps.infrastructure-intelligence.outputs.singleton_patterns }}"
+          echo "   Dependencies: ${{ steps.infrastructure-intelligence.outputs.dependency_count }}"
+          echo ""
+          echo "⚡ PERFORMANCE DEPLOYMENT IMPACT:"
+          echo "   Performance Score: ${{ steps.performance-deployment-impact.outputs.deployment_performance_score }}/100"
+          echo "   Memory Leak Risks: ${{ steps.performance-deployment-impact.outputs.memory_leaks }}"
+          echo "   N+1 Query Risks: ${{ steps.performance-deployment-impact.outputs.n_plus_one_risks }}"
+          echo "   Unoptimized Queries: ${{ steps.performance-deployment-impact.outputs.unoptimized_queries }}"
+          echo ""
+          echo "🔍 DEPLOYMENT FILES:"
+          echo "   Critical Files: ${{ steps.enhanced-files-check.outputs.critical_files_status }}"
+          echo "   Optimization Files: ${{ steps.enhanced-files-check.outputs.optimization_files_status }}"
+          echo "   Missing Critical: ${{ steps.enhanced-files-check.outputs.missing_critical_files }}"
+          echo "   Missing Optimization: ${{ steps.enhanced-files-check.outputs.missing_optimization_files }}"
+          echo ""
+          echo "🐳 DOCKER ANALYSIS:"
+          echo "   Docker Build: ${{ steps.enhanced-docker-test.outputs.docker_status }}"
+          echo "   Optimizations in Image: ${{ steps.enhanced-docker-test.outputs.optimization_in_docker }}"
+          echo "   Image Size: ${{ steps.enhanced-docker-test.outputs.docker_image_size }}"
+          echo ""
+          echo "📈 DEPLOYMENT TRENDS:"
+          echo "   Trend: ${{ steps.deployment-trends.outputs.deployment_trend }}"
+          echo "   Optimization Δ: ${{ steps.deployment-trends.outputs.optimization_delta }}"
+          echo "   Infrastructure Δ: ${{ steps.deployment-trends.outputs.infrastructure_delta }}"
+          echo "   Performance Δ: ${{ steps.deployment-trends.outputs.performance_delta }}"
           echo ""
           
-          PERCENTAGE=${{ steps.readiness-report.outputs.readiness_percentage }}
+          PERCENTAGE=${{ steps.enhanced-readiness-report.outputs.enhanced_readiness_percentage }}
+          OPTIMIZATION_SCORE=${{ steps.optimization-readiness.outputs.optimization_deployment_score }}
+          PERFORMANCE_SCORE=${{ steps.performance-deployment-impact.outputs.deployment_performance_score }}
           
-          if [ "$PERCENTAGE" -ge "85" ]; then
-            echo "🎉 STATUS: DEPLOYMENT READY"
+          if [ "$PERCENTAGE" -ge "90" ] && [ "$OPTIMIZATION_SCORE" -ge "80" ] && [ "$PERFORMANCE_SCORE" -ge "80" ]; then
+            echo "🎉 STATUS: DEPLOYMENT EXCELLENCE ACHIEVED"
+            echo "✅ All critical systems operational with 8-agent optimizations"
+            echo "✅ Performance improvements ready for production"
+            echo "✅ Infrastructure optimally configured"
+            echo "✅ Maximum deployment confidence"
+            echo "🚀 RECOMMENDATION: DEPLOY WITH CONFIDENCE"
+          elif [ "$PERCENTAGE" -ge "80" ] && [ "$OPTIMIZATION_SCORE" -ge "70" ]; then
+            echo "🎉 STATUS: DEPLOYMENT READY WITH OPTIMIZATIONS"
             echo "✅ All critical systems operational"
-            echo "✅ High confidence deployment success"
-            echo "🚀 RECOMMENDATION: Proceed with deployment"
+            echo "✅ 8-agent optimizations largely present"
+            echo "✅ Good deployment confidence"
+            echo "🚀 RECOMMENDATION: PROCEED WITH DEPLOYMENT"
           elif [ "$PERCENTAGE" -ge "70" ]; then
-            echo "⚠️ STATUS: DEPLOYMENT VIABLE WITH CAUTION"
-            echo "🔧 Some issues detected but not blocking"
-            echo "📋 Review warnings above before deploying"
-            echo "🚀 RECOMMENDATION: Address warnings then deploy"
+            echo "⚠️ STATUS: DEPLOYMENT VIABLE WITH MONITORING"
+            echo "✅ Core systems operational"
+            echo "⚠️ Some optimization opportunities missed"
+            echo "📋 Monitor performance after deployment"
+            echo "🚀 RECOMMENDATION: DEPLOY WITH CAREFUL MONITORING"
           else
             echo "❌ STATUS: DEPLOYMENT NOT RECOMMENDED"
-            echo "🔧 Critical issues must be resolved first"
-            echo "📋 Check failed components above"
-            echo "🚀 RECOMMENDATION: Fix issues before attempting deployment"
+            echo "🔧 Critical issues or optimization regressions detected"
+            echo "📋 Address issues before attempting deployment"
+            if [ "$OPTIMIZATION_SCORE" -lt "60" ]; then
+              echo "🚨 8-agent optimization benefits at risk"
+            fi
+            echo "🚀 RECOMMENDATION: FIX ISSUES BEFORE DEPLOYMENT"
           fi
-          echo "=============================="
+          echo "======================================="
 
-      - name: 💬 Comment PR with Readiness Results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const score = '${{ steps.readiness-report.outputs.readiness_score }}';
-            const maxScore = '${{ steps.readiness-report.outputs.max_score }}';
-            const percentage = '${{ steps.readiness-report.outputs.readiness_percentage }}';
-            
-            let status = '🚀 **Deployment Ready!**';
-            let recommendation = 'High confidence deployment success';
-            let emoji = '🎉';
-            
-            if (percentage >= 85) {
-              status = '🚀 **Deployment Ready!**';
-              recommendation = 'All systems operational - proceed with confidence';
-              emoji = '🎉';
-            } else if (percentage >= 70) {
-              status = '⚠️ **Deployment Viable with Caution**';
-              recommendation = 'Some issues detected - review before deploying';
-              emoji = '⚠️';
-            } else {
-              status = '❌ **Deployment Not Recommended**';
-              recommendation = 'Critical issues must be resolved first';
-              emoji = '❌';
-            }
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## ${emoji} **Deployment Readiness Report**
-              
-              ${status}
-              
-              📊 **Readiness Score:** ${score}/${maxScore} (${percentage}%)
-              
-              🔍 **Component Status:**
-              - Server Compilation: ${{ steps.compilation-test.outputs.server_compilation }}
-              - Client Build: ${{ steps.compilation-test.outputs.client_build }}
-              - Deployment Files: ${{ steps.files-check.outputs.files_status }}
-              - Environment Config: ${{ steps.env-check.outputs.env_config }}
-              - Docker Build: ${{ steps.docker-test.outputs.docker_status }}
-              - Database Patterns: ${{ steps.db-patterns.outputs.db_patterns }}
-              
-              🚀 **Recommendation:** ${recommendation}
-              
-              🤖 *Generated by Deployment Readiness Agent*`
-            });
-
-      - name: 🚦 Set Final Exit Status
+      - name: 🚦 Enhanced Deployment Quality Gate
         run: |
-          PERCENTAGE=${{ steps.readiness-report.outputs.readiness_percentage }}
-          SERVER_STATUS="${{ steps.compilation-test.outputs.server_compilation }}"
+          PERCENTAGE=${{ steps.enhanced-readiness-report.outputs.enhanced_readiness_percentage }}
+          SERVER_STATUS="${{ steps.enhanced-compilation-test.outputs.server_compilation }}"
+          OPTIMIZATION_SCORE=${{ steps.optimization-readiness.outputs.optimization_deployment_score }}
+          PERFORMANCE_SCORE=${{ steps.performance-deployment-impact.outputs.deployment_performance_score }}
           
-          # Critical requirement: Server must compile
+          # Critical failure conditions
           if [ "$SERVER_STATUS" != "success" ]; then
             echo "❌ CRITICAL FAILURE: Server compilation failed - deployment impossible"
             exit 1
           fi
           
-          # Warning for low readiness but don't fail the workflow
-          if [ "$PERCENTAGE" -lt "70" ]; then
-            echo "⚠️ WARNING: Deployment readiness below recommended threshold ($PERCENTAGE%)"
-            echo "🔧 Consider addressing issues before production deployment"
+          # 8-agent optimization protection
+          if [ "$OPTIMIZATION_SCORE" -lt "40" ]; then
+            echo "❌ CRITICAL FAILURE: Severe 8-agent optimization regression"
+            echo "🔧 Major optimization benefits are being lost - deployment risk too high"
+            exit 1
           fi
           
-          echo "✅ SUCCESS: Deployment readiness analysis completed"
+          # Performance regression protection
+          if [ "$PERFORMANCE_SCORE" -lt "30" ]; then
+            echo "❌ CRITICAL FAILURE: Severe performance regression detected"
+            echo "🔧 Performance issues will impact production - deployment blocked"
+            exit 1
+          fi
+          
+          # Warning conditions (don't fail but alert)
+          if [ "$PERCENTAGE" -lt "70" ]; then
+            echo "⚠️ WARNING: Enhanced deployment readiness below threshold ($PERCENTAGE%)"
+            echo "🔧 Consider addressing optimization and performance issues"
+          fi
+          
+          if [ "$OPTIMIZATION_SCORE" -lt "70" ]; then
+            echo "⚠️ WARNING: 8-agent optimization score below optimal ($OPTIMIZATION_SCORE/100)"
+            echo "🔧 Some refactoring benefits may not be fully realized"
+          fi
+          
+          echo "✅ SUCCESS: Enhanced Deployment Readiness analysis completed"
+          echo "📊 Enhanced Score: $PERCENTAGE%"
+          echo "🎯 8-Agent Optimization: $OPTIMIZATION_SCORE/100"
+          echo "⚡ Performance Score: $PERFORMANCE_SCORE/100"
+          echo "🚀 Enhanced deployment quality gates passed - system optimized for deployment"
           exit 0

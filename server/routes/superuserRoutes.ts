@@ -6,6 +6,8 @@ import { generateRandomPlayer as generatePlayerForTeam } from '../services/leagu
 import { RBACService, Permission, UserRole } from '../services/rbacService.js';
 import { ErrorCreators, asyncHandler, logInfo, logError } from '../services/errorService.js';
 import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
+import type { Player, Team, League } from '@shared/types/models';
+
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
 
@@ -37,7 +39,7 @@ router.post('/set-current-day', asyncHandler(async (req: any, res: Response) => 
   res.json({ 
     success: true, 
     message: `Current day set to ${currentDay}`,
-    previousDay: currentSeason.currentDay,
+    previousDay: currentSeason?.currentDay,
     newDay: currentDay
   });
 }));
@@ -70,7 +72,7 @@ router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CRE
   if (!currentFinances) {
     await storage.teamFinances.createTeamFinances({
       teamId: teamToCredit.id,
-      credits: BigInt(credits),
+      credits: Number(credits),
       gems: premiumCurrency,
     });
   } else {
@@ -79,7 +81,7 @@ router.post('/grant-credits', RBACService.requirePermission(Permission.GRANT_CRE
     const currentGems = currentFinances.gems || 0;
     
     await storage.teamFinances.updateTeamFinances(teamToCredit.id, {
-      credits: BigInt(currentCredits + credits),
+      credits: Number(currentCredits + credits),
       gems: currentGems + premiumCurrency
     });
   }
@@ -134,7 +136,7 @@ router.post('/force-daily-progression', RBACService.requirePermission(Permission
     res.json({ 
       success: true, 
       message: 'Daily progression executed successfully - Day advanced from Day 7 to Day 8',
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
   } catch (error) {
     console.error('❌ SUPERUSER: Daily progression failed:', error);
@@ -244,7 +246,7 @@ router.post('/reset-season', RBACService.requireSuperAdmin(), asyncHandler(async
   res.json({ 
     success: true,
     message: "Season reset to Day 1, all team statistics cleared",
-    data: { resetDate: new Date().toISOString() }
+    data: { resetDate: new Date() }
   });
 }));
 
@@ -288,7 +290,7 @@ router.post('/cleanup-division', RBACService.requireSuperAdmin(), asyncHandler(a
 
   // Remove AI teams from division
   const divisionTeams = await storage.teams.getTeamsByDivision(division);
-  const aiTeams = divisionTeams.filter((team: any) => !team.userId);
+  const aiTeams = divisionTeams.filter((team: any) => !team.userProfileId);
   
   for (const team of aiTeams) {
     // Remove team and associated data
@@ -356,7 +358,7 @@ router.post('/add-players', RBACService.requirePermission(Permission.MANAGE_LEAG
   const newPlayers = [];
   for (let i = 0; i < playerCount; i++) {
     const player = generatePlayerForTeam(teamId, "HUMAN", 1); // 1 = PASSER role ID
-    await storage.players.createPlayer(player as any);
+    await storage?.players.createPlayer(player as any);
     newPlayers.push(player);
   }
 
@@ -381,11 +383,11 @@ router.post('/reset-tryout-restrictions', RBACService.requirePermission(Permissi
   }
 
   // Clear taxi squad players to reset the seasonal restriction
-  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  const taxiSquadPlayers = await storage?.players.getTaxiSquadPlayersByTeamId(team.id);
   let playersRemoved = 0;
   
   for (const player of taxiSquadPlayers) {
-    await storage.players.releasePlayerFromTaxiSquad(player.id);
+    await storage?.players.releasePlayerFromTaxiSquad(player.id);
     playersRemoved++;
   }
 
@@ -520,7 +522,7 @@ router.post('/start-all-league-games', RBACService.requirePermission(Permission.
       // Start match using instant simulation
       const startPromise = (async () => {
         const prisma = await getPrismaClient();
-        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
         
         // Update match status and score immediately
         await prisma.game.update({

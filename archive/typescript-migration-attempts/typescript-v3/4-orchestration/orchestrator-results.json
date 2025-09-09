@@ -1,0 +1,124 @@
+{
+  "startTime": "2025-09-09T01:34:24.654Z",
+  "initialErrors": 1026,
+  "phases": [
+    {
+      "name": "Property Mapper",
+      "success": true,
+      "valid": true,
+      "improved": false,
+      "neutral": true,
+      "regressed": false,
+      "errorChange": 0,
+      "reductionPercentage": 0,
+      "beforeState": {
+        "errorCount": 1026,
+        "errorBreakdown": {},
+        "timestamp": "2025-09-09T01:34:40.174Z"
+      },
+      "afterState": {
+        "errorCount": 1026,
+        "errorBreakdown": {},
+        "timestamp": "2025-09-09T01:34:55.675Z"
+      },
+      "description": "Property Mapper - Fix missing type properties",
+      "errorTypeChanges": {
+        "reduced": {},
+        "increased": {},
+        "eliminated": {},
+        "introduced": {}
+      },
+      "backupId": "backup-1757381664655",
+      "operationResult": {
+        "success": true,
+        "errorsBefore": 1026,
+        "errorsAfter": 1026,
+        "message": "No property access errors to fix"
+      },
+      "message": "Property Mapper - Fix missing type properties completed without regression",
+      "phase": 1
+    },
+    {
+      "name": "Type Converter",
+      "success": true,
+      "valid": true,
+      "improved": false,
+      "neutral": true,
+      "regressed": false,
+      "errorChange": 0,
+      "reductionPercentage": 0,
+      "beforeState": {
+        "errorCount": 1026,
+        "errorBreakdown": {},
+        "timestamp": "2025-09-09T01:35:11.166Z"
+      },
+      "afterState": {
+        "errorCount": 1026,
+        "errorBreakdown": {},
+        "timestamp": "2025-09-09T01:35:18.879Z"
+      },
+      "description": "Type Converter - Fix string/number conflicts",
+      "errorTypeChanges": {
+        "reduced": {},
+        "increased": {},
+        "eliminated": {},
+        "introduced": {}
+      },
+      "backupId": "backup-1757381695677",
+      "operationResult": {
+        "filesModified": 0,
+        "conversionsApplied": 2,
+        "description": "Type conversions applied"
+      },
+      "message": "Type Converter - Fix string/number conflicts completed without regression",
+      "phase": 2
+    },
+    {
+      "name": "Import Consolidator",
+      "success": true,
+      "valid": true,
+      "improved": false,
+      "neutral": true,
+      "regressed": false,
+      "errorChange": 0,
+      "reductionPercentage": 0,
+      "beforeState": {
+        "errorCount": 1026,
+        "errorBreakdown": {},
+        "timestamp": "2025-09-09T01:35:34.396Z"
+      },
+      "afterState": {
+        "errorCount": 1026,
+        "errorBreakdown": {},
+        "timestamp": "2025-09-09T01:35:42.095Z"
+      },
+      "description": "Import Consolidator - Fix missing imports",
+      "errorTypeChanges": {
+        "reduced": {},
+        "increased": {},
+        "eliminated": {},
+        "introduced": {}
+      },
+      "backupId": "backup-1757381718881",
+      "operationResult": {
+        "importsFixed": 3,
+        "filesModified": 0,
+        "description": "Import fixes applied"
+      },
+      "message": "Import Consolidator - Fix missing imports completed without regression",
+      "phase": 3
+    }
+  ],
+  "success": false,
+  "finalErrors": 1026,
+  "totalReduction": 0,
+  "duration": "85.2",
+  "totalReductionPercentage": 0,
+  "endTime": "2025-09-09T01:35:45.962Z",
+  "milestones": {
+    "errorReduction": false,
+    "significantReduction": false,
+    "maintainableLevel": false,
+    "perfectScore": false
+  }
+}

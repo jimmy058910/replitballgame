@@ -4,6 +4,8 @@ import { GameSimulationUI } from './GameSimulationUI';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { LiveMatchState } from '@/lib/websocket';
+import type { Team } from '@shared/types/models';
+
 
 // Import PostGameSummary at the top level to avoid lazy loading issues
 const PostGameSummary = React.lazy(() => import('./PostGameSummary').then(module => ({ default: module.PostGameSummary })));

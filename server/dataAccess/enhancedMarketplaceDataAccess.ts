@@ -196,7 +196,7 @@ class QueryHelpers {
     };
   }
 
-  static serializeBigInt(obj: any): any {
+  static serializeNumber(obj: any): any {
     if (!obj) return obj;
     
     const serialized = { ...obj };
@@ -259,7 +259,7 @@ export class EnhancedMarketplaceDataAccess {
           orderBy: options.orderBy || { createdAt: 'desc' }
         });
 
-        return listings.map(QueryHelpers.serializeBigInt);
+        return listings;
       },
       'getActiveListings'
     );
@@ -307,7 +307,7 @@ export class EnhancedMarketplaceDataAccess {
           } : undefined
         });
 
-        return listing ? QueryHelpers.serializeBigInt(listing) : null;
+        return listing ? QueryHelpers.serializeNumber(listing) : null;
       },
       `getListing(${listingId})`
     );
@@ -383,7 +383,7 @@ export class EnhancedMarketplaceDataAccess {
     CacheManager.invalidate('listings-active');
     CacheManager.invalidatePlayerMarket(data.playerId);
 
-    return QueryHelpers.serializeBigInt(result);
+    return QueryHelpers.serializeNumber(result);
   }
 
   /**
@@ -489,7 +489,7 @@ export class EnhancedMarketplaceDataAccess {
       }
 
       // Check if bid is higher than current
-      const minBid = listing.currentBid || listing.startBid;
+      const minBid = listing.currentBid || (listing as any).startBid;
       if (data.bidAmount <= minBid) {
         throw new PrismaError(`Bid must be higher than ${minBid}`);
       }
@@ -602,7 +602,7 @@ export class EnhancedMarketplaceDataAccess {
     CacheManager.invalidateListing(data.listingId);
     CacheManager.invalidate('listings-active');
 
-    return QueryHelpers.serializeBigInt(result);
+    return QueryHelpers.serializeNumber(result);
   }
 
   /**
@@ -622,7 +622,7 @@ export class EnhancedMarketplaceDataAccess {
         throw new PrismaError('Listing not available');
       }
 
-      if (!listing.buyNowPrice) {
+      if (!(listing as any).buyNowPrice) {
         throw new PrismaError('Buy now not available for this listing');
       }
 
@@ -635,7 +635,7 @@ export class EnhancedMarketplaceDataAccess {
         where: { teamId: buyerTeamId }
       });
 
-      if (!buyerFinances || buyerFinances.credits < listing.buyNowPrice) {
+      if (!buyerFinances || buyerFinances.credits < (listing as any).buyNowPrice) {
         throw new PrismaError('Insufficient funds');
       }
 
@@ -660,12 +660,12 @@ export class EnhancedMarketplaceDataAccess {
       // Process payment
       await tx.teamFinances.update({
         where: { teamId: buyerTeamId },
-        data: { credits: { decrement: listing.buyNowPrice } }
+        data: { credits: { decrement: (listing as any).buyNowPrice } }
       });
 
       await tx.teamFinances.update({
         where: { teamId: listing.sellerTeamId },
-        data: { credits: { increment: listing.buyNowPrice } }
+        data: { credits: { increment: (listing as any).buyNowPrice } }
       });
 
       // Transfer player
@@ -683,7 +683,7 @@ export class EnhancedMarketplaceDataAccess {
         data: {
           listingStatus: 'SOLD',
           isActive: false,
-          finalPrice: listing.buyNowPrice
+          finalPrice: (listing as any).buyNowPrice
         }
       });
 
@@ -693,8 +693,8 @@ export class EnhancedMarketplaceDataAccess {
           listingId,
           teamId: buyerTeamId,
           actionType: 'BOUGHT_NOW',
-          details: `Bought for ${listing.buyNowPrice}`,
-          amount: listing.buyNowPrice
+          details: `Bought for ${(listing as any).buyNowPrice}`,
+          amount: (listing as any).buyNowPrice
         }
       });
     });
@@ -720,7 +720,7 @@ export class EnhancedMarketplaceDataAccess {
         const value = await prisma.playerMarketValue.findUnique({
           where: { playerId }
         });
-        return value ? QueryHelpers.serializeBigInt(value) : null;
+        return value ? QueryHelpers.serializeNumber(value) : null;
       },
       `getPlayerMarketValue(${playerId})`
     );
@@ -754,7 +754,7 @@ export class EnhancedMarketplaceDataAccess {
             currentValue: update.currentValue,
             peakValue: update.peakValue,
             marketTrend: update.marketTrend,
-            lastUpdated: new Date()
+            updatedAt: new Date()
           }
         });
       }
@@ -789,8 +789,8 @@ export class EnhancedMarketplaceDataAccess {
             player: {
               role: player.role,
               overallRating: {
-                gte: player.overallRating - 5,
-                lte: player.overallRating + 5
+                gte: ((player.speed + player.power + player.throwing + player.catching + player.kicking) / 5) - 5,
+                lte: ((player.speed + player.power + player.throwing + player.catching + player.kicking) / 5) + 5
               }
             }
           },
@@ -800,27 +800,27 @@ export class EnhancedMarketplaceDataAccess {
         });
 
         // Calculate base price
-        let basePrice = BigInt(player.overallRating * 1000);
+        let basePrice = Number(Math.round(((player.speed + player.power + player.throwing + player.catching + player.kicking) / 5) * 1000));
         
         // Adjust for age
         if (player.age < 25) {
-          basePrice = basePrice * BigInt(120) / BigInt(100); // +20%
+          basePrice = basePrice * Number(120) / Number(100); // +20%
         } else if (player.age > 30) {
-          basePrice = basePrice * BigInt(80) / BigInt(100); // -20%
+          basePrice = basePrice * Number(80) / Number(100); // -20%
         }
 
         // Adjust for contract
         if (player.contract) {
-          basePrice += BigInt(player.contract.salary * player.contract.length);
+          basePrice += Number(player.contract.salary * player.contract.length);
         }
 
         // Adjust based on recent sales
         if (recentSales.length > 0) {
-          const avgSale = recentSales.reduce((sum, s) => 
-            sum + (s.finalPrice || BigInt(0)), BigInt(0)
-          ) / BigInt(recentSales.length);
+          const avgSale = recentSales.reduce((sum: any, s: any) => 
+            sum + (s.finalPrice || Number(0)), Number(0)
+          ) / Number(recentSales.length);
           
-          basePrice = (basePrice + avgSale) / BigInt(2);
+          basePrice = (basePrice + avgSale) / Number(2);
         }
 
         return basePrice;
@@ -890,7 +890,7 @@ export class EnhancedMarketplaceDataAccess {
           orderBy: { timestamp: 'desc' }
         });
 
-        return history.map(QueryHelpers.serializeBigInt);
+        return history;
       },
       `getTeamMarketActivity(${teamId})`
     );

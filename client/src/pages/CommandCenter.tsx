@@ -9,44 +9,21 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import CareerHighlights from "@/components/CareerHighlights";
+import type { Team } from '@shared/types/models';
+import { teamQueryOptions, financeQueryOptions, matchQueryOptions, serverQueryOptions } from '@/lib/api/queryOptions';
+
 import {
   Calendar, Clock, Trophy, Users, Zap, AlertTriangle, 
   TrendingUp, Target, Gamepad2, ChevronRight
 } from "lucide-react";
 
 // Enhanced interfaces for new architecture
-interface Team {
-  id: string;
-  name: string;
-  division: number;
-  subdivision?: string;
-  wins: number;
-  losses: number;
-  draws: number;
-  points: number;
-  teamPower: number;
-  camaraderie: number;
-}
-
-interface Finances {
-  credits: number;
-  gems: number;
-}
-
 interface SeasonData {
   season: string;
   currentDay: number;
   phase: string;
   description: string;
   details: string;
-}
-
-interface NextMatch {
-  id: string;
-  opponent: string;
-  gameDate: string;
-  isHome: boolean;
-  matchType: string;
 }
 
 interface ActionItem {
@@ -62,31 +39,25 @@ export default function CommandCenter() {
   const { isAuthenticated } = useAuth();
   const { seasonalState, seasonalData, isLoading: seasonalLoading } = useSeasonalUI();
   
-  const { data: team } = useQuery<Team>({
-    queryKey: ["/api/teams/my"],
-    enabled: isAuthenticated,
-  });
+  const { data: team } = useQuery(
+    teamQueryOptions.myTeam(isAuthenticated)
+  );
 
-  const { data: finances } = useQuery<Finances>({
-    queryKey: [`/api/teams/${team?.id}/finances`],
-    enabled: !!team?.id,
-  });
+  const { data: finances } = useQuery(
+    financeQueryOptions.teamFinances(team?.id)
+  );
 
-  const { data: nextMatch } = useQuery<NextMatch>({
-    queryKey: [`/api/teams/${team?.id}/next-match`],
-    enabled: !!team?.id,
-  });
+  const { data: nextMatch } = useQuery(
+    serverQueryOptions.nextMatch(team?.id)
+  );
 
-  const { data: liveMatches } = useQuery<any[]>({
-    queryKey: ["/api/matches/live"],
-    refetchInterval: 30000, // 30 seconds
-  });
+  const { data: liveMatches } = useQuery(
+    matchQueryOptions.live()
+  );
 
-  const { data: serverTimeResponse } = useQuery<{data: any}>({
-    queryKey: ["/api/server/time"],
-    refetchInterval: 2 * 60 * 1000, // Update every 2 minutes
-    staleTime: 60 * 1000, // Consider data fresh for 1 minute
-  });
+  const { data: serverTimeResponse } = useQuery(
+    serverQueryOptions.time()
+  );
 
   // Generate contextual action items based on seasonal phase
   const getContextualActions = (): ActionItem[] => {

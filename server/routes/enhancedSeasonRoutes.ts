@@ -7,6 +7,8 @@ import { RBACService, Permission } from '../services/rbacService.js';
 import { LateSignupService } from '../services/lateSignupService.js';
 import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
 import { getServerTimeInfo, getEasternTimeAsDate } from '../../shared/timezone.js';
+import type { Player, Team, Contract, League } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -80,11 +82,11 @@ router.get('/current-week', requireAuth, async (req: any, res: Response, next: N
     }
 
     // Simple week calculation for UI purposes
-    const currentWeek = Math.ceil(currentSeason.currentDay / 7);
+    const currentWeek = Math.ceil(currentSeason?.currentDay / 7);
     
     res.json({
       currentWeek,
-      currentDay: currentSeason.currentDay,
+      currentDay: currentSeason?.currentDay,
       seasonId: currentSeason.id
     });
   } catch (error) {
@@ -105,7 +107,7 @@ router.get('/current-cycle', requireAuth, async (req: any, res: Response, next: 
       return res.status(404).json({ error: "No current season found" });
     }
 
-    const currentDay = currentSeason.currentDay;
+    const currentDay = currentSeason?.currentDay;
     let phase, description, daysRemaining;
 
     // Determine season phase based on 17-day cycle
@@ -841,7 +843,7 @@ router.post('/manual-day-reset', requireAuth, async (req: any, res: Response, ne
       res.json({
         success: true,
         message: `Manual day reset to ${targetDay} completed`,
-        previousDay: currentSeason.currentDay,
+        previousDay: currentSeason?.currentDay,
         newDay: targetDay
       });
     } else {
@@ -889,7 +891,7 @@ router.get('/debug-test', requireAuth, async (req: any, res: Response, next: Nex
     res.json({
       success: true,
       message: "Enhanced Season Routes debug test successful",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
       serverTime: getServerTimeInfo()
     });
   } catch (error) {

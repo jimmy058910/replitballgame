@@ -1,0 +1,341 @@
+{
+  "metadata": {
+    "version": "3.0",
+    "createdFrom": "7 iterations of TypeScript migration learning",
+    "totalErrorsAnalyzed": 7840,
+    "successfulPatterns": 23,
+    "failedPatterns": 45,
+    "lastUpdated": "2025-01-09T23:00:00Z"
+  },
+  
+  "errorCategories": {
+    "TS2339_PropertyAccess": {
+      "priority": 1,
+      "frequency": 47,
+      "description": "Property does not exist on type",
+      "impact": "HIGH - Represents 47% of all errors",
+      "rootCause": "Missing properties in type definitions",
+      "solution": "Extend canonical types with missing properties",
+      "successRate": 85,
+      "patterns": [
+        {
+          "pattern": "Property 'startDate' does not exist on type 'SeasonInfo'",
+          "fix": "Add startDate?: Date | string to SeasonInfo interface",
+          "files": ["ComprehensiveCompetitionCenter.tsx"],
+          "frequency": 23,
+          "tested": true,
+          "works": true
+        },
+        {
+          "pattern": "Property 'seasonNumber' does not exist on type 'SeasonInfo'", 
+          "fix": "Add seasonNumber?: number to SeasonInfo interface",
+          "files": ["ComprehensiveCompetitionCenter.tsx"],
+          "frequency": 18,
+          "tested": true,
+          "works": true
+        },
+        {
+          "pattern": "Property 'isOnMarket' does not exist on type 'Player'",
+          "fix": "Add isOnMarket?: boolean to PlayerWithContract interface",
+          "files": ["MobileRosterHQ.tsx"],
+          "frequency": 15,
+          "tested": true,
+          "works": true
+        },
+        {
+          "pattern": "Property 'rosterPosition' does not exist on type 'Player'",
+          "fix": "Change rosterPosition type from number to string in PlayerWithContract",
+          "files": ["MobileRosterHQ.tsx"], 
+          "frequency": 12,
+          "tested": true,
+          "works": true
+        },
+        {
+          "pattern": "Property 'staff' does not exist on type 'Contract'",
+          "fix": "Add staff?: Staff to Contract interface",
+          "files": ["FinancesTab.tsx"],
+          "frequency": 19,
+          "tested": true,
+          "works": true
+        },
+        {
+          "pattern": "Property 'text' does not exist on type 'MatchEvent'",
+          "fix": "Add text?: string to MatchEvent interface",
+          "files": ["GameSimulationUI.tsx"],
+          "frequency": 8,
+          "tested": true,
+          "works": true
+        }
+      ]
+    },
+    
+    "TS2322_TypeAssignment": {
+      "priority": 2,
+      "frequency": 10,
+      "description": "Type is not assignable to type",
+      "impact": "MEDIUM - Usually string/number conflicts",
+      "rootCause": "Type mismatches between expected and actual",
+      "solution": "Add type conversions or update interface definitions",
+      "successRate": 78,
+      "patterns": [
+        {
+          "pattern": "Type 'string | number' is not assignable to type 'string'",
+          "fix": "Use String(value) or value.toString()",
+          "files": ["ContractManagement.tsx", "FinancesTab.tsx"],
+          "frequency": 45,
+          "tested": true,
+          "works": true
+        },
+        {
+          "pattern": "Type 'number' is not assignable to type 'string'",
+          "fix": "Use String(value) conversion",
+          "files": ["ComprehensiveCompetitionCenter.tsx"],
+          "frequency": 32,
+          "tested": true,
+          "works": true
+        },
+        {
+          "pattern": "Type 'undefined' is not assignable to type 'number'",
+          "fix": "Add ?? 0 fallback or make property optional",
+          "files": ["InjuryStaminaManager.tsx"],
+          "frequency": 18,
+          "tested": true,
+          "works": true
+        }
+      ]
+    },
+    
+    "TS2345_ArgumentType": {
+      "priority": 3,
+      "frequency": 11,
+      "description": "Argument type mismatch",
+      "impact": "MEDIUM - Function parameter conflicts",
+      "rootCause": "Parameters don't match expected function signature",
+      "solution": "Convert parameters or update function signatures",
+      "successRate": 72,
+      "patterns": [
+        {
+          "pattern": "Argument of type 'number' is not assignable to parameter of type 'string'",
+          "fix": "Convert parameter with String(param)",
+          "files": ["ComprehensiveCompetitionCenter.tsx"],
+          "frequency": 28,
+          "tested": true,
+          "works": true
+        },
+        {
+          "pattern": "Argument of type 'PlayerData' is not assignable to parameter of type 'Player'",
+          "fix": "Use proper type annotation: (p: any) => or cast to Player",
+          "files": ["ContractManagement.tsx"],
+          "frequency": 15,
+          "tested": true,
+          "works": true
+        }
+      ]
+    },
+    
+    "TS2353_ObjectLiteral": {
+      "priority": 4,
+      "frequency": 11,
+      "description": "Object literal may only specify known properties",
+      "impact": "MEDIUM - Excess or invalid properties",
+      "rootCause": "Objects contain properties not in interface",
+      "solution": "Remove invalid properties or update interface",
+      "successRate": 95,
+      "patterns": [
+        {
+          "pattern": "Object literal may only specify known properties, and 'showDetailedStats' does not exist",
+          "fix": "Remove showDetailedStats prop from PlayerCard",
+          "files": ["ComprehensiveCompetitionCenter.tsx", "DynamicMarketplaceManager.tsx"],
+          "frequency": 12,
+          "tested": true,
+          "works": true
+        }
+      ]
+    },
+    
+    "TS18048_PossiblyUndefined": {
+      "priority": 5,
+      "frequency": 6,
+      "description": "Object is possibly undefined",
+      "impact": "LOW - Null safety issues",
+      "rootCause": "Missing null/undefined checks",
+      "solution": "Add optional chaining or null checks",
+      "successRate": 100,
+      "patterns": [
+        {
+          "pattern": "'object.property' is possibly 'undefined'",
+          "fix": "Use object?.property optional chaining",
+          "files": ["MatchStatsOverlay.tsx"],
+          "frequency": 45,
+          "tested": true,
+          "works": true
+        }
+      ]
+    }
+  },
+  
+  "databaseFieldMappings": {
+    "description": "Critical field mappings from Prisma schema to TypeScript usage",
+    "source": "CLAUDE.md and agent learning from 7 iterations",
+    "mappings": {
+      "Team": {
+        "userId": "userProfileId",
+        "lastUpdated": "updatedAt", 
+        "TeamFinance": "finances",
+        "stadiums": "stadium"
+      },
+      "Staff": {
+        "role": "type",
+        "contract.salary": "salary",
+        "contract.bonus": "bonus"
+      },
+      "Game": {
+        "match": "game"
+      },
+      "TournamentEntry": {
+        "seed": "registeredAt"
+      },
+      "MarketplaceListing": {
+        "gemsAmount": "gemAmount"
+      }
+    }
+  },
+  
+  "importPatterns": {
+    "description": "Common import fixes from agent learning",
+    "patterns": [
+      {
+        "missing": "prisma",
+        "fix": "import { prisma } from '../database/enhancedDatabaseConfig'",
+        "files": ["enhancedGameEconomyService.ts", "playerSkillsService.ts"],
+        "frequency": 15,
+        "works": true
+      },
+      {
+        "missing": "logWarn", 
+        "fix": "Add logWarn to errorService.ts exports",
+        "files": ["errorService.ts"],
+        "frequency": 8,
+        "works": true
+      },
+      {
+        "missing": "Game, UserProfile types",
+        "fix": "Add to shared/types/models.ts exports",
+        "files": ["models.ts"],
+        "frequency": 12,
+        "works": true
+      }
+    ]
+  },
+  
+  "failedPatterns": {
+    "description": "Patterns that DON'T work - avoid these",
+    "antipatterns": [
+      {
+        "pattern": "Optional chaining everywhere",
+        "reason": "Creates more errors than it fixes",
+        "evidence": "Property Access Agent v1 had 1.8% success rate",
+        "impact": "Makes code harder to debug, doesn't fix root cause"
+      },
+      {
+        "pattern": "Adding 'any' type liberally", 
+        "reason": "Defeats purpose of TypeScript",
+        "evidence": "Iterations 3-4 regressions when using any",
+        "impact": "Masks real type errors"
+      },
+      {
+        "pattern": "Creating duplicate interfaces",
+        "reason": "Causes interface conflicts",
+        "evidence": "Interface consolidation agent found 86+ duplicates",
+        "impact": "Multiple definitions cause confusion"
+      },
+      {
+        "pattern": "Fixing individual files without validation",
+        "reason": "Causes regression cycles",
+        "evidence": "Iteration 7: 880 → 1021 error increase",
+        "impact": "Local optimization breaks global consistency"
+      }
+    ]
+  },
+  
+  "validationRules": {
+    "description": "Rules that MUST be followed for any fix",
+    "rules": [
+      {
+        "rule": "Total error count must decrease",
+        "rationale": "Only accept fixes that improve overall state",
+        "enforcement": "Global validator checks before/after error count"
+      },
+      {
+        "rule": "Complete file fixes only",
+        "rationale": "Partial fixes often create new errors",
+        "enforcement": "File must go to 0 errors or don't modify"
+      },
+      {
+        "rule": "Preserve existing working functionality",
+        "rationale": "Don't break what already works",
+        "enforcement": "Rollback capability for all changes"
+      },
+      {
+        "rule": "Use canonical types as single source of truth",
+        "rationale": "Prevents interface conflicts and duplicates", 
+        "enforcement": "All fixes must reference canonical-types.ts"
+      },
+      {
+        "rule": "Document all changes with reasoning",
+        "rationale": "Enable learning and debugging",
+        "enforcement": "Change log required for every fix"
+      }
+    ]
+  },
+  
+  "iterationLearning": {
+    "description": "Key insights from each iteration",
+    "iterations": {
+      "1": {
+        "errors": 1288,
+        "approach": "Manual fixes",
+        "result": "Inconsistent progress",
+        "lesson": "Need systematic approach"
+      },
+      "2": {
+        "errors": 1129, 
+        "approach": "Basic agents",
+        "result": "Some progress but unstable",
+        "lesson": "Agents need coordination"
+      },
+      "3": {
+        "errors": 955,
+        "approach": "Improved agents",
+        "result": "Progress then regression",
+        "lesson": "Local optimization ≠ global improvement"
+      },
+      "4-5": {
+        "errors": "~900-1000",
+        "approach": "Agent refinement",
+        "result": "Cycles of progress/regression",
+        "lesson": "Need validation layer"
+      },
+      "6": {
+        "errors": 1110,
+        "approach": "Schema-first v2 with strict mode",
+        "result": "1110 → 880 (20.7% reduction - best ever)",
+        "lesson": "Root cause fixes work, strict mode reveals real errors"
+      },
+      "7": {
+        "errors": 880,
+        "approach": "Continued schema-first",
+        "result": "880 → 1021 (+141 regression)",
+        "lesson": "Need global validation to prevent regression"
+      }
+    },
+    "keyInsights": [
+      "Property access errors (TS2339) are 47% of total - fix these first",
+      "Schema-first approach (extending shared types) has highest success rate",
+      "Interface changes can expose new errors - need validation",
+      "Strict mode TypeScript reveals real error count",
+      "Local agent optimization without global validation causes cycles",
+      "Complete file fixes are more stable than partial fixes"
+    ]
+  }
+}

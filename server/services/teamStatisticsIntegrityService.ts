@@ -13,6 +13,8 @@ import { getPrismaClient } from '../database.js';
 import logger from '../utils/logger.js';
 import { z } from 'zod';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library.js';
+import type { Team } from '@shared/types/models';
+
 import { 
   TeamStatisticsCalculator,
   TeamStatisticsSchema,
@@ -129,8 +131,8 @@ export class TeamStatisticsIntegrityService {
             draws: team.draws,
             points: team.points,
             gamesPlayed: team.wins + team.losses + team.draws,
-            goalsFor: 0, // Not stored in current schema
-            goalsAgainst: 0, // Not stored in current schema  
+            pointsFor: 0, // Not stored in current schema
+            pointsAgainst: 0, // Not stored in current schema  
             goalDifference: 0 // Not stored in current schema
           },
           validatedStats
@@ -196,8 +198,8 @@ export class TeamStatisticsIntegrityService {
             draws: team.draws,
             points: team.points,
             gamesPlayed: team.wins + team.losses + team.draws,
-            goalsFor: 0,
-            goalsAgainst: 0,
+            pointsFor: 0,
+            pointsAgainst: 0,
             goalDifference: 0
           },
           after: validatedStats,
@@ -294,7 +296,7 @@ export class TeamStatisticsIntegrityService {
       division,
       totalTeams: teams.length,
       successCount: results.filter(r => r.success).length,
-      discrepanciesFound: results.reduce((sum, r) => sum + r.discrepanciesFound.length, 0)
+      discrepanciesFound: results.reduce((sum: any, r: any) => sum + r.discrepanciesFound.length, 0)
     });
     
     return results;

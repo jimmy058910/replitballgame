@@ -32,25 +32,10 @@ import {
   Minimize2,
   Move
 } from "lucide-react";
+import type { Player, Team, Staff, Contract, TeamFinances } from '@shared/types/models';
+import { teamQueries, playerQueries, statsQueries, notificationQueries } from '@/lib/api/queries';
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  speed: number;
-  power: number;
-  agility: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  staminaAttribute: number;
-  leadership: number;
-  injuryStatus: string;
-  dailyStaminaLevel: number;
-  overallRating?: number;
-  race?: string;
-}
+
 
 interface FormationSlot {
   id: string;
@@ -92,12 +77,20 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
   // Fetch tactical data from backend
   const { data: tacticalData, isLoading: tacticalLoading } = useQuery({
     queryKey: [`/api/teams/${teamId}/tactical-setup`],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}/tactical-setup`);
+      return response as { tacticalFocus: string; fieldSize: string; [key: string]: any };
+    },
     enabled: !!teamId
   });
 
   // Fetch current season data to check timing restrictions
   const { data: seasonData } = useQuery({
-    queryKey: ['/api/seasonal-flow/current-cycle']
+    queryKey: ['/api/seasonal-flow/current-cycle'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/seasonal-flow/current-cycle');
+      return response as { currentDay: number; [key: string]: any };
+    }
   });
 
   // Mutations for updating tactical settings
@@ -143,10 +136,8 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
 
   // Check if field size can be changed (Day 15 11PM EDT to Day 1 3PM EDT)
   const canChangeFieldSize = () => {
-    if (!seasonData) return false;
-    
-    // @ts-expect-error TS2339
-    const currentDay = seasonData.currentDay;
+    if (!seasonData) return false;
+    const currentDay = seasonData?.currentDay;
     const currentHour = new Date().getHours();
     
     // Day 15 at 11PM EDT (23:00) onwards, or Day 16-17 (offseason), or Day 1 until 3PM EDT (15:00)
@@ -189,8 +180,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
               <div 
                 key={option.value}
                 onClick={() => updateTacticalFocusMutation.mutate(option.value)}
-                className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                  // @ts-expect-error TS2339
+                className={`p-3 rounded-lg border transition-colors cursor-pointer ${
                   (tacticalData?.tacticalFocus || 'BALANCED') === option.value 
                     ? 'border-purple-500 bg-purple-900/30' 
                     : 'border-gray-600 bg-gray-700/30 hover:bg-gray-600/50'
@@ -201,8 +191,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
                     <div className="font-medium text-white">{option.label}</div>
                     <div className="text-sm text-gray-400">{option.description}</div>
                   </div>
-                  <div className={`w-4 h-4 rounded-full border-2 ${
-                    // @ts-expect-error TS2339
+                  <div className={`w-4 h-4 rounded-full border-2 ${
                     (tacticalData?.tacticalFocus || 'BALANCED') === option.value 
                       ? 'border-purple-400 bg-purple-400' 
                       : 'border-gray-500'
@@ -229,8 +218,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
               <div 
                 key={option.value}
                 onClick={() => canChangeFieldSize() && updateFieldSizeMutation.mutate(option.value)}
-                className={`p-3 rounded-lg border transition-colors ${
-                  // @ts-expect-error TS2339
+                className={`p-3 rounded-lg border transition-colors ${
                   (tacticalData?.fieldSize || 'STANDARD') === option.value 
                     ? 'border-blue-500 bg-blue-900/30' 
                     : 'border-gray-600 bg-gray-700/30'
@@ -245,8 +233,7 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
                     <div className="font-medium text-white">{option.label}</div>
                     <div className="text-sm text-gray-400">{option.description}</div>
                   </div>
-                  <div className={`w-4 h-4 rounded-full border-2 ${
-                    // @ts-expect-error TS2339
+                  <div className={`w-4 h-4 rounded-full border-2 ${
                     (tacticalData?.fieldSize || 'STANDARD') === option.value 
                       ? 'border-blue-400 bg-blue-400' 
                       : 'border-gray-500'
@@ -263,12 +250,10 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Coach Bonus</span>
-            {/*
-             // @ts-expect-error TS2339 */}
+            {/* */}
             <span className="text-white font-bold">+{tacticalData?.coachBonus || 0}%</span>
           </div>
-          {/*
-           // @ts-expect-error TS2339 */}
+          {/* */}
           <Progress value={tacticalData?.coachEffectiveness || 0} className="h-2 bg-gray-700" />
           <p className="text-xs text-gray-400">
             Your head coach provides tactical bonuses during matches
@@ -278,12 +263,10 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-300">Team Chemistry</span>
-            {/*
-             // @ts-expect-error TS2339 */}
+            {/* */}
             <span className="text-white font-bold">{tacticalData?.teamCamaraderie || 0}%</span>
           </div>
-          {/*
-           // @ts-expect-error TS2339 */}
+          {/* */}
           <Progress value={tacticalData?.teamCamaraderie || 0} className="h-2 bg-gray-700" />
           <p className="text-xs text-gray-400">
             Higher chemistry improves coordination and performance
@@ -297,14 +280,12 @@ function TacticalSettingsContent({ teamId }: { teamId: string }) {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-gray-400">Field Size Bonus:</span>
-            {/*
-             // @ts-expect-error TS2339 */}
+            {/* */}
             <span className="text-white ml-2">+{tacticalData?.fieldSizeBonus || 0}%</span>
           </div>
           <div>
             <span className="text-gray-400">Focus Bonus:</span>
-            {/*
-             // @ts-expect-error TS2339 */}
+            {/* */}
             <span className="text-white ml-2">+{tacticalData?.tacticalFocusBonus || 0}%</span>
           </div>
         </div>

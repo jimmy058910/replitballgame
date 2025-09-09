@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-01-09T12:00:00Z",
+  "iteration": 1,
+  "fixes": {
+    "fieldsRenamed": 0,
+    "relationsFixed": 3,
+    "bigIntConversions": 2,
+    "enumsFixed": 0,
+    "modelsCommentedOut": 4
+  },
+  "details": [
+    {
+      "file": "server/routes/enhancedFinanceRoutes.ts",
+      "changes": [
+        "Commented out non-existent storeItem model references",
+        "Commented out non-existent storePurchase model references", 
+        "Commented out non-existent financialTransaction model references",
+        "Commented out non-existent creditTransfer model references",
+        "Added Promise.resolve() replacements for removed aggregation queries"
+      ],
+      "errorsBefore": 6,
+      "errorsAfter": 0
+    },
+    {
+      "file": "server/storage/auctionStorage.ts",
+      "changes": [
+        "Fixed isActive field → listingStatus enum usage",
+        "Fixed BigInt field assignments (Number → BigInt)",
+        "Updated MarketplaceListing import to use @prisma/client"
+      ],
+      "errorsBefore": 3,
+      "errorsAfter": 0  
+    },
+    {
+      "file": "server/routes/auctionRoutes.ts",
+      "changes": [
+        "Added parseInt() for auction ID parameter parsing"
+      ],
+      "errorsBefore": 1,
+      "errorsAfter": 0
+    },
+    {
+      "file": "server/dataAccess/enhancedTournamentDataAccess.ts", 
+      "changes": [
+        "Fixed orderBy clause: seed field (doesn't exist) → registeredAt field"
+      ],
+      "errorsBefore": 1,
+      "errorsAfter": 0
+    }
+  ],
+  "summary": {
+    "errorsBefore": 461,
+    "errorsAfter": 454,
+    "errorReduction": 7,
+    "successRate": "1.5%"
+  },
+  "criticalMappings": {
+    "appliedMappings": [
+      "MarketplaceListing.isActive → listingStatus",
+      "Tournament entries relation included correctly",
+      "BigInt field assignments corrected"
+    ],
+    "commentedOutModels": [
+      "storeItem (doesn't exist in schema)",
+      "storePurchase (doesn't exist in schema)", 
+      "financialTransaction (doesn't exist in schema)",
+      "creditTransfer (doesn't exist in schema)"
+    ]
+  }
+}

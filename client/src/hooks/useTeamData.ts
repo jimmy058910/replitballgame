@@ -9,6 +9,8 @@
  */
 
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import type { Team } from '@shared/types/models';
+
 
 // ===== QUERY KEY FACTORY =====
 // Structured hierarchically for efficient cache invalidation

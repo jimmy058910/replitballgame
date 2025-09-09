@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import ServerTimeDisplay from "@/components/ServerTimeDisplay";
 import DailyProgressionTest from "@/components/DailyProgressionTest";
+import type { Player, Team } from '@shared/types/models';
+
 
 // Type interfaces for API responses
 interface AdminStatus {

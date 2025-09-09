@@ -5,23 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: 'PASSER' | 'RUNNER' | 'BLOCKER';
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  agility: number;
-  staminaAttribute: number;
-  leadership: number;
-  injuryStatus: string;
-  dailyStaminaLevel: number;
-}
+
 
 interface FormationPlayer {
   id: string;
@@ -101,7 +87,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
     return players.filter(p => 
       p.injuryStatus === 'HEALTHY' &&
       p.dailyStaminaLevel > 20 &&
-      !Object.values(starters).includes(p.id) // Not already selected as starter
+      !Object.values(starters).includes(String(p.id)) // Not already selected as starter
     );
   };
 
@@ -109,7 +95,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
   const getSubstitutePlayers = (role: 'PASSER' | 'RUNNER' | 'BLOCKER' | 'Any') => {
     const starterIds = Object.values(starters);
     return players.filter(p => {
-      if (starterIds.includes(p.id)) return false; // Not a starter
+      if (starterIds.includes(String(p.id))) return false; // Not a starter
       if (role === 'Any') return true; // Wildcard can substitute any position
       return p.role === role; // Position-specific substitutes
     });
@@ -144,7 +130,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
         const player = players.find(p => p.id === playerId);
         if (player) {
           formationPlayers.push({
-            id: player.id,
+            id: String(player.id),
             name: getPlayerName(player),
             role: player.role,
             isStarter: true,
@@ -179,7 +165,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
         const player = players.find(p => p.id === playerId);
         if (player) {
           formationPlayers.push({
-            id: player.id,
+            id: String(player.id),
             name: getPlayerName(player),
             role: player.role,
             isStarter: true,
@@ -291,7 +277,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
                   </SelectTrigger>
                   <SelectContent>
                     {getAvailablePlayersByRole('BLOCKER').map(player => (
-                      <SelectItem key={player.id} value={player.id} disabled={Object.values(starters).includes(player.id)}>
+                      <SelectItem key={player.id} value={String(player.id)} disabled={Object.values(starters).includes(String(player.id))}>
                         {getPlayerName(player)} (PWR: {calculatePlayerPower(player)})
                       </SelectItem>
                     ))}
@@ -306,7 +292,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
                   </SelectTrigger>
                   <SelectContent>
                     {getAvailablePlayersByRole('BLOCKER').map(player => (
-                      <SelectItem key={player.id} value={player.id} disabled={Object.values(starters).includes(player.id)}>
+                      <SelectItem key={player.id} value={String(player.id)} disabled={Object.values(starters).includes(String(player.id))}>
                         {getPlayerName(player)} (PWR: {calculatePlayerPower(player)})
                       </SelectItem>
                     ))}
@@ -331,7 +317,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
                   </SelectTrigger>
                   <SelectContent>
                     {getAvailablePlayersByRole('RUNNER').map(player => (
-                      <SelectItem key={player.id} value={player.id} disabled={Object.values(starters).includes(player.id)}>
+                      <SelectItem key={player.id} value={String(player.id)} disabled={Object.values(starters).includes(String(player.id))}>
                         {getPlayerName(player)} (PWR: {calculatePlayerPower(player)})
                       </SelectItem>
                     ))}
@@ -346,7 +332,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
                   </SelectTrigger>
                   <SelectContent>
                     {getAvailablePlayersByRole('RUNNER').map(player => (
-                      <SelectItem key={player.id} value={player.id} disabled={Object.values(starters).includes(player.id)}>
+                      <SelectItem key={player.id} value={String(player.id)} disabled={Object.values(starters).includes(String(player.id))}>
                         {getPlayerName(player)} (PWR: {calculatePlayerPower(player)})
                       </SelectItem>
                     ))}
@@ -370,7 +356,7 @@ export default function TacticalFormationMobile({ players, savedFormation, onFor
                 </SelectTrigger>
                 <SelectContent>
                   {getAvailablePlayersByRole('PASSER').map(player => (
-                    <SelectItem key={player.id} value={player.id} disabled={Object.values(starters).includes(player.id)}>
+                    <SelectItem key={player.id} value={String(player.id)} disabled={Object.values(starters).includes(String(player.id))}>
                       {getPlayerName(player)} (PWR: {calculatePlayerPower(player)})
                     </SelectItem>
                   ))}

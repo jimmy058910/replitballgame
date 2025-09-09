@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Gift, Check, Clock, Star } from "lucide-react";
+import type { Player } from '@shared/types/models';
+
 
 interface RedemptionReward {
   type: "credits" | "gems" | "item" | "player"; // More specific types

@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest, queryClient } from '../lib/queryClient';
+import type { Stadium } from '@shared/types/models';
+
 
 interface StadiumFinancialHubProps {
   team: any;

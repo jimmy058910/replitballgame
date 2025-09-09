@@ -1,5 +1,7 @@
 import { getPrismaClient } from "../database.js";
 import type { PaymentTransaction, Prisma } from "../db";
+import type { Team } from '@shared/types/models';
+
 
 export class PaymentHistoryService {
   /**

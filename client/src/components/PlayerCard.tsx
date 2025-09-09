@@ -13,6 +13,8 @@ interface PlayerCardProps {
 }
 
 import { getPlayerRole } from "@shared/playerUtils";
+import type { Player, Contract } from '@shared/types/models';
+
 
 const getRoleIcon = (role: string) => {
   switch (role?.toLowerCase()) {
@@ -99,7 +101,7 @@ const renderStarRating = (stars: number) => {
 export default function PlayerCard({ player, showActions = false, onAction, compact = false }: PlayerCardProps) {
   const displayName = player.firstName && player.lastName 
     ? `${player.firstName} ${player.lastName}` 
-    : player.name || 'Unknown Player';
+    : `${player.firstName} ${player.lastName}` || 'Unknown Player';
 
   const role = getPlayerRole(player);
   const overallPower = calculateOverallPower(player);

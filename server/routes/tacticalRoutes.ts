@@ -12,6 +12,8 @@ import {
 import { getPrismaClient } from "../database.js";
 import { SeasonalFlowService } from '../services/seasonalFlowService.js';
 import { CamaraderieService } from '../services/camaraderieService.js';
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -23,7 +25,7 @@ router.get("/formation", requireAuth, async (req: any, res) => {
       return res.status(404).json({ error: "Team not found" });
     }
 
-    const players = await storage.players.getPlayersByTeamId(team.id);
+    const players = await storage?.players.getPlayersByTeamId(team.id);
     
     // Get formation from team data - formation data is stored in team record
     let formation = { starters: [], substitutes: [], flexSubs: [] };
@@ -72,7 +74,7 @@ router.get("/team-tactics", requireAuth, async (req: any, res) => {
       return res.status(404).json({ error: "Team not found" });
     }
 
-    const players = await storage.players.getPlayersByTeamId(team.id);
+    const players = await storage?.players.getPlayersByTeamId(team.id);
     const staff = await storage.staff.getStaffByTeamId(team.id);
     const headCoach = staff.find((s: any) => s.type === "HEAD_COACH");
     
@@ -81,7 +83,7 @@ router.get("/team-tactics", requireAuth, async (req: any, res) => {
     const canChangeField = canChangeFieldSize(currentDay);
     
     const fieldSize = (team.homeField || "STANDARD").toLowerCase() as any;
-    const tacticalFocus = (team.tacticalFocus || "BALANCED").toLowerCase() as any;
+    const tacticalFocus = (team?.tacticalFocus || "BALANCED").toLowerCase() as any;
     
     // Get proper team camaraderie using the service (filters active roster players only)
     const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
@@ -184,8 +186,8 @@ router.post("/update-tactical-focus", requireAuth, async (req: any, res) => {
     
     res.json({
       message: "Tactical focus updated successfully",
-      tacticalFocus: updatedTeam.tacticalFocus,
-      tacticalFocusInfo: getTacticalFocusInfo((updatedTeam.tacticalFocus || "balanced") as any),
+      tacticalFocus: updatedTeam?.tacticalFocus,
+      tacticalFocusInfo: getTacticalFocusInfo((updatedTeam?.tacticalFocus || "balanced") as any),
     });
   } catch (error) {
     console.error("Error updating tactical focus:", error);
@@ -214,7 +216,7 @@ router.get("/tactical-analysis", requireAuth, async (req: any, res) => {
       return res.status(404).json({ error: "Team not found" });
     }
 
-    const players = await storage.players.getPlayersByTeamId(team.id);
+    const players = await storage?.players.getPlayersByTeamId(team.id);
     const staff = await storage.staff.getStaffByTeamId(team.id);
     const headCoach = staff.find((s: any) => s.type === "HEAD_COACH");
     
@@ -253,8 +255,8 @@ router.get("/tactical-analysis", requireAuth, async (req: any, res) => {
     
     res.json({
       currentSetup: {
-        fieldSize: team.fieldSize || "standard",
-        tacticalFocus: team.tacticalFocus || "balanced",
+        fieldSize: team?.fieldSize || "standard",
+        tacticalFocus: team?.tacticalFocus || "balanced",
       },
       analyses,
       bestSetup: analyses[0],
@@ -309,7 +311,7 @@ router.post("/formation", requireAuth, async (req: any, res) => {
       starters: starters.map(p => ({ id: p.id, position: p.position })),
       substitutes: substitutes || [],
       flexSubs: flexSubs || [],
-      lastUpdated: new Date().toISOString()
+      updatedAt: new Date().toISOString()
     };
 
     await storage.teams.updateTeam(team.id, { 

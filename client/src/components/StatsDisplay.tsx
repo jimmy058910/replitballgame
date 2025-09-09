@@ -2,33 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import type { PlayerMatchStats, TeamMatchStats } from "@shared/types/models";
 
-interface PlayerOffensiveStats {
-  scores: number;
-  passingAttempts: number;
-  passesCompleted: number;
-  passingPercentage: number;
-  passingYards: number;
-  rushingYards: number;
-  catches: number;
-  receivingYards: number;
-  dropsFumbles: number;
-}
-
-interface PlayerDefensiveStats {
-  tackles: number;
-  knockdownsInflicted: number;
-  interceptions: number;
-  passesDefended: number;
-}
-
-interface PlayerStats {
-  playerId: string;
-  playerName: string;
-  position: string;
-  gamesPlayed: number;
-  offensive: PlayerOffensiveStats;
-  defensive: PlayerDefensiveStats;
+// Extended types for UI display with averages
+interface PlayerStatsWithAverages extends PlayerMatchStats {
   averages?: {
     scoresPerGame: number;
     passingYardsPerGame: number;
@@ -37,17 +14,7 @@ interface PlayerStats {
   };
 }
 
-interface TeamStats {
-  teamId: string;
-  teamName: string;
-  gamesPlayed: number;
-  totalScore: number;
-  totalOffensiveYards: number;
-  passingYards: number;
-  rushingYards: number;
-  timeOfPossession: number;
-  turnovers: number;
-  totalKnockdowns: number;
+interface TeamStatsWithAverages extends TeamMatchStats {
   averages?: {
     scorePerGame: number;
     yardsPerGame: number;
@@ -56,8 +23,8 @@ interface TeamStats {
 }
 
 interface StatsDisplayProps {
-  playerStats?: PlayerStats;
-  teamStats?: TeamStats;
+  playerStats?: PlayerStatsWithAverages;
+  teamStats?: TeamStatsWithAverages;
   compact?: boolean;
   showAverages?: boolean;
 }
@@ -68,19 +35,19 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div className="flex justify-between">
           <span>Scores:</span>
-          <span className="font-medium">{playerStats.offensive.scores}</span>
+          <span className="font-medium">{playerStats.scores ?? 0}</span>
         </div>
         <div className="flex justify-between">
           <span>Tackles:</span>
-          <span className="font-medium">{playerStats.defensive.tackles}</span>
+          <span className="font-medium">{playerStats.tackles ?? 0}</span>
         </div>
         <div className="flex justify-between">
           <span>Pass Yds:</span>
-          <span className="font-medium">{playerStats.offensive.passingYards}</span>
+          <span className="font-medium">{playerStats.passingYards ?? 0}</span>
         </div>
         <div className="flex justify-between">
           <span>Rush Yds:</span>
-          <span className="font-medium">{playerStats.offensive.rushingYards}</span>
+          <span className="font-medium">{playerStats.rushingYards ?? 0}</span>
         </div>
       </div>
     );
@@ -92,11 +59,11 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              {playerStats.playerName}
-              <Badge variant="outline">{playerStats.position}</Badge>
+              {playerStats.playerName ?? 'Unknown Player'}
+              <Badge variant="outline">{(playerStats as any).position ?? 'N/A'}</Badge>
             </CardTitle>
             <CardDescription>
-              Games Played: {playerStats.gamesPlayed}
+              Games Played: {(playerStats as any).gamesPlayed ?? 0}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -112,7 +79,7 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
                     <div className="flex justify-between">
                       <span className="text-sm font-medium">Scores</span>
                       <span className="text-lg font-bold text-green-600">
-                        {playerStats.offensive.scores}
+                        {playerStats.scores ?? 0}
                       </span>
                     </div>
                     {showAverages && playerStats.averages && (
@@ -126,11 +93,11 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
                     <div className="flex justify-between">
                       <span className="text-sm font-medium">Passing %</span>
                       <span className="text-lg font-bold">
-                        {playerStats.offensive.passingPercentage}%
+                        {Math.round(((playerStats.passCompletions ?? 0) / Math.max((playerStats.passAttempts ?? 1), 1)) * 100)}%
                       </span>
                     </div>
                     <Progress 
-                      value={playerStats.offensive.passingPercentage} 
+                      value={Math.round(((playerStats.passCompletions ?? 0) / Math.max((playerStats.passAttempts ?? 1), 1)) * 100)} 
                       className="h-2"
                     />
                   </div>
@@ -138,25 +105,23 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
                   <div className="space-y-1">
                     <div className="flex justify-between">
                       <span className="text-sm">Passing Yards</span>
-                      <span className="font-medium">{playerStats.offensive.passingYards}</span>
+                      <span className="font-medium">{playerStats.offensive?.passingYards || 0}</span>
                     </div>
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Completions</span>
-                      <span>{playerStats.offensive.passesCompleted}/{playerStats.offensive.passingAttempts}</span>
+                      <span>{playerStats?.offensive?.passesCompleted ?? 0}/{playerStats?.offensive?.passingAttempts ?? 0}</span>
                     </div>
                   </div>
                   
                   <div className="space-y-1">
                     <div className="flex justify-between">
                       <span className="text-sm">Carrier Yards</span>
-                      {/*
-                       // @ts-expect-error TS2339 */}
-                      <span className="font-medium">{playerStats.offensive.carrierYards}</span>
+                      {/* */}
+                      <span className="font-medium">{playerStats?.offensive.carrierYards}</span>
                     </div>
                     {showAverages && playerStats.averages && (
                       <div className="text-xs text-gray-500">
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        {/* */}
                         Avg: {playerStats.averages.carrierYardsPerGame}/game
                       </div>
                     )}
@@ -164,17 +129,17 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
                   
                   <div className="flex justify-between">
                     <span className="text-sm">Catches</span>
-                    <span className="font-medium">{playerStats.offensive.catches}</span>
+                    <span className="font-medium">{playerStats?.offensive.catches}</span>
                   </div>
                   
                   <div className="flex justify-between">
                     <span className="text-sm">Receiving Yards</span>
-                    <span className="font-medium">{playerStats.offensive.receivingYards}</span>
+                    <span className="font-medium">{playerStats?.offensive.receivingYards}</span>
                   </div>
                   
                   <div className="flex justify-between">
                     <span className="text-sm text-red-600">Drops & Fumbles</span>
-                    <span className="font-medium text-red-600">{playerStats.offensive.dropsFumbles}</span>
+                    <span className="font-medium text-red-600">{playerStats?.offensive.dropsFumbles}</span>
                   </div>
                 </div>
               </TabsContent>
@@ -185,7 +150,7 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
                     <div className="flex justify-between">
                       <span className="text-sm font-medium">Tackles</span>
                       <span className="text-lg font-bold text-blue-600">
-                        {playerStats.defensive.tackles}
+                        {playerStats.defensive?.tackles || 0}
                       </span>
                     </div>
                     {showAverages && playerStats.averages && (
@@ -198,18 +163,18 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
                   <div className="flex justify-between">
                     <span className="text-sm font-medium">Knockdowns</span>
                     <span className="text-lg font-bold text-orange-600">
-                      {playerStats.defensive.knockdownsInflicted}
+                      {playerStats?.defensive.knockdownsInflicted}
                     </span>
                   </div>
                   
                   <div className="flex justify-between">
                     <span className="text-sm">Interceptions</span>
-                    <span className="font-medium">{playerStats.defensive.interceptions}</span>
+                    <span className="font-medium">{playerStats?.defensive.interceptions}</span>
                   </div>
                   
                   <div className="flex justify-between">
                     <span className="text-sm">Passes Defended</span>
-                    <span className="font-medium">{playerStats.defensive.passesDefended}</span>
+                    <span className="font-medium">{playerStats?.defensive.passesDefended}</span>
                   </div>
                 </div>
               </TabsContent>
@@ -271,14 +236,12 @@ export function StatsDisplay({ playerStats, teamStats, compact = false, showAver
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span className="text-sm">Carrier Yards</span>
-                  {/*
-                   // @ts-expect-error TS2339 */}
-                  <span className="font-medium">{teamStats.carrierYards}</span>
+                  {/* */}
+                  <span className="font-medium">{teamStats.rushingYards || 0}</span>
                 </div>
                 <div className="text-xs text-gray-500">
-                  {teamStats.totalOffensiveYards > 0 
-                    // @ts-expect-error TS2339
-                    ? Math.round((teamStats.carrierYards / teamStats.totalOffensiveYards) * 100)
+                  {teamStats.totalOffensiveYards > 0 
+                    ? Math.round(((teamStats.rushingYards || 0) / teamStats.totalOffensiveYards) * 100)
                     : 0}% of total
                 </div>
               </div>

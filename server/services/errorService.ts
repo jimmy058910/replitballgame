@@ -184,6 +184,28 @@ export function logInfo(message: string, context?: any): void {
   }
 }
 
+// Log warning messages with structure
+export function logWarn(message: string, context?: any): void {
+  const timestamp = new Date().toISOString();
+  const sanitizedContext = context ? sanitizeErrorForLogging(context) : {};
+  
+  const logEntry = {
+    timestamp,
+    level: 'WARN',
+    message,
+    context: Object.keys(sanitizedContext).length > 0 ? sanitizedContext : undefined
+  };
+
+  if (isProduction) {
+    console.warn(JSON.stringify(logEntry));
+  } else {
+    console.warn(`[WARN] ${timestamp} - ${message}`);
+    if (Object.keys(sanitizedContext).length > 0) {
+      console.warn('Context:', sanitizedContext);
+    }
+  }
+}
+
 // Create standardized error response
 // Comprehensive BigInt serialization utility for error handling
 function serializeBigIntValues(obj: any): any {

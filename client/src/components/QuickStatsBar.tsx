@@ -1,21 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/providers/AuthProvider";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Gem, Coins, TrendingUp, TrendingDown, Minus, Calendar, ArrowUp, ArrowDown, ArrowRight, Zap, Star } from "lucide-react";
+import type { Player, Team, Staff, Contract, Notification, TeamWithFinances, TeamFinances, Stadium } from '@shared/types/models';
+import { teamQueryOptions, trendsQueryOptions, financeQueryOptions, seasonQueryOptions } from '@/lib/api/queryOptions';
 
-interface Team {
-  id: string;
-  name: string;
-  division: number;
-  subdivision: string;
-  teamPower: number;
-  camaraderie: number;
-  wins: number;
-  losses: number;
-  draws: number;
-}
+
 
 interface TeamTrends {
   powerTrend: 'up' | 'down' | 'stable';
@@ -26,12 +17,6 @@ interface TeamTrends {
   narrative: string;
   weeklyHighlight: string;
 }
-
-interface TeamFinances {
-  credits: number;
-  gems: number;
-}
-
 interface SeasonalCycle {
   season: string;
   currentDay: number;
@@ -44,40 +29,32 @@ interface SeasonalCycle {
 export default function QuickStatsBar() {
   const { isAuthenticated } = useAuth();
 
-  const { data: team } = useQuery<Team>({
-    queryKey: ['/api/teams/my'],
-    queryFn: () => apiRequest('/api/teams/my'),
-    enabled: isAuthenticated,
+  const { data: team } = useQuery({
+    ...teamQueryOptions.myTeam(isAuthenticated),
     retry: (failureCount, error) => {
       if (isUnauthorizedError(error)) return false;
       return failureCount < 3;
     }
   });
 
-  const { data: finances } = useQuery<TeamFinances>({
-    queryKey: ['/api/teams/finances/my'],
-    queryFn: () => apiRequest('/api/teams/finances/my'),
-    enabled: isAuthenticated,
+  const { data: finances } = useQuery({
+    ...financeQueryOptions.myTeamFinances(isAuthenticated),
     retry: (failureCount, error) => {
       if (isUnauthorizedError(error)) return false;
       return failureCount < 3;
     }
   });
 
-  const { data: seasonalCycle } = useQuery<SeasonalCycle>({
-    queryKey: ['/api/seasons/current-cycle'],
-    queryFn: () => apiRequest('/api/seasons/current-cycle'),
-    enabled: isAuthenticated,
+  const { data: seasonalCycle } = useQuery({
+    ...seasonQueryOptions.currentCycle(isAuthenticated),
     retry: (failureCount, error) => {
       if (isUnauthorizedError(error)) return false;
       return failureCount < 3;
     }
   });
 
-  const { data: teamTrends } = useQuery<TeamTrends>({
-    queryKey: ['/api/teams/trends'],
-    queryFn: () => apiRequest('/api/teams/trends'),
-    enabled: isAuthenticated,
+  const { data: teamTrends } = useQuery({
+    ...trendsQueryOptions.teamTrends(isAuthenticated),
     retry: (failureCount, error) => {
       if (isUnauthorizedError(error)) return false;
       return failureCount < 3;
@@ -152,8 +129,7 @@ export default function QuickStatsBar() {
           <div className="flex items-center gap-2">
             <Coins className="h-4 w-4 text-yellow-400" />
             <span className="text-white font-semibold">
-              {/*
-               // @ts-expect-error TS2345 */}
+              {/* */}
               {parseInt(finances?.credits || 0).toLocaleString()}₡
             </span>
           </div>

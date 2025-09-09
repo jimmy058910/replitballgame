@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Heart, Clock, Zap, TrendingUp, User, Activity, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Player, Staff } from '@shared/types/models';
+
 
 type InjurySeverity = "minor" | "moderate" | "major" | "career_threatening";
 
@@ -26,7 +28,7 @@ interface PlayerInjury {
   recoveryProgress: number;
   player?: {
     id: string;
-    name: string;
+    firstName: string; lastName: string;
     race: string;
     position: string;
   };
@@ -52,7 +54,8 @@ export default function InjurySystem() {
   // Define a simple Player type for this component's context
   interface Player {
     id: string;
-    name: string;
+    firstName: string;
+  lastName: string;
     race: string;
     position: string;
     age: number;
@@ -277,7 +280,7 @@ export default function InjurySystem() {
                           <div>
                             <CardTitle className="text-lg flex items-center space-x-2">
                               {getInjuryIcon(injury.injuryType)}
-                              <span>{injury.player?.name}</span>
+                              <span>{injury.player ? `${injury.player.firstName} ${injury.player.lastName}` : ""}</span>
                             </CardTitle>
                             <p className="text-sm text-gray-600">
                               {injury.player?.race} {injury.player?.position}
@@ -331,7 +334,7 @@ export default function InjurySystem() {
                               </DialogTrigger>
                               <DialogContent>
                                 <DialogHeader>
-                                  <DialogTitle>Recovery Treatment - {injury.player?.name}</DialogTitle>
+                                  <DialogTitle>Recovery Treatment - {injury.player ? `${injury.player.firstName} ${injury.player.lastName}` : ""}</DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                   {treatments?.map((treatment: RecoveryTreatment) => (
@@ -403,7 +406,7 @@ export default function InjurySystem() {
                     <Card key={player.id} className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h4 className="font-semibold">{player.name}</h4>
+                          <h4 className="font-semibold">{`${player.firstName} ${player.lastName}`}</h4>
                           <p className="text-sm text-gray-600">{player.race} {player.position}</p>
                         </div>
                         <Badge className={getRiskColor(risk)}>
@@ -459,7 +462,7 @@ export default function InjurySystem() {
                       <div className="flex items-center space-x-3">
                         {getInjuryIcon(injury.injuryType)}
                         <div>
-                          <p className="font-semibold">{injury.player?.name}</p>
+                          <p className="font-semibold">{injury.player ? `${injury.player.firstName} ${injury.player.lastName}` : ""}</p>
                           <p className="text-sm text-gray-600">
                             {injury.injuryType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </p>

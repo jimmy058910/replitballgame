@@ -1,6 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { PlayerContractInitializer } from '../services/playerContractInitializer.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 

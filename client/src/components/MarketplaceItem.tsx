@@ -103,7 +103,7 @@ export default function MarketplaceItem({ player, onBid, isLoading }: Marketplac
               <i className={`${raceIcon} text-${raceColorClass}`}></i>
             </div>
             <div>
-              <h4 className="font-semibold text-white">{player.name}</h4>
+              <h4 className="font-semibold text-white">{`${player.firstName} ${player.lastName}`}</h4>
               <p className={`text-xs text-${raceColorClass} font-medium`}>
                 {player.race.charAt(0).toUpperCase() + player.race.slice(1)} • Age {player.age}
               </p>

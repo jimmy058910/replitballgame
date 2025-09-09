@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Crown, Heart, AlertTriangle } from 'lucide-react';
 import { getPlayerRole, getRaceDisplayName, getPlayerDisplayName } from '@shared/playerUtils';
 import { StarRating } from '@/components/StarRating';
+import type { Player, Contract } from '@shared/types/models';
+
 
 interface PlayerCardProps {
   player: any;
@@ -109,10 +111,10 @@ export default function UnifiedPlayerCard({
   // Use full name for display - prioritize the complete name field
   const displayName = (() => {
     // Use the full name field if available and valid
-    if (player.name && player.name.trim() && 
-        !player.name.includes("Player") && !player.name.includes("AI") && 
-        player.name !== "Unknown") {
-      return player.name;
+    if (`${player.firstName} ${player.lastName}` && `${player.firstName} ${player.lastName}`.trim() && 
+        !`${player.firstName} ${player.lastName}`.includes("Player") && !`${player.firstName} ${player.lastName}`.includes("AI") && 
+        `${player.firstName} ${player.lastName}` !== "Unknown") {
+      return `${player.firstName} ${player.lastName}`;
     }
     
     // Construct full name from firstName + lastName

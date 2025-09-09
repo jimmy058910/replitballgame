@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Calendar, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import type { Team } from '@shared/types/models';
+
 
 interface SeasonData {
   seasonNumber: number;
@@ -73,7 +75,7 @@ export default function TeamHQHeroBanner() {
     return subdivision.charAt(0).toUpperCase() + subdivision.slice(1);
   };
 
-  const progress = Math.round(((seasonData.currentDay - 1) / 17) * 100);
+  const progress = Math.round(((seasonData?.currentDay - 1) / 17) * 100);
 
   return (
     <Card className="hq-hero-gradient border-blue-700 shadow-xl">
@@ -97,7 +99,7 @@ export default function TeamHQHeroBanner() {
                 <span>•</span>
                 <span>{getPhaseDisplayName(seasonData.phase)}</span>
                 <span>•</span>
-                <span>Day {seasonData.currentDay}/17</span>
+                <span>Day {seasonData?.currentDay}/17</span>
               </div>
               <div className="mt-1">
                 <Badge variant="outline" className="border-blue-400 text-blue-200">
@@ -117,8 +119,8 @@ export default function TeamHQHeroBanner() {
         {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-blue-200">
-            <span>Day {seasonData.currentDay}</span>
-            <span>{17 - seasonData.currentDay} days remaining</span>
+            <span>Day {seasonData?.currentDay}</span>
+            <span>{17 - seasonData?.currentDay} days remaining</span>
           </div>
           <Progress 
             value={progress} 

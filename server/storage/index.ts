@@ -23,6 +23,8 @@ import { sponsorshipStorage, SponsorshipStorage } from './sponsorshipStorage.js'
 import { paymentStorage, PaymentStorage } from './paymentStorage.js';
 import { scoutingStorage, ScoutingStorage } from './scoutingStorage.js';
 import { consumableStorage, ConsumableStorage } from './consumableStorage.js';
+import type { Player, Team, Staff, Contract, TeamFinances, Stadium, League, Notification } from '@shared/types/models';
+
 
 // Interface combining all storage services, similar to the original IStorage
 // This provides a type for the aggregated storage object.
@@ -99,7 +101,7 @@ export const storage: IAppStorage = {
 // Example of how it might be used elsewhere:
 // import { storage } from './storage'; // (from the directory containing this index.ts)
 // const user = await storage.users.getUser('some-id');
-// const team = await storage.teams.createTeam(...);
+// const team = await storage.Team.createTeam(...);
 
 // Export getPrismaClient for direct database access when needed
 export { getPrismaClient };

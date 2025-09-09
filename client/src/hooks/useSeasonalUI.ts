@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
+
 
 export type SeasonPhase = 'PRE_SEASON' | 'REGULAR_SEASON' | 'MID_SEASON_CUP' | 'DIVISION_TOURNAMENT' | 'OFF_SEASON';
 
@@ -44,7 +46,7 @@ export function useSeasonalUI() {
       };
     }
 
-    const currentDay = seasonalData.currentDay;
+    const currentDay = seasonalData?.currentDay;
     
     // Determine phase based on game day and season state
     let phase: SeasonPhase = 'REGULAR_SEASON';

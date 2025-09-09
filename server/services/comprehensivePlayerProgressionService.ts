@@ -1,5 +1,6 @@
 import { getPrismaClient } from "../database.js";
-import type { Player, Staff } from "../db";
+import type { Player, Staff } from '@shared/types/models';
+
 
 /**
  * Comprehensive Player Aging and Seasonal Progression System
@@ -400,7 +401,7 @@ export class ComprehensivePlayerProgressionService {
       // Select stat to decline (weighted by decline weights)
       const declineStats = Object.keys(this.CONFIG.DECLINE_STAT_WEIGHTS);
       const weights = Object.values(this.CONFIG.DECLINE_STAT_WEIGHTS);
-      const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+      const totalWeight = weights.reduce((sum: any, weight: any) => sum + weight, 0);
       
       let randomValue = Math.random() * totalWeight;
       let selectedStat = 'speed';

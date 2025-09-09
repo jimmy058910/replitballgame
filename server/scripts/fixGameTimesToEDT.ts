@@ -12,6 +12,8 @@
 
 import { PrismaClient } from '../../prisma/generated/client/index.js';
 import { TimezoneService } from '../services/timezoneService.js';
+import type { League } from '@shared/types/models';
+
 
 const prisma = new PrismaClient();
 

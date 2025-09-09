@@ -17,6 +17,8 @@ import { getPlayerRole, getRaceDisplayName, getRoleColor } from "@shared/playerU
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import type { Player, Team, Contract, League } from '@shared/types/models';
+
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -293,7 +295,6 @@ function PlayerDetailModal({
                             <Button 
                               variant="destructive"
                               size="sm"
-                              // @ts-expect-error TS2339
                               disabled={!releaseInfo?.canRelease}
                             >
                               Release
@@ -304,9 +305,7 @@ function PlayerDetailModal({
                       <AlertDialogTitle className="text-white">Release Player</AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-300">
                         Are you sure you want to release {player.firstName} {player.lastName}? 
-                        {/*
-                         // @ts-expect-error TS2339 */}
-                        This will cost ₡{releaseInfo?.releaseFee?.toLocaleString() || 0} and cannot be undone.
+                        This will cost ₡{(releaseInfo?.releaseFee || 0).toLocaleString()} and cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -322,12 +321,8 @@ function PlayerDetailModal({
                         </AlertDialog>
                       </div>
                     </TooltipTrigger>
-                    {/*
-                     // @ts-expect-error TS2339 */}
                     {!releaseInfo?.canRelease && (
                       <TooltipContent>
-                        {/*
-                         // @ts-expect-error TS2339 */}
                         <p>{releaseInfo?.reason || "Cannot release this player"}</p>
                       </TooltipContent>
                     )}

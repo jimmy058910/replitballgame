@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Clock, Calendar, Star } from "lucide-react";
+import type { Player, Staff } from '@shared/types/models';
+
 
 interface RoadmapItem {
   id: string;

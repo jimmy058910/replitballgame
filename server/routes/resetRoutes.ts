@@ -1,5 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { requireAuth } from "../middleware/firebaseAuth.js";
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -192,14 +194,14 @@ router.post('/test-schedule-generation', async (req: Request, res: Response, nex
       }
     });
     
-    if (!testLeague || testLeague.teams.length === 0) {
+    if (!testLeague || testLeague.Team.length === 0) {
       return res.status(404).json({ 
         error: "No leagues with teams found for testing",
         suggestion: "Create some teams first"
       });
     }
     
-    console.log(`Testing with league ${testLeague.id} containing ${testLeague.teams.length} teams`);
+    console.log(`Testing with league ${testLeague.id} containing ${testLeague.Team.length} teams`);
     
     // Clear existing games for this league only
     await prisma.game.deleteMany({
@@ -229,7 +231,7 @@ router.post('/test-schedule-generation', async (req: Request, res: Response, nex
       league: {
         id: testLeague.id,
         name: testLeague.name,
-        teamCount: testLeague.teams.length
+        teamCount: testLeague.Team.length
       },
       results: {
         gamesCreated: result,

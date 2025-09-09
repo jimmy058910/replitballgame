@@ -129,14 +129,10 @@ export function useGameEventEmitter() {
   return {
     emitEvent: <T extends AllGameEvents>(event: T) => {
       gameEventBus.emitGameEvent(event);
-    },
-    // @ts-expect-error TS2339
-    createInjuryEvent: gameEventBus.constructor.createInjuryEvent,
-    // @ts-expect-error TS2339
-    createScoreEvent: gameEventBus.constructor.createScoreEvent,
-    // @ts-expect-error TS2339
-    createProgressionEvent: gameEventBus.constructor.createProgressionEvent,
-    // @ts-expect-error TS2339
+    },
+    createInjuryEvent: gameEventBus.constructor.createInjuryEvent,
+    createScoreEvent: gameEventBus.constructor.createScoreEvent,
+    createProgressionEvent: gameEventBus.constructor.createProgressionEvent,
     createEconomicEvent: gameEventBus.constructor.createEconomicEvent
   };
 }

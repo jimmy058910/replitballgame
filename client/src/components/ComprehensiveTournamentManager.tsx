@@ -492,9 +492,9 @@ export default function ComprehensiveTournamentManager({ teamId }: Comprehensive
                         <div className="flex items-center gap-2 text-sm">
                           <Trophy className="w-4 h-4" />
                           <span>Finished #{tournament.placement}</span>
-                          {tournament.creditsWon > 0 && (
+                          {(tournament.creditsWon ?? 0) > 0 && (
                             <span className="text-green-600">
-                              (+{tournament.creditsWon.toLocaleString()}₡)
+                              (+{(tournament.creditsWon ?? 0).toLocaleString()}₡)
                             </span>
                           )}
                         </div>

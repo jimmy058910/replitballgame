@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { inventoryQueryOptions, playerQueryOptions } from "@/lib/api/queryOptions";
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
 interface InventoryItem {
   id: string;
@@ -37,13 +39,7 @@ interface InventoryItem {
   slot?: string;
 }
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  injuryStatus: string;
-  role: string;
-}
+
 
 interface ActiveBoost {
   id: string;
@@ -66,23 +62,14 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
   const queryClient = useQueryClient();
 
   // Fetch team inventory
-  const { data: rawInventory = [] } = useQuery<InventoryItem[]>({
-    queryKey: [`/api/inventory/${teamId}`],
-    enabled: !!teamId,
-  });
+  const { data: rawInventory = [] } = useQuery(inventoryQueryOptions.teamInventory(teamId));
   const inventory = (rawInventory || []);
 
   // Fetch active boosts for the team
-  const { data: activeBoosts = [] } = useQuery<ActiveBoost[]>({
-    queryKey: [`/api/teams/${teamId}/active-boosts`],
-    enabled: !!teamId,
-  });
+  const { data: activeBoosts = [] } = useQuery(inventoryQueryOptions.activeBoosts(teamId));
 
   // Fetch team players for equipment/consumable usage
-  const { data: rawPlayers = [] } = useQuery<Player[]>({
-    queryKey: [`/api/teams/${teamId}/players`],
-    enabled: !!teamId,
-  });
+  const { data: rawPlayers = [] } = useQuery(playerQueryOptions.playersByTeam(teamId));
   const players = (rawPlayers || []);
 
   // Filter definitions according to project brief (only count items with quantity > 0)
@@ -382,11 +369,8 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
         "Sylvan Barkwood Circlet": ["SYLVAN"],
         "Umbral Cowl": ["UMBRA"],
         "Lumina Radiant Aegis": ["LUMINA"]
-      };
-      
-      // @ts-expect-error TS7053
-      if (raceRequirements[item.name]) {
-        // @ts-expect-error TS7053
+      };
+      if (raceRequirements[item.name]) {
         return players.filter(p => raceRequirements[item.name].includes(p.race));
       }
       
@@ -399,8 +383,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
       
       // For stamina items, filter out players with full stamina
       if (item.name.toLowerCase().includes("stamina") || item.name.toLowerCase().includes("energy") || item.name.toLowerCase().includes("recovery")) {
-        return players.filter(p => {
-          // @ts-expect-error TS2339
+        return players.filter(p => {
           const currentStamina = p.dailyStaminaLevel;
           // Only show players who don't have full stamina (null means full stamina)
           return currentStamina !== null && currentStamina < 100;
@@ -553,8 +536,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                           if (isTeamBoost(item)) {
                             useItemMutation.mutate({ 
                               item, 
-                              action: "use_team_boost",
-                              // @ts-expect-error TS2353
+                              action: "use_team_boost",
                               effect: item.effect || item.metadata?.effect
                             });
                           } else {
@@ -702,8 +684,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                       <SelectContent className="bg-gray-700 border-gray-600">
                         {getEligiblePlayers(selectedItem).map((player) => (
                           <SelectItem key={player.id} value={player.id} className="text-white">
-                            {/*
-                             // @ts-expect-error TS2339 */}
+                            {/* */}
                             {player.firstName} {player.lastName} ({player.role}, {player.race})
                           </SelectItem>
                         ))}
@@ -774,8 +755,7 @@ export default function UnifiedInventoryHub({ teamId }: UnifiedInventoryHubProps
                             <SelectValue placeholder="Choose a player..." />
                           </SelectTrigger>
                           <SelectContent className="bg-gray-700 border-gray-600">
-                            {getEligiblePlayers(selectedItem).map((player) => {
-                              // @ts-expect-error TS2339
+                            {getEligiblePlayers(selectedItem).map((player) => {
                               const currentStamina = player.dailyStaminaLevel || 100;
                               const maxStamina = 100;
                               const staminaPercentage = Math.round(currentStamina);

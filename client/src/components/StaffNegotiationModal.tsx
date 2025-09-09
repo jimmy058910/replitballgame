@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlus, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
+import type { Staff, Contract } from '@shared/types/models';
 
-interface Staff {
+
+interface NegotiationStaff {
   id: string;
   teamId: string;
   name: string;

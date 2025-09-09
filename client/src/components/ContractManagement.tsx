@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { teamQueryOptions, playerQueryOptions, contractQueryOptions } from "@/lib/api/queryOptions";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +15,13 @@ import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { DollarSign, TrendingUp, AlertTriangle, Users, Calculator, FileText, Clock, Target } from "lucide-react";
 import { AnimatedCounter, PulseWrapper, HoverCard, InteractiveButton } from "@/components/MicroInteractions";
+import type { Player, Contract } from '@shared/types/models';
+
 
 // Define interfaces based on expected data structures
 interface PlayerData {
   id: string;
-  name: string;
+  firstName: string; lastName: string;
   position: string;
   overall: number;
   speed: number;
@@ -56,7 +59,7 @@ interface PlayerContract {
   };
   player?: {
     id: string;
-    name: string;
+    firstName: string; lastName: string;
     race?: string; // Made optional as not used directly in PlayerContract card
     position?: string; // Made optional
     overall?: number; // Made optional
@@ -81,24 +84,14 @@ export default function ContractManagement() {
   });
   const [showNegotiationDialog, setShowNegotiationDialog] = useState(false);
 
-  const { data: team } = useQuery<TeamData>({
-    queryKey: ["/api/teams/my"],
-  });
+  const { data: team } = useQuery(teamQueryOptions.myTeamLegacy());
 
-  const { data: contracts } = useQuery<PlayerContract[]>({
-    queryKey: ["/api/contracts", team?.id],
-    enabled: !!team?.id,
-  });
+  const { data: contracts } = useQuery(contractQueryOptions.byTeamId(team?.id ? String(team.id) : undefined));
 
 
-  const { data: players } = useQuery<PlayerData[]>({
-    queryKey: ["/api/players/team", team?.id], // Assuming this endpoint returns PlayerData[]
-    enabled: !!team?.id,
-  });
+  const { data: players } = useQuery(playerQueryOptions.playersByTeam(team?.id || ''));
 
-  const { data: contractTemplates } = useQuery<any[]>({ // Using any[] for now for contractTemplates
-    queryKey: ["/api/contracts/templates"],
-  });
+  const { data: contractTemplates } = useQuery(contractQueryOptions.templates());
 
   const negotiateContractMutation = useMutation({
     mutationFn: (data: any) =>
@@ -191,7 +184,7 @@ export default function ContractManagement() {
                   ?.slice(0, 3) // Added optional chaining
                   ?.map((contract: PlayerContract) => (
                   <div key={contract.id} className="flex items-center justify-between">
-                    <span className="text-sm">{contract.player?.name}</span>
+                    <span className="text-sm">{contract.player ? `${contract.player.firstName} ${contract.player.lastName}` : ""}</span>
                     <Badge variant="destructive"> {/* Removed size="sm" */}
                       {contract.remainingYears}Y left
                     </Badge>
@@ -236,10 +229,10 @@ export default function ContractManagement() {
                       <SelectValue placeholder="Select a player" />
                     </SelectTrigger>
                     <SelectContent>
-                      {players?.filter((p: PlayerData) => !contracts?.some((c: PlayerContract) => c.playerId === p.id)) // Used PlayerData
-                        ?.map((player: PlayerData) => ( // Used PlayerData
+                      {players?.filter((p: Player) => !contracts?.some((c: PlayerContract) => c.playerId === p.id)) // Use Player type
+                        ?.map((player: Player) => ( // Use Player type
                         <SelectItem key={player.id} value={player.id}>
-                          {player.name} - {player.position}
+                          {`${player.firstName} ${player.lastName}`} - {player.role}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -386,9 +379,9 @@ export default function ContractManagement() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div>
-                        <p className="font-medium">{contract.player?.name}</p>
+                        <p className="font-medium">{contract.player ? `${contract.player.firstName} ${contract.player.lastName}` : ""}</p>
                         <p className="text-sm text-gray-400">
-                          {contract.player?.position} • Overall: {contract.player?.overall ?? 'N/A'}
+                          {contract.player?.role} • Overall: {contract.player?.overall ?? 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -532,7 +525,7 @@ export default function ContractManagement() {
                     return (
                       <div key={contract.id} className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium">{contract.player?.name}</p>
+                          <p className="text-sm font-medium">{contract.player ? `${contract.player.firstName} ${contract.player.lastName}` : ""}</p>
                           <p className="text-xs text-gray-400">
                             ${(contract.salary / 1000000).toFixed(1)}M
                           </p>

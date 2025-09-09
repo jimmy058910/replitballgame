@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import type { Player, Team } from '@shared/types/models';
+
 
 // Page-level loading spinner
 export const PageLoader: React.FC<{ message?: string }> = ({ message = "Loading..." }) => (

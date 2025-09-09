@@ -99,7 +99,7 @@ export class N1QueryPrevention {
     const includes: any = {};
 
     if (options.includePlayers) {
-      includes.players = {
+      includes?.players = {
         where: { isRetired: false },
         select: options.playerDetails ? {
           id: true,
@@ -136,7 +136,7 @@ export class N1QueryPrevention {
     }
 
     if (options.includeFinances) {
-      includes.finances = {
+      includes?.finances = {
         select: {
           credits: true,
           gems: true,
@@ -478,7 +478,7 @@ export class BatchOperations {
 
     if (parallel) {
       const counts = await Promise.all(chunks.map(updateChunk));
-      totalUpdated = counts.reduce((sum, count) => sum + count, 0);
+      totalUpdated = counts.reduce((sum: any, count: any) => sum + count, 0);
     } else {
       for (const chunk of chunks) {
         totalUpdated += await updateChunk(chunk);

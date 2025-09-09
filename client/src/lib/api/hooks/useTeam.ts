@@ -6,6 +6,8 @@
 import { useApiQuery, useApiMutation, invalidateQueries } from '../unified-client';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
+import type { Player, Team, TeamFinances, Stadium } from '@shared/types/models';
+
 
 // Types
 export interface Team {

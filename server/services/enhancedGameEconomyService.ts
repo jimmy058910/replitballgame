@@ -1,4 +1,6 @@
-import { getPrismaClient } from '../database.js';
+import { getPrismaClient, prisma } from '../database.js';
+import type { Player, Team, TeamFinances, Stadium, League } from '@shared/types/models';
+
 
 export class EnhancedGameEconomyService {
 
@@ -44,7 +46,7 @@ export class EnhancedGameEconomyService {
         return { success: false, error: 'Minimum 10 gems required for exchange' };
       }
 
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const team = await prisma.team.findFirst({
         where: { id: teamId }
       });
@@ -94,7 +96,7 @@ export class EnhancedGameEconomyService {
       atmosphereBonus: number;
     };
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const stadium = await prisma.stadium.findFirst({
       where: { teamId: parseInt(teamId, 10) }
     });
@@ -159,7 +161,7 @@ export class EnhancedGameEconomyService {
       atmosphereBonus: fanLoyalty > 80 ? Math.floor(actualAttendance * 2 * multiplier) : 0
     };
 
-    const totalRevenue = Object.values(breakdown).reduce((sum, val) => sum + val, 0);
+    const totalRevenue = Object.values(breakdown).reduce((sum: any, val: any) => sum + val, 0);
 
     return { totalRevenue, breakdown };
   }
@@ -168,7 +170,7 @@ export class EnhancedGameEconomyService {
    * Apply daily stadium revenue to team finances
    */
   static async applyDailyStadiumRevenue(teamId: string, isHomeGameDay: boolean = false): Promise<number> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const revenue = await this.calculateStadiumRevenue(teamId, isHomeGameDay);
     
     if (revenue.totalRevenue > 0) {
@@ -230,7 +232,7 @@ export class EnhancedGameEconomyService {
     upgradeType: string
   ): Promise<{ success: boolean; cost?: number; error?: string; newLevel?: number }> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const stadium = await prisma.stadium.findFirst({
         where: { teamId: parseInt(teamId) }
       });
@@ -686,7 +688,7 @@ export class EnhancedGameEconomyService {
       const equipmentReward = this.getRandomEquipmentByRarity(equipmentRarity.rarity);
 
       // Apply currency reward
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: parseInt(teamId, 10) }
       });
@@ -816,7 +818,7 @@ export class EnhancedGameEconomyService {
         if (teamFinance) {
           await prisma.teamFinances.update({
             where: { teamId: parseInt(teamId, 10) },
-            data: { credits: BigInt(Number(teamFinance.credits || 0) + rewards.credits) }
+            data: { credits: Number(Number(teamFinance.credits || 0) + rewards.credits) }
           });
         }
       }
@@ -870,7 +872,7 @@ export class EnhancedGameEconomyService {
    * Apply daily maintenance costs
    */
   static async applyMaintenanceCosts(teamId: string): Promise<number> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     try {
       const maintenanceCost = await this.calculateMaintenanceCosts(teamId);
       
@@ -905,7 +907,7 @@ export class EnhancedGameEconomyService {
     nextUpgradeCosts: any;
   }> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: parseInt(teamId, 10) }
       });
@@ -969,7 +971,7 @@ export class EnhancedGameEconomyService {
     adsRequired: number;
   }> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       // Get team's ad watching progress (assuming we track this somewhere)
       const teamFinance = await prisma.teamFinances.findFirst({
         where: { teamId: parseInt(teamId, 10) }
@@ -1118,7 +1120,7 @@ export class EnhancedGameEconomyService {
       if (availableItems.length === 0) break;
       
       // Calculate total weight
-      const totalWeight = availableItems.reduce((sum, item) => {
+      const totalWeight = availableItems.reduce((sum: any, item: any) => {
         return sum + (rarityWeights[item.tier as keyof typeof rarityWeights] || 1);
       }, 0);
       
@@ -1219,7 +1221,7 @@ export class EnhancedGameEconomyService {
     rewardType: 'champion' | 'runnerUp' | 'regularWinner' | 'promotion'
   ): Promise<{ success: boolean; rewards?: { credits: number; gems: number }; error?: string }> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const divisionRewards = (this.DIVISION_REWARDS as Record<number, any>)[division];
       if (!divisionRewards) {
         return { success: false, error: 'Invalid division' };
@@ -1268,7 +1270,7 @@ export class EnhancedGameEconomyService {
    * Calculate daily facility maintenance costs
    */
   static async calculateMaintenanceCosts(teamId: string): Promise<number> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const stadium = await prisma.stadium.findFirst({
       where: { teamId: parseInt(teamId, 10) }
     });

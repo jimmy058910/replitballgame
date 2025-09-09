@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertTriangle, CheckCircle, Info, Target, Zap, Shield, BarChart3, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import type { Team } from '@shared/types/models';
+
 
 interface TacticalSetup {
   fieldSize: string;
@@ -51,8 +53,7 @@ export default function TacticalManager() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Field Size Updated",
-        // @ts-expect-error TS18046
+        title: "Field Size Updated",
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tactics/team-tactics"] });
@@ -73,8 +74,7 @@ export default function TacticalManager() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Tactical Focus Updated",
-        // @ts-expect-error TS18046
+        title: "Tactical Focus Updated",
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tactics/team-tactics"] });

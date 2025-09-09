@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { UserX, DollarSign, AlertTriangle, CheckCircle } from 'lucide-react';
+import type { Staff } from '@shared/types/models';
+
 
 interface Staff {
   id: string;
@@ -51,8 +53,7 @@ export default function StaffReleaseConfirmation({ staff, isOpen, onClose }: Sta
       toast({
         title: "Staff Released",
         description: data.message,
-      });
-      // @ts-expect-error TS2339
+      });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${staff?.teamId}/staff`] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams/my"] });
       onClose();
@@ -168,8 +169,7 @@ export default function StaffReleaseConfirmation({ staff, isOpen, onClose }: Sta
               Cancel
             </Button>
             <Button 
-              onClick={handleRelease}
-              // @ts-expect-error TS2322
+              onClick={handleRelease}
               disabled={!confirmed || releasing || (teamData && (teamData.credits || 0) < estimatedReleaseFee)}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
             >
@@ -177,8 +177,7 @@ export default function StaffReleaseConfirmation({ staff, isOpen, onClose }: Sta
             </Button>
           </div>
 
-          {/*
-           // @ts-expect-error TS2339 */}
+          {/* */}
           {teamData && (teamData.credits || 0) < estimatedReleaseFee && (
             <Alert className="border-2 border-red-400 bg-red-900/30">
               <AlertTriangle className="h-4 w-4 text-red-400" />

@@ -1,0 +1,209 @@
+{
+  "timestamp": "2025-01-09T15:30:00Z",
+  "iteration": 6,
+  "summary": {
+    "totalErrors": 1110,
+    "errorsByType": {
+      "TS2339": 459,
+      "TS2322": 113,
+      "TS2345": 109,
+      "TS2353": 101,
+      "TS18048": 65,
+      "TS2551": 35,
+      "TS18046": 27,
+      "TS2554": 24,
+      "TS18047": 21,
+      "TS2341": 16,
+      "TS7006": 15,
+      "TS2779": 14,
+      "TS2769": 12,
+      "TS2561": 11,
+      "TS2305": 10
+    },
+    "topFiles": [
+      {"file": "server/routes/enhancedFinanceRoutes.ts", "errors": 60},
+      {"file": "server/routes/teamRoutes.ts", "errors": 36},
+      {"file": "server/services/enhancedTeamManagementService.ts", "errors": 34},
+      {"file": "server/routes/enhancedMatchRoutes.ts", "errors": 33},
+      {"file": "server/dataAccess/enhancedTournamentDataAccess.ts", "errors": 33},
+      {"file": "server/services/enhancedCompetitionService.ts", "errors": 32},
+      {"file": "server/routes/leagueRoutes.ts", "errors": 31},
+      {"file": "server/routes/enhancedSeasonRoutes.ts", "errors": 31},
+      {"file": "server/routes/enhancedPlayerRoutes.ts", "errors": 28},
+      {"file": "client/src/components/UnifiedInventoryHub.tsx", "errors": 25}
+    ]
+  },
+  "patterns": {
+    "propertyAccess": {
+      "count": 459,
+      "priority": 1,
+      "rootCause": "Properties missing from types or using wrong property names from Prisma schema",
+      "affectedFiles": [
+        "client/src/components/MobileRosterHQ.tsx",
+        "client/src/components/FinancesTab.tsx", 
+        "client/src/components/LineupRosterBoard.tsx",
+        "client/src/components/ComprehensiveCompetitionCenter.tsx"
+      ],
+      "specificIssues": [
+        {
+          "type": "missing_property",
+          "symbol": "isOnMarket",
+          "files": ["MobileRosterHQ.tsx"],
+          "suggestedFix": "Add isOnMarket property to PlayerWithContract type"
+        },
+        {
+          "type": "missing_property", 
+          "symbol": "rosterPosition",
+          "files": ["MobileRosterHQ.tsx"],
+          "suggestedFix": "Add rosterPosition property to PlayerWithContract type"
+        },
+        {
+          "type": "missing_property",
+          "symbol": "staff",
+          "files": ["FinancesTab.tsx"],
+          "suggestedFix": "Add staff property to Contract type or create StaffContract subtype"
+        },
+        {
+          "type": "missing_property",
+          "symbol": "starter",
+          "files": ["LineupRosterBoard.tsx"], 
+          "suggestedFix": "Add starter boolean property to Player type"
+        }
+      ],
+      "estimatedImpact": "Would fix ~459 errors across 100+ files"
+    },
+    "typeAssignments": {
+      "count": 113,
+      "priority": 2,
+      "rootCause": "Type mismatches between expected and actual types, often string vs number",
+      "examples": [
+        {
+          "file": "FinancesTab.tsx",
+          "line": 86,
+          "current": "Type 'string | number' is not assignable to type 'string'",
+          "suggested": "Convert to string or update interface to accept string | number"
+        },
+        {
+          "file": "LineupRosterBoard.tsx", 
+          "line": 135,
+          "current": "Type 'string | number' is not assignable to type 'string'",
+          "suggested": "Add type conversion: String(value)"
+        }
+      ]
+    },
+    "argumentTypes": {
+      "count": 109,
+      "priority": 3,
+      "rootCause": "Function arguments not matching expected parameter types",
+      "examples": [
+        {
+          "file": "ComprehensiveCompetitionCenter.tsx",
+          "line": 335,
+          "current": "Type 'number' is not assignable to parameter of type 'string | undefined'",
+          "suggested": "Convert number to string or update function signature"
+        }
+      ]
+    },
+    "objectLiterals": {
+      "count": 101,
+      "priority": 4,
+      "rootCause": "Object literal type mismatches and excess property errors",
+      "estimatedImpact": "Would fix ~101 errors in type-strict components"
+    },
+    "possiblyUndefined": {
+      "count": 65,
+      "priority": 5,
+      "rootCause": "Missing null/undefined checks for optional properties", 
+      "examples": [
+        {
+          "file": "MatchStatsOverlay.tsx",
+          "line": 130,
+          "current": "'matchStats.topPerformers.mostScores.offensive' is possibly 'undefined'",
+          "suggested": "matchStats.topPerformers?.mostScores?.offensive"
+        }
+      ]
+    },
+    "imports": {
+      "count": 45,
+      "priority": 6,
+      "rootCause": "Missing imports for Prisma client and shared types",
+      "affectedFiles": [
+        "server/services/enhancedGameEconomyService.ts",
+        "server/services/playerSkillsService.ts",
+        "server/services/stadiumAtmosphereService.ts"
+      ],
+      "specificIssues": [
+        {
+          "type": "missing_import",
+          "symbol": "prisma",
+          "files": ["enhancedGameEconomyService.ts", "playerSkillsService.ts"],
+          "suggestedFix": "import { prisma } from '../database/enhancedDatabaseConfig'"
+        }
+      ],
+      "estimatedImpact": "Would fix ~45 import-related errors"
+    }
+  },
+  "actionPlan": [
+    {
+      "agent": "property-access-fixer",
+      "pattern": "propertyAccess",
+      "estimatedErrors": 459,
+      "risk": "medium",
+      "data": {
+        "missingProperties": [
+          {"property": "isOnMarket", "type": "PlayerWithContract", "files": ["MobileRosterHQ.tsx"]},
+          {"property": "rosterPosition", "type": "PlayerWithContract", "files": ["MobileRosterHQ.tsx"]},
+          {"property": "staff", "type": "Contract", "files": ["FinancesTab.tsx"]},
+          {"property": "starter", "type": "Player", "files": ["LineupRosterBoard.tsx"]}
+        ]
+      }
+    },
+    {
+      "agent": "type-assignment-fixer",
+      "pattern": "typeAssignments", 
+      "estimatedErrors": 113,
+      "risk": "low"
+    },
+    {
+      "agent": "argument-type-fixer",
+      "pattern": "argumentTypes",
+      "estimatedErrors": 109,
+      "risk": "low"
+    },
+    {
+      "agent": "import-fixer",
+      "pattern": "imports",
+      "estimatedErrors": 45,
+      "risk": "low",
+      "data": {
+        "missingImports": [
+          {"symbol": "prisma", "importPath": "../database/enhancedDatabaseConfig", "files": ["enhancedGameEconomyService.ts"]}
+        ]
+      }
+    },
+    {
+      "agent": "undefined-safety-agent",
+      "pattern": "possiblyUndefined",
+      "estimatedErrors": 65,
+      "risk": "low"
+    }
+  ],
+  "blockers": [
+    "Many files have fundamental type definition mismatches that need schema-first approach",
+    "PlayerWithContract, Staff, and Contract types need comprehensive extension",
+    "Server route files have extensive Prisma type conflicts"
+  ],
+  "insights": [
+    "Top 10 files contain 54% (600+) of all errors - massive impact potential",
+    "Property access errors (TS2339) dominate at 41.4% - type definitions are core issue",
+    "Server-side errors concentrated in routes and services - suggests API type conflicts", 
+    "Client-side errors focused on player/staff management components",
+    "Schema-first v2 approach needed - extend base types rather than create new ones"
+  ],
+  "targetReduction": {
+    "currentErrors": 1110,
+    "targetErrors": 944,
+    "reductionGoal": 166,
+    "reductionPercentage": 15
+  }
+}

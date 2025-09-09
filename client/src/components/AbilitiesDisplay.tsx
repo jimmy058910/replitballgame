@@ -5,6 +5,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getAbilityById } from "@shared/abilities";
+import type { Player } from '@shared/types/models';
+
 
 interface AbilitiesDisplayProps {
   player: any;

@@ -25,20 +25,9 @@ import {
 } from 'lucide-react';
 import UnifiedPlayerCard from '@/components/UnifiedPlayerCard';
 import PlayerDetailModal from '@/components/PlayerDetailModal';
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  position: string;
-  race: string;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  teamId: string;
-}
+
 
 interface MarketplaceListing {
   id: string;
@@ -62,6 +51,7 @@ interface MarketplaceBid {
   amount: number;
   createdAt: string;
   bidderTeamName?: string;
+  listing?: MarketplaceListing; // API returns the full listing nested
 }
 
 interface MarketplaceStats {
@@ -74,8 +64,7 @@ interface MarketplaceStats {
 }
 
 const getPlayerPower = (player: Player): number => {
-  // CAR = Core Athleticism Rating: Average(Speed, Power, Agility, Throwing, Catching, Kicking)
-  // @ts-expect-error TS2339
+  // CAR = Core Athleticism Rating: Average(Speed, Power, Agility, Throwing, Catching, Kicking)
   return Math.round((player.speed + player.power + player.agility + player.throwing + player.catching + player.kicking) / 6);
 };
 
@@ -124,12 +113,10 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
     if (playerId && teamPlayers) {
       const selectedPlayer = teamPlayers.find((p: Player) => p.id === playerId);
       if (selectedPlayer) {
-        // Calculate CAR exactly like backend: average of 6 stats
-        // @ts-expect-error TS2339
+        // Calculate CAR exactly like backend: average of 6 stats
         const car = (selectedPlayer.speed + selectedPlayer.power + selectedPlayer.agility + 
                     selectedPlayer.throwing + selectedPlayer.catching + selectedPlayer.kicking) / 6;
-        // Use potentialRating (frontend) or overallPotentialStars (backend) - try both
-        // @ts-expect-error TS2339
+        // Use potentialRating (frontend) or overallPotentialStars (backend) - try both
         const potential = selectedPlayer.overallPotentialStars || selectedPlayer.potentialRating || 0;
         const calculatedBuyNow = Math.floor((car * 1000) + (potential * 2000));
         setBuyNowPrice(calculatedBuyNow.toString());
@@ -349,8 +336,8 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                                 {listing.player.firstName} {listing.player.lastName}
                               </h4>
                               <div className="flex items-center space-x-2">
-                                <Badge className={getRoleColor(listing.player.position)}>
-                                  {listing.player.position}
+                                <Badge className={getRoleColor(listing.player.role)}>
+                                  {listing.player.role}
                                 </Badge>
                                 <span className="text-sm text-gray-600">{listing.player.race}</span>
                               </div>
@@ -409,8 +396,8 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                         {selectedListingData.player.firstName} {selectedListingData.player.lastName}
                       </h3>
                       <div className="flex items-center justify-center space-x-2 mt-1">
-                        <Badge className={getRoleColor(selectedListingData.player.position)}>
-                          {selectedListingData.player.position}
+                        <Badge className={getRoleColor(selectedListingData.player.role)}>
+                          {selectedListingData.player.role}
                         </Badge>
                         <span className="text-sm text-gray-600">{selectedListingData.player.race}</span>
                       </div>
@@ -553,9 +540,8 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                           ?.sort((a: Player, b: Player) => Number(a.id) - Number(b.id)) // Sort by ID to maintain consistent ordering
                           ?.slice(0, 12) // Only show main roster players (first 12), exclude taxi squad
                           ?.map((player: Player) => (
-                            <SelectItem key={player.id} value={player.id}>
-                              {/*
-                               // @ts-expect-error TS2339 */}
+                            <SelectItem key={player.id} value={String(player.id)}>
+                              {/* */}
                               {player.firstName} {player.lastName} ({player.role}, {player.race})
                             </SelectItem>
                           ))}
@@ -627,9 +613,7 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                             }}
                           >
                             <UnifiedPlayerCard 
-                              player={selectedPlayer}
-                              // @ts-expect-error TS2322
-                              showDetailedStats={true}
+                              player={selectedPlayer}
                               showActions={false}
                             />
                           </div>
@@ -694,13 +678,11 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
               <CardDescription>Players you have listed for auction</CardDescription>
             </CardHeader>
             <CardContent>
-              {/*
-               // @ts-expect-error TS2339 */}
-              {myListings && myListings.length > 0 ? (
+              {/* */}
+              {myListings?.listings && myListings.listings.length > 0 ? (
                 <div className="space-y-3">
-                  {/*
-                   // @ts-expect-error TS2339 */}
-                  {myListings.map((listing: MarketplaceListing) => (
+                  {/* */}
+                  {myListings.listings.map((listing: MarketplaceListing) => (
                     <Card key={listing.id}>
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
@@ -714,8 +696,8 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
                               <h4 className="font-medium">
                                 {listing.player.firstName} {listing.player.lastName}
                               </h4>
-                              <Badge className={getRoleColor(listing.player.position)}>
-                                {listing.player.position}
+                              <Badge className={getRoleColor(listing.player.role)}>
+                                {listing.player.role}
                               </Badge>
                             </div>
                           </div>
@@ -755,47 +737,48 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
               <CardDescription>Players you have bid on</CardDescription>
             </CardHeader>
             <CardContent>
-              {/*
-               // @ts-expect-error TS2339 */}
-              {myBids && myBids.length > 0 ? (
+              {/* */}
+              {myBids?.bids && myBids.bids.length > 0 ? (
                 <div className="space-y-3">
-                  {/*
-                   // @ts-expect-error TS2339 */}
-                  {myBids.map((bid: any) => (
-                    <Card key={bid.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                              <span className="text-lg font-bold">
-                                {getPlayerPower(bid.listing.player)}
-                              </span>
+                  
+                  {myBids.bids.map((bid: MarketplaceBid) => {
+                    if (!bid.listing) return null;
+                    return (
+                      <Card key={bid.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                                <span className="text-lg font-bold">
+                                  {getPlayerPower(bid.listing.player)}
+                                </span>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">
+                                  {bid.listing.player.firstName} {bid.listing.player.lastName}
+                                </h4>
+                                <Badge className={getRoleColor(bid.listing.player.role)}>
+                                  {bid.listing.player.role}
+                                </Badge>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-medium">
-                                {bid.listing.player.firstName} {bid.listing.player.lastName}
-                              </h4>
-                              <Badge className={getRoleColor(bid.listing.player.position)}>
-                                {bid.listing.player.position}
-                              </Badge>
+                            <div className="text-right">
+                              <div className="font-bold">My Bid: ₡{bid.amount.toLocaleString()}</div>
+                              <div className="text-sm text-gray-600">
+                                Current: ₡{bid.listing.currentBid.toLocaleString()}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {formatTimeRemaining(bid.listing.expiresAt)}
+                              </div>
+                              {bid.amount === bid.listing.currentBid && (
+                                <Badge className="bg-green-500 text-white">Winning</Badge>
+                              )}
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="font-bold">My Bid: ₡{bid.amount.toLocaleString()}</div>
-                            <div className="text-sm text-gray-600">
-                              Current: ₡{bid.listing.currentBid.toLocaleString()}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {formatTimeRemaining(bid.listing.expiresAt)}
-                            </div>
-                            {bid.amount === bid.listing.currentBid && (
-                              <Badge className="bg-green-500 text-white">Winning</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -910,7 +893,7 @@ export default function DynamicMarketplaceManager({ teamId }: { teamId: string }
         </TabsContent>
       </Tabs>
       
-      {/* Player Detail Modal */}
+      {/* Player Detail Modal  */}
       {selectedPlayerForModal && (
         <PlayerDetailModal
           player={selectedPlayerForModal}

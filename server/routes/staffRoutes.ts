@@ -3,6 +3,8 @@ import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from 'zod';
 import { ContractService } from '../services/contractService.js';
+import type { Team, Staff } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -26,7 +28,7 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
     const staff = await storage.staff.getStaffByTeamId(userTeam.id);
     
     // Calculate staff salaries using Universal Value Formula
-    const staffWithContracts = staff.map((member) => {
+    const staffWithContracts = staff.map((member: any) => {
       try {
         // Calculate dynamic salary using UVF
         const contractCalc = ContractService.calculateContractValue(member);
@@ -60,7 +62,7 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
     });
     
     // Calculate total staff cost using Universal Value Formula
-    const totalStaffCost = staffWithContracts.reduce((total, member) => {
+    const totalStaffCost = staffWithContracts.reduce((total: any, member: any) => {
       if (member.contract && member.contract.salary) {
         return total + member.contract.salary;
       }

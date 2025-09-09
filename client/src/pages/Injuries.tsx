@@ -1,4 +1,6 @@
 import InjurySystem from "@/components/InjurySystem";
+import type { Player } from '@shared/types/models';
+
 
 export default function Injuries() {
   return (

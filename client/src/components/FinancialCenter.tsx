@@ -27,6 +27,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PaymentHistory from "./PaymentHistory";
+import type { Player, Staff, Contract, Stadium, PlayerWithContract } from '@shared/types/models';
+
 
 interface FinancialData {
   credits: number;
@@ -51,15 +53,7 @@ interface RevenueBreakdown {
   total: number;
 }
 
-interface PlayerContract {
-  id: string;
-  playerName: string;
-  role: string;
-  salary: number;
-  length: number;
-  yearsRemaining: number;
-  status: string;
-}
+
 
 interface FinancialCenterProps {
   teamId: string;
@@ -85,9 +79,9 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
   });
 
   // Fetch player contracts
-  const { data: contractsData } = useQuery<PlayerContract[]>({
+  const { data: contractsData } = useQuery<PlayerWithContract[]>({
     queryKey: ['/api/teams', teamId, 'contracts'],
-    queryFn: () => apiRequest<PlayerContract[]>(`/api/teams/${teamId}/contracts`),
+    queryFn: () => apiRequest<PlayerWithContract[]>(`/api/teams/${teamId}/contracts`),
     enabled: !!teamId,
   });
 
@@ -114,17 +108,17 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
 
   // Process financial data safely
   const finances: FinancialData = financesData ? {
-    credits: parseInt(String(financesData.credits)),
-    gems: financesData.gems || 0,
-    projectedIncome: parseInt(String(financesData.projectedIncome || '0')),
-    projectedExpenses: parseInt(String(financesData.projectedExpenses || '0')),
-    lastSeasonRevenue: parseInt(String(financesData.lastSeasonRevenue || '0')),
-    lastSeasonExpenses: parseInt(String(financesData.lastSeasonExpenses || '0')),
-    facilitiesMaintenanceCost: parseInt(String(financesData.facilitiesMaintenanceCost || '0')),
-    playerSalaries: financesData.playerSalaries || 0,
-    staffSalaries: financesData.staffSalaries || 0,
-    totalExpenses: financesData.totalExpenses || 0,
-    netIncome: financesData.netIncome || 0,
+    credits: parseInt(String(financesData?.credits ?? 0)),
+    gems: financesData?.gems ?? 0,
+    projectedIncome: parseInt(String(financesData?.projectedIncome ?? '0')),
+    projectedExpenses: parseInt(String(financesData?.projectedExpenses ?? '0')),
+    lastSeasonRevenue: parseInt(String(financesData?.lastSeasonRevenue ?? '0')),
+    lastSeasonExpenses: parseInt(String(financesData?.lastSeasonExpenses ?? '0')),
+    facilitiesMaintenanceCost: parseInt(String(financesData?.facilitiesMaintenanceCost ?? '0')),
+    playerSalaries: financesData?.playerSalaries ?? 0,
+    staffSalaries: financesData?.staffSalaries ?? 0,
+    totalExpenses: financesData?.totalExpenses ?? 0,
+    netIncome: financesData?.netIncome ?? 0,
   } : {
     credits: 0,
     gems: 0,
@@ -140,20 +134,20 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
   };
 
   const revenue: RevenueBreakdown = {
-    ticketSales: revenueData?.ticketSales || 0,
-    concessions: revenueData?.concessions || 0,
-    parking: revenueData?.parking || 0,
-    vipSuites: revenueData?.vipSuites || 0,
-    apparel: revenueData?.apparel || 0,
-    total: revenueData?.total || 0,
+    ticketSales: revenueData?.ticketSales ?? 0,
+    concessions: revenueData?.concessions ?? 0,
+    parking: revenueData?.parking ?? 0,
+    vipSuites: revenueData?.vipSuites ?? 0,
+    apparel: revenueData?.apparel ?? 0,
+    total: revenueData?.total ?? 0,
   };
 
-  const contracts: PlayerContract[] = contractsData || [];
+  const contracts: PlayerWithContract[] = contractsData ?? [];
 
   // Calculate budget health
-  const budgetHealth = finances.totalExpenses > 0 
-    ? Math.round((finances.projectedIncome / finances.totalExpenses) * 100)
-    : finances.projectedIncome > 0 ? 100 : 0;
+  const budgetHealth = (finances?.totalExpenses ?? 0) > 0 
+    ? Math.round(((finances?.projectedIncome ?? 0) / (finances?.totalExpenses ?? 1)) * 100)
+    : (finances?.projectedIncome ?? 0) > 0 ? 100 : 0;
 
   const getBudgetHealthColor = (health: number) => {
     if (health >= 120) return 'text-green-600';
@@ -196,7 +190,7 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              ₡{finances.credits.toLocaleString()}
+              ₡{(finances?.credits ?? 0).toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Primary currency</p>
           </CardContent>
@@ -209,7 +203,7 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              💎{finances.gems.toLocaleString()}
+              💎{(finances?.gems ?? 0).toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Premium currency</p>
           </CardContent>
@@ -221,8 +215,8 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${finances.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ₡{finances.netIncome.toLocaleString()}
+            <div className={`text-2xl font-bold ${(finances?.netIncome ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              ₡{(finances?.netIncome ?? 0).toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">After all expenses</p>
           </CardContent>
@@ -283,8 +277,8 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
                     <span className="text-green-600">Total Income</span>
                     <span className="font-bold text-green-600">
                       ₡{selectedSeason === 'last' 
-                        ? finances.lastSeasonRevenue.toLocaleString()
-                        : finances.projectedIncome.toLocaleString()
+                        ? (finances?.lastSeasonRevenue ?? 0).toLocaleString()
+                        : (finances?.projectedIncome ?? 0).toLocaleString()
                       }
                     </span>
                   </div>
@@ -292,15 +286,15 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
                     <span className="text-red-600">Total Expenses</span>
                     <span className="font-bold text-red-600">
                       ₡{selectedSeason === 'last' 
-                        ? finances.lastSeasonExpenses.toLocaleString()
-                        : finances.totalExpenses.toLocaleString()
+                        ? (finances?.lastSeasonExpenses ?? 0).toLocaleString()
+                        : (finances?.totalExpenses ?? 0).toLocaleString()
                       }
                     </span>
                   </div>
                   <div className="border-t pt-2 flex items-center justify-between">
                     <span className="font-semibold">Net Result</span>
-                    <span className={`font-bold ${finances.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      ₡{finances.netIncome.toLocaleString()}
+                    <span className={`font-bold ${(finances?.netIncome ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      ₡{(finances?.netIncome ?? 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -322,21 +316,21 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
                       <Users className="h-4 w-4" />
                       <span>Player Salaries</span>
                     </div>
-                    <span className="font-bold">₡{finances.playerSalaries.toLocaleString()}</span>
+                    <span className="font-bold">₡{(finances?.playerSalaries ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
                       <span>Staff Salaries</span>
                     </div>
-                    <span className="font-bold">₡{finances.staffSalaries.toLocaleString()}</span>
+                    <span className="font-bold">₡{(finances?.staffSalaries ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Building className="h-4 w-4" />
                       <span>Stadium Maintenance</span>
                     </div>
-                    <span className="font-bold">₡{finances.facilitiesMaintenanceCost.toLocaleString()}</span>
+                    <span className="font-bold">₡{(finances?.facilitiesMaintenanceCost ?? 0).toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>
@@ -355,27 +349,27 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">₡{revenue.ticketSales.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-blue-600">₡{(revenue?.ticketSales ?? 0).toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">Ticket Sales</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">₡{revenue.concessions.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-green-600">₡{(revenue?.concessions ?? 0).toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">Concessions</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">₡{revenue.parking.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-purple-600">₡{(revenue?.parking ?? 0).toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">Parking</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-600">₡{revenue.vipSuites.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-yellow-600">₡{(revenue?.vipSuites ?? 0).toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">VIP Suites</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">₡{revenue.apparel.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-orange-600">₡{(revenue?.apparel ?? 0).toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">Merchandise</div>
                 </div>
                 <div className="text-center p-4 border rounded-lg bg-muted">
-                  <div className="text-2xl font-bold">₡{revenue.total.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">₡{(revenue?.total ?? 0).toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">Total Revenue</div>
                 </div>
               </div>
@@ -399,26 +393,26 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
                   <div key={contract.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div>
-                        <div className="font-medium">{contract.playerName}</div>
-                        <div className="text-sm text-muted-foreground">{contract.role}</div>
+                        <div className="font-medium">{contract?.playerName ?? 'Unknown Player'}</div>
+                        <div className="text-sm text-muted-foreground">{contract?.role ?? 'UNKNOWN'}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold">₡{contract.salary.toLocaleString()}/season</div>
+                      <div className="font-bold">₡{(contract?.salary ?? 0).toLocaleString()}/season</div>
                       <div className="text-sm text-muted-foreground">
-                        {contract.yearsRemaining} years remaining
+                        {contract?.yearsRemaining ?? 0} years remaining
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Badge variant={contract.status === 'Active' ? 'default' : 'secondary'}>
-                        {contract.status}
+                      <Badge variant={(contract?.status ?? 'Active') === 'Active' ? 'default' : 'secondary'}>
+                        {contract?.status ?? 'Active'}
                       </Badge>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => negotiateContractMutation.mutate({ 
-                          playerId: contract.id, 
-                          terms: { salary: contract.salary, length: contract.length } 
+                          playerId: contract?.id ?? '', 
+                          terms: { salary: contract?.salary ?? 0, length: contract?.length ?? 1 } 
                         })}
                         disabled={negotiateContractMutation.isPending}
                       >
@@ -438,8 +432,7 @@ export default function FinancialCenter({ teamId }: FinancialCenterProps) {
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">
-          {/*
-           // @ts-expect-error TS2322 */}
+          {/* */}
           <PaymentHistory teamId={teamId} />
         </TabsContent>
       </Tabs>

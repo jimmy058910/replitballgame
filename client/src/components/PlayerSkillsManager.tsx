@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Zap, Trophy, Star, TrendingUp, Users, Target, Shield, Bolt } from 'lucide-react';
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
 interface Skill {
   id: string;
@@ -27,15 +28,7 @@ interface PlayerSkill {
   skill: Skill;
 }
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  position: string;
-  race: string;
-  leadership: number;
-  playerSkills: PlayerSkill[];
-}
+
 
 interface TeamSummary {
   teamName: string;
@@ -253,13 +246,11 @@ export default function PlayerSkillsManager({ teamId }: { teamId: string }) {
                       <span className={getCategoryColor(category)}>{category}</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {/*
-                       // @ts-expect-error TS2322 */}
+                      {/* */}
                       <span className="text-sm font-medium">{count}</span>
                       <div className="w-24 h-2 bg-gray-200 rounded">
                         <div 
-                          className="h-2 bg-blue-500 rounded"
-                          // @ts-expect-error TS18046
+                          className="h-2 bg-blue-500 rounded"
                           style={{ width: `${Math.min((count / (teamSummary?.totalSkills || 1)) * 100, 100)}%` }}
                         />
                       </div>
@@ -291,10 +282,10 @@ export default function PlayerSkillsManager({ teamId }: { teamId: string }) {
                         <span>{player.firstName} {player.lastName}</span>
                         <div className="flex items-center space-x-1">
                           <Badge variant="secondary" className="text-xs">
-                            {player.position}
+                            {player.role}
                           </Badge>
                           <span className="text-xs text-gray-500">
-                            {player.playerSkills?.length || 0}/3
+                            {player.abilities?.length || 0}/3
                           </span>
                         </div>
                       </div>
@@ -319,9 +310,9 @@ export default function PlayerSkillsManager({ teamId }: { teamId: string }) {
               <CardContent>
                 {selectedPlayerData ? (
                   <div className="space-y-4">
-                    {selectedPlayerData.playerSkills?.length > 0 ? (
+                    {selectedPlayerData.skills?.length > 0 ? (
                       <div className="space-y-3">
-                        {selectedPlayerData.playerSkills.map((playerSkill: PlayerSkill) => (
+                        {selectedPlayerData.skills.map((playerSkill: PlayerSkill) => (
                           <Card key={playerSkill.id} className="p-4">
                             <div className="flex items-start justify-between">
                               <div className="flex items-start space-x-3">
@@ -373,10 +364,10 @@ export default function PlayerSkillsManager({ teamId }: { teamId: string }) {
 
                     <div className="pt-4 border-t">
                       <div className="text-sm text-gray-600">
-                        Skill Slots: {selectedPlayerData.playerSkills?.length || 0}/3
+                        Skill Slots: {selectedPlayerData.skills?.length || 0}/3
                       </div>
                       <Progress 
-                        value={((selectedPlayerData.playerSkills?.length || 0) / 3) * 100} 
+                        value={((selectedPlayerData.skills?.length || 0) / 3) * 100} 
                         className="mt-2"
                       />
                     </div>
@@ -444,8 +435,7 @@ export default function PlayerSkillsManager({ teamId }: { teamId: string }) {
                           <SkillIcon category={category} />
                           <span className={`text-sm ${getCategoryColor(category)}`}>{category}</span>
                         </div>
-                        {/*
-                         // @ts-expect-error TS2322 */}
+                        {/* */}
                         <span className="text-sm font-medium">{count} skills</span>
                       </div>
                     ))}
@@ -469,13 +459,11 @@ export default function PlayerSkillsManager({ teamId }: { teamId: string }) {
                     <div key={tier} className="flex items-center justify-between">
                       <TierBadge tier={tier} />
                       <div className="flex items-center space-x-2">
-                        {/*
-                         // @ts-expect-error TS2322 */}
+                        {/* */}
                         <span className="text-sm font-medium">{count}</span>
                         <div className="w-24 h-2 bg-gray-200 rounded">
                           <div 
-                            className="h-2 bg-purple-500 rounded"
-                            // @ts-expect-error TS18046
+                            className="h-2 bg-purple-500 rounded"
                             style={{ width: `${Math.min((count / (teamSummary?.totalSkills || 1)) * 100, 100)}%` }}
                           />
                         </div>
@@ -493,16 +481,16 @@ export default function PlayerSkillsManager({ teamId }: { teamId: string }) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {players?.filter((p: Player) => (p.playerSkills?.length || 0) < 3).map((player: Player) => (
+                  {players?.filter((p: Player) => (p.skills?.length || 0) < 3).map((player: Player) => (
                     <div key={player.id} className="flex items-center justify-between p-2 border rounded">
                       <div>
                         <div className="font-medium text-sm">{player.firstName} {player.lastName}</div>
                         <div className="text-xs text-gray-600">
-                          {player.position} • Leadership: {player.leadership}
+                          {player.role} • Leadership: {player.leadership}
                         </div>
                       </div>
                       <div className="text-xs">
-                        {3 - (player.playerSkills?.length || 0)} slot{3 - (player.playerSkills?.length || 0) !== 1 ? 's' : ''} available
+                        {3 - (player.skills?.length || 0)} slot{3 - (player.skills?.length || 0) !== 1 ? 's' : ''} available
                       </div>
                     </div>
                   ))}

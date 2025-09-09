@@ -290,20 +290,15 @@ export function useMultipleLoadingStates<T extends string>(
   keys: T[],
   options: LoadingStateOptions = {}
 ) {
-  const states = keys.reduce((acc, key) => {
+  const states = keys.reduce((acc: any, key: any) => {
     acc[key] = useLoadingState(options);
     return acc;
-  }, {} as Record<T, ReturnType<typeof useLoadingState>>);
-
-  // @ts-expect-error TS18046
-  const isAnyLoading = Object.values(states).some(state => state.isLoading);
-  // @ts-expect-error TS18046
-  const isAnyError = Object.values(states).some(state => state.isError);
-  // @ts-expect-error TS18046
+  }, {} as Record<T, ReturnType<typeof useLoadingState>>);
+  const isAnyLoading = Object.values(states).some(state => state.isLoading);
+  const isAnyError = Object.values(states).some(state => state.isError);
   const isAllSuccess = Object.values(states).every(state => state.isSuccess);
 
-  const resetAll = useCallback(() => {
-    // @ts-expect-error TS18046
+  const resetAll = useCallback(() => {
     Object.values(states).forEach(state => state.reset());
   }, [states]);
 

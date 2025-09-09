@@ -10,6 +10,8 @@
 import { getPrismaClient } from '../database.js';
 import logger from './logger.js';
 import { z } from 'zod';
+import type { Team } from '@shared/types/models';
+
 
 // Validation schema for team statistics
 export const TeamStatisticsSchema = z.object({

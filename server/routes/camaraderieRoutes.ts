@@ -4,6 +4,8 @@ import { CamaraderieService } from '../services/camaraderieService.js';
 import { RBACService, Permission } from '../services/rbacService.js';
 import { ErrorCreators, asyncHandler, logInfo } from '../services/errorService.js';
 import { storage } from '../storage/index.js';
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -58,7 +60,7 @@ router.get('/player/:playerId', asyncHandler(async (req: any, res: Response) => 
   const userId = req.user.claims.sub;
   
   // Get player and verify team ownership
-  const player = await storage.players.getPlayerById(parseInt(playerId));
+  const player = await storage?.players.getPlayerById(parseInt(playerId));
   if (!player) {
     throw ErrorCreators.notFound("Player not found");
   }
@@ -144,7 +146,7 @@ router.post('/end-of-season-all',
       message: `Updated camaraderie for ${teams.length} teams`,
       data: {
         teamsUpdated: teams.length,
-        totalPlayersUpdated: allUpdates.reduce((sum, team) => sum + team.updates.length, 0),
+        totalPlayersUpdated: allUpdates.reduce((sum: any, team: any) => sum + team.updates.length, 0),
         teamUpdates: allUpdates
       }
     });

@@ -4,6 +4,8 @@ import { requireAuth } from "../middleware/firebaseAuth.js";
 import { TeamStorage } from '../storage/teamStorage.js';
 import { PlayerStorage } from '../storage/playerStorage.js';
 import { StaffStorage } from '../storage/staffStorage.js';
+import type { Team } from '@shared/types/models';
+
 
 const router = express.Router();
 const teamStorage = new TeamStorage();

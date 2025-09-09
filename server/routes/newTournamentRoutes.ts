@@ -5,6 +5,8 @@ import { z } from "zod";
 import { tournamentService } from '../services/tournamentService.js';
 import { getPrismaClient } from "../database.js";
 import moment from "moment-timezone";
+import type { Team, League } from '@shared/types/models';
+
 
 const router = Router();
 

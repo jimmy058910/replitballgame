@@ -6,6 +6,8 @@ import { teamFinancesStorage } from '../storage/teamFinancesStorage.js';
 import { notificationStorage } from '../storage/notificationStorage.js'; // For notifications
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
+import type { Player, Team, Notification, MarketplaceListing } from '@shared/types/models';
+
 // import { NotificationService } from '../services/notificationService.js'; // Preferred over direct storage for notifications
 
 const router = Router();
@@ -43,7 +45,7 @@ router.post('/', requireAuth, async (req: any, res: Response, next: NextFunction
 
     const { playerId, startingBid, duration } = createAuctionSchema.parse(req.body);
 
-    const player = await storage.players.getPlayerById(parseInt(playerId));
+    const player = await storage?.players.getPlayerById(parseInt(playerId));
     if (!player || player.teamId !== team.id) {
       res.status(404).json({ message: "Player not found on your team or does not exist." });
       return;
@@ -68,7 +70,7 @@ router.post('/', requireAuth, async (req: any, res: Response, next: NextFunction
     };
 
     const auction = await auctionStorage.createAuction(auctionData);
-    // Consider marking player as 'inAuction' via storage.players.updatePlayer if needed
+    // Consider marking player as 'inAuction' via storage?.players.updatePlayer if needed
 
     res.status(201).json(auction);
   } catch (error) {
@@ -90,11 +92,11 @@ router.post('/:id/bid', requireAuth, async (req: any, res: Response, next: NextF
       return;
     }
 
-    const auctionId = req.params.id;
+    const auctionId = parseInt(req.params.id);
     const { amount } = placeBidSchema.parse(req.body);
 
     const auction = await auctionStorage.getAuctionById(auctionId);
-    if (!auction || !auction.isActive) {
+    if (!auction || auction.listingStatus !== 'ACTIVE') {
       res.status(404).json({ message: "Auction not found or not active." });
       return;
     }
@@ -135,7 +137,7 @@ router.post('/:id/bid', requireAuth, async (req: any, res: Response, next: NextF
 
     // Note: Notification functionality preserved but simplified until NotificationStorage is fully implemented
     // const sellerTeam = await storage.teams.getTeamById(auction.sellerTeamId);
-    // const auctionedPlayerInfo = await storage.players.getPlayerById(auction.playerId);
+    // const auctionedPlayerInfo = await storage?.players.getPlayerById(auction.playerId);
     // if (sellerTeam && auctionedPlayerInfo) {
     //     await notificationStorage.createNotification({
     //         userId: sellerTeam.userId,

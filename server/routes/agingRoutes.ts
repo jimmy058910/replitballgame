@@ -4,6 +4,8 @@ import { AgingService } from '../services/agingService.js';
 import { ErrorCreators, asyncHandler, logInfo } from '../services/errorService.js';
 import { z } from "zod";
 import { getPrismaClient } from "../database.js";
+import type { Player } from '@shared/types/models';
+
 
 const router = Router();
 

@@ -99,9 +99,8 @@ export const TACTICAL_FOCUS_CONFIG: Record<TacticalFocus, {
   passerRiskToleranceModifier: number;
   blockerAggressionModifier: number;
   defensiveLinePositionModifier: number;
-}> = {
-  // @ts-expect-error TS2561
-  balanced: {
+}> = {
+  BALANCED: {
     name: "Balanced",
     description: "Standard approach",
     runnerRouteDepthModifier: 1.0,
@@ -109,7 +108,7 @@ export const TACTICAL_FOCUS_CONFIG: Record<TacticalFocus, {
     blockerAggressionModifier: 1.0,
     defensiveLinePositionModifier: 1.0,
   },
-  all_out_attack: {
+  ALL_OUT_ATTACK: {
     name: "All-Out Attack",
     description: "High-risk, high-reward offense",
     runnerRouteDepthModifier: 1.4,
@@ -117,7 +116,7 @@ export const TACTICAL_FOCUS_CONFIG: Record<TacticalFocus, {
     blockerAggressionModifier: 1.3,
     defensiveLinePositionModifier: 0.7, // Closer to midfield = more vulnerable
   },
-  defensive_wall: {
+  DEFENSIVE_WALL: {
     name: "Defensive Wall",
     description: "Conservative, low-risk approach",
     runnerRouteDepthModifier: 0.7,
@@ -167,9 +166,8 @@ export function calculateTacticalModifiers(
   const fieldConfig = FIELD_SIZE_CONFIG[fieldSize] || FIELD_SIZE_CONFIG.standard;
   const baseFieldMods = isHomeTeam ? fieldConfig : FIELD_SIZE_CONFIG.standard;
   
-  // Base modifiers from tactical focus - with defensive programming
-  // @ts-expect-error TS2551
-  const tacticsConfig = TACTICAL_FOCUS_CONFIG[tacticalFocus] || TACTICAL_FOCUS_CONFIG.balanced;
+  // Base modifiers from tactical focus - with defensive programming
+  const tacticsConfig = TACTICAL_FOCUS_CONFIG[tacticalFocus] || TACTICAL_FOCUS_CONFIG.BALANCED;
   
 
   
@@ -243,9 +241,8 @@ export function getFieldSizeInfo(fieldSize: FieldSize) {
 /**
  * Gets display information for tactical focus
  */
-export function getTacticalFocusInfo(tacticalFocus: TacticalFocus) {
-  // @ts-expect-error TS2551
-  return TACTICAL_FOCUS_CONFIG[tacticalFocus] || TACTICAL_FOCUS_CONFIG.balanced;
+export function getTacticalFocusInfo(tacticalFocus: TacticalFocus) {
+  return TACTICAL_FOCUS_CONFIG[tacticalFocus] || TACTICAL_FOCUS_CONFIG.BALANCED;
 }
 
 /**
@@ -292,9 +289,9 @@ export function calculateTacticalEffectiveness(
   const recommendations: string[] = [];
   
   // Analyze roster composition for field size effectiveness
-  const avgSpeed = teamRoster.reduce((sum, p) => sum + (p.speed || 0), 0) / teamRoster.length;
-  const avgPower = teamRoster.reduce((sum, p) => sum + (p.power || 0), 0) / teamRoster.length;
-  const avgThrowing = teamRoster.reduce((sum, p) => sum + (p.throwing || 0), 0) / teamRoster.length;
+  const avgSpeed = teamRoster.reduce((sum: any, p: any) => sum + (p.speed || 0), 0) / teamRoster.length;
+  const avgPower = teamRoster.reduce((sum: any, p: any) => sum + (p.power || 0), 0) / teamRoster.length;
+  const avgThrowing = teamRoster.reduce((sum: any, p: any) => sum + (p.throwing || 0), 0) / teamRoster.length;
   
   let fieldSizeEffectiveness = 0.5; // Base 50%
   
@@ -325,29 +322,24 @@ export function calculateTacticalEffectiveness(
   // Analyze tactical focus effectiveness
   let tacticalFocusEffectiveness = 0.5;
   
-  switch (teamInfo.tacticalFocus) {
-    // @ts-expect-error TS2678
-    case "all_out_attack":
+  switch (teamInfo.tacticalFocus) {
+    case "ALL_OUT_ATTACK":
       if (avgSpeed > 25 && teamInfo.camaraderie > 60) {
         tacticalFocusEffectiveness = 0.8;
       } else if (teamInfo.camaraderie < 40) {
         tacticalFocusEffectiveness = 0.3;
         recommendations.push("All-Out Attack risky with low team camaraderie");
       }
-      break;
-      
-    // @ts-expect-error TS2678
-    case "defensive_wall":
+      break;
+    case "DEFENSIVE_WALL":
       if (avgPower > 25 && teamInfo.camaraderie > 60) {
         tacticalFocusEffectiveness = 0.8;
       } else if (avgPower < 20) {
         tacticalFocusEffectiveness = 0.4;
         recommendations.push("Defensive Wall less effective without strong defensive players");
       }
-      break;
-      
-    // @ts-expect-error TS2678
-    case "balanced":
+      break;
+    case "BALANCED":
       tacticalFocusEffectiveness = 0.6; // Always decent
       break;
   }

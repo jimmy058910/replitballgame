@@ -3,6 +3,8 @@ import { storage } from '../storage/index.js';
 import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { logInfo } from '../services/errorService.js';
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 

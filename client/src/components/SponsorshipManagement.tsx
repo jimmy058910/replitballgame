@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress"; // Keep Progress if it's used, remove if not. Assuming it might be in future.
 import { Building2, TrendingUp, DollarSign, Award, Users, Target, Calendar, Briefcase } from "lucide-react";
 import { AnimatedCounter, PulseWrapper, HoverCard, InteractiveButton } from "@/components/MicroInteractions";
+import type { Team, Stadium } from '@shared/types/models';
+
 
 interface SponsorshipDeal {
   id: string;

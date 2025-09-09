@@ -10,6 +10,8 @@ import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
 import { z } from "zod";
 // Using string literals for match types
 import { getPrismaClient } from "../database.js";
+import type { Team } from '@shared/types/models';
+
 
 // TODO: Move to TeamService or similar
 function calculateTeamPower(players: any[]): number {
@@ -136,7 +138,7 @@ router.get('/available-opponents', requireAuth, async (req: any, res: Response, 
     const calculateSimpleStrengthOfSchedule = (team: any, teams: any[]) => {
       const divisionTeams = teams.filter(t => t.division === team.division && t.id !== team.id);
       if (divisionTeams.length === 0) return 20;
-      const avgOpponentPower = divisionTeams.reduce((sum, t) => sum + (t.teamPower || 20), 0) / divisionTeams.length;
+      const avgOpponentPower = divisionTeams.reduce((sum: any, t: any) => sum + (t.teamPower || 20), 0) / divisionTeams.length;
       return Math.min(50, avgOpponentPower);
     };
 
@@ -155,7 +157,7 @@ router.get('/available-opponents', requireAuth, async (req: any, res: Response, 
     };
 
     const opponentsWithDetails = await Promise.all(selectedOpponents.map(async (opponent) => {
-        const oppPlayers = await storage.players.getPlayersByTeamId(opponent.id);
+        const oppPlayers = await storage?.players.getPlayersByTeamId(opponent.id);
         const opponentPower = calculateTeamPower(oppPlayers);
         
         // Calculate global ranking using Enhanced True Strength Rating algorithm
@@ -178,7 +180,7 @@ router.get('/available-opponents', requireAuth, async (req: any, res: Response, 
         
         // Calculate global rank by comparing with all teams
         const rankedTeams = allTeams.map((t: any) => {
-          const tPlayers = t.players || [];
+          const tPlayers = t?.players || [];
           const tPower = tPlayers.length > 0 ? calculateTeamPower(tPlayers) : (t.teamPower || 20);
           const tDivisionMultiplier = getDivisionMultiplier(t.division);
           const tSOS = calculateSimpleStrengthOfSchedule({...t, teamPower: tPower}, allTeams);
@@ -291,7 +293,7 @@ router.post('/instant', requireAuth, async (req: any, res: Response, next: NextF
     }
 
     // Calculate user team power
-    const userPlayers = await storage.players.getPlayersByTeamId(userTeam.id);
+    const userPlayers = await storage?.players.getPlayersByTeamId(userTeam.id);
     const userTeamPower = calculateTeamPower(userPlayers);
 
     // Find potential opponents - prioritize USER teams (teams with real userId)
@@ -309,7 +311,7 @@ router.post('/instant', requireAuth, async (req: any, res: Response, next: NextF
 
     // Find best match based on Division and Power Rating similarity
     for (const opponent of userTeams) {
-      const opponentPlayers = await storage.players.getPlayersByTeamId(opponent.id);
+      const opponentPlayers = await storage?.players.getPlayersByTeamId(opponent.id);
       const opponentPower = calculateTeamPower(opponentPlayers);
       
       // Scoring: prefer same division, similar power rating
@@ -361,7 +363,7 @@ router.post('/instant', requireAuth, async (req: any, res: Response, next: NextF
     });
 
     // Use instant simulation instead of live match
-    const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+    const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
     
     // Update match status and score immediately
     const updatePrisma = await getPrismaClient();
@@ -494,7 +496,7 @@ router.post('/challenge', requireAuth, async (req: any, res: Response, next: Nex
     });
     
     // Use instant simulation instead of live match
-    const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+    const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
     
     // Update match status and score immediately
     const updatePrisma = await getPrismaClient();
@@ -605,7 +607,7 @@ router.post('/instant-match', requireAuth, async (req: any, res: Response, next:
     }
 
     // Calculate user team power
-    const userPlayers = await storage.players.getPlayersByTeamId(userTeam.id);
+    const userPlayers = await storage?.players.getPlayersByTeamId(userTeam.id);
     const userTeamPower = calculateTeamPower(userPlayers);
 
     // Find potential opponents - prioritize USER teams (teams with real userId)
@@ -623,7 +625,7 @@ router.post('/instant-match', requireAuth, async (req: any, res: Response, next:
 
     // Find best match based on Division and Power Rating similarity
     for (const opponent of userTeams) {
-      const opponentPlayers = await storage.players.getPlayersByTeamId(opponent.id);
+      const opponentPlayers = await storage?.players.getPlayersByTeamId(opponent.id);
       const opponentPower = calculateTeamPower(opponentPlayers);
       
       // Scoring: prefer same division, similar power rating
@@ -677,7 +679,7 @@ router.post('/instant-match', requireAuth, async (req: any, res: Response, next:
     // Use instant simulation instead of live match
     let simulationResult;
     try {
-      simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+      simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
       
       // Update match status and score immediately
       const instantPrisma = await getPrismaClient();
@@ -769,7 +771,7 @@ router.post('/challenge-opponent', requireAuth, async (req: any, res: Response, 
     // Use instant simulation instead of live match
     let simulationResult;
     try {
-      simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+      simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
       
       // Update match status and score immediately
       const challengePrisma = await getPrismaClient();

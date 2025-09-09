@@ -17,18 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-interface Team {
-  id: number;
-  name: string;
-  division: number;
-  subdivision?: string;
-  teamPower?: number;
-  finances?: {
-    credits: string;
-    gems: string;
-  };
-}
+import type { Player, Team, Staff, Contract, Notification, TeamWithFinances } from '@shared/types/models';
 
 interface Finances {
   credits: string;
@@ -104,7 +93,7 @@ const ModernStickyHeader: React.FC = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes - season data changes infrequently
   });
 
-  const { data: notifications } = useQuery({
+  const { data: notifications } = useQuery<Notification[]>({
     queryKey: [`/api/teams/${team?.id}/notifications`],
     enabled: !!team?.id && isAuthenticated,
     staleTime: 1000 * 30, // 30 seconds - notifications are moderately fresh
@@ -224,7 +213,7 @@ const ModernStickyHeader: React.FC = () => {
     if (!seasonData?.season) return { text: "Loading...", isOffSeason: false };
     
     // If in off-season (Day 16-17)
-    if (seasonData.season.currentDay >= 16) {
+    if (seasonData.season?.currentDay >= 16) {
       return { 
         text: "Prepare for next season", 
         isOffSeason: true 
@@ -300,7 +289,7 @@ const ModernStickyHeader: React.FC = () => {
 
   const getSeasonPhase = (): string => {
     if (!seasonData?.season) return 'Off-Season';
-    const currentDay = seasonData.season.currentDay;
+    const currentDay = seasonData.season?.currentDay;
     
     if (currentDay <= 14) return 'Regular Season';
     if (currentDay === 15) return 'Division Playoffs';
@@ -310,7 +299,7 @@ const ModernStickyHeader: React.FC = () => {
   const credits = parseInt(String(finances?.credits || "0"));
   const gems = parseInt(String(finances?.gems || "0"));
   const unreadNotifications = (notifications && typeof notifications === 'object' && 'notifications' in notifications && Array.isArray(notifications.notifications)) ? notifications.notifications.filter((n: any) => !n.isRead).length : 0;
-  const seasonInfo = seasonData?.season?.currentDay ? `Day ${seasonData.season.currentDay}/17` : 'Day 9/17';
+  const seasonInfo = seasonData?.season?.currentDay ? `Day ${seasonData.season?.currentDay}/17` : 'Day 9/17';
   const phaseDisplay = getSeasonPhase();
   
   // Enhanced display data

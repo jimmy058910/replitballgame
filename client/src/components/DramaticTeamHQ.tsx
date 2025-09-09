@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { useTeamDashboardData } from "@/hooks/useTeamData";
 import { useLocation } from "wouter";
+import { exhibitionQueryOptions, seasonQueryOptions, camaraderieQueryOptions } from "@/lib/api/queryOptions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ModernStickyHeader from "@/components/ModernStickyHeader";
 import { Button } from "@/components/ui/button";
@@ -40,35 +41,12 @@ import { RevenueCalculationsModal } from "./RevenueCalculationsModal";
 import { AlphaTestingCheckbox } from "./AlphaTestingTerms";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Player, Team, Staff, Contract, TeamWithFinances } from '@shared/types/models';
 
 // Enhanced interfaces for real data integration
-interface Team {
-  id: string;
-  name: string;
-  camaraderie: number;
-  fanLoyalty: number;
-  division: number;
-  subdivision: string;
-  wins: number;
-  losses: number;
-  draws: number;
-  points: number;
-}
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  injuryStatus: string;
-  dailyStaminaLevel: number;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  agility: number;
-}
+
+
 
 interface TeamFinances {
   credits: bigint;
@@ -148,10 +126,8 @@ export default function DramaticTeamHQ() {
 
   // Exhibition games with error handling
   const { data: exhibitionStats, error: exhibitionError } = useQuery<ExhibitionStats>({
-    queryKey: ["/api/exhibitions/stats"],
-    enabled: isAuthenticated,
+    ...exhibitionQueryOptions.stats(isAuthenticated),
     retry: false,
-    staleTime: 60000,
     refetchOnWindowFocus: false,
     refetchInterval: false
   });
@@ -161,20 +137,16 @@ export default function DramaticTeamHQ() {
     teamCamaraderie: number;
     status: string;
   }>({
-    queryKey: ['/api/camaraderie/summary'],
-    enabled: isAuthenticated,
+    ...camaraderieQueryOptions.summary(isAuthenticated),
     retry: false,
-    staleTime: 60000,
     refetchOnWindowFocus: false,
     refetchInterval: false
   });
 
   // Season data with error handling
   const { data: seasonData, error: seasonError } = useQuery({
-    queryKey: ["/api/seasons/current-cycle"],
-    enabled: isAuthenticated,
+    ...seasonQueryOptions.currentCycle(isAuthenticated),
     retry: false,
-    staleTime: 60000,
     refetchOnWindowFocus: false,
     refetchInterval: false
   });
@@ -321,7 +293,7 @@ export default function DramaticTeamHQ() {
   console.log('Stadium object:', team?.stadium);
   console.log('VIP Suites Level:', team?.stadium?.vipSuitesLevel);
   const players = team?.players || [];
-  const finances = team?.finances || { credits: BigInt(16000), gems: BigInt(50) };
+  const finances = (team as TeamWithFinances)?.finances || { credits: BigInt(16000), gems: BigInt(50) };
   const stadium = team?.stadium || { capacity: 5000, concessionsLevel: 1, parkingLevel: 1, vipSuitesLevel: 1, merchandisingLevel: 1, lightingScreensLevel: 1 };
 
   // Enhanced player analysis - use consistent thresholds with unified header

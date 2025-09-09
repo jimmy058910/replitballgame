@@ -3,6 +3,8 @@ import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { cacheMiddleware } from "../middleware/cache.js";
 import { getPrismaClient } from '../database.js';
+import type { Team, League } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -39,7 +41,7 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), requireAuth, async
     }
     
     // Calculate Enhanced True Strength Rating for each team with simplified fallbacks
-    const rankedTeams = teams.map((team) => {
+    const rankedTeams = teams.map((team: any) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
       
       // Enhanced calculations with safe fallbacks
@@ -76,7 +78,7 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), requireAuth, async
       };
       
       // Convert any BigInt fields to strings
-      if (serializedTeam.finances) {
+      if (serializedTeam?.finances) {
         serializedTeam.finances = {
           ...serializedTeam.finances,
           credits: serializedTeam.finances.credits?.toString() || '0',
@@ -119,7 +121,7 @@ router.get("/global-rankings", cacheMiddleware({ ttl: 300 }), requireAuth, async
 router.get("/rankings", requireAuth, async (req, res) => {
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
-    const players = await storage.players.getAllPlayersWithStats();
+    const players = await storage?.players.getAllPlayersWithStats();
     
     if (!teams || teams.length === 0) {
       return res.json({
@@ -131,7 +133,7 @@ router.get("/rankings", requireAuth, async (req, res) => {
     }
     
     // Calculate team power rankings
-    const rankedTeams = teams.map((team) => {
+    const rankedTeams = teams.map((team: any) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
       
       // Simplified calculations for performance  
@@ -197,7 +199,7 @@ router.get("/rankings", requireAuth, async (req, res) => {
 router.get("/statistics", requireAuth, async (req, res) => {
   try {
     const teams = await storage.teams.getAllTeamsWithStats();
-    const players = await storage.players.getAllPlayersWithStats();
+    const players = await storage?.players.getAllPlayersWithStats();
     
     // Calculate statistics
     const totalTeams = teams.length;
@@ -208,7 +210,7 @@ router.get("/statistics", requireAuth, async (req, res) => {
     for (let division = 1; division <= 8; division++) {
       const divisionTeams = teams.filter(t => t.division === division);
       if (divisionTeams.length > 0) {
-        divisionLeaders[division] = divisionTeams.reduce((prev, current) => 
+        divisionLeaders[division] = divisionTeams.reduce((prev: any, current: any) => 
           (prev.teamPower > current.teamPower) ? prev : current
         );
       }
@@ -275,7 +277,7 @@ function calculateSimpleStrengthOfSchedule(team: any, allTeams: any[]): number {
   const divisionTeams = allTeams.filter(t => t.division === team.division);
   if (divisionTeams.length <= 1) return 25; // Default if no division peers
   
-  const totalPower = divisionTeams.reduce((sum, t) => sum + (t.teamPower || 0), 0);
+  const totalPower = divisionTeams.reduce((sum: any, t: any) => sum + (t.teamPower || 0), 0);
   const avgPower = totalPower / divisionTeams.length;
   return Math.max(10, Math.min(40, avgPower)); // Cap between 10-40
 }
@@ -373,7 +375,7 @@ async function calculateRecentForm(team: any): Promise<number> {
 // Calculate health factor based on injury impact
 async function calculateHealthFactor(team: any): Promise<number> {
   try {
-    const players = await storage.players.getPlayersByTeamId(team.id);
+    const players = await storage?.players.getPlayersByTeamId(team.id);
     if (!players || players.length === 0) return 1.0;
     
     let totalImpact = 0;
@@ -458,7 +460,7 @@ router.get("/emergency-global-rankings", async (req, res) => {
     }
     
     // Simple ranking by team power only
-    const rankedTeams = teams.map((team) => {
+    const rankedTeams = teams.map((team: any) => {
       const divisionMultiplier = getDivisionMultiplier(team.division);
       const baseRating = (team.teamPower || 0) * 10;
       const divisionBonus = divisionMultiplier * 100;

@@ -15,6 +15,8 @@ import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { ErrorCreators, asyncHandler } from '../services/errorService.js';
 import { consumableStorage } from '../storage/consumableStorage.js';
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 

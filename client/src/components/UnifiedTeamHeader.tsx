@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Users } from "lucide-react";
+import type { Team } from '@shared/types/models';
+
 
 interface UnifiedTeamHeaderProps {
   title?: string;
@@ -116,7 +118,7 @@ export default function UnifiedTeamHeader({ title, titleIcon, team, players, sho
           </div>
           <div className="text-center">
             <div className="text-xl font-bold text-purple-400">
-              {team?.finances?.credits ? Number(team.finances.credits).toLocaleString() : '0'}
+              {team?.finances?.credits ? Number(team?.finances.credits).toLocaleString() : '0'}
             </div>
             <div className="text-xs text-blue-200">Credits</div>
           </div>

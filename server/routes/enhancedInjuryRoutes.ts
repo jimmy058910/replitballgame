@@ -15,6 +15,8 @@ import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
 import { injuryStaminaService } from '../services/injuryStaminaService.js';
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -115,7 +117,7 @@ router.get('/team/:teamId', requireAuth, async (req: any, res: Response, next: N
       return res.status(403).json({ message: "Unauthorized access to team" });
     }
 
-    const teamPlayers = await storage.players.getPlayersByTeamId(parseInt(teamId));
+    const teamPlayers = await storage?.players.getPlayersByTeamId(parseInt(teamId));
     if (teamPlayers.length === 0) {
       return res.json([]);
     }
@@ -152,7 +154,7 @@ router.post('/', requireAuth, async (req: any, res: Response, next: NextFunction
     const injuryData = createInjurySchema.parse(req.body);
     const userId = req.user.claims.sub;
 
-    const player = await storage.players.getPlayerById(parseInt(injuryData.playerId.toString()));
+    const player = await storage?.players.getPlayerById(parseInt(injuryData.playerId.toString()));
     if (!player || !player.teamId) {
       return res.status(404).json({ message: "Player not found or not assigned to a team." });
     }
@@ -312,7 +314,7 @@ router.get('/conditioning/:teamId', requireAuth, async (req: any, res: Response,
       return res.status(403).json({ message: "Unauthorized access to team" });
     }
     
-    const playersOnTeam = await storage.players.getPlayersByTeamId(parseInt(teamId));
+    const playersOnTeam = await storage?.players.getPlayersByTeamId(parseInt(teamId));
     const conditioningData = playersOnTeam.map((p: any) => ({
       playerId: p.id,
       playerName: `${p.firstName} ${p.lastName}`,

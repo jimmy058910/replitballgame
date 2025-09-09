@@ -9,27 +9,9 @@ import { Progress } from "./ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Target, Shield, Zap, Trophy, TrendingUp, Activity, AlertTriangle, Star, Smartphone, Monitor, ArrowUpDown } from "lucide-react";
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  speed: number;
-  power: number;
-  agility: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  stamina: number;
-  leadership: number;
-  injuryStatus: string;
-  dailyStaminaLevel?: number;
-  overallRating?: number;
-  createdAt?: string | Date;
-  rosterPosition?: number;
-  isOnTaxi?: boolean;
-}
+
 
 interface Formation {
   starters: Player[];
@@ -257,8 +239,8 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
   // Initialize tactical settings
   useEffect(() => {
     if (tacticalData) {
-      setSelectedFieldSize(tacticalData.fieldSize);
-      setSelectedTacticalFocus(tacticalData.tacticalFocus);
+      setSelectedFieldSize(tacticalData?.fieldSize);
+      setSelectedTacticalFocus(tacticalData?.tacticalFocus);
     }
   }, [tacticalData]);
 
@@ -349,19 +331,16 @@ export default function TacticsLineupHub({ teamId }: TacticsLineupHubProps) {
     // Convert string ID to number for comparison
     const numericId = parseInt(id);
     
-    // Check available players
-    // @ts-expect-error TS2367
+    // Check available players
     let player = availablePlayers.find(p => String(p.id) === id || p.id === numericId);
     if (player) return player;
     
-    // Check starters
-    // @ts-expect-error TS2367
+    // Check starters
     const starterSlot = starterSlots.find(slot => slot.player?.id === numericId || String(slot.player?.id) === id);
     if (starterSlot?.player) return starterSlot.player as Player;
     
     // Check substitutes
-    const allSubs = [...substitutes.blockers, ...substitutes.runners, ...substitutes.passers];
-    // @ts-expect-error TS2367
+    const allSubs = [...substitutes.blockers, ...substitutes.runners, ...substitutes.passers];
     player = allSubs.find(p => String(p.id) === id || p.id === numericId);
     if (player) return player;
     

@@ -1,0 +1,340 @@
+{
+  "timestamp": "2025-01-09T15:13:00Z",
+  "iteration": 1,
+  "summary": {
+    "totalErrors": 997,
+    "errorsByType": {
+      "TS2339": 411,
+      "TS2353": 99,
+      "TS2300": 86,
+      "TS2345": 69,
+      "TS2322": 50,
+      "TS2578": 47,
+      "TS2304": 45,
+      "TS2551": 36,
+      "TS2554": 24,
+      "TS2307": 23
+    },
+    "topFiles": [
+      {"file": "server/routes/enhancedFinanceRoutes.ts", "errors": 42},
+      {"file": "client/src/pages/TournamentStatus.tsx", "errors": 39},
+      {"file": "server/services/enhancedTeamManagementService.ts", "errors": 37},
+      {"file": "server/dataAccess/enhancedTournamentDataAccess.ts", "errors": 35},
+      {"file": "server/routes/enhancedMatchRoutes.ts", "errors": 33},
+      {"file": "server/routes/enhancedSeasonRoutes.ts", "errors": 31},
+      {"file": "server/services/enhancedCompetitionService.ts", "errors": 30},
+      {"file": "server/routes/enhancedPlayerRoutes.ts", "errors": 28}
+    ]
+  },
+  "patterns": {
+    "imports": {
+      "count": 68,
+      "priority": 1,
+      "rootCause": "Missing type imports and Prisma client imports",
+      "affectedFiles": [
+        "server/services/enhancedGameEconomyService.ts",
+        "server/services/playerSkillsService.ts", 
+        "server/services/stadiumAtmosphereService.ts",
+        "client/src/components/FinancialCenter.tsx",
+        "client/src/components/InjuryStaminaManager.tsx"
+      ],
+      "specificIssues": [
+        {
+          "type": "missing_prisma_import",
+          "symbol": "prisma",
+          "files": [
+            "server/services/enhancedGameEconomyService.ts",
+            "server/services/playerSkillsService.ts",
+            "server/services/stadiumAtmosphereService.ts"
+          ],
+          "suggestedFix": "import { prisma } from '../database/enhancedDatabaseConfig'",
+          "occurrences": 21
+        },
+        {
+          "type": "missing_type_import",
+          "symbol": "PlayerContract",
+          "files": [
+            "client/src/components/FinancialCenter.tsx"
+          ],
+          "suggestedFix": "import type { PlayerContract } from '@shared/types/models'",
+          "occurrences": 3
+        },
+        {
+          "type": "missing_type_import", 
+          "symbol": "CreditPackage",
+          "files": [
+            "client/src/pages/Payments.tsx"
+          ],
+          "suggestedFix": "import type { CreditPackage } from '@shared/types/models'",
+          "occurrences": 6
+        }
+      ],
+      "estimatedImpact": "Would fix ~68 errors immediately"
+    },
+    "duplicateInterfaces": {
+      "count": 86,
+      "priority": 2,
+      "rootCause": "Duplicate type definitions between shared types and local definitions",
+      "affectedFiles": [
+        "client/src/game/Game.ts",
+        "client/src/pages/InjuryCenter.tsx", 
+        "client/src/pages/Team.tsx",
+        "client/src/utils/typeGuards.ts"
+      ],
+      "specificIssues": [
+        {
+          "type": "duplicate_player_type",
+          "symbol": "Player",
+          "files": ["client/src/game/Game.ts"],
+          "suggestedFix": "Remove local Player interface, use import from @shared/types/models",
+          "occurrences": 2
+        },
+        {
+          "type": "duplicate_team_type",
+          "symbol": "Team", 
+          "files": ["client/src/pages/InjuryCenter.tsx", "client/src/utils/typeGuards.ts"],
+          "suggestedFix": "Remove local Team interface, use import from @shared/types/models",
+          "occurrences": 4
+        },
+        {
+          "type": "duplicate_teamfinances_type",
+          "symbol": "TeamFinances",
+          "files": ["client/src/pages/Team.tsx", "client/src/utils/typeGuards.ts"],
+          "suggestedFix": "Remove local TeamFinances interface, use import from @shared/types/models", 
+          "occurrences": 4
+        }
+      ],
+      "estimatedImpact": "Would fix ~86 errors after consolidation"
+    },
+    "propertyAccess": {
+      "count": 447,
+      "priority": 3,
+      "rootCause": "Property access errors due to schema mismatches and missing optional chaining",
+      "categoryBreakdown": {
+        "schemaMismatches": 180,
+        "missingOptionalChaining": 150,
+        "wrongPropertyNames": 117
+      },
+      "affectedFiles": [
+        "client/src/components/EnhancedMarketplace.tsx",
+        "client/src/components/FinancesTab.tsx",
+        "client/src/components/LeagueStandings.tsx",
+        "client/src/components/StatsDisplay.tsx"
+      ],
+      "specificIssues": [
+        {
+          "type": "schema_field_mismatch",
+          "wrong": "totalScores",
+          "correct": "Not available in Team model - needs aggregation",
+          "files": ["client/src/components/LeagueStandings.tsx"],
+          "occurrences": 1
+        },
+        {
+          "type": "schema_field_mismatch", 
+          "wrong": "scoresAgainst",
+          "correct": "Not available in Team model - needs aggregation",
+          "files": ["client/src/components/LeagueStandings.tsx"],
+          "occurrences": 1
+        },
+        {
+          "type": "schema_field_mismatch",
+          "wrong": "homeTeam/awayTeam",
+          "correct": "homeTeamId/awayTeamId with relation loading",
+          "files": ["client/src/components/ScheduleView.tsx"],
+          "occurrences": 4
+        },
+        {
+          "type": "missing_property",
+          "property": "projectedIncome",
+          "type": "TeamFinances",
+          "files": ["client/src/components/DramaticTeamHQ.tsx"],
+          "suggestedFix": "Add projectedIncome to TeamFinances model or calculate dynamically",
+          "occurrences": 1
+        }
+      ],
+      "estimatedImpact": "Would fix ~447 errors with systematic property corrections"
+    },
+    "prismaFields": {
+      "count": 175,
+      "priority": 4,
+      "rootCause": "Prisma schema field mismatches and incorrect object literal properties",
+      "affectedFiles": [
+        "server/dataAccess/enhancedGameDataAccess.ts",
+        "server/dataAccess/enhancedTournamentDataAccess.ts",
+        "server/dataAccess/enhancedMarketplaceDataAccess.ts"
+      ],
+      "specificIssues": [
+        {
+          "type": "unknown_field",
+          "field": "totalGames",
+          "model": "Schedule",
+          "files": ["server/dataAccess/enhancedGameDataAccess.ts"],
+          "suggestedFix": "Remove totalGames field or add to Prisma schema",
+          "occurrences": 1
+        },
+        {
+          "type": "unknown_field",
+          "field": "gamesPlayed", 
+          "model": "LeagueStanding",
+          "files": ["server/dataAccess/enhancedGameDataAccess.ts"],
+          "suggestedFix": "Remove gamesPlayed field or add to Prisma schema",
+          "occurrences": 2
+        },
+        {
+          "type": "unknown_field",
+          "field": "points/rating",
+          "model": "PlayerMatchStats",
+          "files": ["server/dataAccess/enhancedGameDataAccess.ts"],
+          "suggestedFix": "Check PlayerMatchStats schema for correct field names",
+          "occurrences": 2
+        }
+      ],
+      "estimatedImpact": "Would fix ~175 errors with schema alignment"
+    },
+    "typeAssignments": {
+      "count": 119,
+      "priority": 5,
+      "rootCause": "Type assignment mismatches and incorrect type assumptions",
+      "affectedFiles": [
+        "client/src/components/GameSimulationUI.tsx",
+        "server/routes/enhancedFinanceRoutes.ts",
+        "server/services/enhancedTeamManagementService.ts"
+      ],
+      "specificIssues": [
+        {
+          "type": "unknown_property_access",
+          "property": "data",
+          "type": "unknown",
+          "files": ["client/src/components/GameSimulationUI.tsx"],
+          "suggestedFix": "Add proper type guards or type assertions",
+          "occurrences": 1
+        }
+      ],
+      "estimatedImpact": "Would fix ~119 errors with proper typing"
+    }
+  },
+  "actionPlan": [
+    {
+      "agent": "import-fixer-agent",
+      "pattern": "imports",
+      "estimatedErrors": 68,
+      "risk": "low",
+      "priority": 1,
+      "description": "Fix missing Prisma and type imports",
+      "data": {
+        "missingImports": {
+          "prisma": {
+            "import": "import { prisma } from '../database/enhancedDatabaseConfig'",
+            "files": [
+              "server/services/enhancedGameEconomyService.ts",
+              "server/services/playerSkillsService.ts",
+              "server/services/stadiumAtmosphereService.ts"
+            ]
+          },
+          "types": {
+            "PlayerContract": {
+              "import": "import type { PlayerContract } from '@shared/types/models'",
+              "files": ["client/src/components/FinancialCenter.tsx"]
+            },
+            "CreditPackage": {
+              "import": "import type { CreditPackage } from '@shared/types/models'",
+              "files": ["client/src/pages/Payments.tsx"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "agent": "interface-consolidation-agent",
+      "pattern": "duplicateInterfaces", 
+      "estimatedErrors": 86,
+      "risk": "medium",
+      "priority": 2,
+      "description": "Remove duplicate interfaces and consolidate to shared types",
+      "data": {
+        "duplicateInterfaces": [
+          {
+            "type": "Player",
+            "files": ["client/src/game/Game.ts"],
+            "action": "remove_local_definition"
+          },
+          {
+            "type": "Team",
+            "files": ["client/src/pages/InjuryCenter.tsx", "client/src/utils/typeGuards.ts"],
+            "action": "remove_local_definition" 
+          },
+          {
+            "type": "TeamFinances",
+            "files": ["client/src/pages/Team.tsx", "client/src/utils/typeGuards.ts"],
+            "action": "remove_local_definition"
+          }
+        ]
+      }
+    },
+    {
+      "agent": "property-access-fixer",
+      "pattern": "propertyAccess",
+      "estimatedErrors": 447,
+      "risk": "medium",
+      "priority": 3,
+      "description": "Fix property access errors with schema alignment and optional chaining",
+      "data": {
+        "propertyMismatches": [
+          {
+            "wrong": "totalScores",
+            "file": "client/src/components/LeagueStandings.tsx",
+            "solution": "calculate_from_games"
+          },
+          {
+            "wrong": "homeTeam/awayTeam",
+            "correct": "homeTeamId/awayTeamId",
+            "file": "client/src/components/ScheduleView.tsx",
+            "solution": "relation_loading"
+          }
+        ]
+      }
+    },
+    {
+      "agent": "prisma-field-fixer",
+      "pattern": "prismaFields",
+      "estimatedErrors": 175,
+      "risk": "high",
+      "priority": 4,
+      "description": "Fix Prisma schema field mismatches",
+      "data": {
+        "fieldMismatches": [
+          {
+            "field": "totalGames",
+            "model": "Schedule",
+            "file": "server/dataAccess/enhancedGameDataAccess.ts",
+            "action": "remove_or_add_to_schema"
+          },
+          {
+            "field": "gamesPlayed",
+            "model": "LeagueStanding", 
+            "file": "server/dataAccess/enhancedGameDataAccess.ts",
+            "action": "remove_or_add_to_schema"
+          }
+        ]
+      }
+    }
+  ],
+  "blockers": [
+    "Duplicate interface definitions must be resolved before property access fixes",
+    "Some Prisma schema fields may need to be added rather than removed",
+    "Complex property calculations may need new service methods"
+  ],
+  "insights": [
+    "68% of errors (680/997) are in server files, 32% in client files",
+    "Top 8 files account for 285 errors (28.6% of total) - high impact potential",
+    "Import and duplicate interface fixes are low-risk and would resolve 154 errors immediately",
+    "Property access errors dominate (447 errors) and require careful schema alignment",
+    "Prisma-related errors suggest some data access patterns need modernization"
+  ],
+  "recommendations": [
+    "Start with import-fixer-agent and interface-consolidation-agent in parallel (low risk)",
+    "Property access fixes should follow after interface consolidation",
+    "Prisma field fixes require careful analysis to avoid breaking changes",
+    "Consider adding missing fields to Prisma schema rather than removing references"
+  ]
+}

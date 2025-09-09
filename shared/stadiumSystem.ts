@@ -354,29 +354,32 @@ export async function getAvailableFacilityUpgrades(stadium: Stadium): Promise<Fa
     if (currentLevel < facilityConfig.max_level) {
       const nextLevel = currentLevel + 1;
       const upgradeCostData = facilityConfig.upgrade_costs?.find((cost: any) => cost.level === nextLevel);
-      const upgradeCost = upgradeCostData?.cost || Math.floor(facilityConfig.base_cost * Math.pow(facilityConfig.cost_multiplier, currentLevel));
-      
-      // @ts-expect-error TS2345
+      const upgradeCost = upgradeCostData?.cost || Math.floor(facilityConfig.base_cost * Math.pow(facilityConfig.cost_multiplier, currentLevel));
       upgrades.push({
         facilityKey: facility.key,
         name: facilityConfig.name || facility.name,
         description: facilityConfig.description,
-        currentLevel,
+        level: currentLevel,
         maxLevel: facilityConfig.max_level,
         upgradeCost,
+        revenueBonus: 0,
+        atmosphereBonus: 0,
+        currentLevel,
         canUpgrade: true,
         effect: upgradeCostData?.description || `Level ${nextLevel} upgrade`,
         roi: facilityConfig.roi_category || 'medium'
       });
-    } else {
-      // @ts-expect-error TS2345
+    } else {
       upgrades.push({
         facilityKey: facility.key,
         name: facilityConfig.name || facility.name,
         description: facilityConfig.description,
-        currentLevel,
+        level: currentLevel,
         maxLevel: facilityConfig.max_level,
         upgradeCost: 0,
+        revenueBonus: 0,
+        atmosphereBonus: 0,
+        currentLevel,
         canUpgrade: false,
         effect: 'Maximum level reached',
         roi: facilityConfig.roi_category || 'medium'
@@ -401,8 +404,8 @@ export function calculateFacilityQuality(stadium: Stadium): number {
     { current: stadium.securityLevel, max: 5 }
   ];
   
-  const totalPossible = facilities.reduce((sum, f) => sum + f.max, 0);
-  const totalCurrent = facilities.reduce((sum, f) => sum + (f.current || 1), 0);
+  const totalPossible = facilities.reduce((sum: any, f: any) => sum + f.max, 0);
+  const totalCurrent = facilities.reduce((sum: any, f: any) => sum + (f.current || 1), 0);
   
   return Math.floor((totalCurrent / totalPossible) * 100);
 }

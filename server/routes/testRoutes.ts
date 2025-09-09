@@ -3,6 +3,8 @@ import { getPrismaClient } from "../database.js";
 import { storage } from '../storage/index.js'; 
 import { generateRandomPlayer } from '../services/leagueService.js';
 import { Race, PlayerRole, InjuryStatus } from "../db";
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -73,7 +75,7 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
         camaraderieScore: playerData.camaraderieScore || 75.0,
       };
       
-      const createdPlayer = await storage.players.createPlayer(cleanPlayerData);
+      const createdPlayer = await storage?.players.createPlayer(cleanPlayerData);
       playersCreated.push(createdPlayer);
     }
 
@@ -108,7 +110,7 @@ router.post('/test-team-creation', async (req: Request, res: Response) => {
     }
 
     // 5. Verify final state
-    const finalPlayers = await storage.players.getPlayersByTeamId(team.id);
+    const finalPlayers = await storage?.players.getPlayersByTeamId(team.id);
     const finalStaff = await storage.staff.getStaffByTeamId(team.id);
     const finances = await prisma.teamFinances.findFirst({ where: { teamId: team.id } });
     const stadium = await prisma.stadium.findFirst({ where: { teamId: team.id } });
@@ -164,7 +166,7 @@ router.post('/populate-existing-team', async (req: Request, res: Response) => {
     }
     
     // Check if team already has players
-    const existingPlayers = await storage.players.getPlayersByTeamId(team.id);
+    const existingPlayers = await storage?.players.getPlayersByTeamId(team.id);
     const existingStaff = await storage.staff.getStaffByTeamId(team.id);
     
     let playersCreated = 0;
@@ -210,7 +212,7 @@ router.post('/populate-existing-team', async (req: Request, res: Response) => {
           camaraderieScore: playerData.camaraderieScore || 75.0,
         };
         
-        await storage.players.createPlayer(cleanPlayerData);
+        await storage?.players.createPlayer(cleanPlayerData);
         playersCreated++;
       }
     }
@@ -281,10 +283,10 @@ router.post('/populate-all-existing-teams', async (req: Request, res: Response) 
     const results = [];
     
     for (const team of teams) {
-      const hasPlayers = team._count.players > 0;
+      const hasPlayers = team._count?.players > 0;
       const hasStaff = team._count.staff > 0;
       
-      console.log(`🔍 Team "${team.name}": ${team._count.players} players, ${team._count.staff} staff`);
+      console.log(`🔍 Team "${team.name}": ${team._count?.players} players, ${team._count.staff} staff`);
       
       let playersCreated = 0;
       let staffCreated = 0;
@@ -331,7 +333,7 @@ router.post('/populate-all-existing-teams', async (req: Request, res: Response) 
             camaraderieScore: playerData.camaraderieScore || 75.0,
           };
           
-          await storage.players.createPlayer(cleanPlayerData);
+          await storage?.players.createPlayer(cleanPlayerData);
           playersCreated++;
         }
       }

@@ -1,5 +1,8 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, MarketplaceListing, Bid } from "../db";
+import { PrismaClient, Bid } from "../db";
+// Use the shared type instead of importing from @prisma/client
+import type { MarketplaceListing } from '@shared/types/models';
+
 
 export class AuctionStorage {
   async createAuction(auctionData: {
@@ -24,7 +27,7 @@ export class AuctionStorage {
         originalExpiryTimestamp: endTime,
         listingFee: BigInt(0), // Calculate based on buyNowPrice * 0.03
         minBuyNowPrice: auctionData.startingBid * BigInt(2), // Default minimum
-        isActive: true,
+        listingStatus: 'ACTIVE',
       },
       include: {
         player: { select: { firstName: true, lastName: true, race: true } },

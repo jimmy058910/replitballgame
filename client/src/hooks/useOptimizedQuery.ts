@@ -60,12 +60,10 @@ export function useOptimizedQuery<T = any>({
         ? `${endpoint}?${new URLSearchParams(params).toString()}`
         : endpoint;
       
-      const response = await apiRequest('GET', url);
-      // @ts-expect-error TS18046
+      const response = await apiRequest('GET', url);
       return response.json();
     },
-    staleTime,
-    // @ts-expect-error TS2769
+    staleTime,
     cacheTime,
     enabled,
     refetchOnWindowFocus,
@@ -115,8 +113,7 @@ export function useOptimizedQuery<T = any>({
           ? `${relatedEndpoint}?${new URLSearchParams(relatedParams).toString()}`
           : relatedEndpoint;
         
-        const response = await apiRequest('GET', url);
-        // @ts-expect-error TS18046
+        const response = await apiRequest('GET', url);
         return response.json();
       },
       staleTime,

@@ -1,5 +1,7 @@
 import { getPrismaClient } from '../database.js';
-import { PrismaClient, TeamFinances } from "../db";
+import { PrismaClient } from "../db";
+import type { TeamFinances } from '@shared/types/models';
+
 
 
 
@@ -46,13 +48,13 @@ export class TeamFinancesStorage {
     const newFinances = await prisma.teamFinances.create({
       data: {
         teamId: financesData.teamId,
-        credits: financesData.credits || BigInt(50000),
+        credits: financesData.credits || Number(50000),
         gems: financesData.gems || 0,
-        projectedIncome: financesData.projectedIncome || BigInt(0),
-        projectedExpenses: financesData.projectedExpenses || BigInt(0),
-        lastSeasonRevenue: financesData.lastSeasonRevenue || BigInt(0),
-        lastSeasonExpenses: financesData.lastSeasonExpenses || BigInt(0),
-        facilitiesMaintenanceCost: financesData.facilitiesMaintenanceCost || BigInt(0),
+        projectedIncome: financesData.projectedIncome || Number(0),
+        projectedExpenses: financesData.projectedExpenses || Number(0),
+        lastSeasonRevenue: financesData.lastSeasonRevenue || Number(0),
+        lastSeasonExpenses: financesData.lastSeasonExpenses || Number(0),
+        facilitiesMaintenanceCost: financesData.facilitiesMaintenanceCost || Number(0),
       },
       include: {
         team: { select: { name: true } }
@@ -72,22 +74,22 @@ export class TeamFinancesStorage {
       // Convert string credits back to BigInt for database update
       const updateData = { ...updates };
       if (updateData.credits !== undefined) {
-        updateData.credits = BigInt(updateData.credits.toString());
+        updateData.credits = Number(updateData.credits.toString());
       }
       if (updateData.projectedIncome !== undefined) {
-        updateData.projectedIncome = BigInt(updateData.projectedIncome.toString());
+        updateData.projectedIncome = Number(updateData.projectedIncome.toString());
       }
       if (updateData.projectedExpenses !== undefined) {
-        updateData.projectedExpenses = BigInt(updateData.projectedExpenses.toString());
+        updateData.projectedExpenses = Number(updateData.projectedExpenses.toString());
       }
       if (updateData.lastSeasonRevenue !== undefined) {
-        updateData.lastSeasonRevenue = BigInt(updateData.lastSeasonRevenue.toString());
+        updateData.lastSeasonRevenue = Number(updateData.lastSeasonRevenue.toString());
       }
       if (updateData.lastSeasonExpenses !== undefined) {
-        updateData.lastSeasonExpenses = BigInt(updateData.lastSeasonExpenses.toString());
+        updateData.lastSeasonExpenses = Number(updateData.lastSeasonExpenses.toString());
       }
       if (updateData.facilitiesMaintenanceCost !== undefined) {
-        updateData.facilitiesMaintenanceCost = BigInt(updateData.facilitiesMaintenanceCost.toString());
+        updateData.facilitiesMaintenanceCost = Number(updateData.facilitiesMaintenanceCost.toString());
       }
 
       const prisma = await getPrismaClient();
@@ -135,7 +137,7 @@ export class TeamFinancesStorage {
       }
 
       // Convert string credits back to BigInt for proper addition
-      const currentCredits = BigInt(existingFinances.credits.toString());
+      const currentCredits = Number(existingFinances.credits.toString());
       const prisma = await getPrismaClient();
       const updatedFinances = await prisma.teamFinances.update({
         where: { id: existingFinances.id },
@@ -162,7 +164,7 @@ export class TeamFinancesStorage {
       }
 
       // Convert string credits back to BigInt for proper comparison and subtraction
-      const currentCredits = BigInt(existingFinances.credits.toString());
+      const currentCredits = Number(existingFinances.credits.toString());
       if (currentCredits < amount) {
         console.warn(`Insufficient credits for team ${teamId}. Available: ${currentCredits}, Required: ${amount}`);
         return null;
@@ -234,7 +236,7 @@ export class TeamFinancesStorage {
 
       // Update team finances with new projected expenses
       await this.updateTeamFinances(teamId, {
-        projectedExpenses: BigInt(totalSalaries)
+        projectedExpenses: Number(totalSalaries)
       });
 
       console.log(`Updated staff salaries for team ${teamId}: ${totalSalaries} credits`);

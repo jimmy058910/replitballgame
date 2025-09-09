@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { apiRequest } from '@/lib/queryClient';
 import { Package, Shield, Zap, Trophy, Filter, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import type { Team } from '@shared/types/models';
+
 
 interface InventoryItem {
   id: string;
@@ -89,8 +91,7 @@ export default function InventoryDisplay({ teamId }: InventoryDisplayProps) {
     if (!statBoosts || typeof statBoosts !== 'object') return '';
     
     const bonuses = Object.entries(statBoosts)
-      .filter(([_, value]) => value && value !== 0)
-      // @ts-expect-error TS18046
+      .filter(([_, value]) => value && value !== 0)
       .map(([stat, value]) => `${stat}: ${value > 0 ? '+' : ''}${value}`)
       .join(', ');
     

@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Shield, AlertTriangle, Lock, Eye } from "lucide-react";
+import type { Team } from '@shared/types/models';
+
 
 interface NDAAcceptanceProps {
   accepted: boolean;

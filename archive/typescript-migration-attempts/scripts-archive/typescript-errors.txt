@@ -1,0 +1,811 @@
+client/src/components/EnhancedDashboard.tsx(57,26): error TS2339: Property 'finances' does not exist on type '{}'.
+client/src/components/EnhancedDashboard.tsx(135,1): error TS2578: Unused '@ts-expect-error' directive.
+client/src/components/ErrorBoundary.tsx(96,27): error TS18049: 'errorInfo.componentStack' is possibly 'null' or 'undefined'.
+client/src/components/MobileRosterHQ.tsx(326,21): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SetStateAction<"basic" | "advanced" | null>'.
+client/src/components/Navigation.tsx(172,19): error TS2578: Unused '@ts-expect-error' directive.
+client/src/components/TextBasedMatchViewer.tsx(64,5): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<{ success: boolean; liveState: LiveMatchState; }, Error, { success: boolean; liveState: LiveMatchState; }, QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'DefinedInitialDataOptions<{ success: boolean; liveState: LiveMatchState; }, Error, { success: boolean; liveState: LiveMatchState; }, QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<{ success: boolean; liveState: LiveMatchState; }, Error, { success: boolean; liveState: LiveMatchState; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UndefinedInitialDataOptions<{ success: boolean; liveState: LiveMatchState; }, Error, { success: boolean; liveState: LiveMatchState; }, QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<{ success: boolean; liveState: LiveMatchState; }, Error, { success: boolean; liveState: LiveMatchState; }, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UseQueryOptions<{ success: boolean; liveState: LiveMatchState; }, Error, { success: boolean; liveState: LiveMatchState; }, QueryKey>'.
+client/src/components/TextBasedMatchViewer.tsx(88,24): error TS2339: Property 'success' does not exist on type 'NonNullable<TQueryFnData>'.
+client/src/components/TextBasedMatchViewer.tsx(88,49): error TS2339: Property 'liveState' does not exist on type 'NonNullable<TQueryFnData>'.
+client/src/components/TextBasedMatchViewer.tsx(89,34): error TS2339: Property 'liveState' does not exist on type 'NonNullable<TQueryFnData>'.
+client/src/components/TextBasedMatchViewer.tsx(92,25): error TS2339: Property 'liveState' does not exist on type 'NonNullable<TQueryFnData>'.
+client/src/components/TextBasedMatchViewer.tsx(92,63): error TS2339: Property 'liveState' does not exist on type 'NonNullable<TQueryFnData>'.
+client/src/components/TextBasedMatchViewer.tsx(93,37): error TS2339: Property 'liveState' does not exist on type 'NonNullable<TQueryFnData>'.
+client/src/lib/api/unified-client.ts(123,7): error TS7053: Element implicitly has an 'any' type because expression of type '"Authorization"' can't be used to index type 'HeadersInit'.
+  Property 'Authorization' does not exist on type 'HeadersInit'.
+client/src/lib/api/unified-client.ts(238,28): error TS2339: Property 'getToken' does not exist on type 'AuthContextType'.
+client/src/lib/api/unified-client.ts(264,11): error TS2339: Property 'getToken' does not exist on type 'AuthContextType'.
+client/src/pages/MarketDistrict.tsx(406,33): error TS2322: Type '(newTab: MarketTabType) => void' is not assignable to type '(value: string) => void'.
+  Types of parameters 'newTab' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'MarketTabType'.
+client/src/pages/Team.tsx(100,35): error TS2339: Property 'players' does not exist on type 'NonNullable<TQueryFnData>'.
+client/src/pages/Team.tsx(107,36): error TS2339: Property 'id' does not exist on type 'NonNullable<TQueryFnData>'.
+client/src/pages/Team.tsx(113,3): error TS2578: Unused '@ts-expect-error' directive.
+client/src/pages/Team.tsx(292,25): error TS2578: Unused '@ts-expect-error' directive.
+client/src/pages/Team.tsx(418,1): error TS2578: Unused '@ts-expect-error' directive.
+client/src/pages/Team.tsx(428,1): error TS2578: Unused '@ts-expect-error' directive.
+client/src/pages/Team.tsx(522,13): error TS2578: Unused '@ts-expect-error' directive.
+client/src/utils/gameTimeUtils.ts(84,17): error TS2339: Property 'overtime' does not exist on type '{ totalMinutes: number; halfMinutes: number; overtimeEnabled: boolean; } | { totalMinutes: number; halfMinutes: number; overtimeEnabled: boolean; } | { totalMinutes: number; halfMinutes: number; overtimeEnabled: boolean; overtime: { ...; }; } | { ...; }'.
+  Property 'overtime' does not exist on type '{ totalMinutes: number; halfMinutes: number; overtimeEnabled: boolean; }'.
+client/src/utils/gameTimeUtils.ts(92,17): error TS2339: Property 'overtime' does not exist on type '{ totalMinutes: number; halfMinutes: number; overtimeEnabled: boolean; } | { totalMinutes: number; halfMinutes: number; overtimeEnabled: boolean; } | { totalMinutes: number; halfMinutes: number; overtimeEnabled: boolean; overtime: { ...; }; } | { ...; }'.
+  Property 'overtime' does not exist on type '{ totalMinutes: number; halfMinutes: number; overtimeEnabled: boolean; }'.
+server/api/leagues/admin.controller.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/api/leagues/admin.controller.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/api/leagues/admin.controller.ts(19,8): error TS2300: Duplicate identifier 'logger'.
+server/api/leagues/index.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/api/leagues/index.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/api/leagues/index.ts(15,8): error TS2300: Duplicate identifier 'logger'.
+server/api/leagues/schedule.controller.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/api/leagues/schedule.controller.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/api/leagues/schedule.controller.ts(18,8): error TS2300: Duplicate identifier 'logger'.
+server/api/leagues/standings.controller.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/api/leagues/standings.controller.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/api/leagues/standings.controller.ts(18,8): error TS2300: Duplicate identifier 'logger'.
+server/api/leagues/standings.controller.ts(89,7): error TS2554: Expected 1 arguments, but got 2.
+server/dataAccess/enhancedGameDataAccess.ts(250,64): error TS2341: Property 'DEFAULT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedGameDataAccess.ts(250,91): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedGameDataAccess.ts(270,43): error TS2345: Argument of type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: { scheduleId: string; }; } | { include: any; orderBy: any; skip: number; take: number; cursor?: undefined; where: { scheduleId: string; }; }' is not assignable to parameter of type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: { scheduleId: string; }; } | undefined'.
+  Type '{ include: any; orderBy: any; skip: number; take: number; cursor?: undefined; where: { scheduleId: string; }; }' is not assignable to type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: { scheduleId: string; }; }'.
+    Types of property 'cursor' are incompatible.
+      Type 'undefined' is not assignable to type '{ id: number; }'.
+server/dataAccess/enhancedGameDataAccess.ts(280,53): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedGameDataAccess.ts(333,53): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedGameDataAccess.ts(374,53): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedGameDataAccess.ts(572,13): error TS2353: Object literal may only specify known properties, and 'totalGames' does not exist in type 'Without<ScheduleCreateInput, ScheduleUncheckedCreateInput> & ScheduleUncheckedCreateInput'.
+server/dataAccess/enhancedGameDataAccess.ts(614,13): error TS2353: Object literal may only specify known properties, and 'team' does not exist in type 'LeagueStandingInclude<DefaultArgs>'.
+server/dataAccess/enhancedGameDataAccess.ts(624,15): error TS2353: Object literal may only specify known properties, and 'points' does not exist in type 'LeagueStandingOrderByWithRelationInput'.
+server/dataAccess/enhancedGameDataAccess.ts(626,15): error TS2353: Object literal may only specify known properties, and 'goalDifference' does not exist in type 'LeagueStandingOrderByWithRelationInput'.
+server/dataAccess/enhancedGameDataAccess.ts(632,42): error TS2339: Property 'team' does not exist on type '{ id: number; teamId: number; teamName: string; streak: string; wins: number; losses: number; updatedAt: Date; leagueId: number; ties: number; pointsFor: number; pointsAgainst: number; pointDifferential: number; rank: number; }'.
+server/dataAccess/enhancedGameDataAccess.ts(640,53): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedGameDataAccess.ts(676,13): error TS2353: Object literal may only specify known properties, and 'gamesPlayed' does not exist in type '(Without<LeagueStandingUpdateInput, LeagueStandingUncheckedUpdateInput> & LeagueStandingUncheckedUpdateInput) | (Without<...> & LeagueStandingUpdateInput)'.
+server/dataAccess/enhancedGameDataAccess.ts(700,13): error TS2353: Object literal may only specify known properties, and 'gamesPlayed' does not exist in type '(Without<LeagueStandingUpdateInput, LeagueStandingUncheckedUpdateInput> & LeagueStandingUncheckedUpdateInput) | (Without<...> & LeagueStandingUpdateInput)'.
+server/dataAccess/enhancedGameDataAccess.ts(736,15): error TS2551: Property 'league' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'. Did you mean 'leagueId'?
+server/dataAccess/enhancedGameDataAccess.ts(737,45): error TS2551: Property 'league' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'. Did you mean 'leagueId'?
+server/dataAccess/enhancedGameDataAccess.ts(756,29): error TS2322: Type '"COMPLETED"' is not assignable to type 'SeasonPhase | NestedEnumSeasonPhaseFilter<"Season"> | undefined'.
+server/dataAccess/enhancedGameDataAccess.ts(764,55): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedGameDataAccess.ts(861,13): error TS2353: Object literal may only specify known properties, and 'points' does not exist in type 'PlayerMatchStatsSumAggregateInputType'.
+server/dataAccess/enhancedGameDataAccess.ts(875,13): error TS2353: Object literal may only specify known properties, and 'rating' does not exist in type 'PlayerMatchStatsAvgAggregateInputType'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(255,67): error TS2345: Argument of type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: any; } | { include: any; orderBy: any; skip: number; take: number; cursor?: undefined; where: any; }' is not assignable to parameter of type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: any; } | undefined'.
+  Type '{ include: any; orderBy: any; skip: number; take: number; cursor?: undefined; where: any; }' is not assignable to type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: any; }'.
+    Types of property 'cursor' are incompatible.
+      Type 'undefined' is not assignable to type '{ id: number; }'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(267,53): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(316,68): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(316,93): error TS2341: Property 'DEFAULT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(375,11): error TS2322: Type '"LISTED"' is not assignable to type 'ListingActionType'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(452,11): error TS2322: Type '"CANCELLED"' is not assignable to type 'ListingActionType'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(559,11): error TS2353: Object literal may only specify known properties, and 'maxAutoBid' does not exist in type 'Without<BidCreateInput, BidUncheckedCreateInput> & BidUncheckedCreateInput'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(594,11): error TS2353: Object literal may only specify known properties, and 'details' does not exist in type 'Without<ListingHistoryCreateInput, ListingHistoryUncheckedCreateInput> & ListingHistoryUncheckedCreateInput'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(686,11): error TS2353: Object literal may only specify known properties, and 'finalPrice' does not exist in type '(Without<MarketplaceListingUpdateInput, MarketplaceListingUncheckedUpdateInput> & MarketplaceListingUncheckedUpdateInput) | (Without<...> & MarketplaceListingUpdateInput)'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(695,11): error TS2322: Type '"BOUGHT_NOW"' is not assignable to type 'ListingActionType'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(747,13): error TS2353: Object literal may only specify known properties, and 'baseValue' does not exist in type 'Without<PlayerMarketValueCreateInput, PlayerMarketValueUncheckedCreateInput> & PlayerMarketValueUncheckedCreateInput'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(753,13): error TS2353: Object literal may only specify known properties, and 'baseValue' does not exist in type '(Without<PlayerMarketValueUpdateInput, PlayerMarketValueUncheckedUpdateInput> & PlayerMarketValueUncheckedUpdateInput) | (Without<...> & PlayerMarketValueUpdateInput)'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(791,15): error TS2353: Object literal may only specify known properties, and 'overallRating' does not exist in type 'Without<PlayerScalarRelationFilter, PlayerWhereInput> & PlayerWhereInput'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(792,29): error TS2339: Property 'overallRating' does not exist on type '{ contract: { length: number; id: number; salary: number; playerId: number | null; startDate: Date; staffId: number | null; signingBonus: number; } | null; } & { id: number; role: PlayerRole; ... 29 more ...; isRetired: boolean; }'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(793,29): error TS2339: Property 'overallRating' does not exist on type '{ contract: { length: number; id: number; salary: number; playerId: number | null; startDate: Date; staffId: number | null; signingBonus: number; } | null; } & { id: number; role: PlayerRole; ... 29 more ...; isRetired: boolean; }'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(797,21): error TS2353: Object literal may only specify known properties, and 'finalPrice' does not exist in type 'MarketplaceListingSelect<DefaultArgs>'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(803,39): error TS2339: Property 'overallRating' does not exist on type '{ contract: { length: number; id: number; salary: number; playerId: number | null; startDate: Date; staffId: number | null; signingBonus: number; } | null; } & { id: number; role: PlayerRole; ... 29 more ...; isRetired: boolean; }'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(820,22): error TS2339: Property 'finalPrice' does not exist on type '{ id: number; playerId: number; createdAt: Date; startBid: bigint; buyNowPrice: bigint | null; currentBid: bigint | null; isActive: boolean; updatedAt: Date; sellerTeamId: number; ... 10 more ...; autoDelistAt: Date | null; }'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(880,62): error TS2345: Argument of type '{ orderBy: { timestamp: "desc"; }; take: number; skip: number; cursor: { id: number; }; where: { teamId: number; }; include: { listing: { include: { player: { select: { id: true; firstName: true; lastName: true; }; }; }; }; }; } | { ...; }' is not assignable to parameter of type '{ orderBy: { timestamp: "desc"; }; take: number; skip: number; cursor: { id: number; }; where: { teamId: number; }; include: { listing: { include: { player: { select: { id: true; firstName: true; lastName: true; }; }; }; }; }; } | undefined'.
+  Type '{ orderBy: { timestamp: "desc"; }; skip: number; take: number; cursor?: undefined; where: { teamId: number; }; include: { listing: { include: { player: { select: { id: true; firstName: true; lastName: true; }; }; }; }; }; }' is not assignable to type '{ orderBy: { timestamp: "desc"; }; take: number; skip: number; cursor: { id: number; }; where: { teamId: number; }; include: { listing: { include: { player: { select: { id: true; firstName: true; lastName: true; }; }; }; }; }; }'.
+    Types of property 'cursor' are incompatible.
+      Type 'undefined' is not assignable to type '{ id: number; }'.
+server/dataAccess/enhancedMarketplaceDataAccess.ts(948,15): error TS2353: Object literal may only specify known properties, and 'finalPrice' does not exist in type '(Without<MarketplaceListingUpdateInput, MarketplaceListingUncheckedUpdateInput> & MarketplaceListingUncheckedUpdateInput) | (Without<...> & MarketplaceListingUpdateInput)'.
+server/dataAccess/enhancedTeamDataAccess.ts(304,43): error TS2345: Argument of type '{ include: { finances: true; stadium: true; }; take: number; skip: number; cursor: { id: number; }; orderBy: any; where: { division: number; subdivision: string; }; } | { include: { finances: true; stadium: true; }; ... 4 more ...; where: { ...; }; }' is not assignable to parameter of type '{ include: { finances: true; stadium: true; }; take: number; skip: number; cursor: { id: number; }; orderBy: any; where: { division: number; subdivision: string; }; } | undefined'.
+  Type '{ include: { finances: true; stadium: true; }; skip: number; take: number; orderBy: any; cursor?: undefined; where: { division: number; subdivision: string; }; }' is not assignable to type '{ include: { finances: true; stadium: true; }; take: number; skip: number; cursor: { id: number; }; orderBy: any; where: { division: number; subdivision: string; }; }'.
+    Types of property 'cursor' are incompatible.
+      Type 'undefined' is not assignable to type '{ id: number; }'.
+server/dataAccess/enhancedTeamDataAccess.ts(375,11): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'Without<StadiumCreateInput, StadiumUncheckedCreateInput> & StadiumUncheckedCreateInput'.
+server/dataAccess/enhancedTeamDataAccess.ts(413,13): error TS2322: Type '{ contract: true; skills: { include: { skill: true; }; }; equipment: true; } | undefined' is not assignable to type 'PlayerInclude<DefaultArgs> | null | undefined'.
+  Object literal may only specify known properties, and 'equipment' does not exist in type 'PlayerInclude<DefaultArgs>'.
+server/dataAccess/enhancedTeamDataAccess.ts(417,15): error TS2353: Object literal may only specify known properties, and 'overallRating' does not exist in type 'PlayerOrderByWithRelationInput'.
+server/dataAccess/enhancedTeamDataAccess.ts(445,22): error TS2353: Object literal may only specify known properties, and 'overallRating' does not exist in type 'PlayerOrderByWithRelationInput | PlayerOrderByWithRelationInput[]'.
+server/dataAccess/enhancedTeamDataAccess.ts(709,34): error TS2339: Property 'ticketPrice' does not exist on type '{ id: number; teamId: number; createdAt: Date; capacity: number; concessionsLevel: number; parkingLevel: number; vipSuitesLevel: number; merchandisingLevel: number; lightingScreensLevel: number; updatedAt: Date; }'.
+server/dataAccess/enhancedTeamDataAccess.ts(710,38): error TS2339: Property 'concessionPrice' does not exist on type '{ id: number; teamId: number; createdAt: Date; capacity: number; concessionsLevel: number; parkingLevel: number; vipSuitesLevel: number; merchandisingLevel: number; lightingScreensLevel: number; updatedAt: Date; }'.
+server/dataAccess/enhancedTeamDataAccess.ts(711,35): error TS2339: Property 'parkingPrice' does not exist on type '{ id: number; teamId: number; createdAt: Date; capacity: number; concessionsLevel: number; parkingLevel: number; vipSuitesLevel: number; merchandisingLevel: number; lightingScreensLevel: number; updatedAt: Date; }'.
+server/dataAccess/enhancedTeamDataAccess.ts(712,36): error TS2339: Property 'vipSuitePrice' does not exist on type '{ id: number; teamId: number; createdAt: Date; capacity: number; concessionsLevel: number; parkingLevel: number; vipSuitesLevel: number; merchandisingLevel: number; lightingScreensLevel: number; updatedAt: Date; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(325,49): error TS2345: Argument of type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: any; } | { include: any; orderBy: any; skip: number; take: number; cursor?: undefined; where: any; }' is not assignable to parameter of type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: any; } | undefined'.
+  Type '{ include: any; orderBy: any; skip: number; take: number; cursor?: undefined; where: any; }' is not assignable to type '{ include: any; orderBy: any; take: number; skip: number; cursor: { id: number; }; where: any; }'.
+    Types of property 'cursor' are incompatible.
+      Type 'undefined' is not assignable to type '{ id: number; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(335,53): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedTournamentDataAccess.ts(374,19): error TS2322: Type '{ entries: { include: { team: { select: { id: true; name: true; logoUrl: true; division: true; }; }; }; orderBy: { seed: string; }; }; games: { include: { homeTeam: { select: { id: true; name: true; }; }; awayTeam: { select: { ...; }; }; }; orderBy: ({ ...; } | { ...; })[]; }; } | undefined' is not assignable to type 'TournamentInclude<DefaultArgs> | null | undefined'.
+  Types of property 'games' are incompatible.
+    Type '{ include: { homeTeam: { select: { id: true; name: true; }; }; awayTeam: { select: { id: true; name: true; }; }; }; orderBy: ({ bracketRound: string; } | { bracketPosition: string; })[]; }' is not assignable to type 'boolean | Tournament$gamesArgs<DefaultArgs> | undefined'.
+      Types of property 'orderBy' are incompatible.
+        Type '({ bracketRound: string; } | { bracketPosition: string; })[]' is not assignable to type 'GameOrderByWithRelationInput | GameOrderByWithRelationInput[] | undefined'.
+          Type '({ bracketRound: string; } | { bracketPosition: string; })[]' is not assignable to type 'GameOrderByWithRelationInput[]'.
+            Type '{ bracketRound: string; } | { bracketPosition: string; }' is not assignable to type 'GameOrderByWithRelationInput'.
+              Object literal may only specify known properties, and 'bracketRound' does not exist in type 'GameOrderByWithRelationInput'.
+server/dataAccess/enhancedTournamentDataAccess.ts(395,64): error TS2341: Property 'DEFAULT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedTournamentDataAccess.ts(395,91): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedTournamentDataAccess.ts(419,13): error TS2561: Object literal may only specify known properties, but 'maxEntries' does not exist in type '(Without<TournamentCreateInput, TournamentUncheckedCreateInput> & TournamentUncheckedCreateInput) | (Without<...> & TournamentCreateInput)'. Did you mean to write 'entries'?
+server/dataAccess/enhancedTournamentDataAccess.ts(486,22): error TS2551: Property 'maxEntries' does not exist on type '{ entries: { id: number; teamId: number; tournamentId: number; registeredAt: Date; finalRank: number | null; rewardsClaimed: boolean; }[]; } & { id: number; type: TournamentType; ... 12 more ...; seasonDay: number | null; }'. Did you mean 'entries'?
+server/dataAccess/enhancedTournamentDataAccess.ts(486,47): error TS2339: Property 'entriesCount' does not exist on type '{ entries: { id: number; teamId: number; tournamentId: number; registeredAt: Date; finalRank: number | null; rewardsClaimed: boolean; }[]; } & { id: number; type: TournamentType; ... 12 more ...; seasonDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(486,74): error TS2551: Property 'maxEntries' does not exist on type '{ entries: { id: number; teamId: number; tournamentId: number; registeredAt: Date; finalRank: number | null; rewardsClaimed: boolean; }[]; } & { id: number; type: TournamentType; ... 12 more ...; seasonDay: number | null; }'. Did you mean 'entries'?
+server/dataAccess/enhancedTournamentDataAccess.ts(512,11): error TS2353: Object literal may only specify known properties, and 'seed' does not exist in type 'Without<TournamentEntryCreateInput, TournamentEntryUncheckedCreateInput> & TournamentEntryUncheckedCreateInput'.
+server/dataAccess/enhancedTournamentDataAccess.ts(512,41): error TS2339: Property 'entriesCount' does not exist on type '{ entries: { id: number; teamId: number; tournamentId: number; registeredAt: Date; finalRank: number | null; rewardsClaimed: boolean; }[]; } & { id: number; type: TournamentType; ... 12 more ...; seasonDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(519,17): error TS2353: Object literal may only specify known properties, and 'entriesCount' does not exist in type '(Without<TournamentUpdateInput, TournamentUncheckedUpdateInput> & TournamentUncheckedUpdateInput) | (Without<...> & TournamentUpdateInput)'.
+server/dataAccess/enhancedTournamentDataAccess.ts(551,21): error TS2353: Object literal may only specify known properties, and 'overallRating' does not exist in type 'PlayerSelect<DefaultArgs>'.
+server/dataAccess/enhancedTournamentDataAccess.ts(557,22): error TS2353: Object literal may only specify known properties, and 'seed' does not exist in type 'TournamentEntryOrderByWithRelationInput | TournamentEntryOrderByWithRelationInput[]'.
+server/dataAccess/enhancedTournamentDataAccess.ts(565,53): error TS2341: Property 'SHORT_TTL' is private and only accessible within class 'CacheManager'.
+server/dataAccess/enhancedTournamentDataAccess.ts(627,24): error TS2353: Object literal may only specify known properties, and 'seed' does not exist in type 'TournamentEntryOrderByWithRelationInput | TournamentEntryOrderByWithRelationInput[]'.
+server/dataAccess/enhancedTournamentDataAccess.ts(636,22): error TS2339: Property 'entries' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(636,51): error TS2339: Property 'minEntries' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(641,34): error TS2339: Property 'entries' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(641,46): error TS7006: Parameter 'e' implicitly has an 'any' type.
+server/dataAccess/enhancedTournamentDataAccess.ts(644,11): error TS2367: This comparison appears to be unintentional because the types 'TournamentType' and '"SINGLE_ELIMINATION"' have no overlap.
+server/dataAccess/enhancedTournamentDataAccess.ts(646,18): error TS2367: This comparison appears to be unintentional because the types 'TournamentType' and '"ROUND_ROBIN"' have no overlap.
+server/dataAccess/enhancedTournamentDataAccess.ts(655,9): error TS2322: Type '{ homeTeamId: number; awayTeamId: number; tournamentId: number; matchType: "TOURNAMENT"; bracketRound: number; bracketPosition: number; gameDate: Date; status: "SCHEDULED"; }[]' is not assignable to type 'GameCreateManyInput | GameCreateManyInput[]'.
+  Type '{ homeTeamId: number; awayTeamId: number; tournamentId: number; matchType: "TOURNAMENT"; bracketRound: number; bracketPosition: number; gameDate: Date; status: "SCHEDULED"; }[]' is not assignable to type 'GameCreateManyInput[]'.
+    Type '{ homeTeamId: number; awayTeamId: number; tournamentId: number; matchType: "TOURNAMENT"; bracketRound: number; bracketPosition: number; gameDate: Date; status: "SCHEDULED"; }' is not assignable to type 'GameCreateManyInput'.
+      Types of property 'matchType' are incompatible.
+        Type '"TOURNAMENT"' is not assignable to type 'MatchType | undefined'.
+server/dataAccess/enhancedTournamentDataAccess.ts(699,17): error TS2339: Property 'bracketRound' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(699,38): error TS2339: Property 'bracketPosition' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(704,30): error TS2339: Property 'bracketRound' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(705,44): error TS2339: Property 'bracketPosition' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(706,31): error TS2339: Property 'bracketPosition' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/dataAccess/enhancedTournamentDataAccess.ts(711,11): error TS2353: Object literal may only specify known properties, and 'bracketRound' does not exist in type 'GameWhereInput'.
+server/dataAccess/enhancedTournamentDataAccess.ts(734,17): error TS2353: Object literal may only specify known properties, and 'wins' does not exist in type '(Without<TournamentEntryUpdateManyMutationInput, TournamentEntryUncheckedUpdateManyInput> & TournamentEntryUncheckedUpdateManyInput) | (Without<...> & TournamentEntryUpdateManyMutationInput)'.
+server/dataAccess/enhancedTournamentDataAccess.ts(743,11): error TS2353: Object literal may only specify known properties, and 'losses' does not exist in type '(Without<TournamentEntryUpdateManyMutationInput, TournamentEntryUncheckedUpdateManyInput> & TournamentEntryUncheckedUpdateManyInput) | (Without<...> & TournamentEntryUpdateManyMutationInput)'.
+server/dataAccess/enhancedTournamentDataAccess.ts(955,39): error TS2551: Property 'minEntries' does not exist on type '{ entries: { id: number; teamId: number; tournamentId: number; registeredAt: Date; finalRank: number | null; rewardsClaimed: boolean; }[]; } & { id: number; type: TournamentType; ... 12 more ...; seasonDay: number | null; }'. Did you mean 'entries'?
+server/dataAccess/enhancedTournamentDataAccess.ts(987,11): error TS2353: Object literal may only specify known properties, and 'entriesCount' does not exist in type '(Without<TournamentUpdateInput, TournamentUncheckedUpdateInput> & TournamentUncheckedUpdateInput) | (Without<...> & TournamentUpdateInput)'.
+server/database/enhancedDatabaseConfig.ts(312,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(timeout: string | number | Timeout | undefined): void', gave the following error.
+    Argument of type 'Timer' is not assignable to parameter of type 'string | number | Timeout | undefined'.
+      Type 'Timer' is missing the following properties from type 'Timeout': close, _onTimeout, [Symbol.dispose]
+  Overload 2 of 2, '(id: number | undefined): void', gave the following error.
+    Argument of type 'Timer' is not assignable to parameter of type 'number'.
+server/database/enhancedDatabaseConfig.ts(480,47): error TS2341: Property 'connectionStats' is private and only accessible within class 'ConnectionPoolManager'.
+server/googleAuth.ts(4,29): error TS2307: Cannot find module './domains/auth/service.js' or its corresponding type declarations.
+server/googleAuth.ts(5,24): error TS2307: Cannot find module './domains/core/logger.js' or its corresponding type declarations.
+server/googleAuth.ts(22,14): error TS2307: Cannot find module './domains/auth/service.js' or its corresponding type declarations.
+server/googleAuth.ts(24,25): error TS2307: Cannot find module './domains/auth/service.js' or its corresponding type declarations.
+server/repositories/leagues/schedule.repository.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/repositories/leagues/schedule.repository.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/repositories/leagues/schedule.repository.ts(13,8): error TS2300: Duplicate identifier 'logger'.
+server/repositories/leagues/standings.repository.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/repositories/leagues/standings.repository.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/repositories/leagues/standings.repository.ts(13,8): error TS2300: Duplicate identifier 'logger'.
+server/repositories/leagues/standings.repository.ts(368,9): error TS2353: Object literal may only specify known properties, and 'homeGames' does not exist in type 'TeamSelect<DefaultArgs>'.
+server/routes/dailyTournamentRoutes.ts(160,59): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/dailyTournamentRoutes.ts(287,59): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/enhancedFinanceRoutes.ts(72,7): error TS2561: Object literal may only specify known properties, but 'teams' does not exist in type 'UserProfileInclude<DefaultArgs>'. Did you mean to write 'Team'?
+server/routes/enhancedFinanceRoutes.ts(84,28): error TS2339: Property 'teams' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/routes/enhancedFinanceRoutes.ts(96,9): error TS2353: Object literal may only specify known properties, and 'lastUpdated' does not exist in type '(Without<TeamFinancesCreateInput, TeamFinancesUncheckedCreateInput> & TeamFinancesUncheckedCreateInput) | (Without<...> & TeamFinancesCreateInput)'.
+server/routes/enhancedFinanceRoutes.ts(137,18): error TS2339: Property 'auditLog' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(160,33): error TS2339: Property 'idempotencyKey' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(174,16): error TS2339: Property 'idempotencyKey' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(256,22): error TS2353: Object literal may only specify known properties, and 'stripePaymentIntentId' does not exist in type 'PaymentTransactionWhereInput'.
+server/routes/enhancedFinanceRoutes.ts(264,17): error TS2353: Object literal may only specify known properties, and 'completedAt' does not exist in type '(Without<PaymentTransactionUpdateInput, PaymentTransactionUncheckedUpdateInput> & PaymentTransactionUncheckedUpdateInput) | (Without<...> & PaymentTransactionUpdateInput)'.
+server/routes/enhancedFinanceRoutes.ts(269,29): error TS2551: Property 'gemAmount' does not exist on type '{ metadata: JsonValue; id: number; itemType: string; status: string; creditsAmount: bigint; teamId: number; userId: string; itemName: string; createdAt: Date; transactionType: string; updatedAt: Date; gemsAmount: number; }'. Did you mean 'gemsAmount'?
+server/routes/enhancedFinanceRoutes.ts(274,44): error TS2551: Property 'gemAmount' does not exist on type '{ metadata: JsonValue; id: number; itemType: string; status: string; creditsAmount: bigint; teamId: number; userId: string; itemName: string; createdAt: Date; transactionType: string; updatedAt: Date; gemsAmount: number; }'. Did you mean 'gemsAmount'?
+server/routes/enhancedFinanceRoutes.ts(284,29): error TS2551: Property 'gemAmount' does not exist on type '{ metadata: JsonValue; id: number; itemType: string; status: string; creditsAmount: bigint; teamId: number; userId: string; itemName: string; createdAt: Date; transactionType: string; updatedAt: Date; gemsAmount: number; }'. Did you mean 'gemsAmount'?
+server/routes/enhancedFinanceRoutes.ts(292,17): error TS2322: Type '"purchase_complete"' is not assignable to type 'NotificationType'.
+server/routes/enhancedFinanceRoutes.ts(294,41): error TS2551: Property 'gemAmount' does not exist on type '{ metadata: JsonValue; id: number; itemType: string; status: string; creditsAmount: bigint; teamId: number; userId: string; itemName: string; createdAt: Date; transactionType: string; updatedAt: Date; gemsAmount: number; }'. Did you mean 'gemsAmount'?
+server/routes/enhancedFinanceRoutes.ts(307,20): error TS2353: Object literal may only specify known properties, and 'stripePaymentIntentId' does not exist in type 'PaymentTransactionWhereInput'.
+server/routes/enhancedFinanceRoutes.ts(310,13): error TS2353: Object literal may only specify known properties, and 'failureReason' does not exist in type '(Without<PaymentTransactionUpdateManyMutationInput, PaymentTransactionUncheckedUpdateManyInput> & PaymentTransactionUncheckedUpdateManyInput) | (Without<...> & PaymentTransactionUpdateManyMutationInput)'.
+server/routes/enhancedFinanceRoutes.ts(373,9): error TS2353: Object literal may only specify known properties, and 'amount' does not exist in type '(Without<PaymentTransactionCreateInput, PaymentTransactionUncheckedCreateInput> & PaymentTransactionUncheckedCreateInput) | (Without<...> & PaymentTransactionCreateInput)'.
+server/routes/enhancedFinanceRoutes.ts(413,37): error TS2551: Property 'gemPackage' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'gemPack'?
+server/routes/enhancedFinanceRoutes.ts(438,13): error TS2353: Object literal may only specify known properties, and 'amount' does not exist in type '(Without<PaymentTransactionCreateInput, PaymentTransactionUncheckedCreateInput> & PaymentTransactionUncheckedCreateInput) | (Without<...> & PaymentTransactionCreateInput)'.
+server/routes/enhancedFinanceRoutes.ts(476,35): error TS2551: Property 'gemPackage' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'gemPack'?
+server/routes/enhancedFinanceRoutes.ts(482,44): error TS7006: Parameter 'pkg' implicitly has an 'any' type.
+server/routes/enhancedFinanceRoutes.ts(541,14): error TS2339: Property 'storeCategory' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(545,14): error TS2339: Property 'storeItem' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(552,14): error TS2339: Property 'storeItem' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(595,32): error TS2339: Property 'storeItem' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(632,31): error TS2339: Property 'storeItem' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(711,18): error TS2339: Property 'storeItem' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'.
+server/routes/enhancedFinanceRoutes.ts(722,16): error TS2339: Property 'storePurchase' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'.
+server/routes/enhancedFinanceRoutes.ts(767,37): error TS2339: Property 'storeItem' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(799,37): error TS2339: Property 'storeCategory' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(857,16): error TS2339: Property 'currencyExchange' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'.
+server/routes/enhancedFinanceRoutes.ts(1046,14): error TS2339: Property 'rewardType' does not exist on type '{ adType: "banner" | "rewarded" | "interstitial" | "native"; duration?: number | undefined; placement?: string | undefined; }'.
+server/routes/enhancedFinanceRoutes.ts(1047,14): error TS2339: Property 'rewardAmount' does not exist on type '{ adType: "banner" | "rewarded" | "interstitial" | "native"; duration?: number | undefined; placement?: string | undefined; }'.
+server/routes/enhancedFinanceRoutes.ts(1091,14): error TS2339: Property 'financialTransaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(1097,14): error TS2339: Property 'financialTransaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(1128,14): error TS2339: Property 'financialTransaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(1137,14): error TS2339: Property 'financialTransaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(1146,14): error TS2339: Property 'financialTransaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/routes/enhancedFinanceRoutes.ts(1256,16): error TS2339: Property 'creditTransfer' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'.
+server/routes/enhancedFinanceRoutes.ts(1304,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1309,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1314,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1319,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1324,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1330,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1335,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1340,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1345,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1350,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1355,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1361,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1366,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedFinanceRoutes.ts(1371,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInjuryRoutes.ts(720,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInjuryRoutes.ts(725,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInjuryRoutes.ts(730,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInjuryRoutes.ts(735,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInjuryRoutes.ts(740,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInjuryRoutes.ts(745,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInjuryRoutes.ts(750,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInventoryRoutes.ts(583,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInventoryRoutes.ts(588,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInventoryRoutes.ts(594,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInventoryRoutes.ts(599,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInventoryRoutes.ts(604,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInventoryRoutes.ts(609,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInventoryRoutes.ts(614,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedInventoryRoutes.ts(619,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedLeagueRoutes.ts(448,24): error TS2554: Expected 1 arguments, but got 0.
+server/routes/enhancedLeagueRoutes.ts(452,11): error TS2322: Type '{ firstName: string; lastName: string; }' is not assignable to type 'string'.
+server/routes/enhancedLeagueRoutes.ts(455,38): error TS2339: Property 'team' does not exist on type '{ game_duration_minutes: { league: number; tournament: number; exhibition: number; }; aiTeamNames: string[]; gameParameters: { teamSettings: { startingCredits: number; startingExhibitionCredits: number; defaultCamaraderie: number; maxPlayersPerTeam: number; minPlayersPerTeam: number; maxTaxiSquadPlayers: number; }; ...'.
+server/routes/enhancedLeagueRoutes.ts(467,24): error TS2554: Expected 3-4 arguments, but got 0.
+server/routes/enhancedLeagueRoutes.ts(480,26): error TS2339: Property 'credits' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'.
+server/routes/enhancedLeagueRoutes.ts(515,38): error TS18047: 'nextSlot' is possibly 'null'.
+server/routes/enhancedLeagueRoutes.ts(515,47): error TS2339: Property 'timestamp' does not exist on type 'Date'.
+server/routes/enhancedLeagueRoutes.ts(537,43): error TS2339: Property 'timestamp' does not exist on type 'Date'.
+server/routes/enhancedLeagueRoutes.ts(1401,22): error TS2554: Expected 3-4 arguments, but got 0.
+server/routes/enhancedLeagueRoutes.ts(1463,33): error TS2339: Property 'credits' does not exist on type '{ players: { id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; ... 21 more ...; isRetired: boolean; }[]; } & { ...; }'.
+server/routes/enhancedLeagueRoutes.ts(1463,74): error TS2339: Property 'credits' does not exist on type '{ players: { id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; ... 21 more ...; isRetired: boolean; }[]; } & { ...; }'.
+server/routes/enhancedLeagueRoutes.ts(1465,14): error TS2339: Property 'credits' does not exist on type '{ players: { id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; ... 21 more ...; isRetired: boolean; }[]; } & { ...; }'.
+server/routes/enhancedLeagueRoutes.ts(1468,17): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<TeamUpdateInput, TeamUncheckedUpdateInput> & TeamUncheckedUpdateInput) | (Without<...> & TeamUpdateInput)'.
+server/routes/enhancedLeagueRoutes.ts(1515,16): error TS2353: Object literal may only specify known properties, and 'firebaseUid' does not exist in type 'UserProfileWhereUniqueInput'.
+server/routes/enhancedLeagueRoutes.ts(1517,9): error TS2353: Object literal may only specify known properties, and 'firebaseUid' does not exist in type '(Without<UserProfileCreateInput, UserProfileUncheckedCreateInput> & UserProfileUncheckedCreateInput) | (Without<...> & UserProfileCreateInput)'.
+server/routes/enhancedLeagueRoutes.ts(1524,9): error TS2353: Object literal may only specify known properties, and 'displayName' does not exist in type '(Without<UserProfileUpdateInput, UserProfileUncheckedUpdateInput> & UserProfileUncheckedUpdateInput) | (Without<...> & UserProfileUpdateInput)'.
+server/routes/enhancedLeagueRoutes.ts(1540,34): error TS2339: Property 'firebaseUid' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/routes/enhancedLeagueRoutes.ts(1542,34): error TS2339: Property 'displayName' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/routes/enhancedLeagueRoutes.ts(1589,9): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type '(Without<ScheduleCreateInput, ScheduleUncheckedCreateInput> & ScheduleUncheckedCreateInput) | (Without<...> & ScheduleCreateInput)'.
+server/routes/enhancedLeagueRoutes.ts(1627,7): error TS2322: Type '{ scheduleId: string; homeTeamId: any; awayTeamId: any; gameDate: Date; matchType: string; status: string; }[]' is not assignable to type 'GameCreateManyInput | GameCreateManyInput[]'.
+  Type '{ scheduleId: string; homeTeamId: any; awayTeamId: any; gameDate: Date; matchType: string; status: string; }[]' is not assignable to type 'GameCreateManyInput[]'.
+    Type '{ scheduleId: string; homeTeamId: any; awayTeamId: any; gameDate: Date; matchType: string; status: string; }' is not assignable to type 'GameCreateManyInput'.
+      Types of property 'matchType' are incompatible.
+        Type 'string' is not assignable to type 'MatchType | undefined'.
+server/routes/enhancedLeagueRoutes.ts(1638,29): error TS2339: Property 'totalDays' does not exist on type '{ id: string; createdAt: Date; division: number; subdivision: string; isActive: boolean; updatedAt: Date; seasonId: string; }'.
+server/routes/enhancedLeagueRoutes.ts(1721,55): error TS2339: Property 'generateDivisionSchedule' does not exist on type 'DynamicSeasonService'.
+server/routes/enhancedMatchRoutes.ts(171,40): error TS2367: This comparison appears to be unintentional because the types '"EXHIBITION" | "LEAGUE" | "TOURNAMENT_DAILY" | "TOURNAMENT_MIDSEASON"' and '"FINAL"' have no overlap.
+server/routes/enhancedMatchRoutes.ts(175,86): error TS2367: This comparison appears to be unintentional because the types '"EXHIBITION" | "TOURNAMENT_DAILY" | "TOURNAMENT_MIDSEASON"' and '"FINAL"' have no overlap.
+server/routes/enhancedMatchRoutes.ts(191,34): error TS2339: Property 'atmosphere' does not exist on type '{ attendance: number; attendanceRate: number; }'.
+server/routes/enhancedMatchRoutes.ts(200,31): error TS2339: Property 'factors' does not exist on type '{ attendance: number; attendanceRate: number; }'.
+server/routes/enhancedMatchRoutes.ts(301,17): error TS2353: Object literal may only specify known properties, and 'race' does not exist in type 'PlayerInclude<DefaultArgs>'.
+server/routes/enhancedMatchRoutes.ts(314,17): error TS2353: Object literal may only specify known properties, and 'race' does not exist in type 'PlayerInclude<DefaultArgs>'.
+server/routes/enhancedMatchRoutes.ts(355,17): error TS2353: Object literal may only specify known properties, and 'race' does not exist in type 'PlayerInclude<DefaultArgs>'.
+server/routes/enhancedMatchRoutes.ts(364,17): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'StaffInclude<DefaultArgs>'.
+server/routes/enhancedMatchRoutes.ts(375,17): error TS2353: Object literal may only specify known properties, and 'race' does not exist in type 'PlayerInclude<DefaultArgs>'.
+server/routes/enhancedMatchRoutes.ts(384,17): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'StaffInclude<DefaultArgs>'.
+server/routes/enhancedMatchRoutes.ts(408,55): error TS2551: Property 'homeTeam' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'. Did you mean 'homeTeamId'?
+server/routes/enhancedMatchRoutes.ts(409,55): error TS2551: Property 'awayTeam' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'. Did you mean 'awayTeamId'?
+server/routes/enhancedMatchRoutes.ts(410,73): error TS2551: Property 'homeTeam' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'. Did you mean 'homeTeamId'?
+server/routes/enhancedMatchRoutes.ts(410,89): error TS2551: Property 'awayTeam' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'. Did you mean 'awayTeamId'?
+server/routes/enhancedMatchRoutes.ts(411,37): error TS2339: Property 'gameTime' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/routes/enhancedMatchRoutes.ts(411,55): error TS2339: Property 'gameTime' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/routes/enhancedMatchRoutes.ts(436,13): error TS2561: Object literal may only specify known properties, but 'playerMatchStats' does not exist in type 'GameCountOutputTypeSelect<DefaultArgs>'. Did you mean to write 'playerStats'?
+server/routes/enhancedMatchRoutes.ts(454,23): error TS2339: Property 'gameTime' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/routes/enhancedMatchRoutes.ts(455,25): error TS2339: Property '_count' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/routes/enhancedMatchRoutes.ts(457,23): error TS2339: Property '_count' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/routes/enhancedMatchRoutes.ts(459,24): error TS2339: Property 'updatedAt' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'.
+server/routes/enhancedMatchRoutes.ts(489,35): error TS2339: Property 'simulateMatch' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedMatchRoutes.ts(519,35): error TS2339: Property 'simulateMatch' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedMatchRoutes.ts(587,9): error TS2353: Object literal may only specify known properties, and 'gameTime' does not exist in type '(Without<GameUpdateInput, GameUncheckedUpdateInput> & GameUncheckedUpdateInput) | (Without<...> & GameUpdateInput)'.
+server/routes/enhancedMatchRoutes.ts(620,35): error TS2339: Property 'simulateMatch' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedMatchRoutes.ts(657,9): error TS2353: Object literal may only specify known properties, and 'gameTime' does not exist in type '(Without<GameUpdateInput, GameUncheckedUpdateInput> & GameUncheckedUpdateInput) | (Without<...> & GameUpdateInput)'.
+server/routes/enhancedMatchRoutes.ts(695,9): error TS2353: Object literal may only specify known properties, and 'gameTime' does not exist in type '(Without<GameUpdateInput, GameUncheckedUpdateInput> & GameUncheckedUpdateInput) | (Without<...> & GameUpdateInput)'.
+server/routes/enhancedMatchRoutes.ts(753,15): error TS2353: Object literal may only specify known properties, and 'logo' does not exist in type 'TeamSelect<DefaultArgs>'.
+server/routes/enhancedMatchRoutes.ts(760,15): error TS2353: Object literal may only specify known properties, and 'logo' does not exist in type 'TeamSelect<DefaultArgs>'.
+server/routes/enhancedMatchRoutes.ts(764,20): error TS2353: Object literal may only specify known properties, and 'scheduledAt' does not exist in type 'GameOrderByWithRelationInput | GameOrderByWithRelationInput[]'.
+server/routes/enhancedMatchRoutes.ts(809,9): error TS2353: Object literal may only specify known properties, and 'scheduledAt' does not exist in type 'GameOrderByWithRelationInput | GameOrderByWithRelationInput[]'.
+server/routes/enhancedMatchRoutes.ts(850,9): error TS2561: Object literal may only specify known properties, but 'scheduledAt' does not exist in type 'Without<GameCreateInput, GameUncheckedCreateInput> & GameUncheckedCreateInput'. Did you mean to write 'schedule'?
+server/routes/enhancedMatchRoutes.ts(857,35): error TS2339: Property 'simulateMatch' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedMatchRoutes.ts(888,9): error TS2561: Object literal may only specify known properties, but 'playerMatchStats' does not exist in type 'GameInclude<DefaultArgs>'. Did you mean to write 'playerStats'?
+server/routes/enhancedMatchRoutes.ts(925,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedMatchRoutes.ts(952,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedMatchRoutes.ts(962,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedPlayerRoutes.ts(61,43): error TS2551: Property 'getPlayersByTeam' does not exist on type 'PlayerStorage'. Did you mean 'getPlayersByTeamId'?
+server/routes/enhancedPlayerRoutes.ts(125,49): error TS2339: Property 'calculatePlayerValue' does not exist on type 'ContractService'.
+server/routes/enhancedPlayerRoutes.ts(129,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(159,51): error TS2339: Property 'getContractNegotiationData' does not exist on type 'ContractService'.
+server/routes/enhancedPlayerRoutes.ts(164,22): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(165,26): error TS2339: Property 'position' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(198,44): error TS2339: Property 'getNegotiationFeedback' does not exist on type 'ContractService'.
+server/routes/enhancedPlayerRoutes.ts(238,42): error TS2339: Property 'negotiateContract' does not exist on type 'ContractService'.
+server/routes/enhancedPlayerRoutes.ts(285,62): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+server/routes/enhancedPlayerRoutes.ts(289,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(312,72): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+server/routes/enhancedPlayerRoutes.ts(316,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(339,52): error TS2339: Property 'getSkillEffects' does not exist on type 'typeof PlayerSkillsService'.
+server/routes/enhancedPlayerRoutes.ts(343,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(367,59): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+server/routes/enhancedPlayerRoutes.ts(369,16): error TS2339: Property 'success' does not exist on type 'boolean'.
+server/routes/enhancedPlayerRoutes.ts(372,28): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(373,45): error TS2339: Property 'skill' does not exist on type 'boolean'.
+server/routes/enhancedPlayerRoutes.ts(378,23): error TS2339: Property 'error' does not exist on type 'boolean'.
+server/routes/enhancedPlayerRoutes.ts(402,59): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+server/routes/enhancedPlayerRoutes.ts(404,16): error TS2339: Property 'success' does not exist on type 'boolean'.
+server/routes/enhancedPlayerRoutes.ts(407,28): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(408,45): error TS2339: Property 'skill' does not exist on type 'boolean'.
+server/routes/enhancedPlayerRoutes.ts(409,26): error TS2339: Property 'newLevel' does not exist on type 'boolean'.
+server/routes/enhancedPlayerRoutes.ts(414,23): error TS2339: Property 'error' does not exist on type 'boolean'.
+server/routes/enhancedPlayerRoutes.ts(437,46): error TS2339: Property 'simulateSkillUpEvent' does not exist on type 'typeof PlayerSkillsService'.
+server/routes/enhancedPlayerRoutes.ts(441,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(468,91): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+server/routes/enhancedPlayerRoutes.ts(472,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(496,64): error TS2339: Property 'simulateAging' does not exist on type 'typeof PlayerAgingRetirementService'.
+server/routes/enhancedPlayerRoutes.ts(500,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(524,66): error TS2554: Expected 2-3 arguments, but got 1.
+server/routes/enhancedPlayerRoutes.ts(528,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(556,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(580,55): error TS2339: Property 'forceRetirement' does not exist on type 'typeof PlayerAgingRetirementService'.
+server/routes/enhancedPlayerRoutes.ts(585,28): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(614,61): error TS2339: Property 'generateAge' does not exist on type 'typeof PlayerAgingRetirementService'.
+server/routes/enhancedPlayerRoutes.ts(618,26): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/routes/enhancedPlayerRoutes.ts(647,46): error TS2551: Property 'processTeamSeasonProgression' does not exist on type 'typeof PlayerSkillsService'. Did you mean 'processSeasonSkillProgression'?
+server/routes/enhancedPlayerRoutes.ts(674,47): error TS2339: Property 'getTeamProgressionSummary' does not exist on type 'typeof PlayerSkillsService'.
+server/routes/enhancedPlayerRoutes.ts(700,55): error TS2339: Property 'processTeamDevelopment' does not exist on type 'typeof PlayerAgingRetirementService'.
+server/routes/enhancedPlayerRoutes.ts(744,45): error TS2339: Property 'getSkillDetails' does not exist on type 'typeof PlayerSkillsService'.
+server/routes/enhancedPlayerRoutes.ts(768,55): error TS2339: Property 'processLeagueDevelopment' does not exist on type 'typeof PlayerAgingRetirementService'.
+server/routes/enhancedPlayerRoutes.ts(787,55): error TS2339: Property 'getAgingConfig' does not exist on type 'typeof PlayerAgingRetirementService'.
+server/routes/enhancedSeasonRoutes.ts(210,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(214,46): error TS2339: Property 'generateSchedules' does not exist on type 'typeof SeasonalFlowService'.
+server/routes/enhancedSeasonRoutes.ts(236,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(262,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(266,47): error TS2339: Property 'previewScheduleGeneration' does not exist on type 'typeof SeasonalFlowService'.
+server/routes/enhancedSeasonRoutes.ts(313,49): error TS2554: Expected 2 arguments, but got 1.
+server/routes/enhancedSeasonRoutes.ts(333,72): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+server/routes/enhancedSeasonRoutes.ts(399,51): error TS2339: Property 'getDivisionPlayoffs' does not exist on type 'typeof SeasonalFlowService'.
+server/routes/enhancedSeasonRoutes.ts(417,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(421,80): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(443,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(468,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(470,46): error TS2339: Property 'cleanupPlayoffGames' does not exist on type 'typeof SeasonalFlowService'.
+server/routes/enhancedSeasonRoutes.ts(492,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(496,46): error TS2339: Property 'createPlayoffFinals' does not exist on type 'typeof SeasonalFlowService'.
+server/routes/enhancedSeasonRoutes.ts(522,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(524,46): error TS2554: Expected 1 arguments, but got 0.
+server/routes/enhancedSeasonRoutes.ts(546,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(548,46): error TS2554: Expected 1 arguments, but got 0.
+server/routes/enhancedSeasonRoutes.ts(570,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(572,46): error TS2339: Property 'processSeasonRollover' does not exist on type 'typeof SeasonalFlowService'.
+server/routes/enhancedSeasonRoutes.ts(594,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(640,29): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'PlayerSelect<DefaultArgs>'.
+server/routes/enhancedSeasonRoutes.ts(764,70): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(766,16): error TS2339: Property 'success' does not exist on type '{ team: any; subdivision: string; needsScheduleGeneration: boolean; scheduleGenerated: boolean; }'.
+server/routes/enhancedSeasonRoutes.ts(771,26): error TS2339: Property 'division' does not exist on type '{ team: any; subdivision: string; needsScheduleGeneration: boolean; scheduleGenerated: boolean; }'.
+server/routes/enhancedSeasonRoutes.ts(777,23): error TS2339: Property 'error' does not exist on type '{ team: any; subdivision: string; needsScheduleGeneration: boolean; scheduleGenerated: boolean; }'.
+server/routes/enhancedSeasonRoutes.ts(814,56): error TS2339: Property 'testCatchUpMechanism' does not exist on type 'typeof SeasonTimingAutomationService'.
+server/routes/enhancedSeasonRoutes.ts(833,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(865,62): error TS2554: Expected 1 arguments, but got 2.
+server/routes/enhancedSeasonRoutes.ts(867,46): error TS2339: Property 'emergencyPopulateCurrentSeason' does not exist on type 'typeof SeasonalFlowService'.
+server/routes/enhancedStadiumRoutes.ts(899,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(903,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(907,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(911,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(915,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(919,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(923,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(927,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(931,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(935,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(939,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(943,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(947,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(951,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(955,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedStadiumRoutes.ts(959,17): error TS2339: Property 'handle' does not exist on type 'Router'.
+server/routes/enhancedTournamentRoutes.ts(147,29): error TS2551: Property 'registerForDailyTournament' does not exist on type 'TournamentService'. Did you mean 'registerForTournament'?
+server/routes/enhancedTournamentRoutes.ts(175,29): error TS2551: Property 'registerForMidSeasonCup' does not exist on type 'TournamentService'. Did you mean 'createMidSeasonCup'?
+server/routes/enhancedTournamentRoutes.ts(531,22): error TS2339: Property 'simulateGame' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedTournamentRoutes.ts(535,28): error TS2339: Property 'updateStandings' does not exist on type 'StandingsUpdateService'.
+server/routes/enhancedTournamentRoutes.ts(641,24): error TS2339: Property 'simulateGame' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedTournamentRoutes.ts(752,22): error TS2339: Property 'simulateGame' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedTournamentRoutes.ts(781,22): error TS2339: Property 'simulateGame' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedTournamentRoutes.ts(951,11): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<TeamUpdateInput, TeamUncheckedUpdateInput> & TeamUncheckedUpdateInput) | (Without<...> & TeamUpdateInput)'.
+server/routes/enhancedTournamentRoutes.ts(958,28): error TS2339: Property 'recordPayment' does not exist on type 'PaymentHistoryService'.
+server/routes/enhancedTournamentRoutes.ts(1041,9): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<TeamUpdateInput, TeamUncheckedUpdateInput> & TeamUncheckedUpdateInput) | (Without<...> & TeamUpdateInput)'.
+server/routes/enhancedTournamentRoutes.ts(1076,47): error TS2341: Property 'getDailyDivisionTournamentRewards' is private and only accessible within class 'TournamentService'.
+server/routes/enhancedTournamentRoutes.ts(1429,15): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<TeamUpdateInput, TeamUncheckedUpdateInput> & TeamUncheckedUpdateInput) | (Without<...> & TeamUpdateInput)'.
+server/routes/enhancedTournamentRoutes.ts(1487,24): error TS2339: Property 'simulateGame' does not exist on type 'QuickMatchSimulation'.
+server/routes/enhancedTournamentRoutes.ts(1491,33): error TS2339: Property 'checkAndAdvanceTournament' does not exist on type 'TournamentFlowServiceImpl'.
+server/routes/exhibitionRoutes.ts(364,57): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/exhibitionRoutes.ts(497,57): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/exhibitionRoutes.ts(680,53): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/exhibitionRoutes.ts(772,53): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/integrityRoutes.ts(136,58): error TS2339: Property 'syncDivisionStatistics' does not exist on type 'typeof EnhancedStatisticsService'.
+server/routes/integrityRoutes.ts(141,46): error TS7006: Parameter 'r' implicitly has an 'any' type.
+server/routes/integrityRoutes.ts(142,44): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+server/routes/integrityRoutes.ts(142,49): error TS7006: Parameter 'r' implicitly has an 'any' type.
+server/routes/integrityRoutes.ts(143,43): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+server/routes/integrityRoutes.ts(143,48): error TS7006: Parameter 'r' implicitly has an 'any' type.
+server/routes/integrityRoutes.ts(158,30): error TS7006: Parameter 'r' implicitly has an 'any' type.
+server/routes/integrityRoutes.ts(207,63): error TS2339: Property 'healthCheck' does not exist on type 'typeof EnhancedStatisticsService'.
+server/routes/leagueRoutes.ts(541,20): error TS2353: Object literal may only specify known properties, and '_count' does not exist in type 'ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]'.
+server/routes/leagueRoutes.ts(545,9): error TS2322: Type '{ id: string; createdAt: Date; division: number; subdivision: string; isActive: boolean; updatedAt: Date; seasonId: string; }' is not assignable to type '{ _count: { games: number; }; } & { id: string; createdAt: Date; division: number; subdivision: string; isActive: boolean; updatedAt: Date; seasonId: string; }'.
+  Property '_count' is missing in type '{ id: string; createdAt: Date; division: number; subdivision: string; isActive: boolean; updatedAt: Date; seasonId: string; }' but required in type '{ _count: { games: number; }; }'.
+server/routes/leagueRoutes.ts(546,56): error TS18047: 'schedule' is possibly 'null'.
+server/routes/leagueRoutes.ts(546,76): error TS18047: 'schedule' is possibly 'null'.
+server/routes/leagueRoutes.ts(550,9): error TS2322: Type '{ id: string; createdAt: Date; division: number; subdivision: string; isActive: boolean; updatedAt: Date; seasonId: string; }' is not assignable to type '{ _count: { games: number; }; } & { id: string; createdAt: Date; division: number; subdivision: string; isActive: boolean; updatedAt: Date; seasonId: string; }'.
+  Property '_count' is missing in type '{ id: string; createdAt: Date; division: number; subdivision: string; isActive: boolean; updatedAt: Date; seasonId: string; }' but required in type '{ _count: { games: number; }; }'.
+server/routes/leagueRoutes.ts(563,57): error TS18047: 'schedule' is possibly 'null'.
+server/routes/leagueRoutes.ts(566,76): error TS18047: 'schedule' is possibly 'null'.
+server/routes/leagueRoutes.ts(620,23): error TS18047: 'schedule' is possibly 'null'.
+server/routes/leagueRoutes.ts(629,106): error TS18047: 'schedule' is possibly 'null'.
+server/routes/leagueRoutes.ts(634,72): error TS18047: 'schedule' is possibly 'null'.
+server/routes/leagueRoutes.ts(675,21): error TS2551: Property 'homeTeam' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'. Did you mean 'homeTeamId'?
+server/routes/leagueRoutes.ts(676,21): error TS2551: Property 'awayTeam' does not exist on type '{ id: number; status: GameStatus; tournamentId: number | null; homeTeamId: number; awayTeamId: number; simulationLog: JsonValue; createdAt: Date; round: number | null; ... 9 more ...; gameDay: number | null; }'. Did you mean 'awayTeamId'?
+server/routes/leagueRoutes.ts(2783,9): error TS2353: Object literal may only specify known properties, and 'teamPower' does not exist in type 'TeamSelect<DefaultArgs>'.
+server/routes/leagueRoutes.ts(2795,33): error TS2339: Property 'teamPower' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'.
+server/routes/leagueRoutes.ts(2959,9): error TS2353: Object literal may only specify known properties, and 'userProfile' does not exist in type 'TeamInclude<DefaultArgs>'.
+server/routes/leagueRoutes.ts(2978,9): error TS2353: Object literal may only specify known properties, and 'firebaseUid' does not exist in type 'UserProfileSelect<DefaultArgs>'.
+server/routes/leagueRoutes.ts(2989,27): error TS2551: Property 'userProfile' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'. Did you mean 'userProfileId'?
+server/routes/leagueRoutes.ts(2990,20): error TS2551: Property 'userProfile' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'. Did you mean 'userProfileId'?
+server/routes/leagueRoutes.ts(2991,29): error TS2551: Property 'userProfile' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'. Did you mean 'userProfileId'?
+server/routes/leagueRoutes.ts(2992,23): error TS2551: Property 'userProfile' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'. Did you mean 'userProfileId'?
+server/routes/leagueRoutes.ts(2993,29): error TS2551: Property 'userProfile' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'. Did you mean 'userProfileId'?
+server/routes/leagueRoutes.ts(3000,37): error TS2551: Property 'userProfile' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'. Did you mean 'userProfileId'?
+server/routes/leagueRoutes.ts(3007,42): error TS2551: Property 'userProfile' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'. Did you mean 'userProfileId'?
+server/routes/leagueRoutes.ts(3041,16): error TS2353: Object literal may only specify known properties, and 'firebaseUid' does not exist in type 'UserProfileWhereUniqueInput'.
+server/routes/leagueRoutes.ts(3043,9): error TS2353: Object literal may only specify known properties, and 'firebaseUid' does not exist in type '(Without<UserProfileCreateInput, UserProfileUncheckedCreateInput> & UserProfileUncheckedCreateInput) | (Without<...> & UserProfileCreateInput)'.
+server/routes/leagueRoutes.ts(3050,9): error TS2353: Object literal may only specify known properties, and 'displayName' does not exist in type '(Without<UserProfileUpdateInput, UserProfileUncheckedUpdateInput> & UserProfileUncheckedUpdateInput) | (Without<...> & UserProfileUpdateInput)'.
+server/routes/leagueRoutes.ts(3066,34): error TS2339: Property 'firebaseUid' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/routes/leagueRoutes.ts(3068,34): error TS2339: Property 'displayName' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/routes/matchRoutes.ts(928,47): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/matchRoutes.ts(1258,47): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/statsRoutes.ts(19,61): error TS2559: Type 'boolean' has no properties in common with type 'StatsUpdateOptions'.
+server/routes/statsRoutes.ts(32,36): error TS2339: Property 'getTeamStats' does not exist on type 'typeof EnhancedStatisticsService'.
+server/routes/statsRoutes.ts(44,41): error TS2339: Property 'getMatchStatsDisplay' does not exist on type 'typeof EnhancedStatisticsService'.
+server/routes/statsRoutes.ts(54,43): error TS2339: Property 'getTeamLeaderboards' does not exist on type 'typeof EnhancedStatisticsService'.
+server/routes/statsRoutes.ts(64,43): error TS2339: Property 'getPlayerLeaderboards' does not exist on type 'typeof EnhancedStatisticsService'.
+server/routes/superuserRoutes.ts(523,61): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/teamRoutes.ts(349,80): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+server/routes/teamRoutes.ts(358,82): error TS2339: Property 'transactions' does not exist on type 'never'.
+server/routes/teamRoutes.ts(1087,13): error TS2322: Type 'null' is not assignable to type 'NullableJsonNullValueInput | InputJsonValue | undefined'.
+server/routes/teamRoutes.ts(1300,12): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+server/routes/teamRoutes.ts(1300,29): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+server/routes/teamRoutes.ts(1301,7): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+server/routes/teamRoutes.ts(1346,101): error TS2339: Property 'length' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'.
+server/routes/teamRoutes.ts(1348,26): error TS18047: 'userProfile.Team' is possibly 'null'.
+server/routes/teamRoutes.ts(1348,26): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'.
+  Property '0' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'.
+server/routes/teamRoutes.ts(1352,22): error TS18047: 'userProfile.Team' is possibly 'null'.
+server/routes/teamRoutes.ts(1352,22): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'.
+  Property '0' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'.
+server/routes/teamRoutes.ts(1734,61): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/teamRoutes.ts(2338,30): error TS2339: Property 'starters' does not exist on type 'string | number | true | JsonObject | JsonArray'.
+  Property 'starters' does not exist on type 'string'.
+server/routes/teamRoutes.ts(2344,33): error TS2339: Property 'substitutes' does not exist on type 'string | number | true | JsonObject | JsonArray'.
+  Property 'substitutes' does not exist on type 'string'.
+server/routes/tournamentFixRoutes.ts(36,61): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/tournamentRewardRoutes.ts(5,16): error TS1378: Top-level 'await' expressions are only allowed when the 'module' option is set to 'es2022', 'esnext', 'system', 'node16', 'nodenext', or 'preserve', and the 'target' option is set to 'es2017' or higher.
+server/routes/tournamentRoutes.ts(32,54): error TS2307: Cannot find module '../domains/tournaments/service.js' or its corresponding type declarations.
+server/routes/tournamentStatusRoutes.ts(613,61): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/tournamentStatusRoutes.ts(721,61): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/tournamentStatusRoutes.ts(995,61): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/tournamentStatusRoutes.ts(1172,57): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/tournamentStatusRoutes.ts(1254,61): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/routes/worldRoutes.ts(43,56): error TS2345: Argument of type 'number | null' is not assignable to parameter of type 'number'.
+  Type 'null' is not assignable to type 'number'.
+server/routes/worldRoutes.ts(79,26): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(80,24): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(81,29): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(82,35): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(83,32): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(84,43): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(85,45): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(86,45): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(87,46): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/routes/worldRoutes.ts(88,53): error TS2339: Property 'finances' does not exist on type '{ trueStrengthRating: number; winPercentage: number; divisionMultiplier: number; strengthOfSchedule: number; recentForm: number; healthFactor: number; id: number; name: string; points: number; ... 8 more ...; draws: number; }'.
+server/scripts/ensureUserProfiles.ts(51,17): error TS2353: Object literal may only specify known properties, and 'hasSeenOnboarding' does not exist in type '(Without<UserProfileCreateInput, UserProfileUncheckedCreateInput> & UserProfileUncheckedCreateInput) | (Without<...> & UserProfileCreateInput)'.
+server/scripts/syncAllTeamStatistics.ts(73,58): error TS2551: Property 'calculateTeamStatisticsFromGames' does not exist on type 'typeof EnhancedStatisticsService'. Did you mean 'calculateTeamStatistics'?
+server/services/dailyPlayerProgressionService.ts(315,18): error TS2367: This comparison appears to be unintentional because the types '"EXHIBITION" | "TOURNAMENT_DAILY" | "TOURNAMENT_MIDSEASON" | "PLAYOFF"' and '"TOURNAMENT"' have no overlap.
+server/services/dailyPlayerProgressionService.ts(327,15): error TS2339: Property 'passes' does not exist on type '{ game: { matchType: MatchType; }; } & { id: number; playerId: number; scores: number; tackles: number; gameId: number; matchType: MatchType; passDeflections: number; matchDate: Date; ... 25 more ...; injuries: number; }'.
+server/services/dailyPlayerProgressionService.ts(327,43): error TS2339: Property 'fumbles' does not exist on type '{ game: { matchType: MatchType; }; } & { id: number; playerId: number; scores: number; tackles: number; gameId: number; matchType: MatchType; passDeflections: number; matchDate: Date; ... 25 more ...; injuries: number; }'.
+server/services/dailyPlayerProgressionService.ts(328,15): error TS2339: Property 'runs' does not exist on type '{ game: { matchType: MatchType; }; } & { id: number; playerId: number; scores: number; tackles: number; gameId: number; matchType: MatchType; passDeflections: number; matchDate: Date; ... 25 more ...; injuries: number; }'.
+server/services/dailyPlayerProgressionService.ts(328,41): error TS2339: Property 'fumbles' does not exist on type '{ game: { matchType: MatchType; }; } & { id: number; playerId: number; scores: number; tackles: number; gameId: number; matchType: MatchType; passDeflections: number; matchDate: Date; ... 25 more ...; injuries: number; }'.
+server/services/dynamicSeasonService.ts(344,75): error TS18046: 'error' is of type 'unknown'.
+server/services/dynamicSeasonService.ts(349,40): error TS18046: 'error' is of type 'unknown'.
+server/services/enhancedCompetitionService.ts(141,52): error TS2339: Property 'generatePlayoffBracket' does not exist on type 'DynamicPlayoffService'.
+server/services/enhancedCompetitionService.ts(251,5): error TS2322: Type '{ active: ({ tournament: { id: number; type: $Enums.TournamentType; name: string; status: $Enums.TournamentStatus; tournamentId: string | null; ... 9 more ...; seasonDay: number | null; }; } & { ...; })[]; completed: { ...; }[]; stats: { ...; }; }' is not assignable to type '{ active: any[]; completed: any[]; stats: { totalTournaments: number; championships: number; runnerUps: number; totalEarnings: { credits: number; gems: number; }; }; }'.
+  Types of property 'stats' are incompatible.
+    Type '{ totalTournaments: number; wins: number; runnerUps: number; totalCreditsWon: any; totalGemsWon: any; trophiesWon: number; winRate: number; }' is missing the following properties from type '{ totalTournaments: number; championships: number; runnerUps: number; totalEarnings: { credits: number; gems: number; }; }': championships, totalEarnings
+server/services/enhancedCompetitionService.ts(270,55): error TS2339: Property 'processTournamentRound' does not exist on type 'TournamentFlowServiceImpl'.
+server/services/enhancedCompetitionService.ts(340,11): error TS2353: Object literal may only specify known properties, and 'matches' does not exist in type 'TournamentInclude<DefaultArgs>'.
+server/services/enhancedCompetitionService.ts(355,34): error TS2339: Property 'currentRound' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(356,53): error TS2339: Property 'maxParticipants' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(357,39): error TS2339: Property 'participants' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(358,35): error TS2339: Property 'matches' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(359,28): error TS2339: Property 'winnerId' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(360,30): error TS2339: Property 'winnerId' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(361,32): error TS2339: Property 'participants' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(361,50): error TS7006: Parameter 'p' implicitly has an 'any' type.
+server/services/enhancedCompetitionService.ts(361,79): error TS2339: Property 'winnerId' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(395,20): error TS2353: Object literal may only specify known properties, and 'participants' does not exist in type 'TournamentInclude<DefaultArgs>'.
+server/services/enhancedCompetitionService.ts(402,54): error TS2339: Property 'maxParticipants' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(402,89): error TS2339: Property 'participants' does not exist on type '{ id: number; type: TournamentType; name: string; status: TournamentStatus; tournamentId: string | null; createdAt: Date; division: number | null; ... 7 more ...; seasonDay: number | null; }'.
+server/services/enhancedCompetitionService.ts(439,34): error TS2339: Property 'scheduleTournamentAutoFill' does not exist on type 'DailyTournamentAutoFillService'.
+server/services/enhancedCompetitionService.ts(473,54): error TS2576: Property 'validateTournamentBracket' does not exist on type 'TournamentBracketValidator'. Did you mean to access the static member 'TournamentBracketValidator.validateTournamentBracket' instead?
+server/services/enhancedCompetitionService.ts(508,59): error TS2339: Property 'recoverTournament' does not exist on type 'TournamentRecoveryService'.
+server/services/enhancedCompetitionService.ts(557,48): error TS2339: Property 'generatePlayoffBracket' does not exist on type 'DynamicPlayoffService'.
+server/services/enhancedCompetitionService.ts(565,35): error TS2339: Property 'monitorAndScheduleNextRound' does not exist on type 'DynamicPlayoffService'.
+server/services/enhancedCompetitionService.ts(616,35): error TS2339: Property 'monitorAndScheduleNextRound' does not exist on type 'DynamicPlayoffService'.
+server/services/enhancedCompetitionService.ts(661,36): error TS2339: Property 'startAutomation' does not exist on type 'UnifiedTournamentAutomation'.
+server/services/enhancedCompetitionService.ts(682,36): error TS2339: Property 'stopAutomation' does not exist on type 'UnifiedTournamentAutomation'.
+server/services/enhancedCompetitionService.ts(769,13): error TS2322: Type '"MID_SEASON_CUP"' is not assignable to type 'TournamentType | EnumTournamentTypeFilter<"Tournament"> | undefined'.
+server/services/enhancedCompetitionService.ts(775,13): error TS2322: Type '"PLAYOFF"' is not assignable to type 'TournamentType | EnumTournamentTypeFilter<"Tournament"> | undefined'.
+server/services/enhancedCompetitionService.ts(785,18): error TS2322: Type '"PENDING"' is not assignable to type 'TournamentStatus | EnumTournamentStatusFilter<"Tournament"> | undefined'.
+server/services/enhancedCompetitionService.ts(800,13): error TS2353: Object literal may only specify known properties, and 'completedAt' does not exist in type 'TournamentWhereInput'.
+server/services/enhancedCompetitionService.ts(806,13): error TS2353: Object literal may only specify known properties, and 'completedAt' does not exist in type 'TournamentWhereInput'.
+server/services/enhancedCompetitionService.ts(815,46): error TS2339: Property 'tournamentParticipant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/services/enhancedCompetitionService.ts(820,46): error TS2339: Property 'tournamentParticipant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/services/enhancedEconomyService.ts(141,13): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type '(Without<PaymentTransactionCreateInput, PaymentTransactionUncheckedCreateInput> & PaymentTransactionUncheckedCreateInput) | (Without<...> & PaymentTransactionCreateInput)'.
+server/services/enhancedEconomyService.ts(318,15): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type '(Without<PaymentTransactionCreateInput, PaymentTransactionUncheckedCreateInput> & PaymentTransactionUncheckedCreateInput) | (Without<...> & PaymentTransactionCreateInput)'.
+server/services/enhancedEconomyService.ts(440,13): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type '(Without<PaymentTransactionCreateInput, PaymentTransactionUncheckedCreateInput> & PaymentTransactionUncheckedCreateInput) | (Without<...> & PaymentTransactionCreateInput)'.
+server/services/enhancedEconomyService.ts(628,13): error TS2353: Object literal may only specify known properties, and 'startingPrice' does not exist in type 'Without<MarketplaceListingCreateInput, MarketplaceListingUncheckedCreateInput> & MarketplaceListingUncheckedCreateInput'.
+server/services/enhancedEconomyService.ts(645,13): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type '(Without<PaymentTransactionCreateInput, PaymentTransactionUncheckedCreateInput> & PaymentTransactionUncheckedCreateInput) | (Without<...> & PaymentTransactionCreateInput)'.
+server/services/enhancedEconomyService.ts(657,31): error TS2322: Type 'number' is not assignable to type 'string'.
+server/services/enhancedEconomyService.ts(864,15): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type '(Without<PaymentTransactionCreateInput, PaymentTransactionUncheckedCreateInput> & PaymentTransactionUncheckedCreateInput) | (Without<...> & PaymentTransactionCreateInput)'.
+server/services/enhancedEconomyService.ts(945,17): error TS2353: Object literal may only specify known properties, and 'description' does not exist in type '(Without<PaymentTransactionCreateInput, PaymentTransactionUncheckedCreateInput> & PaymentTransactionUncheckedCreateInput) | (Without<...> & PaymentTransactionCreateInput)'.
+server/services/enhancedEconomyService.ts(996,14): error TS2339: Property 'marketplaceBid' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/services/enhancedGameEconomyService.ts(813,35): error TS2304: Cannot find name 'prisma'.
+server/services/enhancedGameEconomyService.ts(817,17): error TS2304: Cannot find name 'prisma'.
+server/services/enhancedGameEconomyService.ts(1305,31): error TS2304: Cannot find name 'prisma'.
+server/services/enhancedGameEconomyService.ts(1308,24): error TS2304: Cannot find name 'prisma'.
+server/services/enhancedGameEconomyService.ts(1311,27): error TS2304: Cannot find name 'prisma'.
+server/services/enhancedSeasonManagementService.ts(186,11): error TS2322: Type 'Date | undefined' is not assignable to type 'string | Date'.
+  Type 'undefined' is not assignable to type 'string | Date'.
+server/services/enhancedSeasonManagementService.ts(618,34): error TS2345: Argument of type '{ team: any; fromDivision: number; toDivision: number; position: any; }' is not assignable to parameter of type 'never'.
+server/services/enhancedSeasonManagementService.ts(627,33): error TS2345: Argument of type '{ team: any; fromDivision: number; toDivision: number; position: any; }' is not assignable to parameter of type 'never'.
+server/services/enhancedSimulationEngine.ts(20,29): error TS2305: Module '"./errorService.js"' has no exported member 'logWarn'.
+server/services/enhancedSimulationEngine.ts(581,55): error TS2339: Property 'calculateCamaraderieBonus' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedSimulationEngine.ts(596,7): error TS2353: Object literal may only specify known properties, and 'aggressionLevel' does not exist in type 'TeamTacticalInfo'.
+server/services/enhancedSimulationEngine.ts(890,55): error TS2339: Property 'calculateCamaraderieBonus' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedSimulationEngine.ts(896,7): error TS2345: Argument of type 'TeamTacticalInfo' is not assignable to parameter of type 'GameState'.
+  Type 'TeamTacticalInfo' is missing the following properties from type 'GameState': homeScore, awayScore, gameTime, maxTime, currentHalf
+server/services/enhancedSimulationEngine.ts(897,30): error TS2352: Conversion of type '{ homeScore: number; awayScore: number; timeRemaining: number; }' to type 'GameState' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ homeScore: number; awayScore: number; timeRemaining: number; }' is missing the following properties from type 'GameState': gameTime, maxTime, currentHalf
+server/services/enhancedStatisticsService.ts(197,19): error TS2740: Type '{}' is missing the following properties from type 'PlayerStats': playerId, playerName, position, teamId, and 8 more.
+server/services/enhancedStatisticsService.ts(208,11): error TS2353: Object literal may only specify known properties, and 'race' does not exist in type 'PlayerInclude<DefaultArgs>'.
+server/services/enhancedStatisticsService.ts(477,19): error TS2740: Type '{}' is missing the following properties from type '{ points: number; wins: number; losses: number; draws: number; pointsFor: number; pointsAgainst: number; gamesPlayed: number; pointsDifference: number; }': points, wins, losses, draws, and 4 more.
+server/services/enhancedStatisticsService.ts(752,19): error TS2740: Type '{}' is missing the following properties from type 'TeamMatchStats': teamId, teamName, gamesPlayed, totalTimeOfPossession, and 28 more.
+server/services/enhancedStatisticsService.ts(770,17): error TS2352: Conversion of type 'readonly ["LEAGUE", "PLAYOFF", "FINAL"]' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The type 'readonly ["LEAGUE", "PLAYOFF", "FINAL"]' is 'readonly' and cannot be assigned to the mutable type 'any[]'.
+server/services/enhancedTeamManagementService.ts(26,10): error TS2724: '"./teamNameValidation.js"' has no exported member named 'teamNameValidation'. Did you mean 'TeamNameValidator'?
+server/services/enhancedTeamManagementService.ts(171,11): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type '(Without<PlayerCreateInput, PlayerUncheckedCreateInput> & PlayerUncheckedCreateInput) | (Without<...> & PlayerCreateInput)'.
+server/services/enhancedTeamManagementService.ts(185,31): error TS2339: Property 'initializePlayerSkills' does not exist on type 'typeof PlayerSkillsService'.
+server/services/enhancedTeamManagementService.ts(189,36): error TS2339: Property 'createContract' does not exist on type 'typeof ContractService'.
+server/services/enhancedTeamManagementService.ts(199,41): error TS2339: Property 'name' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(227,9): error TS2353: Object literal may only specify known properties, and 'playerMatchStats' does not exist in type 'PlayerInclude<DefaultArgs>'.
+server/services/enhancedTeamManagementService.ts(244,44): error TS2339: Property 'calculateRetirementProbability' does not exist on type 'typeof PlayerAgingRetirementService'.
+server/services/enhancedTeamManagementService.ts(246,16): error TS2339: Property 'potential' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(247,16): error TS2339: Property 'loyalty' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(271,20): error TS2339: Property 'playerSkill' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'.
+server/services/enhancedTeamManagementService.ts(288,19): error TS2353: Object literal may only specify known properties, and 'injuryDays' does not exist in type '(Without<PlayerUpdateInput, PlayerUncheckedUpdateInput> & PlayerUncheckedUpdateInput) | (Without<...> & PlayerUpdateInput)'.
+server/services/enhancedTeamManagementService.ts(300,63): error TS2339: Property 'stamina' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(303,21): error TS2353: Object literal may only specify known properties, and 'stamina' does not exist in type '(Without<PlayerUpdateInput, PlayerUncheckedUpdateInput> & PlayerUncheckedUpdateInput) | (Without<...> & PlayerUpdateInput)'.
+server/services/enhancedTeamManagementService.ts(318,49): error TS2339: Property 'processAllPlayers' does not exist on type 'typeof DailyPlayerProgressionService'.
+server/services/enhancedTeamManagementService.ts(327,48): error TS2339: Property 'processSeasonEnd' does not exist on type 'typeof PlayerAgingRetirementService'.
+server/services/enhancedTeamManagementService.ts(338,33): error TS2339: Property 'playerSkill' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/services/enhancedTeamManagementService.ts(346,39): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+server/services/enhancedTeamManagementService.ts(346,44): error TS7006: Parameter 'ps' implicitly has an 'any' type.
+server/services/enhancedTeamManagementService.ts(389,18): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type 'PlayerMatchStatsOrderByWithRelationInput | PlayerMatchStatsOrderByWithRelationInput[]'.
+server/services/enhancedTeamManagementService.ts(395,63): error TS2339: Property 'touchdowns' does not exist on type '{ id: number; playerId: number; scores: number; tackles: number; gameId: number; matchType: MatchType; passDeflections: number; matchDate: Date; minutesPlayed: number; performanceRating: number | null; ... 23 more ...; injuries: number; }'.
+server/services/enhancedTeamManagementService.ts(443,16): error TS2551: Property 'teamFinance' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'. Did you mean 'teamFinances'?
+server/services/enhancedTeamManagementService.ts(458,11): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'Without<StadiumCreateInput, StadiumUncheckedCreateInput> & StadiumUncheckedCreateInput'.
+server/services/enhancedTeamManagementService.ts(508,9): error TS2353: Object literal may only specify known properties, and 'homeGames' does not exist in type 'TeamInclude<DefaultArgs>'.
+server/services/enhancedTeamManagementService.ts(528,49): error TS2339: Property 'getCamaraderieLevel' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(530,28): error TS2339: Property 'players' does not exist on type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }'.
+server/services/enhancedTeamManagementService.ts(624,70): error TS2339: Property 'value' does not exist on type '{ id: number; playerId: number; acquiredAt: Date; skillId: number; currentTier: number; }'.
+server/services/enhancedTeamManagementService.ts(684,55): error TS2339: Property 'getContractNegotiationModifier' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(688,39): error TS2339: Property 'createContract' does not exist on type 'typeof ContractService'.
+server/services/enhancedTeamManagementService.ts(698,43): error TS2339: Property 'processExpiringContracts' does not exist on type 'typeof ContractProgressionService'.
+server/services/enhancedTeamManagementService.ts(725,17): error TS2353: Object literal may only specify known properties, and 'endDate' does not exist in type '(Without<ContractUpdateManyMutationInput, ContractUncheckedUpdateManyInput> & ContractUncheckedUpdateManyInput) | (Without<...> & ContractUpdateManyMutationInput)'.
+server/services/enhancedTeamManagementService.ts(729,16): error TS2551: Property 'teamFinance' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'. Did you mean 'teamFinances'?
+server/services/enhancedTeamManagementService.ts(736,16): error TS2551: Property 'teamFinance' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'. Did you mean 'teamFinances'?
+server/services/enhancedTeamManagementService.ts(744,37): error TS2339: Property 'updateCamaraderieForTransfer' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(745,37): error TS2339: Property 'updateCamaraderieForTransfer' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(784,42): error TS2339: Property 'updateCamaraderieForTransfer' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(794,38): error TS2339: Property 'getCamaraderieLevel' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(796,51): error TS2339: Property 'getPerformanceModifier' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(797,50): error TS2339: Property 'getInjuryModifier' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(798,51): error TS2339: Property 'getContractNegotiationModifier' does not exist on type 'typeof CamaraderieService'.
+server/services/enhancedTeamManagementService.ts(812,37): error TS2339: Property 'processMatchInjuries' does not exist on type 'typeof InjuryStaminaService'.
+server/services/enhancedTeamManagementService.ts(832,9): error TS2353: Object literal may only specify known properties, and 'name' does not exist in type 'PlayerSelect<DefaultArgs>'.
+server/services/enhancedTeamManagementService.ts(841,38): error TS2339: Property 'injuryDays' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(842,36): error TS2339: Property 'stamina' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(843,38): error TS2339: Property 'injuryDays' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(843,60): error TS2339: Property 'stamina' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(844,58): error TS2339: Property 'stamina' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(845,42): error TS2339: Property 'injuryDays' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(845,64): error TS2339: Property 'stamina' does not exist on type '{ id: number; role: PlayerRole; speed: number; teamId: number; agility: number; catching: number; throwing: number; power: number; leadership: number; staminaAttribute: number; kicking: number; ... 20 more ...; isRetired: boolean; }'.
+server/services/enhancedTeamManagementService.ts(866,42): error TS2339: Property 'verifyAllTeamIntegrity' does not exist on type 'typeof TeamStatisticsIntegrityService'.
+server/services/enhancedTeamManagementService.ts(951,20): error TS2339: Property 'playerSkill' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+server/services/enhancedTeamManagementService.ts(997,40): error TS2353: Object literal may only specify known properties, and 'endDate' does not exist in type 'ContractWhereInput'.
+server/services/enhancedTeamManagementService.ts(998,38): error TS2353: Object literal may only specify known properties, and 'injuryDays' does not exist in type 'PlayerWhereInput'.
+server/services/enhancedTeamManagementService.ts(1071,10): error TS2724: '"./teamNameValidation.js"' has no exported member named 'teamNameValidation'. Did you mean 'TeamNameValidator'?
+server/services/lateRegistrationSystem.ts(197,13): error TS2353: Object literal may only specify known properties, and 'level' does not exist in type '(Without<StadiumCreateWithoutTeamInput, StadiumUncheckedCreateWithoutTeamInput> & StadiumUncheckedCreateWithoutTeamInput) | (Without<...> & StadiumCreateWithoutTeamInput)'.
+server/services/lateRegistrationSystem.ts(474,38): error TS2322: Type '{ teamId: number; firstName: string; lastName: string; position: string; age: number; overallRating: number; isAI: boolean; race: string; role: string; speed: number; power: number; accuracy: number; stamina: number; health: number; injured: boolean; }[]' is not assignable to type 'PlayerCreateManyInput | PlayerCreateManyInput[]'.
+  Type '{ teamId: number; firstName: string; lastName: string; position: string; age: number; overallRating: number; isAI: boolean; race: string; role: string; speed: number; power: number; accuracy: number; stamina: number; health: number; injured: boolean; }[]' is not assignable to type 'PlayerCreateManyInput[]'.
+    Type '{ teamId: number; firstName: string; lastName: string; position: string; age: number; overallRating: number; isAI: boolean; race: string; role: string; speed: number; power: number; accuracy: number; stamina: number; health: number; injured: boolean; }' is missing the following properties from type 'PlayerCreateManyInput': throwing, catching, kicking, staminaAttribute, and 3 more.
+server/services/lateRegistrationSystem.ts(492,37): error TS2322: Type '{ teamId: number; name: string; role: string; type: string; salary: number; contractLength: number; }[]' is not assignable to type 'StaffCreateManyInput | StaffCreateManyInput[]'.
+  Type '{ teamId: number; name: string; role: string; type: string; salary: number; contractLength: number; }[]' is not assignable to type 'StaffCreateManyInput[]'.
+    Type '{ teamId: number; name: string; role: string; type: string; salary: number; contractLength: number; }' is not assignable to type 'StaffCreateManyInput'.
+      Types of property 'type' are incompatible.
+        Type 'string' is not assignable to type 'StaffType'.
+server/services/leagueManagementSystem.ts(94,39): error TS2345: Argument of type 'number[][][]' is not assignable to parameter of type '[number, number][][]'.
+  Type 'number[][]' is not assignable to type '[number, number][]'.
+    Type 'number[]' is not assignable to type '[number, number]'.
+      Target requires 2 element(s) but source may have fewer.
+server/services/leagueManagementSystem.ts(96,5): error TS2322: Type 'number[][][]' is not assignable to type '[number, number][][]'.
+  Type 'number[][]' is not assignable to type '[number, number][]'.
+    Type 'number[]' is not assignable to type '[number, number]'.
+      Target requires 2 element(s) but source may have fewer.
+server/services/leagueManagementSystem.ts(194,21): error TS2345: Argument of type 'number[][]' is not assignable to parameter of type '[number, number][]'.
+  Type 'number[]' is not assignable to type '[number, number]'.
+    Target requires 2 element(s) but source may have fewer.
+server/services/leagueManagementSystem.ts(279,16): error TS2339: Property 'auditLog' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'.
+server/services/leagueManagementSystem.ts(355,17): error TS2322: Type '"ARCHIVED"' is not assignable to type 'GameStatus | EnumGameStatusFieldUpdateOperationsInput | undefined'.
+server/services/leagueManagementSystem.ts(382,74): error TS2345: Argument of type '{ id: number; name: string; }[]' is not assignable to parameter of type '{ id: number; name: string; division: number; subdivision: string; }[]'.
+  Type '{ id: number; name: string; }' is missing the following properties from type '{ id: number; name: string; division: number; subdivision: string; }': division, subdivision
+server/services/leagueManagementSystem.ts(386,73): error TS2345: Argument of type '{ id: number; name: string; }[]' is not assignable to parameter of type '{ id: number; name: string; division: number; subdivision: string; }[]'.
+  Type '{ id: number; name: string; }' is missing the following properties from type '{ id: number; name: string; division: number; subdivision: string; }': division, subdivision
+server/services/leagueManagementSystem.ts(432,36): error TS2339: Property 'auditLog' does not exist on type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | "$transaction" | "$extends">'.
+server/services/leagueManagementSystem.ts(492,11): error TS2353: Object literal may only specify known properties, and 'goalDifference' does not exist in type 'TeamOrderByWithRelationInput'.
+server/services/leagueManagementSystem.ts(493,11): error TS2353: Object literal may only specify known properties, and 'goalsFor' does not exist in type 'TeamOrderByWithRelationInput'.
+server/services/leagueManagementSystem.ts(534,7): error TS2322: Type '{ gamesPlayed: number; goalsFor: number; goalsAgainst: number; goalDifference: number; position: number; id: number; name: string; points: number; tacticalFocus: TacticalFocus; ... 13 more ...; draws: number; }[]' is not assignable to type '({ id: number; name: string; division: number; subdivision: string; } & { points: number; wins: number; losses: number; draws: number; gamesPlayed: number; goalsFor: number; goalsAgainst: number; goalDifference: number; } & { ...; })[]'.
+  Type '{ gamesPlayed: number; goalsFor: number; goalsAgainst: number; goalDifference: number; position: number; id: number; name: string; points: number; tacticalFocus: $Enums.TacticalFocus; ... 13 more ...; draws: number; }' is not assignable to type '{ id: number; name: string; division: number; subdivision: string; } & { points: number; wins: number; losses: number; draws: number; gamesPlayed: number; goalsFor: number; goalsAgainst: number; goalDifference: number; } & { ...; }'.
+    Type '{ gamesPlayed: number; goalsFor: number; goalsAgainst: number; goalDifference: number; position: number; id: number; name: string; points: number; tacticalFocus: $Enums.TacticalFocus; ... 13 more ...; draws: number; }' is not assignable to type '{ id: number; name: string; division: number; subdivision: string; }'.
+      Types of property 'division' are incompatible.
+        Type 'number | null' is not assignable to type 'number'.
+          Type 'null' is not assignable to type 'number'.
+server/services/leagues/admin.service.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/services/leagues/admin.service.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/services/leagues/admin.service.ts(2,87): error TS2307: Cannot find module '@/shared/types' or its corresponding type declarations.
+server/services/leagues/admin.service.ts(13,8): error TS2300: Duplicate identifier 'logger'.
+server/services/leagues/admin.service.ts(43,36): error TS2339: Property 'role' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/services/leagues/admin.service.ts(51,7): error TS2322: Type 'boolean | undefined' is not assignable to type 'boolean'.
+  Type 'undefined' is not assignable to type 'boolean'.
+server/services/leagues/admin.service.ts(106,15): error TS2561: Object literal may only specify known properties, but 'pointsFor' does not exist in type '(Without<TeamUpdateManyMutationInput, TeamUncheckedUpdateManyInput> & TeamUncheckedUpdateManyInput) | (Without<...> & TeamUpdateManyMutationInput)'. Did you mean to write 'points'?
+server/services/leagues/admin.service.ts(155,11): error TS2561: Object literal may only specify known properties, but 'pointsFor' does not exist in type '(Without<TeamUpdateInput, TeamUncheckedUpdateInput> & TeamUncheckedUpdateInput) | (Without<...> & TeamUpdateInput)'. Did you mean to write 'points'?
+server/services/leagues/admin.service.ts(184,40): error TS2353: Object literal may only specify known properties, and 'isActive' does not exist in type 'SeasonWhereInput'.
+server/services/leagues/admin.service.ts(263,13): error TS2561: Object literal may only specify known properties, but 'pointsFor' does not exist in type '(Without<TeamUpdateManyMutationInput, TeamUncheckedUpdateManyInput> & TeamUncheckedUpdateManyInput) | (Without<...> & TeamUpdateManyMutationInput)'. Did you mean to write 'points'?
+server/services/leagues/admin.service.ts(271,13): error TS2353: Object literal may only specify known properties, and 'isActive' does not exist in type 'SeasonWhereInput'.
+server/services/leagues/admin.service.ts(362,26): error TS2554: Expected 1 arguments, but got 0.
+server/services/leagues/admin.service.ts(379,26): error TS2554: Expected 3-4 arguments, but got 1.
+server/services/leagues/schedule.service.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/services/leagues/schedule.service.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/services/leagues/schedule.service.ts(14,8): error TS2300: Duplicate identifier 'logger'.
+server/services/leagues/schedule.service.ts(113,20): error TS2561: Object literal may only specify known properties, but 'team' does not exist in type 'UserProfileInclude<DefaultArgs>'. Did you mean to write 'Team'?
+server/services/leagues/schedule.service.ts(116,25): error TS2339: Property 'team' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/services/leagues/schedule.service.ts(121,77): error TS2339: Property 'team' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/services/leagues/schedule.service.ts(127,57): error TS2339: Property 'team' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/services/leagues/schedule.service.ts(130,55): error TS2339: Property 'team' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/services/leagues/schedule.service.ts(139,42): error TS2345: Argument of type 'Date | null' is not assignable to parameter of type 'Date'.
+  Type 'null' is not assignable to type 'Date'.
+server/services/leagues/schedule.service.ts(275,20): error TS2561: Object literal may only specify known properties, but 'team' does not exist in type 'UserProfileInclude<DefaultArgs>'. Did you mean to write 'Team'?
+server/services/leagues/schedule.service.ts(278,27): error TS2339: Property 'team' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/services/leagues/schedule.service.ts(296,27): error TS2339: Property 'role' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/services/leagues/schedule.service.ts(329,32): error TS2365: Operator '+' cannot be applied to types 'number' and 'Date'.
+server/services/leagues/standings.service.ts(1,8): error TS2300: Duplicate identifier 'logger'.
+server/services/leagues/standings.service.ts(1,20): error TS2307: Cannot find module '../utils/logger.js' or its corresponding type declarations.
+server/services/leagues/standings.service.ts(14,8): error TS2300: Duplicate identifier 'logger'.
+server/services/leagues/standings.service.ts(49,11): error TS2353: Object literal may only specify known properties, and 'isActive' does not exist in type 'SeasonWhereInput'.
+server/services/leagues/standings.service.ts(95,49): error TS2345: Argument of type 'number | null' is not assignable to parameter of type 'number'.
+  Type 'null' is not assignable to type 'number'.
+server/services/leagues/standings.service.ts(108,9): error TS2322: Type '{ gameId: number; date: Date; opponent: string; isHome: boolean; teamScore: any; opponentScore: any; result: string; }[]' is not assignable to type 'TeamGameResult[]'.
+  Type '{ gameId: number; date: Date; opponent: string; isHome: boolean; teamScore: any; opponentScore: any; result: string; }' is not assignable to type 'TeamGameResult'.
+    Types of property 'result' are incompatible.
+      Type 'string' is not assignable to type '"WIN" | "LOSS" | "DRAW" | "PENDING"'.
+server/services/leagues/standings.service.ts(135,11): error TS2353: Object literal may only specify known properties, and 'isActive' does not exist in type 'SeasonWhereInput'.
+server/services/leagues/standings.service.ts(191,27): error TS2339: Property 'role' does not exist on type '{ id: number; email: string | null; userId: string; firstName: string | null; lastName: string | null; createdAt: Date; profileImageUrl: string | null; bio: string | null; updatedAt: Date; ... 4 more ...; ndaVersion: string | null; }'.
+server/services/playerSkillsService.ts(259,31): error TS2304: Cannot find name 'prisma'.
+server/services/playerSkillsService.ts(373,25): error TS2304: Cannot find name 'prisma'.
+server/services/seasonTimingAutomationService.ts(1018,69): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/services/seasonTimingAutomationService.ts(1167,65): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/services/seasonTimingAutomationService.ts(1228,65): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/services/seasonTimingAutomationService.ts(1897,63): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/services/stadiumAtmosphereService.ts(195,24): error TS2304: Cannot find name 'prisma'.
+server/services/stadiumAtmosphereService.ts(200,27): error TS2304: Cannot find name 'prisma'.
+server/services/stadiumAtmosphereService.ts(291,27): error TS2304: Cannot find name 'prisma'.
+server/services/stadiumAtmosphereService.ts(294,24): error TS2304: Cannot find name 'prisma'.
+server/services/stadiumAtmosphereService.ts(436,28): error TS2304: Cannot find name 'prisma'.
+server/services/stadiumAtmosphereService.ts(484,24): error TS2304: Cannot find name 'prisma'.
+server/services/stadiumAtmosphereService.ts(487,27): error TS2304: Cannot find name 'prisma'.
+server/services/standingsUpdateService.ts(99,52): error TS2339: Property 'calculateGameOutcome' does not exist on type 'typeof EnhancedStatisticsService'.
+server/services/standingsUpdateService.ts(100,52): error TS2339: Property 'calculateGameOutcome' does not exist on type 'typeof EnhancedStatisticsService'.
+server/services/statsService.ts(550,33): error TS2304: Cannot find name 'prisma'.
+server/services/statsService.ts(576,46): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+server/services/statsService.ts(576,52): error TS7006: Parameter 'curr' implicitly has an 'any' type.
+server/services/statsService.ts(577,45): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+server/services/statsService.ts(577,51): error TS7006: Parameter 'curr' implicitly has an 'any' type.
+server/services/statsService.ts(579,47): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+server/services/statsService.ts(579,53): error TS7006: Parameter 'curr' implicitly has an 'any' type.
+server/services/statsService.ts(580,50): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+server/services/statsService.ts(580,56): error TS7006: Parameter 'curr' implicitly has an 'any' type.
+server/services/statsService.ts(581,50): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+server/services/statsService.ts(581,56): error TS7006: Parameter 'curr' implicitly has an 'any' type.
+server/services/statsService.ts(664,27): error TS2304: Cannot find name 'prisma'.
+server/services/statsService.ts(714,29): error TS2304: Cannot find name 'prisma'.
+server/services/teamStatisticsIntegrityService.ts(132,13): error TS2353: Object literal may only specify known properties, and 'goalsFor' does not exist in type '{ points: number; wins: number; losses: number; draws: number; pointsFor: number; pointsAgainst: number; gamesPlayed: number; pointsDifference: number; }'.
+server/services/teamStatisticsIntegrityService.ts(199,13): error TS2353: Object literal may only specify known properties, and 'goalsFor' does not exist in type '{ points: number; wins: number; losses: number; draws: number; pointsFor: number; pointsAgainst: number; gamesPlayed: number; pointsDifference: number; }'.
+server/services/tournamentBracketValidator.ts(17,32): error TS2304: Cannot find name 'prisma'.
+server/services/tournamentBracketValidator.ts(76,32): error TS2304: Cannot find name 'prisma'.
+server/services/tournamentBracketValidator.ts(116,17): error TS2304: Cannot find name 'prisma'.
+server/services/tournamentBracketValidator.ts(142,19): error TS2304: Cannot find name 'prisma'.
+server/services/tournamentFlowService.ts(88,63): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/services/tournamentRecoveryService.ts(93,63): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/services/unifiedTournamentAutomation.ts(94,63): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/services/webSocketService.ts(174,74): error TS2339: Property 'gameTime' does not exist on type 'never'.
+server/services/webSocketService.ts(174,104): error TS2339: Property 'homeScore' does not exist on type 'never'.
+server/services/webSocketService.ts(174,127): error TS2339: Property 'awayScore' does not exist on type 'never'.
+server/services/webSocketService.ts(251,67): error TS2339: Property 'simulateMatch' does not exist on type 'typeof QuickMatchSimulation'.
+server/storage/teamStorage.ts(128,36): error TS2551: Property 'Contract' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'contract'?
+server/storage/teamStorage.ts(336,9): error TS2322: Type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; } | null' is not assignable to type '({ players: ({ contract: { length: number; id: number; salary: number; playerId: number | null; startDate: Date; staffId: number | null; signingBonus: number; } | null; skills: ({ ...; } & { ...; })[]; } & { ...; })[]; finances: { ...; } | null; staff: { ...; }[]; stadium: { ...; } | null; } & { ...; }) | null'.
+  Type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }' is not assignable to type '{ players: ({ contract: { length: number; id: number; salary: number; playerId: number | null; startDate: Date; staffId: number | null; signingBonus: number; } | null; skills: ({ skill: { ...; }; } & { ...; })[]; } & { ...; })[]; finances: { ...; } | null; staff: { ...; }[]; stadium: { ...; } | null; } & { ...; }'.
+    Type '{ id: number; name: string; points: number; tacticalFocus: TacticalFocus; camaraderie: number; createdAt: Date; division: number | null; fanLoyalty: number; subdivision: string | null; ... 8 more ...; draws: number; }' is missing the following properties from type '{ players: ({ contract: { length: number; id: number; salary: number; playerId: number | null; startDate: Date; staffId: number | null; signingBonus: number; } | null; skills: ({ skill: { ...; }; } & { ...; })[]; } & { ...; })[]; finances: { ...; } | null; staff: { ...; }[]; stadium: { ...; } | null; }': players, finances, staff, stadium
+server/storage/teamStorage.ts(337,20): error TS2561: Object literal may only specify known properties, but 'userId' does not exist in type 'TeamWhereInput'. Did you mean to write 'user'?
+server/storage/teamStorage.ts(364,15): error TS2561: Object literal may only specify known properties, but 'userId' does not exist in type 'Without<TeamUpdateInput, TeamUncheckedUpdateInput> & TeamUncheckedUpdateInput'. Did you mean to write 'user'?
+server/utils/queryOptimizationHelpers.ts(324,36): error TS2345: Argument of type 'any[]' is not assignable to parameter of type 'never[]'.
+  Type 'any' is not assignable to type 'never'.
+shared/types/complete.ts(5,3): error TS2305: Module '"@prisma/client"' has no exported member 'Player'.
+shared/types/complete.ts(6,3): error TS2305: Module '"@prisma/client"' has no exported member 'Team'.
+shared/types/complete.ts(7,3): error TS2305: Module '"@prisma/client"' has no exported member 'UserProfile'.
+shared/types/complete.ts(8,3): error TS2305: Module '"@prisma/client"' has no exported member 'Game'.
+shared/types/complete.ts(9,3): error TS2305: Module '"@prisma/client"' has no exported member 'TeamFinances'.
+shared/types/complete.ts(10,3): error TS2305: Module '"@prisma/client"' has no exported member 'Staff'.
+shared/types/complete.ts(11,3): error TS2305: Module '"@prisma/client"' has no exported member 'PlayerContract'.
+shared/types/complete.ts(12,3): error TS2305: Module '"@prisma/client"' has no exported member 'Equipment'.
+shared/types/complete.ts(13,3): error TS2305: Module '"@prisma/client"' has no exported member 'InventoryItem'.
+shared/types/complete.ts(14,3): error TS2305: Module '"@prisma/client"' has no exported member 'Tournament'.
+shared/types/complete.ts(15,3): error TS2305: Module '"@prisma/client"' has no exported member 'TournamentEntry'.
+shared/types/complete.ts(16,3): error TS2305: Module '"@prisma/client"' has no exported member 'MarketplaceListing'.
+shared/types/complete.ts(17,3): error TS2305: Module '"@prisma/client"' has no exported member 'Bid'.
+shared/types/complete.ts(18,3): error TS2305: Module '"@prisma/client"' has no exported member 'TradeOffer'.
+shared/types/complete.ts(19,3): error TS2305: Module '"@prisma/client"' has no exported member 'PlayerMatchStats'.
+shared/types/complete.ts(20,3): error TS2305: Module '"@prisma/client"' has no exported member 'TeamMatchStats'.
+shared/types/complete.ts(21,3): error TS2305: Module '"@prisma/client"' has no exported member 'Season'.
+shared/types/complete.ts(22,3): error TS2305: Module '"@prisma/client"' has no exported member 'Division'.
+shared/types/complete.ts(23,3): error TS2305: Module '"@prisma/client"' has no exported member 'Consumable'.
+shared/types/complete.ts(24,3): error TS2305: Module '"@prisma/client"' has no exported member 'TeamConsumable'.
+shared/types/complete.ts(25,3): error TS2305: Module '"@prisma/client"' has no exported member 'ConsumableEffect'.
+shared/types/complete.ts(26,3): error TS2305: Module '"@prisma/client"' has no exported member 'NewsItem'.
+shared/types/complete.ts(27,3): error TS2305: Module '"@prisma/client"' has no exported member 'Trophy'.
+shared/types/complete.ts(28,3): error TS2305: Module '"@prisma/client"' has no exported member 'TeamTrophy'.
+shared/types/complete.ts(29,3): error TS2305: Module '"@prisma/client"' has no exported member 'Notification'.
+shared/types/complete.ts(30,3): error TS2305: Module '"@prisma/client"' has no exported member 'AchievementProgress'.
+shared/types/complete.ts(31,3): error TS2305: Module '"@prisma/client"' has no exported member 'DailyChallenge'.
+shared/types/complete.ts(32,3): error TS2305: Module '"@prisma/client"' has no exported member 'PlayerInjury'.
+shared/types/complete.ts(33,3): error TS2305: Module '"@prisma/client"' has no exported member 'TradingCard'.
+shared/types/complete.ts(34,3): error TS2305: Module '"@prisma/client"' has no exported member 'TradingCardCollection'.
+shared/types/complete.ts(35,3): error TS2305: Module '"@prisma/client"' has no exported member 'StadiumUpgrade'.
+shared/types/complete.ts(36,3): error TS2305: Module '"@prisma/client"' has no exported member 'TeamStadiumUpgrade'.
+shared/types/complete.ts(37,3): error TS2305: Module '"@prisma/client"' has no exported member 'SponsorshipDeal'.
+shared/types/complete.ts(38,3): error TS2305: Module '"@prisma/client"' has no exported member 'TeamSponsorship'.
+shared/types/complete.ts(39,3): error TS2305: Module '"@prisma/client"' has no exported member 'DraftPick'.
+shared/types/complete.ts(40,3): error TS2305: Module '"@prisma/client"' has no exported member 'ScoutingReport'.
+shared/types/complete.ts(41,3): error TS2305: Module '"@prisma/client"' has no exported member 'TrainingSession'.
+shared/types/complete.ts(42,3): error TS2305: Module '"@prisma/client"' has no exported member 'PlayerTraining'.
+shared/types/complete.ts(361,3): error TS2305: Module '"@prisma/client"' has no exported member 'GameStatus'.
+shared/types/complete.ts(362,3): error TS2305: Module '"@prisma/client"' has no exported member 'MatchType'.
+shared/types/complete.ts(363,3): error TS2305: Module '"@prisma/client"' has no exported member 'StaffType'.
+shared/types/complete.ts(364,3): error TS2305: Module '"@prisma/client"' has no exported member 'TournamentStatus'.
+shared/types/complete.ts(365,3): error TS2305: Module '"@prisma/client"' has no exported member 'ListingStatus'.
+shared/types/complete.ts(366,3): error TS2305: Module '"@prisma/client"' has no exported member 'BidStatus'.
+shared/types/complete.ts(367,3): error TS2305: Module '"@prisma/client"' has no exported member 'TradeStatus'.
+shared/types/complete.ts(368,3): error TS2305: Module '"@prisma/client"' has no exported member 'NotificationType'.
+shared/types/complete.ts(369,3): error TS2305: Module '"@prisma/client"' has no exported member 'InjuryType'.
+shared/types/complete.ts(370,3): error TS2305: Module '"@prisma/client"' has no exported member 'ConsumableType'.
+shared/types/complete.ts(371,3): error TS2305: Module '"@prisma/client"' has no exported member 'EffectType'.
+shared/types/complete.ts(372,3): error TS2305: Module '"@prisma/client"' has no exported member 'TrophyType'.
+shared/types/complete.ts(373,3): error TS2305: Module '"@prisma/client"' has no exported member 'Race'.
+shared/types/complete.ts(374,3): error TS2305: Module '"@prisma/client"' has no exported member 'FieldSize'.
+shared/types/complete.ts(375,3): error TS2305: Module '"@prisma/client"' has no exported member 'TacticalFocus'.
+shared/types/index.ts(10,1): error TS2308: Module './complete' has already exported a member named 'TournamentEntry'. Consider explicitly re-exporting to resolve the ambiguity.
+shared/types/index.ts(13,1): error TS2308: Module './complete' has already exported a member named 'PlayerMatchStats'. Consider explicitly re-exporting to resolve the ambiguity.
+shared/types/index.ts(13,1): error TS2308: Module './complete' has already exported a member named 'TeamMatchStats'. Consider explicitly re-exporting to resolve the ambiguity.

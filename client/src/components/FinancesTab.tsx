@@ -9,55 +9,9 @@ import { Coins, Gem, TrendingUp, TrendingDown, DollarSign, Users, Calendar, File
 import { useQuery } from '@tanstack/react-query';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import PaymentHistory from './PaymentHistory';
-
-interface Team {
-  id: number;
-  name: string;
-  finances: {
-    credits: string;
-    gems: string;
-    escrowCredits: string;
-    escrowGems: string;
-    projectedIncome: string;
-    projectedExpenses: string;
-    lastSeasonRevenue: string;
-    lastSeasonExpenses: string;
-  };
-  players: Player[];
-  staff: Staff[];
-}
-
-interface Player {
-  id: number;
-  firstName: string;
-  lastName: string;
-  role: string;
-  salary?: number;
-  contractLength?: number;
-  contractStartDate?: string;
-}
-
-interface Staff {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  name?: string;
-  type: string;
-  salary?: number;
-  contractLength?: number;
-  contractStartDate?: string;
-}
-
-interface Contract {
-  id: number;
-  playerId?: number;
-  staffId?: number;
-  salary: string;
-  length: number;
-  startDate: string;
-  player?: Player;
-  staff?: Staff;
-}
+import type { Player, Team, Staff, Contract, TeamWithFinances } from '@shared/types/models';
+import type { TeamWithDetails, PlayerWithContract, StaffWithContract } from '@/lib/api/apiTypes';
+import { teamQueries } from '@/lib/api/queries';
 
 type TimeframeType = 'current' | 'last_season' | 'projected';
 
@@ -66,34 +20,35 @@ export default function FinancesTab() {
   const [timeframe, setTimeframe] = useState<TimeframeType>('current');
 
   // Fetch unified team data (includes finances, players, staff)
-  const { data: team } = useQuery<Team>({
-    queryKey: ["/api/teams/my"],
-  });
+  const { data: teamData } = useQuery(teamQueries.myTeam());
+  const team = teamData as TeamWithDetails | undefined;
 
   // Convert players and staff to contract format for unified display
   const contracts: Contract[] = [
-    ...(team?.players || []).map(player => ({
-      id: player.id,
-      playerId: player.id,
-      salary: (player.salary || 0).toString(),
-      length: player.contractLength || 0,
-      startDate: player.contractStartDate || new Date().toISOString(),
-      player: player
+    ...(team?.players || []).map((player: PlayerWithContract) => ({
+      id: Number(player.id),
+      playerId: Number(player.id),
+      salary: Number(player?.salary || 0),
+      length: player?.contractLength || 0,
+      yearsRemaining: player?.contractLength || 0,
+      signedAt: player?.signedAt || new Date().toISOString(),
+      player: player as Player
     })),
-    ...(team?.staff || []).map(staff => ({
-      id: staff.id + 10000, // Offset to avoid ID conflicts
-      staffId: staff.id,
-      salary: (staff.salary || 0).toString(),
-      length: staff.contractLength || 0,
-      startDate: staff.contractStartDate || new Date().toISOString(),
-      staff: staff
+    ...(team?.staff || []).map((staff: StaffWithContract) => ({
+      id: Number(staff.id) + 10000, // Offset to avoid ID conflicts
+      playerId: Number(staff.id),
+      salary: Number(staff?.salary || 0),
+      length: staff?.contractLength || 0,
+      yearsRemaining: staff?.contractLength || 0,
+      signedAt: new Date().toISOString(), // Staff doesn't have signedAt property
+      staff: staff // Add staff reference to Contract
     }))
   ];
 
-  const credits = parseInt(team?.finances?.credits || '0');
-  const gems = parseInt(team?.finances?.gems || '0');
-  const projectedIncome = parseInt(team?.finances?.projectedIncome || '0');
-  const projectedExpenses = parseInt(team?.finances?.projectedExpenses || '0');
+  const credits = Number((team as TeamWithFinances)?.finances?.credits ?? 0);
+  const gems = Number((team as TeamWithFinances)?.finances?.gems ?? 0);
+  const projectedIncome = Number((team as TeamWithFinances)?.finances?.projectedIncome ?? 0);
+  const projectedExpenses = Number((team as TeamWithFinances)?.finances?.projectedExpenses ?? 0);
   const netIncome = projectedIncome - projectedExpenses;
 
   return (
@@ -129,7 +84,7 @@ export default function FinancesTab() {
           gems={gems} 
           netIncome={netIncome}
           timeframe={timeframe}
-          teamFinances={team?.finances}
+          teamFinances={(team as TeamWithFinances)?.finances}
         />}
         {activeSubTab === 'contracts' && <ContractsTab contracts={contracts || []} />}
         {activeSubTab === 'transaction-log' && <TransactionLogTab />}
@@ -368,8 +323,8 @@ function ExpenseItem({ label, amount, trend }: { label: string; amount: number; 
 function ContractsTab({ contracts }: { contracts: Contract[] }) {
   const [expandedContract, setExpandedContract] = useState<number | null>(null);
 
-  const playerContracts = contracts.filter(c => c.playerId);
-  const staffContracts = contracts.filter(c => c.staffId);
+  const playerContracts = contracts.filter(c => c.id < 10000); // Player contracts have ID < 10000
+  const staffContracts = contracts.filter(c => c.id >= 10000); // Staff contracts have ID >= 10000
 
   return (
     <div className="space-y-6">
@@ -447,11 +402,11 @@ function ContractRow({
   onToggle: () => void; 
 }) {
   const name = contract.player ? 
-    `${contract.player.firstName} ${contract.player.lastName}` : 
+    `${contract.player?.firstName} ${contract.player?.lastName}` : 
     contract.staff?.name || 'Unknown';
   
   const role = contract.player?.role || contract.staff?.type || 'Unknown';
-  const salary = parseInt(contract.salary || '0');
+  const salary = Number(contract.salary || 0);
   const yearsRemaining = contract.length;
   const totalCommitment = salary * yearsRemaining;
 
@@ -481,7 +436,7 @@ function ContractRow({
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-400">Start Date:</span>
-              <div className="text-white">{new Date(contract.startDate).toLocaleDateString()}</div>
+              <div className="text-white">{new Date(contract.signedAt).toLocaleDateString()}</div>
             </div>
             <div>
               <span className="text-gray-400">Annual Salary:</span>

@@ -4,6 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Globe, Trophy, TrendingUp, Users, Crown, Star, Award } from "lucide-react";
+import { worldQueryOptions } from "@/lib/api/queryOptions";
+import type { Team, League } from '@shared/types/models';
+
 
 // Division naming utilities
 const DIVISION_NAMES = {
@@ -36,10 +39,9 @@ function getDivisionColor(division: number): string {
 }
 
 function UniversalTeamPowerRankings() {
-  const { data: rankings, isLoading } = useQuery<any>({
-    queryKey: ["/api/world/global-rankings"],
-    refetchInterval: 60000, // Refresh every minute
-  });
+  const { data: rankings, isLoading } = useQuery(
+    worldQueryOptions.globalRankings(true) // authenticated = true
+  );
 
   if (isLoading) {
     return (
@@ -131,10 +133,9 @@ function UniversalTeamPowerRankings() {
 }
 
 function WorldStatisticsDashboard() {
-  const { data: statistics, isLoading } = useQuery<any>({
-    queryKey: ["/api/world/statistics"],
-    refetchInterval: 60000,
-  });
+  const { data: statistics, isLoading } = useQuery(
+    worldQueryOptions.statistics()
+  );
 
   if (isLoading) {
     return (
@@ -270,7 +271,7 @@ function WorldStatisticsDashboard() {
                     {index + 1}
                   </div>
                   <div>
-                    <p className="font-medium">{player.name}</p>
+                    <p className="font-medium">{`${player.firstName} ${player.lastName}`}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {player.team?.name} • {player.race} {player.role}
                     </p>

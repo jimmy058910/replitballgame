@@ -11,6 +11,8 @@
  */
 
 import moment from 'moment-timezone';
+import type { League } from '@shared/types/models';
+
 import { 
   EASTERN_TIMEZONE, 
   LEAGUE_GAME_START_HOUR, 

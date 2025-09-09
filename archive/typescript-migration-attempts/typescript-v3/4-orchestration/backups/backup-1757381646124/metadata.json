@@ -1,0 +1,13 @@
+{
+  "id": "backup-1757381646124",
+  "timestamp": "2025-09-09T01:34:06.127Z",
+  "description": "Before v3.0 Iteration 1 - Baseline: 1026 errors",
+  "errorCount": 1026,
+  "errorBreakdown": {},
+  "files": [
+    "shared/types/models.ts",
+    "client/src/lib/api/queryOptions.ts",
+    "client/src/lib/api/apiTypes.ts",
+    "client/src/lib/api/typeGuards.ts"
+  ]
+}

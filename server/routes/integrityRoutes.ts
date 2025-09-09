@@ -13,6 +13,8 @@ import { z } from 'zod';
 import logger from '../utils/logger.js';
 import { TeamStatisticsIntegrityService } from '../services/enhancedStatisticsService.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -113,7 +115,7 @@ router.post('/sync/team/:teamId', asyncHandler(async (req: Request, res: Respons
       success: false,
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Team statistics sync failed',
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
   }
 }));
@@ -139,8 +141,8 @@ router.post('/sync/division/:division', asyncHandler(async (req: Request, res: R
     const summary = {
       totalTeams: results.length,
       teamsWithDiscrepancies: results.filter(r => r.discrepanciesFound.length > 0).length,
-      totalGamesProcessed: results.reduce((sum, r) => sum + r.gamesProcessed, 0),
-      totalDiscrepancies: results.reduce((sum, r) => sum + r.discrepanciesFound.length, 0)
+      totalGamesProcessed: results.reduce((sum: any, r: any) => sum + r.gamesProcessed, 0),
+      totalDiscrepancies: results.reduce((sum: any, r: any) => sum + r.discrepanciesFound.length, 0)
     };
     
     logger.info('[IntegrityAPI] Division statistics sync completed', {
@@ -190,7 +192,7 @@ router.post('/sync/division/:division', asyncHandler(async (req: Request, res: R
       success: false,
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Division statistics sync failed',
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
   }
 }));
@@ -235,7 +237,7 @@ router.get('/health', asyncHandler(async (req: Request, res: Response) => {
       success: false,
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Health check failed',
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
   }
 }));
@@ -306,7 +308,7 @@ router.post('/fix/oakland-cougars', asyncHandler(async (req: Request, res: Respo
       success: false,
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Oakland Cougars fix failed',
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
   }
 }));

@@ -23,6 +23,8 @@ import { matchStorage } from '../storage/matchStorage.js';
 import { storage } from '../storage/index.js';
 import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
 import { calculateGameRevenue, calculateAttendance } from '../../shared/stadiumSystem.js';
+import type { Player, Team, Stadium } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -33,15 +35,15 @@ const router = Router();
 /**
  * Serialize BigInt values to strings for JSON responses
  */
-function serializeBigInt(obj: any): any {
+function serializeNumber(obj: any): any {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj === 'bigint') return obj.toString();
   if (obj instanceof Date) return obj.toISOString();
-  if (Array.isArray(obj)) return obj.map(serializeBigInt);
+  if (Array.isArray(obj)) return obj.map(serializeNumber);
   if (typeof obj === 'object') {
     const result: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      result[key] = serializeBigInt(value);
+      result[key] = serializeNumber(value);
     }
     return result;
   }
@@ -168,11 +170,11 @@ router.get('/:matchId/stadium-data', async (req: Request, res: Response, next: N
       match.homeTeam.division || 8,
       0, // winStreak - could be calculated from recent matches
       50, // opponentQuality - could be calculated from opponent stats
-      match.matchType === 'PLAYOFF' || match.matchType === 'FINAL',
+      match.matchType === 'PLAYOFF', // || match.matchType === 'FINAL',
       'good' // weather - could be randomized or from system
     );
 
-    const revenue = match.matchType === 'LEAGUE' || match.matchType === 'PLAYOFF' || match.matchType === 'FINAL'
+    const revenue = match.matchType === 'LEAGUE' || match.matchType === 'PLAYOFF' // || match.matchType === 'FINAL'
       ? calculateGameRevenue(stadium, attendanceData.attendance, match.homeTeam.fanLoyalty || 50)
       : {
           tickets: 0,
@@ -188,8 +190,8 @@ router.get('/:matchId/stadium-data', async (req: Request, res: Response, next: N
       capacity: stadium.capacity,
       attendance: attendanceData.attendance,
       fanLoyalty: match.homeTeam.fanLoyalty || 50,
-      atmosphere: attendanceData.atmosphere,
-      revenue: serializeBigInt(revenue),
+      atmosphere: (attendanceData as any).atmosphere || 'good',
+      revenue: serializeNumber(revenue),
       facilities: {
         concessions: stadium.concessionsLevel,
         parking: stadium.parkingLevel,
@@ -197,7 +199,7 @@ router.get('/:matchId/stadium-data', async (req: Request, res: Response, next: N
         merchandising: stadium.merchandisingLevel,
         lighting: stadium.lightingScreensLevel
       },
-      factors: attendanceData.factors
+      factors: (attendanceData as any).factors || {}
     };
     
     res.json(stadiumData);
@@ -248,7 +250,7 @@ router.get('/live', requireAuth, async (req: any, res: Response, next: NextFunct
     
     res.json({
       success: true,
-      matches: serializeBigInt(liveMatches)
+      matches: serializeNumber(liveMatches)
     });
   } catch (error) {
     console.error("Error fetching live matches:", error);
@@ -329,7 +331,7 @@ router.get('/:matchId', async (req: Request, res: Response, next: NextFunction) 
       return res.status(404).json({ message: "Match not found" });
     }
     
-    res.json(serializeBigInt(match));
+    res.json(serializeNumber(match));
   } catch (error) {
     console.error("Error fetching match details:", error);
     next(error);
@@ -412,7 +414,7 @@ router.get('/:matchId/enhanced-data', async (req: Request, res: Response, next: 
       }
     };
     
-    res.json(serializeBigInt(enhancedData));
+    res.json(serializeNumber(enhancedData));
   } catch (error) {
     console.error("Error fetching enhanced match data:", error);
     next(error);
@@ -486,11 +488,11 @@ router.post('/:id/simulate', requireAuth, async (req: any, res: Response, next: 
     }
     
     const quickSim = new QuickMatchSimulation();
-    const result = await quickSim.simulateMatch(parseInt(id));
+    const result = await quickSim.runQuickSimulation(parseInt(id));
     
     res.json({
       success: true,
-      result: serializeBigInt(result),
+      result: serializeNumber(result),
       message: `Match completed: ${result.homeTeam.name} ${result.homeScore} - ${result.awayScore} ${result.awayTeam.name}`
     });
   } catch (error) {
@@ -516,11 +518,11 @@ router.post('/:id/quick-simulate', requireAuth, async (req: any, res: Response, 
     }
     
     const quickSim = new QuickMatchSimulation();
-    const result = await quickSim.simulateMatch(parseInt(id));
+    const result = await quickSim.runQuickSimulation(parseInt(id));
     
     res.json({
       success: true,
-      result: serializeBigInt(result),
+      result: serializeNumber(result),
       stats: {
         duration: result.gameTime,
         totalActions: result.playerMatchStats?.length || 0
@@ -592,7 +594,7 @@ router.post('/start/:matchId', async (req: Request, res: Response) => {
     
     res.json({
       success: true,
-      match: serializeBigInt(match)
+      match: serializeNumber(match)
     });
   } catch (error) {
     console.error("Error starting match:", error);
@@ -617,12 +619,12 @@ router.post('/:matchId/complete-now', requireAuth, async (req: any, res: Respons
     }
     
     const quickSim = new QuickMatchSimulation();
-    const result = await quickSim.simulateMatch(parseInt(matchId));
+    const result = await quickSim.runQuickSimulation(parseInt(matchId));
     
     res.json({
       success: true,
       message: "Match completed successfully",
-      result: serializeBigInt(result)
+      result: serializeNumber(result)
     });
   } catch (error) {
     console.error("Error completing match:", error);
@@ -655,13 +657,13 @@ router.patch('/:id/complete', requireAuth, async (req: any, res: Response, next:
         homeScore: data.homeScore,
         awayScore: data.awayScore,
         gameTime: 60,
-        completedAt: new Date()
+        updatedAt: new Date()
       }
     });
     
     res.json({
       success: true,
-      match: serializeBigInt(match)
+      match: serializeNumber(match)
     });
   } catch (error) {
     console.error("Error completing match:", error);
@@ -709,7 +711,7 @@ router.post('/:matchId/reset', requireAuth, async (req: any, res: Response, next
     res.json({
       success: true,
       message: "Match reset successfully",
-      match: serializeBigInt(match)
+      match: serializeNumber(match)
     });
   } catch (error) {
     console.error("Error resetting match:", error);
@@ -765,12 +767,12 @@ router.get('/team/:teamId', requireAuth, async (req: Request, res: Response, nex
         take: parseInt(limit as string),
         skip: parseInt(offset as string)
       }),
-      prisma.game.count({ where })
+      await prisma.game.count({ where })
     ]);
     
     res.json({
       success: true,
-      matches: serializeBigInt(matches),
+      matches: serializeNumber(matches),
       pagination: {
         total,
         limit: parseInt(limit as string),
@@ -816,7 +818,7 @@ router.get('/next-league-game/:teamId', requireAuth, async (req: Request, res: R
     
     res.json({
       success: true,
-      match: serializeBigInt(nextMatch)
+      match: serializeNumber(nextMatch)
     });
   } catch (error) {
     console.error("Error fetching next league game:", error);
@@ -854,12 +856,12 @@ router.post('/exhibition/instant', requireAuth, async (req: any, res: Response, 
     
     // Instantly simulate it
     const quickSim = new QuickMatchSimulation();
-    const result = await quickSim.simulateMatch(match.id);
+    const result = await quickSim.runQuickSimulation(match.id);
     
     res.json({
       success: true,
       message: "Exhibition match created and simulated",
-      result: serializeBigInt(result)
+      result: serializeNumber(result)
     });
   } catch (error) {
     console.error("Error creating exhibition match:", error);
@@ -896,7 +898,7 @@ router.get('/:matchId/sync', requireAuth, async (req: Request, res: Response, ne
     
     res.json({
       success: true,
-      match: serializeBigInt(match),
+      match: serializeNumber(match),
       synchronized: true
     });
   } catch (error) {
@@ -913,7 +915,7 @@ router.get('/test', async (req: Request, res: Response) => {
   res.json({
     success: true,
     message: "Match system is operational",
-    timestamp: new Date().toISOString()
+    timestamp: new Date()
   });
 });
 
@@ -967,13 +969,13 @@ router.get('/matches/:matchId/stadium-data', async (req: Request, res: Response,
 // ============================================================================
 
 function calculateTeamStrength(team: any): number {
-  if (!team || !team.players) return 50;
+  if (!team || !team?.players) return 50;
   
-  const totalOverall = team.players.reduce((sum: number, player: any) => {
-    return sum + (player.overall || 50);
+  const totalOverall = team?.players.reduce((sum: number, player: any) => {
+    return sum + (((player.speed + player.power + player.throwing + player.catching + player.kicking) / 5) || 50);
   }, 0);
   
-  return Math.round(totalOverall / team.players.length);
+  return Math.round(totalOverall / team?.players.length);
 }
 
 function predictWinner(homeTeam: any, awayTeam: any): string {

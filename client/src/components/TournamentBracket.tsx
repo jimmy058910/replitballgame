@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, Clock, Users } from 'lucide-react';
 import { useLocation } from 'wouter';
+import type { Team } from '@shared/types/models';
+
 
 interface TournamentMatch {
   id: string;

@@ -19,8 +19,9 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-// @ts-expect-error TS2307
-import type { Team as SharedTeam, ScoutingReport as SharedScoutingReport, Player as SharedPlayer, Staff as SharedStaff } from "shared/schema";
+import type { Team as SharedTeam, ScoutingReport as SharedScoutingReport, Player as SharedPlayer, Staff as SharedStaff } from "@shared/types/models";
+import type { Player, Team, Staff, Stadium } from '@shared/types/models';
+
 
 // Client-side specific ScoutingReport
 interface ClientScoutingReportPlayerStats {
@@ -344,7 +345,7 @@ export default function Scouting() {
                       </CardHeader>
                       <CardContent>
                         <div className="grid gap-4">
-                          {scoutingReport.players.map((player: ClientScoutingReportPlayer, idx) => (
+                          {scoutingReport?.players.map((player: ClientScoutingReportPlayer, idx) => (
                             <div key={player.id || idx} className="p-4 bg-gray-700 rounded-lg">
                               <div className="flex justify-between items-start mb-3">
                                 <div>
@@ -352,8 +353,8 @@ export default function Scouting() {
                                     {player.firstName} {player.lastName}
                                   </h4>
                                   <div className="flex items-center gap-2 mt-1">
-                                    <Badge className={`${getRoleColor(player.position)} text-white text-xs`}>
-                                      {player.position}
+                                    <Badge className={`${getRoleColor(player.role)} text-white text-xs`}>
+                                      {player.role}
                                     </Badge>
                                     <span className="text-sm text-gray-400 capitalize">{player.race}</span>
                                     {player.age !== "Unknown" && (
@@ -361,12 +362,10 @@ export default function Scouting() {
                                     )}
                                   </div>
                                 </div>
-                                {/*
-                                 // @ts-expect-error TS2339 */}
+                                {/* */}
                                 {player.contract?.salary && (
                                   <div className="text-right">
-                                    {/*
-                                     // @ts-expect-error TS2339 */}
+                                    {/* */}
                                     <div className="text-sm text-yellow-400">{Number(player.contract.salary).toLocaleString()}₡</div>
                                     <div className="text-xs text-gray-400">Salary</div>
                                   </div>
@@ -528,7 +527,7 @@ export default function Scouting() {
                           ))}
                         </div>
                         
-                        {scoutingReport.finances && (
+                        {scoutingReport?.finances && (
                           <div className="mt-6 p-4 bg-gray-700 rounded-lg">
                             <h5 className="font-semibold text-white mb-3 flex items-center gap-2">
                               <DollarSign className="w-4 h-4" />
@@ -537,7 +536,7 @@ export default function Scouting() {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-400">Estimated Budget:</span>
-                                <span className="ml-2 text-yellow-400">{scoutingReport.finances.estimatedBudget}</span>
+                                <span className="ml-2 text-yellow-400">{scoutingReport?.finances.estimatedBudget}</span>
                               </div>
                             </div>
                           </div>

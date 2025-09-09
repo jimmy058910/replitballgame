@@ -3,6 +3,8 @@ import { storage } from '../storage/index.js'; // Adjusted path
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod"; // For validation
 import { getPrismaClient } from "../database.js";
+import type { Player, Team, Staff } from '@shared/types/models';
+
 // import { NotificationService } from '../services/notificationService.js'; // If needed for injury notifications
 
 const router = Router();
@@ -48,7 +50,7 @@ router.get('/team/:teamId', requireAuth, async (req: any, res: Response, next: N
     // TODO: Validate teamId format if necessary (e.g., UUID)
     // Optional: Check if user has permission to view this team's injuries
 
-    const teamPlayers = await storage.players.getPlayersByTeamId(parseInt(teamId));
+    const teamPlayers = await storage?.players.getPlayersByTeamId(parseInt(teamId));
     if (teamPlayers.length === 0) {
         return res.json([]); // No players, so no injuries
     }
@@ -80,7 +82,7 @@ router.post('/', requireAuth, async (req: any, res: Response, next: NextFunction
   try {
     const injuryData = createInjurySchema.parse(req.body);
 
-    const player = await storage.players.getPlayerById(parseInt(injuryData.playerId.toString()));
+    const player = await storage?.players.getPlayerById(parseInt(injuryData.playerId.toString()));
     if (!player || !player.teamId) { // Ensure player exists and belongs to a team
       return res.status(404).json({ message: "Player not found or not assigned to a team." });
     }
@@ -108,7 +110,7 @@ router.post('/', requireAuth, async (req: any, res: Response, next: NextFunction
     //     userId: team.userId, // Notify team owner
     //     type: 'player_injury',
     //     title: 'Player Injured!',
-    //     message: `${player.name} suffered a ${injuryData.injuryName} (${injuryData.severity}/10 severity). Expected recovery: ${injuryData.recoveryTime} days.`,
+    //     message: `${`${player.firstName} ${player.lastName}`} suffered a ${injuryData.injuryName} (${injuryData.severity}/10 severity). Expected recovery: ${injuryData.recoveryTime} days.`,
     //     priority: 'medium',
     //     actionUrl: `/team/${team.id}/injuries`
     //   });
@@ -219,7 +221,7 @@ router.get('/conditioning/:teamId', requireAuth, async (req: any, res: Response,
     // TODO: storage.getPlayerConditioningByTeam(teamId) needs to be implemented
     // This might involve fetching all players of a team and their conditioning stats.
     // For now, returning a placeholder.
-    const playersOnTeam = await storage.players.getPlayersByTeamId(parseInt(teamId));
+    const playersOnTeam = await storage?.players.getPlayersByTeamId(parseInt(teamId));
     const conditioningData = playersOnTeam.map((p: any) => ({
         playerId: p.id,
         playerName: p.name,

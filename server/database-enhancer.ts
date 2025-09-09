@@ -84,7 +84,7 @@ export class DatabaseEnhancer {
         
         if (season) {
           res.json({ 
-            currentDay: season.currentDay, 
+            currentDay: season?.currentDay, 
             seasonNumber: season.seasonNumber, 
             phase: season.phase,
             status: 'active' 

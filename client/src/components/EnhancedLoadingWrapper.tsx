@@ -140,8 +140,7 @@ export function createLazyComponent<P extends object>(
   
   return (props: P) => (
     <EnhancedLoadingWrapper {...options}>
-      {/*
-       // @ts-expect-error TS2322 */}
+      {/* */}
       <LazyComponent {...props} />
     </EnhancedLoadingWrapper>
   );
@@ -162,7 +161,7 @@ export const SmartLoader: React.FC<{
   level?: 'page' | 'component';
   minLoadTime?: number;
   enableRetry?: boolean;
-  onRetry?: () => void;
+  onRetry?: () => Promise<void> | void;
 }> = ({
   isLoading,
   error,
@@ -210,8 +209,7 @@ export const SmartLoader: React.FC<{
       <EnhancedLoadingWrapper
         level={level}
         enableRetry={enableRetry}
-        errorMessage={errorMessage}
-        // @ts-expect-error TS2322
+        errorMessage={errorMessage}
         onRetry={onRetry}
       >
         {children}
@@ -245,7 +243,7 @@ export const ProgressiveLoader: React.FC<{
   currentStep: number;
   isLoading: boolean;
   error?: Error | null;
-  onRetry?: () => void;
+  onRetry?: () => Promise<void> | void;
 }> = ({ steps, currentStep, isLoading, error, onRetry }) => {
   if (error) {
     return (

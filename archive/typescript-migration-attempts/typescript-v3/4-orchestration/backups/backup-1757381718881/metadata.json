@@ -1,0 +1,13 @@
+{
+  "id": "backup-1757381718881",
+  "timestamp": "2025-09-09T01:35:18.884Z",
+  "description": "Before: Import Consolidator - Fix missing imports",
+  "errorCount": 1026,
+  "errorBreakdown": {},
+  "files": [
+    "shared/types/models.ts",
+    "client/src/lib/api/queryOptions.ts",
+    "client/src/lib/api/apiTypes.ts",
+    "client/src/lib/api/typeGuards.ts"
+  ]
+}

@@ -1,5 +1,7 @@
 import { getPrismaClient } from '../db';
-import { PrismaClient, Player, Team } from "../db";
+import { PrismaClient } from "../db";
+import type { Player, Team, Staff } from '@shared/types/models';
+
 
 
 
@@ -143,7 +145,7 @@ export class ScoutingStorage {
 
     return {
       team: targetTeam,
-      players: targetTeam.players,
+      players: targetTeam?.players,
       scoutQuality
     };
   }

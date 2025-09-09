@@ -1,0 +1,100 @@
+client/src/components/ComprehensiveCompetitionCenter.tsx(58,23): error TS2440: Import declaration conflicts with local declaration of 'Team'.
+client/src/components/ComprehensiveCompetitionCenter.tsx(513,23): error TS2552: Cannot find name 'apiRequest'. Did you mean 'Request'?
+client/src/components/ComprehensiveCompetitionCenter.tsx(533,7): error TS2552: Cannot find name 'apiRequest'. Did you mean 'Request'?
+client/src/components/ComprehensiveCompetitionCenter.tsx(554,7): error TS2552: Cannot find name 'apiRequest'. Did you mean 'Request'?
+client/src/components/ComprehensiveCompetitionCenter.tsx(577,23): error TS2552: Cannot find name 'apiRequest'. Did you mean 'Request'?
+client/src/components/ComprehensiveCompetitionCenter.tsx(604,14): error TS2552: Cannot find name 'apiRequest'. Did you mean 'Request'?
+client/src/components/DramaticTeamHQ.tsx(816,82): error TS2339: Property 'projectedIncome' does not exist on type 'TeamFinances | { credits: bigint; gems: bigint; }'.
+  Property 'projectedIncome' does not exist on type '{ credits: bigint; gems: bigint; }'.
+client/src/components/DynamicMarketplaceManager.tsx(623,31): error TS2322: Type '{ player: Player; showDetailedStats: boolean; showActions: false; }' is not assignable to type 'IntrinsicAttributes & PlayerCardProps'.
+  Property 'showDetailedStats' does not exist on type 'IntrinsicAttributes & PlayerCardProps'.
+client/src/components/EnhancedLoadingWrapper.tsx(146,8): error TS2322: Type 'P' is not assignable to type 'IntrinsicAttributes & ((PropsWithoutRef<P> & RefAttributes<Component<P, any, any>>) | PropsWithRef<P>)'.
+  Type 'object' is not assignable to type 'IntrinsicAttributes & ((PropsWithoutRef<P> & RefAttributes<Component<P, any, any>>) | PropsWithRef<P>)'.
+    Type 'P' is not assignable to type 'IntrinsicAttributes & PropsWithRef<P>'.
+      Type 'object' is not assignable to type 'IntrinsicAttributes & PropsWithRef<P>'.
+        Type 'object' is not assignable to type 'PropsWithRef<P>'.
+          Type 'P' is not assignable to type 'PropsWithRef<P>'.
+            Type 'object' is not assignable to type 'PropsWithRef<P>'.
+client/src/components/EnhancedLoadingWrapper.tsx(216,9): error TS2322: Type '() => void' is not assignable to type '() => Promise<void>'.
+  Type 'void' is not assignable to type 'Promise<void>'.
+client/src/components/EnhancedMarketplace.tsx(300,46): error TS2339: Property 'sellerTeam' does not exist on type 'MarketplaceListing'.
+client/src/components/EnhancedMarketplace.tsx(378,34): error TS2339: Property 'auctionExtensions' does not exist on type 'MarketplaceListing'.
+client/src/components/EnhancedMarketplace.tsx(380,47): error TS2339: Property 'auctionExtensions' does not exist on type 'MarketplaceListing'.
+client/src/components/EnhancedMarketplace.tsx(380,79): error TS2339: Property 'auctionExtensions' does not exist on type 'MarketplaceListing'.
+client/src/components/EnhancedMarketplace.tsx(388,57): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'number'.
+  Type 'string' is not assignable to type 'number'.
+client/src/components/EnhancedMarketplace.tsx(398,62): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'number'.
+  Type 'string' is not assignable to type 'number'.
+client/src/components/EnhancedMarketplace.tsx(579,93): error TS2339: Property 'totalListings' does not exist on type '{ totalSales: number; totalPurchases: number; activeListings: number; activeBids: number; }'.
+client/src/components/EnhancedMarketplace.tsx(586,93): error TS2339: Property 'totalBids' does not exist on type '{ totalSales: number; totalPurchases: number; activeListings: number; activeBids: number; }'.
+client/src/components/EnhancedMarketplace.tsx(607,58): error TS2339: Property 'escrowAmount' does not exist on type '{ totalSales: number; totalPurchases: number; activeListings: number; activeBids: number; }'.
+client/src/components/FinancesTab.tsx(86,11): error TS2322: Type 'TeamFinances' is not assignable to type '{ credits: string; gems: string; escrowCredits: string; escrowGems: string; projectedIncome: string; projectedExpenses: string; lastSeasonRevenue: string; lastSeasonExpenses: string; }'.
+  Types of property 'credits' are incompatible.
+    Type 'string | number' is not assignable to type 'string'.
+      Type 'number' is not assignable to type 'string'.
+client/src/components/FinancesTab.tsx(326,50): error TS2339: Property 'staffId' does not exist on type 'Contract'.
+client/src/components/FinancesTab.tsx(405,14): error TS2339: Property 'staff' does not exist on type 'Contract'.
+client/src/components/FinancesTab.tsx(407,50): error TS2339: Property 'staff' does not exist on type 'Contract'.
+client/src/components/FinancesTab.tsx(438,62): error TS2339: Property 'startDate' does not exist on type 'Contract'.
+client/src/components/FinancialCenter.tsx(30,49): error TS2724: '"@shared/types/models"' has no exported member named 'PlayerContract'. Did you mean 'PlayerWithContract'?
+client/src/components/FinancialCenter.tsx(438,27): error TS2322: Type '{ teamId: string; }' is not assignable to type 'IntrinsicAttributes & PaymentHistoryProps'.
+  Property 'teamId' does not exist on type 'IntrinsicAttributes & PaymentHistoryProps'.
+client/src/components/GameSimulationUI.tsx(291,41): error TS2339: Property 'data' does not exist on type 'unknown'.
+client/src/components/GameSimulationUI.tsx(558,8): error TS2367: This comparison appears to be unintentional because the types '"paused" | "live" | "completed"' and '"FINISHED"' have no overlap.
+client/src/components/GameSimulationUI.tsx(871,53): error TS2339: Property 'text' does not exist on type 'MatchEvent'.
+client/src/components/InjuryStaminaManager.tsx(11,46): error TS2724: '"@shared/types/models"' has no exported member named 'PlayerInjuryStatus'. Did you mean 'InjuryStatus'?
+client/src/components/InjurySystem.tsx(286,69): error TS2339: Property 'role' does not exist on type '{ id: string; firstName: string; lastName: string; race: string; position: string; }'.
+client/src/components/InventoryDisplay.tsx(96,43): error TS2365: Operator '>' cannot be applied to types 'unknown' and 'number'.
+client/src/components/LandscapeOrientation.tsx(35,21): error TS2349: This expression is not callable.
+  Type '{}' has no call signatures.
+client/src/components/LineupRosterBoard.tsx(40,53): error TS2339: Property 'isStarter' does not exist on type 'Player'.
+client/src/components/LineupRosterBoard.tsx(42,51): error TS2339: Property 'isStarter' does not exist on type 'Player'.
+client/src/components/LineupRosterBoard.tsx(135,52): error TS2322: Type 'string | number' is not assignable to type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/LineupRosterBoard.tsx(176,52): error TS2322: Type 'string | number' is not assignable to type 'string'.
+  Type 'number' is not assignable to type 'string'.
+client/src/components/LiveMatchSimulation.tsx(110,15): error TS2578: Unused '@ts-expect-error' directive.
+client/src/components/LiveMatchSimulation.tsx(675,1): error TS2578: Unused '@ts-expect-error' directive.
+client/src/components/MobileRosterHQ.tsx(44,15): error TS2440: Import declaration conflicts with local declaration of 'Player'.
+client/src/components/MobileRosterHQ.tsx(44,23): error TS2440: Import declaration conflicts with local declaration of 'Team'.
+client/src/components/MobileRosterHQ.tsx(44,29): error TS2440: Import declaration conflicts with local declaration of 'Staff'.
+client/src/components/MobileRosterHQ.tsx(44,46): error TS2440: Import declaration conflicts with local declaration of 'Stadium'.
+client/src/components/MobileRosterHQ.tsx(328,21): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SetStateAction<"basic" | "advanced">'.
+client/src/components/MobileRosterHQ.tsx(605,12): error TS2339: Property 'signedAt' does not exist on type 'Player'.
+client/src/components/MobileRosterHQ.tsx(606,38): error TS2339: Property 'signedAt' does not exist on type 'Player'.
+client/src/components/NewNavigation.tsx(40,35): error TS2339: Property 'credits' does not exist on type 'Team'.
+client/src/components/NotificationSystem.tsx(136,47): error TS2367: This comparison appears to be unintentional because the types '"high" | "low" | "medium"' and '"urgent"' have no overlap.
+client/src/components/optimized/CachedMarketplaceListing.tsx(12,23): error TS2440: Import declaration conflicts with local declaration of 'MarketplaceListing'.
+client/src/components/optimized/CachedMarketplaceListing.tsx(70,13): error TS2322: Type '"marketplace"' is not assignable to type '"roster" | "recruiting" | "dashboard"'.
+client/src/components/optimized/OptimizedDashboard.tsx(16,45): error TS2307: Cannot find module './DashboardSections/RecentMatches' or its corresponding type declarations.
+client/src/components/optimized/OptimizedDashboard.tsx(18,44): error TS2307: Cannot find module './DashboardSections/TeamOverview' or its corresponding type declarations.
+client/src/components/optimized/OptimizedDashboard.tsx(20,45): error TS2307: Cannot find module './DashboardSections/UpcomingGames' or its corresponding type declarations.
+client/src/components/optimized/OptimizedDashboard.tsx(22,43): error TS2307: Cannot find module './DashboardSections/Tournaments' or its corresponding type declarations.
+client/src/components/optimized/OptimizedDashboard.tsx(24,45): error TS2307: Cannot find module './DashboardSections/Notifications' or its corresponding type declarations.
+client/src/components/optimized/OptimizedDashboard.tsx(26,44): error TS2307: Cannot find module './DashboardSections/QuickActions' or its corresponding type declarations.
+client/src/components/PlayerListingModal.tsx(53,35): error TS2339: Property 'firstName' does not exist on type 'PlayerForListing'.
+client/src/components/PlayerListingModal.tsx(53,55): error TS2339: Property 'lastName' does not exist on type 'PlayerForListing'.
+client/src/components/PlayerListingModal.tsx(111,59): error TS2339: Property 'firstName' does not exist on type 'PlayerForListing'.
+client/src/components/PlayerListingModal.tsx(111,79): error TS2339: Property 'lastName' does not exist on type 'PlayerForListing'.
+client/src/components/PlayerListingModal.tsx(131,37): error TS2339: Property 'staminaAttribute' does not exist on type 'PlayerForListing'.
+client/src/components/PlayerSkillsManager.tsx(252,61): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+client/src/components/PlayerSkillsManager.tsx(257,56): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+client/src/components/PlayerSkillsManager.tsx(282,56): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'SetStateAction<string>'.
+  Type 'number' is not assignable to type 'SetStateAction<string>'.
+client/src/components/PlayerSkillsManager.tsx(291,37): error TS2339: Property 'playerSkills' does not exist on type 'Player'.
+client/src/components/PlayerSkillsManager.tsx(444,63): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+client/src/components/PlayerSkillsManager.tsx(470,63): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+client/src/components/PlayerSkillsManager.tsx(475,58): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+client/src/components/PlayerSkillsManager.tsx(492,54): error TS2339: Property 'playerSkills' does not exist on type 'Player'.
+client/src/components/PlayerSkillsManager.tsx(501,38): error TS2339: Property 'playerSkills' does not exist on type 'Player'.
+client/src/components/PlayerSkillsManager.tsx(501,83): error TS2339: Property 'playerSkills' does not exist on type 'Player'.
+client/src/components/PostMatchSummary.tsx(201,64): error TS2339: Property 'firstName' does not exist on type '{ name: string; contribution: string; }'.
+client/src/components/PostMatchSummary.tsx(201,84): error TS2339: Property 'lastName' does not exist on type '{ name: string; contribution: string; }'.
+client/src/components/PriorityPanels.tsx(341,75): error TS2339: Property 'firstName' does not exist on type 'PlayerSpotlight'.
+client/src/components/PriorityPanels.tsx(341,95): error TS2339: Property 'lastName' does not exist on type 'PlayerSpotlight'.
+client/src/components/QuickStatsBar.tsx(57,5): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<SeasonalCycle, Error, SeasonalCycle, QueryKey>, queryClient?: QueryClient): DefinedUseQueryResult<...>', gave the following error.
+    Type '() => Promise<unknown>' is not assignable to type 'unique symbol | QueryFunction<SeasonalCycle, QueryKey, never>'.
+      Type '() => Promise<unknown>' is not assignable to type 'QueryFunction<SeasonalCycle, QueryKey, never>'.
+        Type 'Promise<unknown>' is not assignable to type 'SeasonalCycle | Promise<SeasonalCycle>'.
+          Type 'Promise<unknown>' is not assignable to type 'Promise<SeasonalCycle>'.

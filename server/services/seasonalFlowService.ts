@@ -1,8 +1,10 @@
 import { PrismaClient } from "../db";
 // Note: Using any types for Prisma enums to avoid import issues
-import { getPrismaClient } from '../database.js';
+import { DatabaseService } from '../database/DatabaseService.js';
 import { logInfo, logError } from './errorService.js';
 import { EASTERN_TIMEZONE, getEasternTimeAsDate } from '../../shared/timezone.js';
+import type { Player, Team, League } from '@shared/types/models';
+
 
 // Note: Prisma client will be initialized in each function as needed
 // Removed top-level await to fix TypeScript compilation errors
@@ -76,7 +78,7 @@ export class SeasonalFlowService {
    * Get current day in the season cycle (1-17) - DYNAMIC VERSION
    */
   static async getCurrentDay(): Promise<number> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get the current season from database
     const currentSeason = await prisma.season.findFirst({
@@ -108,7 +110,7 @@ export class SeasonalFlowService {
    */
   static async isTeamInDivisionPlayoffs(teamId: string): Promise<boolean> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       // Get team info
       const team = await prisma.team.findUnique({
         where: { id: parseInt(teamId, 10) },
@@ -153,7 +155,7 @@ export class SeasonalFlowService {
       matches: number;
     }>;
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get the actual season ID from database instead of hardcoded format
     const currentSeason = await prisma.season.findFirst({
@@ -247,7 +249,7 @@ export class SeasonalFlowService {
     const numTeams = teams.length;
     
     // Get current season start date from database
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await prisma.season.findFirst({
       where: { seasonNumber: season },
       orderBy: { createdAt: 'desc' }
@@ -292,7 +294,7 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       await prisma.game.createMany({
         data: matches
       });
@@ -318,7 +320,7 @@ export class SeasonalFlowService {
     }
     
     // Get current season start date from database
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await prisma.season.findFirst({
       where: { seasonNumber: season },
       orderBy: { createdAt: 'desc' }
@@ -365,7 +367,7 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       await prisma.game.createMany({
         data: matches
       });
@@ -452,7 +454,7 @@ export class SeasonalFlowService {
     const matches = [];
     
     // Get current season start date from database
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await prisma.season.findFirst({
       where: { seasonNumber: season },
       orderBy: { createdAt: 'desc' }
@@ -516,7 +518,7 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       await prisma.game.createMany({
         data: matches
       });
@@ -539,7 +541,7 @@ export class SeasonalFlowService {
   }> {
     console.log(`🔧 Fixing schedule for Division ${division}, Season ${season}`);
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     // Get the league for this division
     const seasonId = `season-${season}-2025`;
     const league = await prisma.league.findFirst({
@@ -607,7 +609,7 @@ export class SeasonalFlowService {
     }
     
     // Get current season start date from database
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const currentSeason = await prisma.season.findFirst({
       where: { seasonNumber: season },
       orderBy: { createdAt: 'desc' }
@@ -651,7 +653,7 @@ export class SeasonalFlowService {
     
     // Insert matches into database
     if (matches.length > 0) {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       await prisma.game.createMany({
         data: matches as any
       });
@@ -717,7 +719,7 @@ export class SeasonalFlowService {
     awayTeamUpdate: any;
     standingsUpdated: boolean;
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     // Get match details
     const matchData = await prisma.game.findUnique({
       where: { id: parseInt(matchId, 10) }
@@ -797,7 +799,7 @@ export class SeasonalFlowService {
     playoffTeams: any[];
     relegatedTeams: any[];
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     // Get league info
     const league = await prisma.league.findUnique({
       where: { id: parseInt(leagueId, 10) }
@@ -863,7 +865,7 @@ export class SeasonalFlowService {
   static async getTeamsWithStats(leagueId: string, season: number): Promise<any[]> {
     // This would need to aggregate match data for each team
     // For now, return basic team data - can be enhanced with actual match statistics
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const league = await prisma.league.findUnique({
       where: { id: parseInt(leagueId, 10) }
     });
@@ -952,7 +954,7 @@ export class SeasonalFlowService {
     }>;
     totalPlayoffMatches: number;
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     // Get the actual season ID from database instead of hardcoded format
     const currentSeason = await prisma.season.findFirst({
       where: { seasonNumber: season },
@@ -1161,7 +1163,7 @@ export class SeasonalFlowService {
    * Step 1: Division 1 Relegation - Bottom 6 teams relegated
    */
   static async processDivision1Relegation(season: number, relegations: any[]): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const division1Teams = await prisma.team.findMany({
       where: { division: 1 },
       orderBy: [
@@ -1192,7 +1194,7 @@ export class SeasonalFlowService {
    * Step 2: Division 2 Promotion - 2 teams from each of 3 sub-divisions
    */
   static async processDivision2Promotion(season: number, promotions: any[]): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     // Get Division 2 subdivisions
     const division2Subdivisions = await prisma.team.groupBy({
       by: ['subdivision'],
@@ -1236,7 +1238,7 @@ export class SeasonalFlowService {
    * Step 3a: Division 2 Relegation - Bottom 4 teams from each 16-team subdivision
    */
   static async processDivision2Relegation(season: number, relegations: any[]): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const division2Subdivisions = await prisma.team.groupBy({
       by: ['subdivision'],
       where: { division: 2 },
@@ -1295,7 +1297,7 @@ export class SeasonalFlowService {
    * Step 4: Standardized Cascade for Divisions 3-8 using Subdivision-Based System
    */
   static async processStandardizedCascade(season: number, promotions: any[], relegations: any[]): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Process divisions 3-8 with new subdivision-based promotion system
     for (let division = 3; division <= this.SEASON_CONFIG.MAX_DIVISION; division++) {
@@ -1357,7 +1359,7 @@ export class SeasonalFlowService {
    * Implements the user's desired AI filling system for balanced subdivisions
    */
   static async promoteTeamsWithAIFilling(promotedTeams: any[], targetDivision: number, promotions: any[]): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const TEAMS_PER_SUBDIVISION = 8;
     
     console.log(`[AI FILLING] Promoting ${promotedTeams.length} teams to Division ${targetDivision}`);
@@ -1418,7 +1420,7 @@ export class SeasonalFlowService {
    * Create an AI team for filling incomplete subdivisions
    */
   static async createAITeam(division: number, subdivision: string): Promise<any> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Generate AI team name
     const aiTeamNames = [
@@ -1492,7 +1494,7 @@ export class SeasonalFlowService {
    * If same team wins both, Regular Season runner-up gets promoted instead
    */
   static async getSubdivisionPromotedTeams(division: number, season: number): Promise<any[]> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const subdivisions = await prisma.team.groupBy({
       by: ['subdivision'],
       where: { division },
@@ -1549,7 +1551,7 @@ export class SeasonalFlowService {
    * Get playoff winner for a specific subdivision
    */
   static async getSubdivisionPlayoffWinner(division: number, subdivision: string, season: number): Promise<any> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     try {
       // Find the tournament for this division/subdivision
@@ -1593,7 +1595,7 @@ export class SeasonalFlowService {
     division: number;
     leagueId: string;
   }>> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     // Get all championship matches (would need to be created after semifinals)
     const championshipMatches = await prisma.game.findMany({
       where: {
@@ -1633,7 +1635,7 @@ export class SeasonalFlowService {
     teamsRedistributed: number;
     newLeaguesCreated: number;
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     let leaguesRebalanced = 0;
     let teamsRedistributed = 0;
     let newLeaguesCreated = 0;
@@ -1754,7 +1756,7 @@ export class SeasonalFlowService {
       freeAgentsGenerated: number;
     };
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const newSeason = currentSeason + 1;
     logInfo(`Starting Day 17→1 transition: Season rollover for Season ${currentSeason} → ${newSeason}`);
     
@@ -1832,7 +1834,7 @@ export class SeasonalFlowService {
         contractsProcessed: contractResult.contractsProcessed,
         totalSalaryPaid: contractResult.totalSalaryPaid.toString(),
         contractsExpired: contractResult.contractsExpired,
-        playersToMarketplace: contractResult.playersToMarketplace,
+        playersToMarketplace: contractResult?.playersToMarketplace,
         freeAgentsGenerated: contractResult.freeAgentsGenerated
       }
     };
@@ -1851,7 +1853,7 @@ export class SeasonalFlowService {
       statValue: number;
     }>;
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     try {
       const { awardsService } = await import('./awardsService');
       
@@ -1919,7 +1921,7 @@ export class SeasonalFlowService {
       prizeType: string;
     }>;
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     try {
       const distributions = [];
       let totalPrizeMoney = 0;
@@ -1980,7 +1982,7 @@ export class SeasonalFlowService {
 
           if (prizeAmount > 0 && team) {
             // Award prize money
-            const currentCredits = team.finances ? Number(team.finances.credits) : 0;
+            const currentCredits = team?.finances ? Number(team?.finances.credits) : 0;
             await prisma.teamFinances.update({
               where: { teamId: team.id },
               data: {
@@ -2028,7 +2030,7 @@ export class SeasonalFlowService {
     totalAIPlayersDeleted: number;
     totalAIUserProfilesDeleted: number;
   }> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     try {
       logInfo('Starting AI team cleanup...');
       
@@ -2113,7 +2115,7 @@ export class SeasonalFlowService {
           await prisma.contract.deleteMany({
             where: { 
               playerId: { 
-                in: team.players.map((p: any) => p.id) 
+                in: team?.players.map((p: any) => p.id) 
               } 
             }
           });
@@ -2122,7 +2124,7 @@ export class SeasonalFlowService {
           await prisma.playerSkillLink.deleteMany({
             where: { 
               playerId: { 
-                in: team.players.map((p: any) => p.id) 
+                in: team?.players.map((p: any) => p.id) 
               } 
             }
           });
@@ -2215,8 +2217,8 @@ export class SeasonalFlowService {
             data: { awayTeamId: placeholderTeam.id }
           });
           
-          logInfo(`Cleaned up team ${team.id} (${team.name}) and its ${team.players.length} players`);
-          totalAIPlayersDeleted += team.players.length;
+          logInfo(`Cleaned up team ${team.id} (${team.name}) and its ${team?.players.length} players`);
+          totalAIPlayersDeleted += team?.players.length;
         }
         
         // Delete all AI teams for this profile

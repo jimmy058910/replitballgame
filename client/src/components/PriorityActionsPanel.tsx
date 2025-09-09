@@ -8,6 +8,8 @@ import {
   Play, Users, Zap, Target, ExternalLink 
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import type { Team } from '@shared/types/models';
+
 
 interface CriticalAlerts {
   injuries: number;

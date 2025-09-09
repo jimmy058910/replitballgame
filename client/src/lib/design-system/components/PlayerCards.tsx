@@ -3,6 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { StarRating } from '@/components/StarRating';
+import type { Player, Contract } from '@shared/types/models';
+
 
 /**
  * Unified Player Card Components

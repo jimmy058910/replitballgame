@@ -8,19 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Zap, Pill, Activity, AlertTriangle, Package, Beaker } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  injuryStatus: string;
-  injuryRecoveryPointsCurrent: number;
-  injuryRecoveryPointsNeeded: number;
-  staminaAttribute: number;
-  dailyStaminaLevel: number;
-  dailyItemsUsed: number;
-}
+
 
 interface InventoryItem {
   id: string;
@@ -41,12 +31,10 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
   const queryClient = useQueryClient();
   const [selectedPlayer, setSelectedPlayer] = useState<string>("");
 
-  // Fetch team injury/stamina status
-  // @ts-expect-error TS2304
-  const { data: teamStatus, isLoading } = useQuery<{ players: PlayerInjuryStatus[] }>({
-    queryKey: ['/api/injury-stamina/team', teamId, 'status'],
-    // @ts-expect-error TS2304
-    queryFn: () => apiRequest<{ players: PlayerInjuryStatus[] }>(`/api/injury-stamina/team/${teamId}/status`),
+  // Fetch team injury/stamina status
+  const { data: teamStatus, isLoading } = useQuery<{ players: Player[] }>({
+    queryKey: ['/api/injury-stamina/team', teamId, 'status'],
+    queryFn: () => apiRequest<{ players: Player[] }>(`/api/injury-stamina/team/${teamId}/status`),
   });
 
   // Fetch system statistics
@@ -224,7 +212,7 @@ export function InjuryStaminaManager({ teamId }: InjuryStaminaManagerProps) {
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
                         <AlertTriangle className="h-4 w-4" />
-                        <Badge className={getInjuryStatusColor(player.injuryStatus)}>
+                        <Badge className={getInjuryStatusColor(player.injuryStatus || 'Healthy')}>
                           {player.injuryStatus}
                         </Badge>
                       </div>

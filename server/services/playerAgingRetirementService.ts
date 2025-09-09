@@ -1,5 +1,7 @@
 import { getPrismaClient } from "../database.js";
 import { StaffType } from "../db";
+import type { Player } from '@shared/types/models';
+
 
 export class PlayerAgingRetirementService {
 

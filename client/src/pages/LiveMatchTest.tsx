@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TextBasedMatchViewer } from '../components/TextBasedMatchViewer';
 import { useAuth } from '../providers/AuthProvider';
+import type { Player, Team, Stadium } from '@shared/types/models';
+
 
 interface Match {
   id: string;
@@ -38,14 +40,10 @@ export function LiveMatchTest() {
   });
 
   // Fetch user's recent matches for testing
-  const { data: recentMatches } = useQuery({
-    // @ts-expect-error TS2339
-    queryKey: ['/api/matches/recent', user?.team?.id],
-    // @ts-expect-error TS2339
+  const { data: recentMatches } = useQuery({
+    queryKey: ['/api/matches/recent', user?.team?.id],
     enabled: !!user?.team?.id
-  });
-
-  // @ts-expect-error TS2488
+  });
   const availableMatches = [...(matches || []), ...(recentMatches || [])].slice(0, 10);
 
   const startLiveMatch = async (match: Match) => {
@@ -77,8 +75,7 @@ export function LiveMatchTest() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          // @ts-expect-error TS2339
+        body: JSON.stringify({
           teamId: user?.team?.id
         }),
       });

@@ -5,19 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Users, TrendingUp, TrendingDown, Heart, Shield, Star, Award } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Users, TrendingUp, TrendingDown, Heart, Shield, Star, Award, Loader2 } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
-
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  position: string;
-  camaraderie: number;
-  yearsOnTeam: number;
-  age: number;
-}
+import type { Player, Team, Contract } from '@shared/types/models';
 
 interface CamaraderieEffects {
   teamCamaraderie: number;
@@ -78,10 +68,14 @@ const getCamaraderieStatusBadge = (status: string) => {
 export default function Camaraderie() {
   const queryClient = useQueryClient();
 
-  // Get team camaraderie summary
+  // Get team camaraderie summary - modernized query
   const { data: summary, isLoading: summaryLoading } = useQuery({
     queryKey: ['/api/camaraderie/summary'],
-    queryFn: () => apiRequest('/api/camaraderie/summary')
+    queryFn: async () => {
+      const response = await apiRequest('/api/camaraderie/summary');
+      return response as CamaraderieSummary;
+    },
+    staleTime: 60 * 1000, // 1 minute
   });
 
   // Trigger end-of-season update (admin only for testing)
@@ -119,8 +113,7 @@ export default function Camaraderie() {
     );
   }
 
-  // @ts-expect-error TS2339
-  const { effects } = summary;
+  const { effects } = summary || { effects: null };
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
@@ -147,12 +140,8 @@ export default function Camaraderie() {
             <Heart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {/*
-             // @ts-expect-error TS2339 */}
-            <div className="text-2xl font-bold">{Math.round(summary.averageCamaraderie)}</div>
-            {/*
-             // @ts-expect-error TS2339 */}
-            <Progress value={summary.averageCamaraderie} className="mt-2" />
+            <div className="text-2xl font-bold">{Math.round(summary?.averageCamaraderie || 0)}</div>
+            <Progress value={summary?.averageCamaraderie || 0} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">
               {getCamaraderieStatusBadge(effects.status)}
             </p>
@@ -165,9 +154,7 @@ export default function Camaraderie() {
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            {/*
-             // @ts-expect-error TS2339 */}
-            <div className="text-2xl font-bold text-green-600">{summary.highCamaraderieCount}</div>
+            <div className="text-2xl font-bold text-green-600">{summary?.highCamaraderieCount || 0}</div>
             <p className="text-xs text-muted-foreground">
               Players with 70+ camaraderie
             </p>
@@ -180,9 +167,7 @@ export default function Camaraderie() {
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            {/*
-             // @ts-expect-error TS2339 */}
-            <div className="text-2xl font-bold text-red-600">{summary.lowCamaraderieCount}</div>
+            <div className="text-2xl font-bold text-red-600">{summary?.lowCamaraderieCount || 0}</div>
             <p className="text-xs text-muted-foreground">
               Players with &lt;40 camaraderie
             </p>
@@ -315,13 +300,11 @@ export default function Camaraderie() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {/*
-               // @ts-expect-error TS2339 */}
-              {summary.topPlayers.map((player: Player) => (
+              {(summary?.topPlayers || []).map((player: Player) => (
                 <div key={player.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <div className="font-medium">{player.firstName} {player.lastName}</div>
-                    <div className="text-sm text-gray-600">{player.position} • {player.yearsOnTeam} years on team</div>
+                    <div className="text-sm text-gray-600">{player.role} • {player.yearsOnTeam} years on team</div>
                   </div>
                   <div className="text-right">
                     <div className={`text-lg font-bold ${getCamaraderieColor(player.camaraderie)}`}>
@@ -331,9 +314,7 @@ export default function Camaraderie() {
                   </div>
                 </div>
               ))}
-              {/*
-               // @ts-expect-error TS2339 */}
-              {summary.topPlayers.length === 0 && (
+              {(summary?.topPlayers?.length === 0 || !summary?.topPlayers) && (
                 <p className="text-gray-500 text-center py-4">No standout performers yet</p>
               )}
             </div>
@@ -351,13 +332,11 @@ export default function Camaraderie() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {/*
-               // @ts-expect-error TS2339 */}
-              {summary.concernPlayers.map((player: Player) => (
+              {(summary?.concernPlayers || []).map((player: Player) => (
                 <div key={player.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                   <div>
                     <div className="font-medium">{player.firstName} {player.lastName}</div>
-                    <div className="text-sm text-gray-600">{player.position} • {player.yearsOnTeam} years on team</div>
+                    <div className="text-sm text-gray-600">{player.role} • {player.yearsOnTeam} years on team</div>
                   </div>
                   <div className="text-right">
                     <div className={`text-lg font-bold ${getCamaraderieColor(player.camaraderie)}`}>
@@ -367,9 +346,7 @@ export default function Camaraderie() {
                   </div>
                 </div>
               ))}
-              {/*
-               // @ts-expect-error TS2339 */}
-              {summary.concernPlayers.length === 0 && (
+              {(summary?.concernPlayers?.length === 0 || !summary?.concernPlayers) && (
                 <p className="text-gray-500 text-center py-4">No concerning players - great team chemistry!</p>
               )}
             </div>

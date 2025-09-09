@@ -14,6 +14,8 @@
 
 import { getPrismaClient } from '../database.js';
 import { TeamStatisticsCalculator } from '../services/enhancedStatisticsService.js';
+import type { Team } from '@shared/types/models';
+
 
 interface TeamDiscrepancy {
   teamId: number;

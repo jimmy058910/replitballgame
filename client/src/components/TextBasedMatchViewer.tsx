@@ -10,6 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useQuery } from '@tanstack/react-query';
 import { webSocketManager } from '@/websocket/webSocketManager';
 import { LiveMatchState, MatchEvent } from '@/../../shared/types/LiveMatchState';
+import type { Player, Team, Stadium } from '@shared/types/models';
+
 
 interface TextBasedMatchViewerProps {
   matchId: string;

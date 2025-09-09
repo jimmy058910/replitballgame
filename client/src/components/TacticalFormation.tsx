@@ -7,6 +7,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { Player } from '@shared/types/models';
+
 // Centralized player role function
 const getPlayerRole = (player: any): string => {
   if (!player) return "Player";
@@ -164,7 +166,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
       if (player && formation.length < 6) {
         const newFormationPlayer: FormationPlayer = {
           id: player.id,
-          name: player.name,
+          name: `${player.firstName} ${player.lastName}`,
           role: getPlayerRole(player),
           position: { x, y },
           isStarter: true,
@@ -198,7 +200,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
     if (player && formation.length < 6) {
       const newFormationPlayer: FormationPlayer = {
         id: player.id,
-        name: player.name,
+        name: `${player.firstName} ${player.lastName}`,
         role: getPlayerRole(player),
         position: { x, y },
         isStarter: true,
@@ -410,20 +412,20 @@ export default function TacticalFormation({ players, savedFormation, onFormation
                       'bg-red-500 border-red-300'
                     } text-white hover:scale-110 transition-transform`}
                     style={{
-                      left: player.position.x,
-                      top: player.position.y
+                      left: player.role.x,
+                      top: player.role.y
                     }}
                     draggable
                     onDragStart={(e) => handleDragStart(player.id, e)}
-                    title={`${player.name} (${player.role}) - Click to remove`}
+                    title={`${`${player.firstName} ${player.lastName}`} (${player.role}) - Click to remove`}
                     onClick={(e) => {
                       e.stopPropagation();
                       removeFromFormation(player.id);
                     }}
                   >
-                    {player.name.charAt(0).toUpperCase()}
+                    {`${player.firstName} ${player.lastName}`.charAt(0).toUpperCase()}
                     <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs bg-black bg-opacity-75 text-white px-1 rounded text-center whitespace-nowrap">
-                      {player.name.split(' ')[0]}
+                      {`${player.firstName} ${player.lastName}`.split(' ')[0]}
                     </div>
                   </div>
                 ))}
@@ -494,7 +496,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="font-medium flex items-center gap-2 text-gray-900">
-                                {player.name}
+                                {`${player.firstName} ${player.lastName}`}
                                 {isSelected && (
                                   <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
                                     Selected
@@ -555,7 +557,7 @@ export default function TacticalFormation({ players, savedFormation, onFormation
                     return (
                       <div key={playerId} className="flex items-center justify-between p-2 border rounded">
                         <div>
-                          <div className="font-medium">{player.name}</div>
+                          <div className="font-medium">{`${player.firstName} ${player.lastName}`}</div>
                           <div className="text-sm text-gray-500">{getPlayerRole(player)}</div>
                         </div>
                         <Select

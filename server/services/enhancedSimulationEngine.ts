@@ -28,6 +28,8 @@ import {
 import logger from '../utils/logger.js';
 import { z } from 'zod';
 import type { Prisma } from '@prisma/client';
+import type { Player, Team } from '@shared/types/models';
+
 
 // ============================================================================
 // CONSTANTS & CONFIGURATION
@@ -507,21 +509,21 @@ export class EnhancedSimulationEngine {
     
     // Generate player statistics
     const playerStats = await this.generatePlayerStats(
-      match.homeTeam.players,
-      match.awayTeam.players,
+      match.homeTeam?.players,
+      match.awayTeam?.players,
       finalScore,
       events
     );
 
     // Process injuries
     const injuries = this.processInjuries(
-      [...match.homeTeam.players, ...match.awayTeam.players],
+      [...match.homeTeam?.players, ...match.awayTeam?.players],
       events
     );
 
     // Calculate stamina changes
     const staminaChanges = this.calculateStaminaChanges(
-      [...match.homeTeam.players, ...match.awayTeam.players]
+      [...match.homeTeam?.players, ...match.awayTeam?.players]
     );
 
     // Calculate revenue
@@ -568,9 +570,9 @@ export class EnhancedSimulationEngine {
    * Calculate team strength
    */
   private static async calculateTeamStrength(team: any, prisma: any): Promise<number> {
-    if (!team || !team.players) return 50;
+    if (!team || !team?.players) return 50;
 
-    const players = team.players;
+    const players = team?.players;
     const avgSkills = players.reduce((sum: number, p: any) => {
       const skills = (p.passing + p.rushing + p.blocking + p.tackling + 
                      p.catching + p.kicking + p.punting + p.punt_returning) / 8;
@@ -591,8 +593,8 @@ export class EnhancedSimulationEngine {
    */
   private static async getTeamTacticalInfo(team: any): Promise<TeamTacticalInfo> {
     return {
-      fieldSize: team.fieldSize || 'Standard',
-      tacticalFocus: team.tacticalFocus || 'Balanced',
+      fieldSize: team?.fieldSize || 'Standard',
+      tacticalFocus: team?.tacticalFocus || 'Balanced',
       aggressionLevel: team.aggressionLevel || 50
     };
   }
@@ -729,8 +731,8 @@ export class EnhancedSimulationEngine {
     return {
       playerId: player.id.toString(),
       teamId: player.teamId.toString(),
-      playerName: player.name,
-      position: player.position,
+      playerName: `${player.firstName} ${player.lastName}`,
+      position: player.role,
       minutesPlayed,
       passes: Math.floor(involvement * 30),
       completions: Math.floor(involvement * 25),
@@ -758,7 +760,7 @@ export class EnhancedSimulationEngine {
         
         injuries.push({
           playerId: player.id.toString(),
-          playerName: player.name,
+          playerName: `${player.firstName} ${player.lastName}`,
           severity,
           daysOut: this.calculateInjuryDuration(severity),
           description: this.generateInjuryDescription(severity)
@@ -818,7 +820,7 @@ export class EnhancedSimulationEngine {
 
       return {
         playerId: player.id.toString(),
-        playerName: player.name,
+        playerName: `${player.firstName} ${player.lastName}`,
         staminaBefore,
         staminaAfter,
         fatigueLevel: staminaAfter > 70 ? 'fresh' : staminaAfter > 40 ? 'tired' : 'exhausted'
@@ -855,7 +857,7 @@ export class EnhancedSimulationEngine {
   private static determineMVP(playerStats: PlayerMatchStats[]): string {
     if (playerStats.length === 0) return 'Unknown Player';
 
-    const mvp = playerStats.reduce((best, current) => 
+    const mvp = playerStats.reduce((best: any, current: any) => 
       current.performanceRating > best.performanceRating ? current : best
     );
 

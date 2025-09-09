@@ -2,38 +2,39 @@ import { useQuery } from "@tanstack/react-query";
 import LeagueStandings from "@/components/LeagueStandings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { apiRequest } from "@/lib/queryClient";
-// @ts-expect-error TS2307
-import type { Team, Match as SharedMatch } from "shared/schema"; // Renamed Match to avoid conflict
+import { teamQueryOptions } from '@/lib/api/queryOptions';
+import type { Player, Team, Staff, Contract, TeamFinances, Stadium, League, Notification, MarketplaceListing, MarketplaceBid } from '@shared/types/models';
 
-// Use SharedMatch for match data
-interface Match extends SharedMatch {
-  // Add any additional client-side specific fields if necessary in the future
+// Define Match interface for client-side use
+interface Match {
+  id: string | number;
+  homeTeamId: number;
+  awayTeamId: number;
+  homeTeam?: Team;
+  awayTeam?: Team;
+  homeScore?: number;
+  awayScore?: number;
+  status?: string;
+  scheduledTime?: string | Date;
+  matchType?: string;
+  tournamentId?: number;
+  seasonId?: number;
 }
 
 export default function League() {
-  const teamQuery = useQuery({
-    queryKey: ["myTeam"],
-    queryFn: (): Promise<Team> => apiRequest("/api/teams/my"),
-  });
+  const teamQuery = useQuery(teamQueryOptions.myTeamLegacy());
   const team = teamQuery.data as Team | undefined;
   const isLoadingTeam = teamQuery.isLoading;
 
-  const matchesQuery = useQuery({
-    queryKey: ["teamMatches", team?.id],
-    queryFn: (): Promise<Match[]> => apiRequest(`/api/team-matches`),
-    enabled: !!team?.id,
-  });
+  const matchesQuery = useQuery(teamQueryOptions.teamMatches(team?.id));
   const matches = matchesQuery.data as Match[] | undefined;
   // const isLoadingMatches = matchesQuery.isLoading; // If needed for a loading state for matches
 
   const upcomingMatches = matches?.filter((match: Match) =>
-    // @ts-expect-error TS2339
     match.status === "scheduled"
   ).slice(0, 5) || [];
 
   const recentMatches = matches?.filter((match: Match) =>
-    // @ts-expect-error TS2339
     match.status === "completed"
   ).slice(0, 5) || [];
 
@@ -80,27 +81,22 @@ export default function League() {
               <div className="space-y-4">
                 {upcomingMatches.length > 0 ? (
                   upcomingMatches.map((match: Match) => (
-                    // @ts-expect-error TS2339
                     <div key={match.id} className="bg-gray-700 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-400">
-                          {/*
-                           // @ts-expect-error TS2339 */}
+                          
                           {match.scheduledTime ? new Date(match.scheduledTime).toLocaleDateString() : 'TBD'}
                         </span>
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        
                         <Badge variant={match.matchType === "tournament" ? "default" : "secondary"}>
-                          {/*
-                           // @ts-expect-error TS2339 */}
+                          
                           {match.matchType?.toUpperCase() || 'N/A'}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="text-center">
                           <div className="font-semibold text-primary-400">
-                            {/*
-                             // @ts-expect-error TS2339 */}
+                            
                             {match.homeTeamId === team?.id ? team?.name : "Opponent"}
                           </div>
                           <div className="text-xs text-gray-400">HOME</div>
@@ -108,8 +104,7 @@ export default function League() {
                         <div className="text-gray-500 font-bold">VS</div>
                         <div className="text-center">
                           <div className="font-semibold">
-                            {/*
-                             // @ts-expect-error TS2339 */}
+                            
                             {match.awayTeamId === team?.id ? team?.name : "Opponent"}
                           </div>
                           <div className="text-xs text-gray-400">AWAY</div>
@@ -137,60 +132,48 @@ export default function League() {
             <div className="space-y-4">
               {recentMatches.length > 0 ? (
                 recentMatches.map((match: Match) => (
-                  // @ts-expect-error TS2339
                   <div key={match.id} className="bg-gray-700 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-400">
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        
                         {match.completedAt ? new Date(match.completedAt).toLocaleDateString() : 'N/A'}
                       </span>
-                      {/*
-                       // @ts-expect-error TS2339 */}
+                      
                       <Badge variant={match.matchType === "tournament" ? "default" : "secondary"}>
-                        {/*
-                         // @ts-expect-error TS2339 */}
+                        
                         {match.matchType?.toUpperCase() || 'N/A'}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-center">
                         <div className="font-semibold">
-                          {/*
-                           // @ts-expect-error TS2339 */}
+                          
                           {match.homeTeamId === team?.id ? team?.name : "Opponent"}
                         </div>
                         <div className="text-2xl font-bold text-primary-400">
-                          {/*
-                           // @ts-expect-error TS2339 */}
+                          
                           {match.homeScore ?? '-'}
                         </div>
                       </div>
                       <div className="text-gray-500 font-bold">-</div>
                       <div className="text-center">
                         <div className="font-semibold">
-                          {/*
-                           // @ts-expect-error TS2339 */}
+                          
                           {match.awayTeamId === team?.id ? team?.name : "Opponent"}
                         </div>
                         <div className="text-2xl font-bold text-red-400">
-                          {/*
-                           // @ts-expect-error TS2339 */}
+                          
                           {match.awayScore ?? '-'}
                         </div>
                       </div>
                     </div>
                     {/* Result indicator */}
                     <div className="mt-3 text-center">
-                      {/*
-                       // @ts-expect-error TS2339 */}
+                      
                       {match.homeScore !== null && match.awayScore !== null && team?.id && (
-                        // @ts-expect-error TS2339
                         ((match.homeTeamId === team.id && match.homeScore > match.awayScore) ||
-                         // @ts-expect-error TS2339
                          (match.awayTeamId === team.id && match.awayScore > match.homeScore)) ? (
                           <Badge className="bg-green-600 text-white">WIN</Badge>
-                        // @ts-expect-error TS2339
                         ) : match.homeScore === match.awayScore ? (
                           <Badge className="bg-yellow-600 text-white">DRAW</Badge>
                         ) : (

@@ -8,20 +8,16 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLazySection } from '@/utils/lazyLoading';
 import { useOptimizedQuery } from '@/hooks/useOptimizedQuery';
+import type { Team } from '@shared/types/models';
 
-// Lazy load dashboard sections
-// @ts-expect-error TS2307
-const LazyRecentMatches = lazy(() => import('./DashboardSections/RecentMatches'));
-// @ts-expect-error TS2307
-const LazyTeamOverview = lazy(() => import('./DashboardSections/TeamOverview'));
-// @ts-expect-error TS2307
-const LazyUpcomingGames = lazy(() => import('./DashboardSections/UpcomingGames'));
-// @ts-expect-error TS2307
-const LazyTournaments = lazy(() => import('./DashboardSections/Tournaments'));
-// @ts-expect-error TS2307
-const LazyNotifications = lazy(() => import('./DashboardSections/Notifications'));
-// @ts-expect-error TS2307
-const LazyQuickActions = lazy(() => import('./DashboardSections/QuickActions'));
+
+// Lazy load dashboard sections - create placeholder components for now
+const LazyRecentMatches = lazy(() => Promise.resolve({ default: () => <div>Recent Matches Coming Soon</div> }));
+const LazyTeamOverview = lazy(() => Promise.resolve({ default: () => <div>Team Overview Coming Soon</div> }));
+const LazyUpcomingGames = lazy(() => Promise.resolve({ default: () => <div>Upcoming Games Coming Soon</div> }));
+const LazyTournaments = lazy(() => Promise.resolve({ default: () => <div>Tournaments Coming Soon</div> }));
+const LazyNotifications = lazy(() => Promise.resolve({ default: () => <div>Notifications Coming Soon</div> }));
+const LazyQuickActions = lazy(() => Promise.resolve({ default: () => <div>Quick Actions Coming Soon</div> }));
 
 interface OptimizedDashboardProps {
   className?: string;

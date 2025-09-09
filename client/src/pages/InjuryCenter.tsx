@@ -1,9 +1,9 @@
 import { useAuth } from "@/providers/AuthProvider";
 import { useQuery } from "@tanstack/react-query";
 import InjuryManagement from "@/components/InjuryManagement";
-import { apiRequest } from "@/lib/queryClient"; // Import apiRequest
-// @ts-expect-error TS2307
-import type { Team } from "shared/schema"; // Import Team type
+import { apiRequest } from "@/lib/queryClient"; // Import apiRequest
+import type { Team } from '@shared/types/models';
+
 
 export default function InjuryCenter() {
   const { user } = useAuth();

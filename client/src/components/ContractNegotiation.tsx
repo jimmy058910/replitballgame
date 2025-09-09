@@ -6,23 +6,44 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-// Define player interface for contract negotiations
-interface PlayerForContract {
-  id: string;
-  firstName: string;
-  lastName: string;
-  race: string;
-  age: number;
-  salary?: number;
-  role?: string;
-  // Add other fields if used by this component like role, specific stats for negotiation basis etc.
+import type { Player } from "@shared/types/models";
+
+// API Response Types
+interface NegotiationResponse {
+  success: boolean;
+  negotiationResult: {
+    message: string;
+    counterOffer?: {
+      salary: number;
+      bonus: number;
+    };
+  };
+}
+
+interface ContractCalculationResponse {
+  contractCalc: {
+    marketValue: number;
+    minimumOffer: number;
+    startSeason: number;
+    endSeason: number;
+    signingBonus: number;
+  };
+  calculation?: any; // Legacy property
+  contractInfo?: any; // Legacy property
+}
+
+interface ContractFinalizationResponse {
+  accepted: boolean;
+  feedback?: string;
+  startSeason?: number;
+  endSeason?: number;
+  signingBonus?: number;
 }
 
 interface ContractNegotiationProps {
-  player: PlayerForContract | null; // Use a more specific player type
+  player: Player | null;
   isOpen: boolean;
   onClose: () => void;
-  // teamId?: string; // Removed as it's not used by the component based on previous analysis
 }
 
 const contractResponses = {
@@ -67,9 +88,12 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
   const queryClient = useQueryClient();
   
   // Fetch contract calculations from API
-  const { data: contractCalc, isLoading: isLoadingCalc } = useQuery({
+  const { data: contractCalc, isLoading: isLoadingCalc } = useQuery<ContractCalculationResponse>({
     queryKey: ['/api/players', player.id, 'contract-value'],
-    queryFn: () => apiRequest(`/api/players/${player.id}/contract-value`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/players/${player.id}/contract-value`);
+      return response as ContractCalculationResponse;
+    },
     enabled: !!player.id && isOpen,
   });
 
@@ -83,11 +107,11 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
 
   // Update initial offer when contract calculations load
   useEffect(() => {
-    if (contractCalc && (contractCalc as any)?.contractCalc) {
+    if (contractCalc?.contractCalc) {
       setCurrentOffer(prev => ({
         ...prev,
-        salary: (contractCalc as any).contractCalc.marketValue,
-        bonus: Math.round((contractCalc as any).contractCalc.marketValue * 0.2)
+        salary: contractCalc.contractCalc.marketValue,
+        bonus: Math.round(contractCalc.contractCalc.marketValue * 0.2)
       }));
     }
   }, [contractCalc]);
@@ -114,20 +138,17 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
   };
 
   const negotiateMutation = useMutation({
-    mutationFn: async (offer: typeof currentOffer) => {
+    mutationFn: async (offer: typeof currentOffer): Promise<NegotiationResponse> => {
       // Use the actual contract negotiations API endpoint
       const response = await apiRequest(`/api/players/${player.id}/negotiate`, "POST", {
         salary: offer.salary,
         seasons: offer.years
       });
       
-      return response;
+      return response as NegotiationResponse;
     },
-    onSuccess: (data) => {
-      // @ts-expect-error TS18046
-      setPlayerResponse(data.negotiationResult.message);
-      
-      // @ts-expect-error TS18046
+    onSuccess: (data) => {
+      setPlayerResponse(data.negotiationResult.message);
       if (data.success) {
         toast({
           title: "Contract Accepted!",
@@ -137,14 +158,11 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
         
         // Invalidate queries to refresh player data
         queryClient.invalidateQueries({ queryKey: ['/api/players'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
-      // @ts-expect-error TS18046
+        queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
       } else if (data.negotiationResult.counterOffer) {
-        setCurrentOffer({
-          // @ts-expect-error TS18046
+        setCurrentOffer({
           salary: data.negotiationResult.counterOffer.salary,
-          years: currentOffer.years,
-          // @ts-expect-error TS18046
+          years: currentOffer.years,
           bonus: data.negotiationResult.counterOffer.bonus
         });
         setNegotiationPhase('counter');
@@ -193,27 +211,21 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
             <p className="text-sm text-gray-500">{player.race} • Age {player.age}</p>
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline">
-                Current Salary: {(contractCalc as any)?.currentSalary ? `${(contractCalc as any).currentSalary.toLocaleString()}₡` : 'Loading...'}/season
+                Current Salary: {contractCalc?.contractCalc ? `${contractCalc.contractCalc.marketValue.toLocaleString()}₡` : 'Loading...'}/season
               </Badge>
-              {/*
-               // @ts-expect-error TS2339 */}
+              {/* */}
               {player.camaraderie !== undefined && (
                 <Badge
-                  variant={
-                    // @ts-expect-error TS2339
-                    player.camaraderie > 70 ? "default" :
-                    // @ts-expect-error TS2339
+                  variant={
+                    player.camaraderie > 70 ? "default" :
                     player.camaraderie < 30 ? "destructive" : "secondary"
                   }
-                  className={
-                    // @ts-expect-error TS2339
-                    player.camaraderie > 70 ? "bg-green-500 hover:bg-green-600" :
-                    // @ts-expect-error TS2339
+                  className={
+                    player.camaraderie > 70 ? "bg-green-500 hover:bg-green-600" :
                     player.camaraderie < 30 ? "bg-red-500 hover:bg-red-600" : ""
                   }
                 >
-                  {/*
-                   // @ts-expect-error TS2339 */}
+                  
                   Camaraderie: {player.camaraderie} ({getCamaraderieEffectDescription(player.camaraderie)})
                 </Badge>
               )}
@@ -221,18 +233,18 @@ export default function ContractNegotiation({ player, isOpen, onClose }: Contrac
           </div>
         </div>
 
-        {/* Contract Value Information */}
-        {contractCalc && (contractCalc as any).contractCalc && (
+        {/* Contract Value Information  */}
+        {contractCalc?.contractCalc && (
           <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
             <h4 className="font-medium mb-3">Player Value Assessment</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <label className="text-gray-500">Market Value</label>
-                <div className="font-semibold">₡{(contractCalc as any).contractCalc.marketValue.toLocaleString()}</div>
+                <div className="font-semibold">₡{contractCalc.contractCalc.marketValue.toLocaleString()}</div>
               </div>
               <div>
                 <label className="text-gray-500">Minimum Offer</label>
-                <div className="font-semibold">₡{(contractCalc as any).contractCalc.minimumOffer.toLocaleString()}</div>
+                <div className="font-semibold">₡{contractCalc.contractCalc.minimumOffer.toLocaleString()}</div>
               </div>
             </div>
           </div>

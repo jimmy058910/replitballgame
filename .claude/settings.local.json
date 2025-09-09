@@ -86,7 +86,12 @@
       "Bash(start http://localhost:5176/competition?tab=league)",
       "Bash(start http://localhost:5177/competition?tab=league)",
       "Bash(start http://localhost:5180/competition?tab=league)",
-      "Bash(claude mcp add:*)"
+      "Bash(claude mcp add:*)",
+      "Bash(awk:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "mcp__serena"
+      "mcp__playwright"
     ],
     "deny": [],
     "ask": []

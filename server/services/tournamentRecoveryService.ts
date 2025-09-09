@@ -90,7 +90,7 @@ export class TournamentRecoveryService {
           });
           
           // Use instant simulation
-          const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+          const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
           
           // Update match status and score immediately
           await prisma.game.update({

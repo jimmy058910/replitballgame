@@ -1,6 +1,7 @@
 import { getPrismaClient } from "../database.js";
-import type { Player, Staff, Contract, Team } from "../db";
 import { logInfo } from './errorService.js';
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
+
 
 export interface ContractProgressionResult {
   contractsProcessed: number;
@@ -38,7 +39,7 @@ export class ContractProgressionService {
     const result: ContractProgressionResult = {
       contractsProcessed: 0,
       salariesPaid: 0,
-      totalSalaryPaid: BigInt(0),
+      totalSalaryPaid: Number(0),
       contractsExpired: 0,
       playersToMarketplace: 0,
       staffToMarketplace: 0,
@@ -71,14 +72,14 @@ export class ContractProgressionService {
           const teamResult = await this.processTeamContracts(team);
           
           // Aggregate results
-          result.contractsProcessed += teamResult.playersWithContracts + teamResult.staffWithContracts;
-          result.salariesPaid += teamResult.playersWithContracts + teamResult.staffWithContracts;
+          result.contractsProcessed += teamResult?.playersWithContracts + teamResult.staffWithContracts;
+          result.salariesPaid += teamResult?.playersWithContracts + teamResult.staffWithContracts;
           result.totalSalaryPaid += teamResult.totalSalaryPaid;
           result.contractsExpired += teamResult.contractsExpired;
           result.freeAgentsGenerated += teamResult.freeAgentsGenerated;
           result.teamsProcessed++;
           
-          logInfo(`✅ Team ${team.name}: ${teamResult.playersWithContracts + teamResult.staffWithContracts} contracts processed, ${teamResult.totalSalaryPaid.toString()}₡ paid`);
+          logInfo(`✅ Team ${team.name}: ${teamResult?.playersWithContracts + teamResult.staffWithContracts} contracts processed, ${teamResult.totalSalaryPaid.toString()}₡ paid`);
           
         } catch (error) {
           const errorMsg = `Failed to process contracts for team ${team.name}: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -89,7 +90,7 @@ export class ContractProgressionService {
 
       // Process expired contracts marketplace placement
       const marketplaceResult = await this.processExpiredContractsToMarketplace();
-      result.playersToMarketplace = marketplaceResult.playersToMarketplace;
+      result?.playersToMarketplace = marketplaceResult?.playersToMarketplace;
       result.staffToMarketplace = marketplaceResult.staffToMarketplace;
 
       const duration = Date.now() - startTime;
@@ -97,7 +98,7 @@ export class ContractProgressionService {
         contractsProcessed: result.contractsProcessed,
         totalSalaryPaid: result.totalSalaryPaid.toString(),
         contractsExpired: result.contractsExpired,
-        playersToMarketplace: result.playersToMarketplace,
+        playersToMarketplace: result?.playersToMarketplace,
         freeAgentsGenerated: result.freeAgentsGenerated,
         teamsProcessed: result.teamsProcessed,
         errors: result.errors.length
@@ -122,20 +123,20 @@ export class ContractProgressionService {
       teamName: team.name,
       playersWithContracts: 0,
       staffWithContracts: 0,
-      totalSalaryPaid: BigInt(0),
+      totalSalaryPaid: Number(0),
       contractsExpired: 0,
       playersBelow12: false,
       freeAgentsGenerated: 0
     };
 
-    let totalSalaryToPay = BigInt(0);
+    let totalSalaryToPay = Number(0);
 
     // Process player contracts
-    for (const player of team.players) {
+    for (const player of team?.players) {
       if (player.contract) {
         const contractResult = await this.processPlayerContract(player);
-        summary.playersWithContracts++;
-        totalSalaryToPay += BigInt(contractResult.salaryPaid);
+        summary?.playersWithContracts++;
+        totalSalaryToPay += Number(contractResult.salaryPaid);
         
         if (contractResult.expired) {
           summary.contractsExpired++;
@@ -148,7 +149,7 @@ export class ContractProgressionService {
       if (staffMember.contract) {
         const contractResult = await this.processStaffContract(staffMember);
         summary.staffWithContracts++;
-        totalSalaryToPay += BigInt(contractResult.salaryPaid);
+        totalSalaryToPay += Number(contractResult.salaryPaid);
         
         if (contractResult.expired) {
           summary.contractsExpired++;
@@ -172,7 +173,7 @@ export class ContractProgressionService {
     });
 
     if (remainingPlayers < 12) {
-      summary.playersBelow12 = true;
+      summary?.playersBelow12 = true;
       const freeAgentsNeeded = 12 - remainingPlayers;
       summary.freeAgentsGenerated = await this.generateFreeAgentsForTeam(team.id, freeAgentsNeeded);
       
@@ -325,15 +326,15 @@ export class ContractProgressionService {
           data: {
             playerId: player.id,
             sellerTeamId: player.teamId,
-            startBid: BigInt(Math.floor(marketPrice * 0.5)), // Start at 50% of market value
-            buyNowPrice: BigInt(marketPrice),
-            currentBid: BigInt(Math.floor(marketPrice * 0.5)),
+            startBid: Number(Math.floor(marketPrice * 0.5)), // Start at 50% of market value
+            buyNowPrice: Number(marketPrice),
+            currentBid: Number(Math.floor(marketPrice * 0.5)),
             expiryTimestamp: listingEndTime,
             originalExpiryTimestamp: listingEndTime,
-            minBuyNowPrice: BigInt(marketPrice),
+            minBuyNowPrice: Number(marketPrice),
             listingStatus: 'ACTIVE',
             isActive: true,
-            listingFee: BigInt(0) // No fee for expired contracts
+            listingFee: Number(0) // No fee for expired contracts
           }
         });
 
@@ -465,8 +466,8 @@ export class ContractProgressionService {
     
     const totalActiveContracts = allContracts.length;
     const expiringContracts = allContracts.filter(c => c.length === 1).length;
-    const averageContractLength = allContracts.reduce((sum, c) => sum + c.length, 0) / totalActiveContracts;
-    const totalSalaryCommitments = allContracts.reduce((sum, c) => sum + BigInt(c.salary * c.length), BigInt(0));
+    const averageContractLength = allContracts.reduce((sum: any, c: any) => sum + c.length, 0) / totalActiveContracts;
+    const totalSalaryCommitments = allContracts.reduce((sum: any, c: any) => sum + Number(c.salary * c.length), Number(0));
     
     const contractsByLength: Record<number, number> = {};
     allContracts.forEach(contract => {

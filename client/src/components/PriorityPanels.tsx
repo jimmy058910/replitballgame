@@ -6,6 +6,8 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { Player, Team } from '@shared/types/models';
+
 import { 
   Play, 
   Clock, 
@@ -336,7 +338,7 @@ export default function PriorityPanels() {
               {playerSpotlight.slice(0, 2).map((player, index) => (
                 <div key={player.id} className="text-xs">
                   <div className="flex items-center gap-1 mb-1">
-                    <span className="text-white font-semibold">{player.name}</span>
+                    <span className="text-white font-semibold">{`${player.firstName} ${player.lastName}`}</span>
                     {getPlayerTrendIcon(player.trend)}
                   </div>
                   <p className="text-gray-300 text-xs leading-relaxed">

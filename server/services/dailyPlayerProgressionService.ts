@@ -1,6 +1,8 @@
 import { getPrismaClient } from "../database.js";
 import type { Prisma } from '../db';
 import { getEasternTime } from '../../shared/timezone.js';
+import type { Player, Staff } from '@shared/types/models';
+
 
 /**
  * Daily Player Progression & Development System
@@ -492,7 +494,7 @@ export class DailyPlayerProgressionService {
    */
   private static getStatPotential(player: any, statName: string): number {
     // Use overall potential as base, with some stat-specific variance
-    const basePotential = player.overallPotentialStars || 2.5;
+    const basePotential = player.potentialRating || 2.5;
     
     // Add small random variance for individual stats (±0.5 stars)
     const variance = (Math.random() - 0.5) * 1.0;

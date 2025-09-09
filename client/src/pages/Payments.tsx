@@ -9,15 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CreditCard, Crown, Zap, Star, CheckCircle, History } from "lucide-react";
+import type { Player, Team, Staff, Contract, TeamFinances, Stadium, League, Notification, MarketplaceListing, MarketplaceBid, CreditPackage, CreatePaymentIntentResponse, PaymentTransaction, UserCreditsData } from '@shared/types/models';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
 }
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-
-// @ts-expect-error TS2304
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 const CheckoutForm = ({ packageData, onSuccess }: { packageData: CreditPackage, onSuccess: () => void }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -94,16 +93,13 @@ const CheckoutForm = ({ packageData, onSuccess }: { packageData: CreditPackage, 
       </Button>
     </form>
   );
-};
-
-// @ts-expect-error TS2304
+};
 const PaymentCheckout = ({ selectedPackage, onBack }: { selectedPackage: CreditPackage, onBack: () => void }) => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Create PaymentIntent when component loads
-    // @ts-expect-error TS2304
+    // Create PaymentIntent when component loads
     apiRequest<CreatePaymentIntentResponse>("/api/payments/create-payment-intent", "POST", { packageId: selectedPackage.id })
       .then((data) => { // apiRequest now directly returns typed data
         if (data.clientSecret) {
@@ -156,34 +152,27 @@ const PaymentCheckout = ({ selectedPackage, onBack }: { selectedPackage: CreditP
   );
 };
 
-export default function Payments() {
-  // @ts-expect-error TS2304
+export default function Payments() {
   const [selectedPackage, setSelectedPackage] = useState<CreditPackage | null>(null);
   const { toast } = useToast();
 
   const packagesQuery = useQuery({
-    queryKey: ["creditPackages"],
-    // @ts-expect-error TS2304
+    queryKey: ["creditPackages"],
     queryFn: (): Promise<CreditPackage[]> => apiRequest("/api/payments/packages"),
-  });
-  // @ts-expect-error TS2304
+  });
   const packages = packagesQuery.data as CreditPackage[] | undefined;
   const isLoadingPackages = packagesQuery.isLoading;
 
   const paymentHistoryQuery = useQuery({
-    queryKey: ["paymentHistory"],
-    // @ts-expect-error TS2304
+    queryKey: ["paymentHistory"],
     queryFn: (): Promise<PaymentTransaction[]> => apiRequest("/api/payments/history"),
-  });
-  // @ts-expect-error TS2304
+  });
   const paymentHistory = paymentHistoryQuery.data as PaymentTransaction[] | undefined;
 
   const financesQuery = useQuery({
-    queryKey: ["myTeamFinances"], // Consistent query key
-    // @ts-expect-error TS2304
+    queryKey: ["myTeamFinances"], // Consistent query key
     queryFn: (): Promise<UserCreditsData> => apiRequest("/api/teams/my/finances"),
-  });
-  // @ts-expect-error TS2304
+  });
   const finances = financesQuery.data as UserCreditsData | undefined;
 
   const seedPackagesMutation = useMutation({
@@ -272,8 +261,7 @@ export default function Payments() {
 
               {packages && packages.length > 0 && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {/*
-                   // @ts-expect-error TS2304 */}
+                  {/* */}
                   {packages.map((pkg: CreditPackage) => (
                     <Card 
                       key={pkg.id} 
@@ -369,8 +357,7 @@ export default function Payments() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/*
-                       // @ts-expect-error TS2304 */}
+                      {/* */}
                       {paymentHistory?.map((transaction: PaymentTransaction) => (
                         <div 
                           key={transaction.id}

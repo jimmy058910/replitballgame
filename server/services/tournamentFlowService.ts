@@ -1,12 +1,14 @@
 import { getPrismaClient } from "../database.js";
 import { QuickMatchSimulation } from './enhancedSimulationEngine.js';
 import { MatchType } from "../db";
+import type { Team } from '@shared/types/models';
+
 
 // Remove top-level await - Prisma will be initialized in each method
 
 // Simple logging function for now
 function logInfo(message: string) {
-  console.log(`[INFO] ${new Date().toISOString()} - ${message}`);
+  console.log(`[INFO] ${new Date()} - ${message}`);
 }
 
 interface TournamentFlowService {
@@ -85,7 +87,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
           });
 
           // Use instant simulation
-          const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+          const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
           
           // Update match status and score immediately
           await prisma.game.update({
@@ -561,7 +563,7 @@ class TournamentFlowServiceImpl implements TournamentFlowService {
         where: { teamId },
         data: {
           credits: {
-            increment: BigInt(prize.credits)
+            increment: Number(prize.credits)
           },
           gems: {
             increment: prize.gems

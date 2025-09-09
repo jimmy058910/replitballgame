@@ -2,6 +2,8 @@ import { getPrismaClient } from '../database.js';
 import { TeamStatisticsIntegrityService } from './enhancedStatisticsService.js';
 import { TeamStatisticsCalculator } from './enhancedStatisticsService.js';
 import logger from '../utils/logger.js';
+import type { Team } from '@shared/types/models';
+
 
 /**
  * Bulletproof Standings Update Service

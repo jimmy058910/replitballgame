@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { tournamentQueryOptions } from '@/lib/api/queryOptions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,9 @@ import { Clock, Users, Trophy, Zap, Shield, Eye, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/providers/AuthProvider';
 import TournamentBracket from '@/components/TournamentBracket';
+import { apiRequest } from '@/lib/domainAPI';
+import type { Team } from '@shared/types/models';
+
 
 interface TournamentStatusData {
   id: string;
@@ -94,38 +97,27 @@ export default function TournamentStatus() {
   const [activeTab, setActiveTab] = useState<'overview' | 'bracket'>('overview');
   
   // Check if current user is admin
-  // @ts-expect-error TS2339
-  const isAdmin = user?.userId === "44010914";
+  const isAdmin = (user as any)?.userId === "44010914";
 
   // Query for user's active tournaments
   const { 
     data: activeTournaments, 
     isLoading: loadingActive, 
     refetch: refetchActive 
-  } = useQuery<ActiveTournament[]>({
-    queryKey: ['/api/tournament-status/my-active'],
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
+  } = useQuery(tournamentQueryOptions.myActive());
 
   // Query for specific tournament status
   const { 
     data: tournamentStatus, 
     isLoading: loadingStatus, 
     refetch: refetchStatus 
-  } = useQuery<TournamentStatusData>({
-    queryKey: ['/api/tournament-status', String(selectedTournament), 'status'],
-    // @ts-expect-error TS2769
-    queryFn: () => selectedTournament ? apiRequest(`/api/tournament-status/${String(selectedTournament)}/status`) : null,
-    enabled: !!selectedTournament,
-    refetchInterval: 15000, // Refresh every 15 seconds
-  });
+  } = useQuery(tournamentQueryOptions.status(selectedTournament));
 
   // Force start tournament
   const handleForceStart = async (tournamentId: number) => {
     try {
       const response = await apiRequest('POST', `/api/tournament-status/${String(tournamentId)}/force-start`);
-      // @ts-expect-error TS18046
-      if (response.ok) {
+      if ((response as any).ok) {
         toast({
           title: "Tournament Started",
           description: "Tournament has been started successfully!",
@@ -154,8 +146,7 @@ export default function TournamentStatus() {
         round: round
       });
       
-      // @ts-expect-error TS18046
-      if (response.ok) {
+      if ((response as any).ok) {
         toast({
           title: 'Round Simulated',
           description: `${round} matches have been simulated successfully!`,
@@ -183,33 +174,30 @@ export default function TournamentStatus() {
         return renderOverviewTab();
       case 'bracket':
         // Transform API matches to match component expectations
-        // @ts-expect-error TS2339
         const transformedMatches = (tournamentStatus.matches || []).map(match => {
           // Find team names from participants - handle both nested objects and flat structure
-          // @ts-expect-error TS2339
           const homeTeamData = tournamentStatus.participants.find(p => 
-            p.teamId === String(match.homeTeam?.id || match.homeTeamId)
+            p.teamId === String(match.homeTeam?.id)
           );
-          // @ts-expect-error TS2339
           const awayTeamData = tournamentStatus.participants.find(p => 
-            p.teamId === String(match.awayTeam?.id || match.awayTeamId)
+            p.teamId === String(match.awayTeam?.id)
           );
           
           // Convert numeric round to round name
           let roundName = 'QUARTERFINALS';
-          if (match.round === 1) roundName = 'QUARTERFINALS';
-          else if (match.round === 2) roundName = 'SEMIFINALS';
-          else if (match.round === 3) roundName = 'FINALS';
+          if (match.round === '1') roundName = 'QUARTERFINALS';
+          else if (match.round === '2') roundName = 'SEMIFINALS';
+          else if (match.round === '3') roundName = 'FINALS';
           
           return {
             id: String(match.id),
             round: roundName,
             homeTeam: {
-              id: String(match.homeTeam?.id || match.homeTeamId || ''),
+              id: String(match.homeTeam?.id || ''),
               name: String(homeTeamData?.teamName || match.homeTeam?.name || 'Unknown Team')
             },
             awayTeam: {
-              id: String(match.awayTeam?.id || match.awayTeamId || ''),
+              id: String(match.awayTeam?.id || ''),
               name: String(awayTeamData?.teamName || match.awayTeam?.name || 'Unknown Team')
             },
             homeScore: match.homeScore,
@@ -220,20 +208,15 @@ export default function TournamentStatus() {
         });
         
         // Get user's team ID from user object
-        // @ts-expect-error TS2339
-        const userTeamId = String(user?.teamId || '');
+        const userTeamId = String((user as any)?.teamId || '');
         
         return (
           <TournamentBracket
             tournament={{
-              // @ts-expect-error TS2339
-              id: String(tournamentStatus.id),
-              // @ts-expect-error TS2339
-              name: String(tournamentStatus.name),
-              // @ts-expect-error TS2339
-              status: String(tournamentStatus.status),
-              // @ts-expect-error TS2339
-              currentStage: tournamentStatus.currentStage || null
+              id: String(tournamentStatus?.id ?? ''),
+              name: String(tournamentStatus?.name ?? ''),
+              status: String(tournamentStatus?.status ?? ''),
+              currentStage: tournamentStatus?.currentStage ?? null
             }}
             matches={transformedMatches}
             userTeamId={userTeamId}
@@ -258,26 +241,19 @@ export default function TournamentStatus() {
           <div className="flex justify-between text-sm">
             <span>Participants</span>
             <span className="font-medium">
-              {/*
-               // @ts-expect-error TS2339 */}
-              {tournamentStatus!.currentParticipants}/{tournamentStatus!.maxParticipants}
+              {tournamentStatus?.currentParticipants || 0}/{tournamentStatus?.maxParticipants || 0}
             </span>
           </div>
           <Progress 
-            // @ts-expect-error TS2339
-            value={(tournamentStatus!.currentParticipants / tournamentStatus!.maxParticipants) * 100} 
+            value={tournamentStatus ? (tournamentStatus.currentParticipants / tournamentStatus.maxParticipants) * 100 : 0} 
             className="h-2"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>
-              {/*
-               // @ts-expect-error TS2339 */}
-              {tournamentStatus!.spotsRemaining} spots remaining
+              {tournamentStatus?.spotsRemaining || 0} spots remaining
             </span>
             <span>
-              {/*
-               // @ts-expect-error TS2339 */}
-              {tournamentStatus!.isFull ? 'Full' : 'Open'}
+              {tournamentStatus?.isFull ? 'Full' : 'Open'}
             </span>
           </div>
         </div>
@@ -289,78 +265,55 @@ export default function TournamentStatus() {
             Tournament Timing
           </h4>
           <div className="space-y-2 text-sm">
-            {/*
-             // @ts-expect-error TS2339 */}
-            {tournamentStatus!.status === 'IN_PROGRESS' ? (
+            {tournamentStatus?.status === 'IN_PROGRESS' ? (
               <div className="flex items-center gap-2 text-blue-600">
                 <Zap className="w-4 h-4" />
                 <span className="font-medium">Tournament in Progress</span>
               </div>
-            // @ts-expect-error TS2339
-            ) : tournamentStatus!.status === 'COMPLETED' ? (
+            ) : tournamentStatus?.status === 'COMPLETED' ? (
               <div className="flex items-center gap-2 text-gray-600">
                 <Trophy className="w-4 h-4" />
                 <span className="font-medium">Tournament Completed</span>
               </div>
-            // @ts-expect-error TS2339
-            ) : tournamentStatus!.isReadyToStart ? (
+            ) : tournamentStatus?.isReadyToStart ? (
               <div className="flex items-center gap-2 text-green-600">
                 <Zap className="w-4 h-4" />
                 <span className="font-medium">Ready to Start!</span>
               </div>
-            // @ts-expect-error TS2339
-            ) : tournamentStatus!.isFull ? (
+            ) : tournamentStatus?.isFull ? (
               <div className="flex items-center gap-2 text-orange-600">
                 <Clock className="w-4 h-4" />
-                {/*
-                 // @ts-expect-error TS2339 */}
-                <span>Tournament starts in: {tournamentStatus!.timeUntilStartText}</span>
+                <span>Tournament starts in: {tournamentStatus?.timeUntilStartText || 'TBD'}</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                {/*
-                 // @ts-expect-error TS2339 */}
-                <span>Starts in: {tournamentStatus!.timeUntilStartText}</span>
+                <span>Starts in: {tournamentStatus?.timeUntilStartText || 'TBD'}</span>
               </div>
             )}
-            {/*
-             // @ts-expect-error TS2339 */}
-            {!tournamentStatus!.isFull && (
+            {!tournamentStatus?.isFull && (
               <div className="text-xs text-muted-foreground">
-                {/*
-                 // @ts-expect-error TS2339 */}
-                Registration closes: {new Date(tournamentStatus!.registrationDeadline).toLocaleString()}
+                Registration closes: {new Date(tournamentStatus?.registrationDeadline || '').toLocaleString()}
               </div>
             )}
           </div>
         </div>
 
         {/* Entry Fee */}
-        {/*
-         // @ts-expect-error TS2339 */}
-        {(tournamentStatus!.entryFeeCredits > 0 || tournamentStatus!.entryFeeGems > 0) && (
+        {((tournamentStatus?.entryFeeCredits || 0) > 0 || (tournamentStatus?.entryFeeGems || 0) > 0) && (
           <div className="mt-6">
             <h4 className="font-medium mb-2">Entry Fee</h4>
             <div className="text-sm space-y-1">
-              {/*
-               // @ts-expect-error TS2339 */}
-              {tournamentStatus!.entryFeeCredits > 0 && (
+              {(tournamentStatus?.entryFeeCredits || 0) > 0 && (
                 <div className="flex items-center gap-1">
                   <span className="text-yellow-600">₡</span>
-                  {/*
-                   // @ts-expect-error TS2339 */}
-                  {tournamentStatus!.entryFeeCredits.toLocaleString()} Credits
+                  {(tournamentStatus?.entryFeeCredits || 0).toLocaleString()} Credits
                 </div>
               )}
-              {/*
-               // @ts-expect-error TS2339 */}
-              {tournamentStatus!.entryFeeGems > 0 && (
+              {(tournamentStatus?.entryFeeGems || 0) > 0 && (
                 <div className="flex items-center gap-1">
                   <span className="text-purple-600">💎</span>
-                  {/*
-                   // @ts-expect-error TS2339 */}
-                  {tournamentStatus!.entryFeeGems} Gems
+                  {tournamentStatus?.entryFeeGems || 0} Gems
                 </div>
               )}
             </div>
@@ -368,9 +321,7 @@ export default function TournamentStatus() {
         )}
 
         {/* Force Start Button (Admin only) */}
-        {/*
-         // @ts-expect-error TS2339 */}
-        {isAdmin && tournamentStatus!.status === 'REGISTRATION_OPEN' && (
+        {isAdmin && tournamentStatus?.status === 'REGISTRATION_OPEN' && (
           <div className="mt-6">
             <Button 
               onClick={() => handleForceStart(selectedTournament!)}
@@ -395,14 +346,11 @@ export default function TournamentStatus() {
           Participants
         </h3>
         <div className="space-y-2 max-h-64 overflow-y-auto">
-          {/*
-           // @ts-expect-error TS2339 */}
-          {tournamentStatus!.participants.map((participant, index) => (
+          {(tournamentStatus?.participants || []).map((participant, index) => (
             <div
               key={participant.teamId}
               className={`p-3 rounded-lg border text-sm ${
-                // @ts-expect-error TS2339
-                participant.teamId === tournamentStatus!.userTeamEntry?.teamId
+                participant.teamId === tournamentStatus?.userTeamEntry?.teamId
                   ? 'border-primary bg-primary/5'
                   : 'border-border'
               }`}
@@ -537,21 +485,17 @@ export default function TournamentStatus() {
                 <div
                   key={tournament.id}
                   className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
-                    // @ts-expect-error TS2339
-                    selectedTournament === tournament.tournamentId
+                    selectedTournament === (tournament as any).tournamentId
                       ? 'border-blue-500 bg-blue-900/20 shadow-lg ring-2 ring-blue-500/20'
                       : 'border-gray-600 hover:border-gray-500 bg-gray-800'
                   }`}
-                  // @ts-expect-error TS2339
-                  onClick={() => setSelectedTournament(tournament.tournamentId)}
+                  onClick={() => setSelectedTournament((tournament as any).tournamentId)}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-sm text-white">{tournament.name}</h3>
                       <span className="text-xs text-gray-300 px-1 py-0.5 bg-gray-700 rounded">
-                        {/*
-                         // @ts-expect-error TS2339 */}
-                        #{tournament.tournamentId}
+                        #{(tournament as any).tournamentId || (tournament as any).id}
                       </span>
                     </div>
                     <Badge className={getStatusColor(tournament.status)}>
@@ -629,25 +573,15 @@ export default function TournamentStatus() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {/*
-                     // @ts-expect-error TS2339 */}
-                    <span>{tournamentStatus.name}</span>
-                    {/*
-                     // @ts-expect-error TS2339 */}
-                    <span className="text-sm text-muted-foreground">#{tournamentStatus.tournamentId}</span>
+                    <span>{tournamentStatus?.name || 'Unknown Tournament'}</span>
+                    <span className="text-sm text-muted-foreground">#{(tournamentStatus as any)?.tournamentId || tournamentStatus?.id}</span>
                   </div>
-                  {/*
-                   // @ts-expect-error TS2339 */}
-                  <Badge className={getStatusColor(tournamentStatus.status)}>
-                    {/*
-                     // @ts-expect-error TS2339 */}
-                    {getStatusText(tournamentStatus.status)}
+                  <Badge className={getStatusColor(tournamentStatus?.status || '')}>
+                    {getStatusText(tournamentStatus?.status || '')}
                   </Badge>
                 </CardTitle>
                 <CardDescription>
-                  {/*
-                   // @ts-expect-error TS2339 */}
-                  {getDivisionName(tournamentStatus.division)} • {tournamentStatus.type.replace('_', ' ')}
+                  {getDivisionName(tournamentStatus?.division || 0)} • {(tournamentStatus?.type || '').replace('_', ' ')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -675,9 +609,7 @@ export default function TournamentStatus() {
                 {getTournamentTabContent()}
 
                 {/* Prizes */}
-                {/*
-                 // @ts-expect-error TS2339 */}
-                {tournamentStatus.prizes && (
+                {tournamentStatus?.prizes && (
                   <div className="mt-6">
                     <Separator className="mb-4" />
                     <h3 className="font-semibold mb-2 flex items-center gap-2">
@@ -685,44 +617,28 @@ export default function TournamentStatus() {
                       Prizes
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      {/*
-                       // @ts-expect-error TS2339 */}
-                      {tournamentStatus.prizes.champion && (
+                      {tournamentStatus?.prizes?.champion && (
                         <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                           <div className="font-medium text-yellow-800 dark:text-yellow-200">Champion</div>
                           <div className="text-yellow-700 dark:text-yellow-300">
-                            {/*
-                             // @ts-expect-error TS2339 */}
-                            {tournamentStatus.prizes.champion.credits > 0 && (
-                              // @ts-expect-error TS2339
-                              <span>{tournamentStatus.prizes.champion.credits.toLocaleString()} Credits</span>
+                            {(tournamentStatus?.prizes?.champion?.credits || 0) > 0 && (
+                              <span>{(tournamentStatus?.prizes?.champion?.credits || 0).toLocaleString()} Credits</span>
                             )}
-                            {/*
-                             // @ts-expect-error TS2339 */}
-                            {tournamentStatus.prizes.champion.gems > 0 && (
-                              // @ts-expect-error TS2339
-                              <span className="ml-2">{tournamentStatus.prizes.champion.gems} Gems</span>
+                            {(tournamentStatus?.prizes?.champion?.gems || 0) > 0 && (
+                              <span className="ml-2">{tournamentStatus?.prizes?.champion?.gems || 0} Gems</span>
                             )}
                           </div>
                         </div>
                       )}
-                      {/*
-                       // @ts-expect-error TS2339 */}
-                      {tournamentStatus.prizes.runnerUp && (
+                      {tournamentStatus?.prizes?.runnerUp && (
                         <div className="p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
                           <div className="font-medium text-gray-800 dark:text-gray-200">Runner-up</div>
                           <div className="text-gray-700 dark:text-gray-300">
-                            {/*
-                             // @ts-expect-error TS2339 */}
-                            {tournamentStatus.prizes.runnerUp.credits > 0 && (
-                              // @ts-expect-error TS2339
-                              <span>{tournamentStatus.prizes.runnerUp.credits.toLocaleString()} Credits</span>
+                            {(tournamentStatus?.prizes?.runnerUp?.credits || 0) > 0 && (
+                              <span>{(tournamentStatus?.prizes?.runnerUp?.credits || 0).toLocaleString()} Credits</span>
                             )}
-                            {/*
-                             // @ts-expect-error TS2339 */}
-                            {tournamentStatus.prizes.runnerUp.gems > 0 && (
-                              // @ts-expect-error TS2339
-                              <span className="ml-2">{tournamentStatus.prizes.runnerUp.gems} Gems</span>
+                            {(tournamentStatus?.prizes?.runnerUp?.gems || 0) > 0 && (
+                              <span className="ml-2">{tournamentStatus?.prizes?.runnerUp?.gems || 0} Gems</span>
                             )}
                           </div>
                         </div>

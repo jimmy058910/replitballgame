@@ -41,6 +41,9 @@ import { useToast } from '../hooks/use-toast';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { teamQueryOptions, staffQueryOptions, stadiumQueryOptions, taxiSquadQueryOptions, seasonQueryOptions, financeQueryOptions } from '@/lib/api/queryOptions';
+import type { Player, Team, Staff, Contract, Stadium, PlayerWithContract } from '@shared/types/models';
+
 
 // Type definitions  
 type TryoutCandidate = {
@@ -63,33 +66,10 @@ type TryoutCandidate = {
   overallPotentialStars: number;
 };
 
-type Player = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  age: number;
-  role: 'PASSER' | 'RUNNER' | 'BLOCKER';
-  race?: string;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  agility: number;
-  stamina: number;
-  leadership: number;
-  dailyStaminaLevel: number;
-  injuryStatus: 'HEALTHY' | 'INJURED';
-  isOnMarket: boolean;
-  isRetired: boolean;
-  rosterPosition?: number;
-  contractSalary?: number;
-  contractLength?: number;
-  contractStartDate?: string;
-  contractSigningBonus?: number;
-};
+// Use shared type instead of local definition
+type RosterPlayer = PlayerWithContract;
 
-type Staff = {
+type RosterStaff = {
   id: string;
   name: string;
   type: string;
@@ -104,20 +84,20 @@ type Staff = {
   tactics?: number;
 };
 
-type Team = {
+type RosterTeam = {
   id: string;
   name: string;
   credits: number;
   gems: number;
   camaraderie: number;
-  players?: Player[];
+  players?: PlayerWithContract[];
   finances?: {
     credits: string;
     gems: string;
   };
 };
 
-type Stadium = {
+type RosterStadium = {
   id: string;
   name: string;
   capacity: number;
@@ -132,7 +112,7 @@ export default function MobileRosterHQ() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<TabType>('roster');
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithContract | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   
   // Recruitment system states
@@ -147,56 +127,32 @@ export default function MobileRosterHQ() {
   const [rosterView, setRosterView] = useState<RosterView>('all');
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
 
-  // Queries
-  const { data: team, isLoading: teamLoading } = useQuery<Team>({
-    queryKey: ["/api/teams/my"],
-    enabled: isAuthenticated,
-  });
+  // Queries using queryOptions factory pattern
+  const { data: team, isLoading: teamLoading } = useQuery(teamQueryOptions.myTeam(isAuthenticated));
 
   // Use players data from team query for main roster (contracted players)
   const players = team?.players || [];
   const playersLoading = teamLoading;
 
   // Fetch taxi squad players separately using dedicated endpoint
-  const { data: taxiSquadData, isLoading: taxiSquadLoading } = useQuery<Player[]>({
-    queryKey: [`/api/teams/${team?.id}/taxi-squad`],
-    enabled: !!team?.id,
-  });
+  const { data: taxiSquadData, isLoading: taxiSquadLoading } = useQuery(taxiSquadQueryOptions.byTeam(team?.id ? String(team.id) : ''));
 
-  const { data: staffData, isLoading: staffLoading } = useQuery<{
-    staff: (Staff & { contract?: { salary: number; duration: number; remainingYears: number } | null })[];
-    totalStaffCost: number;
-    totalStaffMembers: number;
-  }>({
-    queryKey: ['/api/staff'],
-    enabled: !!team?.id,
-  });
+  const { data: staffData, isLoading: staffLoading } = useQuery(staffQueryOptions.list(!!team?.id));
 
   const staff = staffData?.staff || [];
 
-  const { data: stadium } = useQuery({
-    queryKey: [`/api/teams/${team?.id}/stadium`],
-    enabled: !!team?.id
-  });
+  const { data: stadium } = useQuery(stadiumQueryOptions.byTeam(team?.id ? String(team.id) : ''));
 
   // Get current season cycle to determine if promotions are allowed
-  const { data: seasonCycle } = useQuery({
-    queryKey: ['/api/seasons/current-cycle'],
-  });
+  const { data: seasonCycle } = useQuery(seasonQueryOptions.currentCycle(true));
   
   // Recruitment system queries
-  const { data: financesData } = useQuery({
-    queryKey: [`/api/teams/${team?.id}/finances`],
-    enabled: !!team?.id,
-  });
+  const { data: financesData } = useQuery(financeQueryOptions.teamFinances(team?.id ? String(team.id) : ''));
   
-  const { data: seasonalData } = useQuery({
-    queryKey: [`/api/teams/${team?.id}/seasonal-data`],
-    enabled: !!team?.id,
-  });
+  const { data: seasonalData } = useQuery(seasonQueryOptions.seasonalData(team?.id ? String(team.id) : ''));
 
   // Promotions only allowed during offseason (Days 16-17)
-  const isOffseason = (seasonCycle && typeof seasonCycle === 'object' && 'currentDay' in seasonCycle && typeof seasonCycle.currentDay === 'number') ? seasonCycle.currentDay >= 16 : false;
+  const isOffseason = (seasonCycle && typeof seasonCycle === 'object' && 'currentDay' in seasonCycle && typeof seasonCycle?.currentDay === 'number') ? seasonCycle?.currentDay >= 16 : false;
 
   // Taxi squad promotion mutation
   const promotePlayerMutation = useMutation({
@@ -270,8 +226,8 @@ export default function MobileRosterHQ() {
   };
 
   const getPlayerPower = (player: Player) => {
-    return Math.round((player.speed + player.power + player.throwing + 
-                     player.catching + player.kicking + player.agility) / 6);
+    return Math.round(((player?.speed ?? 0) + (player?.power ?? 0) + (player?.throwing ?? 0) + 
+                     (player?.catching ?? 0) + (player?.kicking ?? 0) + (player?.agility ?? 0)) / 6);
   };
 
   const getStaminaColor = (stamina: number) => {
@@ -302,10 +258,10 @@ export default function MobileRosterHQ() {
   // Recruitment system constants and calculations
   const basicCost = 25000;
   const advancedCost = 75000;
-  const currentCredits = (financesData as any)?.credits || 0;
+  const currentCredits = (financesData as any)?.credits ?? 0;
   const canAffordBasic = currentCredits >= basicCost;
   const canAffordAdvanced = currentCredits >= advancedCost;
-  const tryoutsUsedThisSeason = (seasonalData as any)?.data?.tryoutsUsed || false;
+  const tryoutsUsedThisSeason = (seasonalData as any)?.data?.tryoutsUsed ?? false;
   const canHostTryouts = !tryoutsUsedThisSeason;
   
   // Auto-expand recruitment if tryouts haven't been used yet
@@ -323,7 +279,7 @@ export default function MobileRosterHQ() {
     onSuccess: (data: unknown) => {
       const response = data as { candidates: any[]; type: string };
       setCandidates(response.candidates);
-      setTryoutType(response.type);
+      setTryoutType(response.type as "basic" | "advanced");
       setShowTryoutModal(true);
       startRevealAnimation(response.candidates);
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${team?.id}/finances`] });
@@ -451,11 +407,11 @@ export default function MobileRosterHQ() {
               <Activity className="w-6 h-6 text-red-400" />
               <div>
                 <h4 className="font-semibold text-white text-sm">🏥 Medical Bay</h4>
-                <p className="text-red-200 text-xs">Injured: {injuredPlayers.length} • Low Stamina: {lowStaminaPlayers.length}</p>
+                <p className="text-red-200 text-xs">Injured: {injuredPlayers?.length ?? 0} • Low Stamina: {lowStaminaPlayers?.length ?? 0}</p>
               </div>
             </div>
             <Badge variant="destructive" className="text-xs">
-              {injuredPlayers.length + lowStaminaPlayers.length}
+              {(injuredPlayers?.length ?? 0) + (lowStaminaPlayers?.length ?? 0)}
             </Badge>
           </div>
         </CardContent>
@@ -472,11 +428,11 @@ export default function MobileRosterHQ() {
               <FileText className="w-6 h-6 text-blue-400" />
               <div>
                 <h4 className="font-semibold text-white text-sm">📄 Contracts</h4>
-                <p className="text-blue-200 text-xs">Expiring Soon: {expiringContracts.length}</p>
+                <p className="text-blue-200 text-xs">Expiring Soon: {expiringContracts?.length ?? 0}</p>
               </div>
             </div>
             <Badge className="bg-blue-600 text-white text-xs">
-              {expiringContracts.length} exp.
+              {expiringContracts?.length ?? 0} exp.
             </Badge>
           </div>
         </CardContent>
@@ -518,7 +474,7 @@ export default function MobileRosterHQ() {
               </div>
             </div>
             <Badge className="bg-yellow-600 text-white text-xs">
-              {(team as any)?.teamCamaraderie || team?.camaraderie || 67}/100
+              {(team as any)?.teamCamaraderie ?? team?.camaraderie ?? 67}/100
             </Badge>
           </div>
         </CardContent>
@@ -581,10 +537,10 @@ export default function MobileRosterHQ() {
 
   // Player calculations - safely handle null/undefined players
   const safePlayersList = Array.isArray(players) ? players : [];
-  const activePlayers = safePlayersList.filter(p => !p.isOnMarket && !p.isRetired);
+  const activePlayers = safePlayersList.filter(p => !p?.isOnMarket && !p?.isRetired);
   const sortedPlayers = [...activePlayers].sort((a, b) => {
-    const posA = a.rosterPosition || 0;
-    const posB = b.rosterPosition || 0;
+    const posA = a?.rosterPosition ?? 0;
+    const posB = b?.rosterPosition ?? 0;
     if (posA === 0 && posB === 0) return 0;
     if (posA === 0) return 1;
     if (posB === 0) return -1;
@@ -594,14 +550,14 @@ export default function MobileRosterHQ() {
   // Use proper separation: Main roster (contracted) vs Taxi squad (no contracts + tryout history)
   const mainRoster = sortedPlayers; // These are already contracted players from /api/teams/my
   const taxiSquad = taxiSquadData || []; // These are taxi squad players from dedicated endpoint
-  const injuredPlayers = activePlayers.filter(p => p.injuryStatus !== 'HEALTHY');
-  const lowStaminaPlayers = activePlayers.filter(p => p.dailyStaminaLevel < 50);
+  const injuredPlayers = activePlayers.filter(p => p?.injuryStatus !== 'HEALTHY');
+  const lowStaminaPlayers = activePlayers.filter(p => (p?.dailyStaminaLevel ?? 100) < 50);
   
   // Contract calculations for Quick Actions
   const currentDate = new Date();
   const expiringContracts = activePlayers.filter(p => {
-    if (!p.contractStartDate || !p.contractLength) return false;
-    const contractStart = new Date(p.contractStartDate);
+    if (!p?.signedAt || !p?.contractLength) return false;
+    const contractStart = new Date(p.signedAt);
     const contractEnd = new Date(contractStart);
     contractEnd.setFullYear(contractStart.getFullYear() + p.contractLength);
     const daysToExpiry = Math.ceil((contractEnd.getTime() - currentDate.getTime()) / (1000 * 3600 * 24));
@@ -623,8 +579,8 @@ export default function MobileRosterHQ() {
   const filteredPlayers = getFilteredPlayers();
   // Apply proper separation to filtered players
   const sortedFilteredPlayers = [...filteredPlayers].sort((a, b) => {
-    const posA = a.rosterPosition || 0;
-    const posB = b.rosterPosition || 0;
+    const posA = a?.rosterPosition ?? 0;
+    const posB = b?.rosterPosition ?? 0;
     if (posA === 0 && posB === 0) return 0;
     if (posA === 0) return 1;
     if (posB === 0) return -1;
@@ -635,7 +591,7 @@ export default function MobileRosterHQ() {
     // Apply same filtering logic to taxi squad
     switch (rosterView) {
       case 'medical':
-        return player.injuryStatus !== 'HEALTHY' || (player.dailyStaminaLevel || 100) < 50;
+        return player?.injuryStatus !== 'HEALTHY' || (player?.dailyStaminaLevel ?? 100) < 50;
       case 'contracts':
         // Taxi squad players don't have contracts, so exclude from contracts view
         return false;
@@ -645,9 +601,9 @@ export default function MobileRosterHQ() {
   });
   
   // Role distribution
-  const passers = activePlayers.filter(p => p.role === 'PASSER');
-  const runners = activePlayers.filter(p => p.role === 'RUNNER');
-  const blockers = activePlayers.filter(p => p.role === 'BLOCKER');
+  const passers = activePlayers.filter(p => p?.role === 'PASSER');
+  const runners = activePlayers.filter(p => p?.role === 'RUNNER');
+  const blockers = activePlayers.filter(p => p?.role === 'BLOCKER');
 
   // Handler functions
   const handleStaffNegotiate = (staff: Staff) => {
@@ -845,17 +801,17 @@ export default function MobileRosterHQ() {
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
+                                  <span className="text-lg">{getRacialIcon(player?.race ?? 'Human')}</span>
                                   <h3 className="font-bold text-white text-sm">
-                                    {player.firstName} {player.lastName}
+                                    {player?.firstName ?? 'Unknown'} {player?.lastName ?? 'Player'}
                                   </h3>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Badge variant="outline" className="text-xs text-white border-white/50">
-                                    {getRoleIcon(player.role)} {player.role}
+                                    {getRoleIcon(player?.role ?? 'PASSER')} {player?.role ?? 'PASSER'}
                                   </Badge>
                                   <Badge variant="outline" className="text-xs text-blue-300 border-blue-300">
-                                    Age {player.age}
+                                    Age {player?.age ?? 18}
                                   </Badge>
                                 </div>
                               </div>
@@ -872,7 +828,7 @@ export default function MobileRosterHQ() {
                               <div className="flex items-center gap-1">
                                 <Coins className="h-3 w-3 text-green-400" />
                                 <span>
-                                  ₵{player.contractSalary?.toLocaleString() || '0'}/season, {player.contractLength || 0} seasons
+                                  ₵{(player?.contractSalary ?? 0).toLocaleString()}/season, {player?.contractLength ?? 0} seasons
                                 </span>
                               </div>
                             </div>
@@ -881,14 +837,14 @@ export default function MobileRosterHQ() {
                             <div className="flex justify-between text-xs">
                               <div className="flex items-center gap-1">
                                 <Heart className="h-3 w-3 text-green-400" />
-                                <span className={`font-semibold ${player.injuryStatus === 'HEALTHY' ? 'text-green-400' : 'text-red-400'}`}>
-                                  {player.injuryStatus === 'HEALTHY' ? 'Healthy' : 'Injured'}
+                                <span className={`font-semibold ${(player?.injuryStatus ?? 'HEALTHY') === 'HEALTHY' ? 'text-green-400' : 'text-red-400'}`}>
+                                  {(player?.injuryStatus ?? 'HEALTHY') === 'HEALTHY' ? 'Healthy' : 'Injured'}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <Zap className="h-3 w-3 text-yellow-400" />
-                                <span className={`text-xs font-semibold ${getStaminaColor(player.dailyStaminaLevel)}`}>
-                                  {player.dailyStaminaLevel}%
+                                <span className={`text-xs font-semibold ${getStaminaColor(player?.dailyStaminaLevel ?? 100)}`}>
+                                  {player?.dailyStaminaLevel ?? 100}%
                                 </span>
                               </div>
                             </div>
@@ -945,14 +901,14 @@ export default function MobileRosterHQ() {
                                 <div className="flex items-start justify-between mb-2">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="text-lg">{getRacialIcon(player.race || 'Human')}</span>
+                                      <span className="text-lg">{getRacialIcon(player?.race ?? 'Human')}</span>
                                       <h3 className="font-bold text-white text-sm">
-                                        {player.firstName} {player.lastName}
+                                        {player?.firstName ?? 'Unknown'} {player?.lastName ?? 'Player'}
                                       </h3>
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <Badge variant="outline" className="text-xs text-white border-white/50">
-                                        {getRoleIcon(player.role)} {player.role}
+                                        {getRoleIcon(player?.role ?? 'PASSER')} {player?.role ?? 'PASSER'}
                                       </Badge>
                                       <Badge className="bg-purple-600 text-white text-xs">
                                         DEVELOPMENT
@@ -979,7 +935,7 @@ export default function MobileRosterHQ() {
                                           size="sm"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            promotePlayerMutation.mutate(player.id);
+                                            promotePlayerMutation.mutate(String(player.id));
                                           }}
                                           disabled={promotePlayerMutation.isPending}
                                           className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 h-6"
@@ -997,7 +953,7 @@ export default function MobileRosterHQ() {
                                           size="sm"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            releasePlayerMutation.mutate(player.id);
+                                            releasePlayerMutation.mutate(String(player.id));
                                           }}
                                           disabled={releasePlayerMutation.isPending}
                                           className="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 h-6"
@@ -1289,53 +1245,53 @@ export default function MobileRosterHQ() {
                               <UserPlus className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                              <h3 className="font-bold text-white text-sm">{member.name}</h3>
+                              <h3 className="font-bold text-white text-sm">{member?.name ?? 'Unknown Staff'}</h3>
                               <Badge className="bg-orange-600 text-white text-xs">
-                                {getStaffTypeName(member.type)}
+                                {getStaffTypeName(member?.type ?? 'HEAD_COACH')}
                               </Badge>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-orange-200">Age {member.age}</div>
+                            <div className="text-xs text-orange-200">Age {member?.age ?? 25}</div>
                           </div>
                         </div>
 
                         {/* Staff Attributes */}
                         <div className="mb-3 p-2 bg-black/30 rounded space-y-1">
                           <div className="grid grid-cols-2 gap-2 text-xs">
-                            {member.type === 'HEAD_COACH' && (
+                            {(member?.type ?? 'HEAD_COACH') === 'HEAD_COACH' && (
                               <>
                                 <div className="flex justify-between">
                                   <span className="text-white/70">Motivation:</span>
-                                  <span className="text-orange-300">{member.motivation || 0}/40</span>
+                                  <span className="text-orange-300">{member?.motivation ?? 0}/40</span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-white/70">Development:</span>
-                                  <span className="text-orange-300">{member.development || 0}/40</span>
+                                  <span className="text-orange-300">{member?.development ?? 0}/40</span>
                                 </div>
                               </>
                             )}
-                            {(member.type === 'PASSER_TRAINER' || member.type === 'RUNNER_TRAINER' || member.type === 'BLOCKER_TRAINER') && (
+                            {((member?.type ?? 'HEAD_COACH') === 'PASSER_TRAINER' || (member?.type ?? 'HEAD_COACH') === 'RUNNER_TRAINER' || (member?.type ?? 'HEAD_COACH') === 'BLOCKER_TRAINER') && (
                               <div className="flex justify-between col-span-2">
                                 <span className="text-white/70">Teaching:</span>
-                                <span className="text-orange-300">{member.teaching || 0}/40</span>
+                                <span className="text-orange-300">{member?.teaching ?? 0}/40</span>
                               </div>
                             )}
                             {member.type === 'RECOVERY_SPECIALIST' && (
                               <div className="flex justify-between col-span-2">
                                 <span className="text-white/70">Physiology:</span>
-                                <span className="text-orange-300">{member.physiology || 0}/40</span>
+                                <span className="text-orange-300">{member?.physiology ?? 0}/40</span>
                               </div>
                             )}
                             {member.type === 'SCOUT' && (
                               <>
                                 <div className="flex justify-between">
                                   <span className="text-white/70">Talent ID:</span>
-                                  <span className="text-orange-300">{member.talentIdentification || 0}/40</span>
+                                  <span className="text-orange-300">{member?.talentIdentification ?? 0}/40</span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-white/70">Potential:</span>
-                                  <span className="text-orange-300">{member.potentialAssessment || 0}/40</span>
+                                  <span className="text-orange-300">{member?.potentialAssessment ?? 0}/40</span>
                                 </div>
                               </>
                             )}
@@ -1347,9 +1303,9 @@ export default function MobileRosterHQ() {
                           <div className="flex justify-between text-xs">
                             <span className="text-white/70">Contract:</span>
                             <span className="text-orange-300 font-semibold">
-                              {member.contract ? 
+                              {member?.contract ? 
                                 `${member.contract.salary.toLocaleString()}₡/season, ${member.contract.duration} seasons` :
-                                `${(member.level * 1000).toLocaleString()}₡/season, 3 seasons`
+                                `${((member?.level ?? 1) * 1000).toLocaleString()}₡/season, 3 seasons`
                               }
                             </span>
                           </div>
@@ -1365,7 +1321,7 @@ export default function MobileRosterHQ() {
                               e.stopPropagation();
                               toast({
                                 title: "Staff Negotiation",
-                                description: `Contract negotiation with ${member.name} will be available in the next update.`,
+                                description: `Contract negotiation with ${member?.name ?? 'this staff member'} will be available in the next update.`,
                                 variant: "default"
                               });
                             }}
@@ -1380,7 +1336,7 @@ export default function MobileRosterHQ() {
                               e.stopPropagation();
                               toast({
                                 title: "Staff Release",
-                                description: `Releasing ${member.name} will be available in the next update.`,
+                                description: `Releasing ${member?.name ?? 'this staff member'} will be available in the next update.`,
                                 variant: "default"
                               });
                             }}

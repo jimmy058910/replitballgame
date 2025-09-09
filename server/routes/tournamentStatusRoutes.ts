@@ -3,6 +3,8 @@ import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
 import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
+import type { Team, Stadium } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -610,7 +612,7 @@ router.post('/:id/matches/simulate-round', requireAuth, async (req: any, res) =>
         });
 
         // Run instant simulation
-        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
         
         // Update match status and score immediately
         await prisma.game.update({
@@ -718,7 +720,7 @@ router.post('/:id/matches/manual-start', requireAuth, async (req: any, res) => {
       const prisma = await getPrismaClient();
       try {
         // Run instant simulation directly
-        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
         
         // Update match status and score immediately
         await prisma.game.update({
@@ -992,7 +994,7 @@ router.post('/:tournamentId/simulate-round', requireAuth, async (req: any, res) 
         });
 
         // Run instant simulation
-        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
         
         // Update match status and score immediately
         await prisma.game.update({
@@ -1169,7 +1171,7 @@ router.post('/start-live-match', requireAuth, async (req: any, res) => {
     }
 
     // Run instant simulation
-    const simulationResult = await QuickMatchSimulation.simulateMatch(matchId.toString());
+    const simulationResult = await QuickMatchSimulation.runQuickSimulation(matchId.toString());
     
     // Update match status and score immediately
     const prisma = await getPrismaClient();
@@ -1251,7 +1253,7 @@ router.post('/dev-start-tournament/:tournamentId', requireAuth, async (req: any,
     for (const match of matches) {
       try {
         // Run instant simulation
-        const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+        const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
         
         // Update match status and score immediately
         await prisma.game.update({

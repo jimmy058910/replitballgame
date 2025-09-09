@@ -2,6 +2,8 @@ import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
+import type { Team } from '@shared/types/models';
+
 import {
   calculateFanLoyalty,
   calculateHomeAdvantage,

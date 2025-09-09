@@ -1,5 +1,7 @@
 // Type guard utilities to safely check API responses
-import { StoreItem, Team, TeamFinances } from '@shared/types/api';
+import { StoreItem } from '@shared/types/api';
+import type { Team, TeamFinances } from '@shared/types/models';
+
 
 export function isStoreItem(item: any): item is StoreItem {
   return item && typeof item.id === 'string' && typeof item.name === 'string';

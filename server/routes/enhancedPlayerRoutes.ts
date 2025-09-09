@@ -6,6 +6,8 @@ import { z } from "zod";
 import { ContractService } from '../services/contractService.js';
 import { PlayerSkillsService } from '../services/playerSkillsService.js';
 import { PlayerAgingRetirementService } from '../services/playerAgingRetirementService.js';
+import type { Player, Team, Contract, League } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -58,7 +60,7 @@ router.get('/', requireAuth, async (req: any, res: Response, next: NextFunction)
   try {
     const userTeam = await getUserTeam(req);
     
-    const players = await storage.players.getPlayersByTeam(userTeam.id);
+    const players = await storage?.players.getPlayersByTeamId(userTeam.id);
     
     res.json({ 
       players: convertBigIntToString(players),
@@ -83,7 +85,7 @@ router.get('/:playerId', requireAuth, async (req: any, res: Response, next: Next
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     
     if (!player) {
       return res.status(404).json({ error: "Player not found" });
@@ -110,7 +112,7 @@ router.get('/:playerId/contract-value', requireAuth, async (req: any, res: Respo
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     
     if (!player) {
       return res.status(404).json({ error: "Player not found" });
@@ -126,9 +128,9 @@ router.get('/:playerId/contract-value', requireAuth, async (req: any, res: Respo
 
     res.json({ 
       playerId: player.id,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       contractValue: convertBigIntToString(contractValue),
-      calculationDate: new Date().toISOString()
+      calculationDate: new Date()
     });
   } catch (error) {
     console.error('Error calculating contract value:', error);
@@ -145,7 +147,7 @@ router.get('/:playerId/contract-negotiation-data', requireAuth, async (req: any,
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     
     if (!player) {
       return res.status(404).json({ error: "Player not found" });
@@ -161,8 +163,8 @@ router.get('/:playerId/contract-negotiation-data', requireAuth, async (req: any,
     res.json({ 
       player: {
         id: player.id,
-        name: player.name,
-        position: player.position,
+        name: `${player.firstName} ${player.lastName}`,
+        position: player.role,
         age: player.age
       },
       negotiationData: convertBigIntToString(negotiationData)
@@ -184,7 +186,7 @@ router.post('/:playerId/negotiation-feedback', requireAuth, async (req: any, res
     
     const validatedData = contractNegotiationSchema.parse(req.body);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     
     if (!player) {
       return res.status(404).json({ error: "Player not found" });
@@ -224,7 +226,7 @@ router.post('/:playerId/negotiate-contract', requireAuth, async (req: any, res: 
     
     const validatedData = contractNegotiationSchema.parse(req.body);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     
     if (!player) {
       return res.status(404).json({ error: "Player not found" });
@@ -277,7 +279,7 @@ router.get('/:playerId/skills', requireAuth, async (req: any, res: Response, nex
     const userTeam = await getUserTeam(req);
 
     // Verify player belongs to user's team
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -286,7 +288,7 @@ router.get('/:playerId/skills', requireAuth, async (req: any, res: Response, nex
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       skills: convertBigIntToString(skills)
     });
   } catch (error) {
@@ -304,7 +306,7 @@ router.get('/:playerId/eligible-skills', requireAuth, async (req: any, res: Resp
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -313,7 +315,7 @@ router.get('/:playerId/eligible-skills', requireAuth, async (req: any, res: Resp
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       eligibleSkills: convertBigIntToString(eligibleSkills)
     });
   } catch (error) {
@@ -331,7 +333,7 @@ router.get('/:playerId/skill-effects', requireAuth, async (req: any, res: Respon
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -340,7 +342,7 @@ router.get('/:playerId/skill-effects', requireAuth, async (req: any, res: Respon
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       skillEffects: convertBigIntToString(skillEffects)
     });
   } catch (error) {
@@ -359,7 +361,7 @@ router.post('/:playerId/skills/:skillId/acquire', requireAuth, async (req: any, 
     const skillId = parseInt(req.params.skillId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -369,7 +371,7 @@ router.post('/:playerId/skills/:skillId/acquire', requireAuth, async (req: any, 
     if (result.success) {
       res.json({
         success: true,
-        message: `${player.name} acquired new skill successfully`,
+        message: `${`${player.firstName} ${player.lastName}`} acquired new skill successfully`,
         skill: convertBigIntToString(result.skill)
       });
     } else {
@@ -394,7 +396,7 @@ router.post('/:playerId/skills/:skillId/upgrade', requireAuth, async (req: any, 
     const skillId = parseInt(req.params.skillId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -404,7 +406,7 @@ router.post('/:playerId/skills/:skillId/upgrade', requireAuth, async (req: any, 
     if (result.success) {
       res.json({
         success: true,
-        message: `${player.name} upgraded skill successfully`,
+        message: `${`${player.firstName} ${player.lastName}`} upgraded skill successfully`,
         skill: convertBigIntToString(result.skill),
         newLevel: result.newLevel
       });
@@ -429,7 +431,7 @@ router.post('/:playerId/skill-up-event', requireAuth, async (req: any, res: Resp
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -438,7 +440,7 @@ router.post('/:playerId/skill-up-event', requireAuth, async (req: any, res: Resp
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       skillUpEvent: convertBigIntToString(result)
     });
   } catch (error) {
@@ -460,7 +462,7 @@ router.get('/:playerId/development-stats', requireAuth, async (req: any, res: Re
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -469,7 +471,7 @@ router.get('/:playerId/development-stats', requireAuth, async (req: any, res: Re
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       developmentStats: convertBigIntToString(developmentStats)
     });
   } catch (error) {
@@ -488,7 +490,7 @@ router.post('/:playerId/simulate-aging', requireAuth, async (req: any, res: Resp
     const { seasons = 1 } = req.body;
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -497,7 +499,7 @@ router.post('/:playerId/simulate-aging', requireAuth, async (req: any, res: Resp
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       seasonsSimulated: seasons,
       agingResults: convertBigIntToString(agingSimulation)
     });
@@ -516,7 +518,7 @@ router.get('/:playerId/progression-chance', requireAuth, async (req: any, res: R
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -525,7 +527,7 @@ router.get('/:playerId/progression-chance', requireAuth, async (req: any, res: R
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       age: player.age,
       progressionChance: convertBigIntToString(progressionChance)
     });
@@ -544,7 +546,7 @@ router.get('/:playerId/retirement-chance', requireAuth, async (req: any, res: Re
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -553,7 +555,7 @@ router.get('/:playerId/retirement-chance', requireAuth, async (req: any, res: Re
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       age: player.age,
       retirementChance: convertBigIntToString(retirementChance)
     });
@@ -572,7 +574,7 @@ router.post('/:playerId/force-retirement', requireAuth, async (req: any, res: Re
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -582,7 +584,7 @@ router.post('/:playerId/force-retirement', requireAuth, async (req: any, res: Re
     if (result.success) {
       res.json({
         success: true,
-        message: `${player.name} has been retired`,
+        message: `${`${player.firstName} ${player.lastName}`} has been retired`,
         retirementDetails: convertBigIntToString(result.details)
       });
     } else {
@@ -606,7 +608,7 @@ router.post('/:playerId/generate-age', requireAuth, async (req: any, res: Respon
     const playerId = parseInt(req.params.playerId);
     const userTeam = await getUserTeam(req);
 
-    const player = await storage.players.getPlayerById(playerId);
+    const player = await storage?.players.getPlayerById(playerId);
     if (!player || player.teamId !== userTeam.id) {
       return res.status(403).json({ error: "Player access denied" });
     }
@@ -615,7 +617,7 @@ router.post('/:playerId/generate-age', requireAuth, async (req: any, res: Respon
 
     res.json({
       playerId,
-      playerName: player.name,
+      playerName: `${player.firstName} ${player.lastName}`,
       currentAge: player.age,
       generatedAge: generatedAge,
       context: "Age generation for development context"

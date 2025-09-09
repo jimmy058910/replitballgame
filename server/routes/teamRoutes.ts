@@ -5,11 +5,13 @@ import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { z } from "zod";
 import { ErrorCreators, asyncHandler } from '../services/errorService.js';
-import { getPrismaClient } from "../database.js";
+import { DatabaseService } from "../database/DatabaseService.js";
 import { TeamNameValidator } from '../services/teamNameValidation.js';
 import { CamaraderieService } from '../services/camaraderieService.js';
 import { cacheResponse } from "../middleware/cacheMiddleware.js";
 import { PaymentHistoryService } from '../services/paymentHistoryService.js';
+import type { Player, Team, TeamFinances, League } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -19,16 +21,16 @@ function calculateTeamPower(players: any[]): number {
 
   const playersWithPower = players.map(player => ({
     ...player,
-    individualPower: Math.round(((player.speed || 20) + (player.power || 20) + (player.agility || 20) + 
-                                (player.throwing || 20) + (player.catching || 20) + (player.kicking || 20) + 
-                                (player.staminaAttribute || 20) + (player.leadership || 20)) / 8)
+    individualPower: Math.round(((player?.speed ?? 20) + (player?.power ?? 20) + (player?.agility ?? 20) + 
+                                (player?.throwing ?? 20) + (player?.catching ?? 20) + (player?.kicking ?? 20) + 
+                                (player?.staminaAttribute ?? 20) + (player?.leadership ?? 20)) / 8)
   }));
 
   const topPlayers = playersWithPower
-    .sort((a: any, b: any) => b.individualPower - a.individualPower)
+    .sort((a: any, b: any) => (b?.individualPower ?? 0) - (a?.individualPower ?? 0))
     .slice(0, 9);
 
-  const totalPower = topPlayers.reduce((sum: any, player: any) => sum + player.individualPower, 0);
+  const totalPower = topPlayers.reduce((sum: any, player: any) => sum + (player?.individualPower ?? 0), 0);
   return Math.round(totalPower / Math.max(1, topPlayers.length));
 }
 
@@ -44,12 +46,12 @@ router.get('/firebase-test', asyncHandler(async (req: Request, res: Response) =>
   
   const config = {
     firebaseAppsCount: admin.apps.length,
-    projectId: admin.apps[0]?.options?.projectId || 'none',
-    hasServiceAccount: !!admin.apps[0]?.options?.credential,
+    projectId: admin?.apps?.[0]?.options?.projectId ?? 'none',
+    hasServiceAccount: !!(admin?.apps?.[0]?.options?.credential),
     nodeEnv: process.env.NODE_ENV,
     viteFirebaseProjectId: process.env.VITE_FIREBASE_PROJECT_ID,
     googleCloudProject: process.env.GOOGLE_CLOUD_PROJECT,
-    timestamp: new Date().toISOString()
+    timestamp: new Date()
   };
   
   res.json({
@@ -64,7 +66,7 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
   console.log('🔍 [API CALL] /api/teams/my route called!');
   console.log('🚨 [UNIQUE DEBUG] This is the FIXED endpoint running!');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -79,10 +81,10 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
     });
   }
 
-  console.log('✅ Team found! playersCount:', team.playersCount, 'players.length:', team.players?.length);
+  console.log('✅ Team found! playersCount:', team?.playersCount, 'players.length:', team.players?.length);
 
   // Use team object directly (working approach from debug endpoint)  
-  const teamPower = calculateTeamPower(team.players || []);
+  const teamPower = calculateTeamPower(team?.players || []);
   
   // Calculate real-time camaraderie
   const teamCamaraderie = await CamaraderieService.getTeamCamaraderie(team.id.toString());
@@ -94,7 +96,7 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
     teamCamaraderie 
   };
 
-  if (serializedTeam.finances) {
+  if (serializedTeam?.finances) {
     serializedTeam.finances = {
       ...serializedTeam.finances,
       credits: serializedTeam.finances.credits?.toString() || '0',
@@ -154,7 +156,7 @@ router.get('/my', requireAuth, asyncHandler(async (req: Request, res: Response) 
 router.get('/my/finances', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [FINANCES] /api/teams/my/finances endpoint called');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -183,71 +185,24 @@ router.get('/:teamId/finances', requireAuth, asyncHandler(async (req: Request, r
     throw ErrorCreators.validation("Invalid team ID");
   }
 
-  // Get team finances using storage layer
-  const finances = await storage.teamFinances.getTeamFinances(teamId);
-  if (!finances) {
-    throw ErrorCreators.notFound("Team finances not found");
-  }
-
-  // Calculate actual player salaries from contracts
-  const prisma = await import('../database.js').then(m => m.getPrismaClient());
-  const players = await (await prisma).player.findMany({
-    where: { teamId: teamId },
-    select: { id: true }
-  });
-  const playerIds = players.map((p: any) => p.id);
+  // REFACTORED: Use EnhancedTeamManagementService for clean service layer architecture
+  const { EnhancedTeamManagementService } = await import('../services/enhancedTeamManagementService.js');
+  const comprehensiveFinances = await EnhancedTeamManagementService.calculateComprehensiveFinances(teamId);
   
-  const contracts = await (await prisma).contract.findMany({
-    where: {
-      playerId: { in: playerIds }
-    },
-    select: {
-      salary: true
-    }
-  });
-  const totalPlayerSalaries = contracts.reduce((total, contract) => {
-    return total + (contract.salary || 0);
-  }, 0);
-
-  // Calculate actual staff salaries using Universal Value Formula
-  let totalStaffSalaries = 0;
-  try {
-    const staff = await storage.staff.getStaffByTeamId(teamId);
-    totalStaffSalaries = staff.reduce((total, staffMember) => {
-      // Use Universal Value Formula for dynamic staff salary calculation
-      const sumOfAttributes = (staffMember.motivation || 0) + (staffMember.development || 0) + 
-                            (staffMember.teaching || 0) + (staffMember.physiology || 0) + 
-                            (staffMember.talentIdentification || 0) + (staffMember.potentialAssessment || 0) + 
-                            (staffMember.tactics || 0);
-      const baseSalary = (sumOfAttributes * 150) + (staffMember.level * 500);
-      const ageModifier = Math.max(0.7, Math.min(1.2, (staffMember.age - 20) / 40 + 0.9));
-      const marketValue = Math.round(baseSalary * ageModifier);
-      return total + marketValue;
-    }, 0);
-  } catch (error) {
-    console.error('Error fetching staff for salary calculation:', error);
-    totalStaffSalaries = 0;
-  }
-
-  // Return finances with calculated values and proper BigInt serialization
-  const facilitiesCost = parseInt(String(finances.facilitiesMaintenanceCost || '0'));
-  const projectedIncome = parseInt(String(finances.projectedIncome || '0'));
-  const totalExpenses = totalPlayerSalaries + totalStaffSalaries + facilitiesCost;
-  
-  // Create comprehensive response object with calculated values
+  // Create response object maintaining API compatibility
   const calculatedFinances = {
-    ...finances,
+    ...comprehensiveFinances.rawFinances,
     // Calculated values for frontend
-    playerSalaries: totalPlayerSalaries,
-    staffSalaries: totalStaffSalaries,
-    totalExpenses: totalExpenses,
-    netIncome: projectedIncome - totalExpenses,
+    playerSalaries: comprehensiveFinances.playerSalaries,
+    staffSalaries: comprehensiveFinances.staffSalaries,
+    totalExpenses: comprehensiveFinances.totalExpenses,
+    netIncome: comprehensiveFinances.netIncome,
     // Maintenance cost in proper format
-    maintenanceCosts: facilitiesCost
+    maintenanceCosts: comprehensiveFinances.maintenanceCosts
   };
 
   console.log('✅ [FINANCES] Successfully returned calculated finances for teamId:', teamId);
-  console.log('📊 [FINANCES] Calculations: playerSalaries:', totalPlayerSalaries, 'staffSalaries:', totalStaffSalaries, 'netIncome:', projectedIncome - totalExpenses);
+  console.log('📊 [FINANCES] Calculations: playerSalaries:', comprehensiveFinances.playerSalaries, 'staffSalaries:', comprehensiveFinances.staffSalaries, 'netIncome:', comprehensiveFinances.netIncome);
   res.json(calculatedFinances);
 }));
 
@@ -260,7 +215,7 @@ router.get('/:teamId/contracts', requireAuth, asyncHandler(async (req: Request, 
     throw ErrorCreators.validation("Invalid team ID");
   }
 
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -331,7 +286,7 @@ router.get('/:teamId/transactions', requireAuth, asyncHandler(async (req: Reques
     throw ErrorCreators.validation("Invalid team ID");
   }
 
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -395,7 +350,7 @@ router.get('/my/next-opponent', requireAuth, asyncHandler(async (req: Request, r
 router.get('/my-schedule/comprehensive', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [API CALL] /api/teams/my-schedule/comprehensive route called!');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -441,7 +396,7 @@ router.get('/:teamId/matches/recent', asyncHandler(async (req: Request, res: Res
   const { teamId } = req.params;
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get recent completed matches for this team
     const recentMatches = await prisma.game.findMany({
@@ -722,7 +677,7 @@ router.get('/fix-opponent-debug', asyncHandler(async (req: Request, res: Respons
     console.log('🔧 ADMIN: Starting match opponent fix...');
     
     // Find teams by manually querying
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const allTeams = await prisma.team.findMany({
       where: {
         name: {
@@ -859,7 +814,7 @@ router.post('/:teamId/fix-financial-balance', requireAuth, asyncHandler(async (r
   }
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get all completed transactions for this team
     const transactions = await prisma.paymentTransaction.findMany({
@@ -935,13 +890,13 @@ router.post('/:teamId/fix-financial-balance', requireAuth, asyncHandler(async (r
 router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [CAMARADERIE] Setting all players camaraderie to base level (50)');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Update all players' camaraderie to 50
     const updateResult = await prisma.player.updateMany({
@@ -969,13 +924,13 @@ router.post('/set-all-players-camaraderie', requireAuth, asyncHandler(async (req
 router.post('/fix-day9-dates', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('📅 [FIX DAY 9] Moving 4 games from August 25th to August 24th (Day 9)');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find games scheduled for August 25th that should be on August 24th
     const aug25Games = await prisma.game.findMany({
@@ -1049,13 +1004,13 @@ router.post('/fix-day9-dates', requireAuth, asyncHandler(async (req: Request, re
 router.post('/reset-test-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔄 [RESET TEST GAMES] Resetting manual test games to proper Day 9 times');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     const testGameIds = [3973, 3974, 3975, 3976];
     const resetGames = [];
@@ -1120,13 +1075,13 @@ router.post('/reset-test-games', requireAuth, asyncHandler(async (req: Request, 
 router.post('/fix-day8-status-and-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [FIX DAY 8] Fixing Day 8 games status and recalculating standings');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Step 1: Fix Day 8 games that are stuck in IN_PROGRESS but have final scores
     const day8Games = [3969, 3970, 3971, 3972]; // From debug output
@@ -1270,13 +1225,13 @@ router.post('/fix-day8-status-and-standings', requireAuth, asyncHandler(async (r
 router.post('/debug-games-status', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [DEBUG GAMES] Checking all Day 7 and Day 8 games status');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Get all games from the last few days regardless of status
     const allRecentGames = await prisma.game.findMany({
@@ -1327,7 +1282,7 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
   console.log('🔄 [COMPREHENSIVE RESET v2] Clearing games, resetting season, and generating 14-game schedule');
   console.log('🔧 [COMPREHENSIVE RESET v2] Full Division 7 Alpha reset with proper scheduling');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1335,7 +1290,7 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
   console.log(`🔍 [DEBUG] Looking for userId: "${userId}"`);
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Step 0: Get user's team to determine division/subdivision scope
     const userProfile = await prisma.userProfile.findUnique({
@@ -1584,13 +1539,13 @@ router.post('/reset-all-standings', requireAuth, asyncHandler(async (req: Reques
 router.post('/fix-completed-standings', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [STANDINGS FIX] Updating standings for completed games that were missed');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find COMPLETED league games that have scores but might not have updated standings
     const completedGames = await prisma.game.findMany({
@@ -1683,13 +1638,13 @@ router.post('/fix-completed-standings', requireAuth, asyncHandler(async (req: Re
 router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔧 [DAY 8 FIX] Fixing Day 8 games with proper simulation');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
   
   try {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find all Day 8 games (August 23, 2025) that are marked as FINAL/COMPLETED but have 0-0 scores
     const brokenDay8Games = await prisma.game.findMany({
@@ -1731,7 +1686,7 @@ router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, re
         const { QuickMatchSimulation } = await import('../services/enhancedSimulationEngine.js');
         
         // Run the full match simulation
-        const simulationResult = await QuickMatchSimulation.simulateMatch(
+        const simulationResult = await QuickMatchSimulation.runQuickSimulation(
           game.id.toString()
         );
         
@@ -1824,7 +1779,7 @@ router.post('/fix-day8-games', requireAuth, asyncHandler(async (req: Request, re
 router.get('/transactions', requireAuth, asyncHandler(async (req: Request, res: Response) => {
   console.log('🔍 [TRANSACTIONS] /api/teams/transactions route called');
   
-  const userId = req.user?.uid;
+  const userId = req?.user?.uid;
   if (!userId) {
     throw ErrorCreators.unauthorized("User ID not found in token");
   }
@@ -1939,7 +1894,7 @@ router.get('/:teamId/staff', requireAuth, asyncHandler(async (req: Request, res:
     );
     
     // Calculate total staff cost based on skills and position importance
-    const totalStaffCost = staffWithContracts.reduce((total, member) => {
+    const totalStaffCost = staffWithContracts.reduce((total: any, member: any) => {
       if (member.contract && member.contract.salary) {
         return total + member.contract.salary;
       }
@@ -2009,7 +1964,7 @@ router.get('/:teamId/staff/debug', requireAuth, asyncHandler(async (req: Request
     const staff = await storage.staff.getStaffByTeamId(teamId);
     
     // Group staff by type and count
-    const staffByType = staff.reduce((acc, member) => {
+    const staffByType = staff.reduce((acc: any, member: any) => {
       if (!acc[member.type]) {
         acc[member.type] = [];
       }
@@ -2023,7 +1978,7 @@ router.get('/:teamId/staff/debug', requireAuth, asyncHandler(async (req: Request
     }, {} as Record<string, any[]>);
 
     // Count staff by type
-    const staffCounts = Object.keys(staffByType).reduce((acc, type) => {
+    const staffCounts = Object.keys(staffByType).reduce((acc: any, type: any) => {
       acc[type] = staffByType[type].length;
       return acc;
     }, {} as Record<string, number>);
@@ -2057,7 +2012,7 @@ router.post('/:teamId/staff/cleanup-duplicates', requireAuth, asyncHandler(async
     const staff = await storage.staff.getStaffByTeamId(teamId);
     
     // Group staff by type
-    const staffByType = staff.reduce((acc, member) => {
+    const staffByType = staff.reduce((acc: any, member: any) => {
       if (!acc[member.type]) {
         acc[member.type] = [];
       }
@@ -2257,7 +2212,7 @@ router.post('/:teamId/tryouts', requireAuth, asyncHandler(async (req: Request, r
       const potentialRating = Math.random() * (potentialMax - potentialMin) + potentialMin;
       
       // Calculate market value
-      const avgStat = Object.values(baseStats).reduce((a, b) => a + b, 0) / 7;
+      const avgStat = Object.values(baseStats).reduce((a: any, b: any) => a + b, 0) / 7;
       const marketValue = Math.floor(1000 + (avgStat * 50) + (potentialRating * 500) + (Math.random() * 500));
       
       const candidate = {
@@ -2320,10 +2275,10 @@ router.get('/:teamId/formation', requireAuth, asyncHandler(async (req: Request, 
   }
 
   // Get players for this team
-  const players = await storage.players.getPlayersByTeamId(teamId);
+  const players = await storage?.players.getPlayersByTeamId(teamId);
   
   // Get formation from strategy table
-  const prisma = await getPrismaClient();
+  const prisma = await DatabaseService.getInstance();
   const strategy = await prisma.strategy.findFirst({
     where: { teamId: teamId }
   });
@@ -2398,7 +2353,7 @@ router.put('/:teamId/formation', requireAuth, asyncHandler(async (req: Request, 
   };
 
   // Save to strategy table
-  const prisma = await getPrismaClient();
+  const prisma = await DatabaseService.getInstance();
   await prisma.strategy.upsert({
     where: { teamId: teamId },
     update: { formationJson: formation },
@@ -2439,7 +2394,7 @@ router.get('/:teamId/players', requireAuth, asyncHandler(async (req: Request, re
   }
 
   // Get players for this team (contracted players only)
-  const players = await storage.players.getPlayersByTeamId(teamId);
+  const players = await storage?.players.getPlayersByTeamId(teamId);
   
   console.log(`✅ [TEAM PLAYERS] Found ${players.length} players for team ${team.name}`);
   
@@ -2469,7 +2424,7 @@ router.get('/:teamId/taxi-squad', requireAuth, asyncHandler(async (req: Request,
   }
 
   // Get taxi squad players using storage method
-  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  const taxiSquadPlayers = await storage?.players.getTaxiSquadPlayersByTeamId(team.id);
 
   console.log(`✅ [TAXI SQUAD] Found ${taxiSquadPlayers.length} taxi squad players for team ${team.name}`);
 
@@ -2499,10 +2454,10 @@ router.post('/:teamId/taxi-squad/add-candidates', requireAuth, asyncHandler(asyn
   }
 
   // Check taxi squad capacity (max 3 players)
-  const currentTaxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  const currentTaxiSquadPlayers = await storage?.players.getTaxiSquadPlayersByTeamId(team.id);
   
   // Also check total roster size (max 15 players total)
-  const prisma = await getPrismaClient();
+  const prisma = await DatabaseService.getInstance();
   const totalPlayers = await prisma.player.count({ where: { teamId: team.id } });
   const maxTotalPlayers = 15;
   
@@ -2609,7 +2564,7 @@ router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: Reque
   }
 
   // Check if tryouts have been used this season by looking for TryoutHistory records
-  const prisma = await getPrismaClient();
+  const prisma = await DatabaseService.getInstance();
   const currentSeason = await prisma.season.findFirst({
     orderBy: { createdAt: 'desc' }
   });
@@ -2624,7 +2579,7 @@ router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: Reque
   });
   
   const tryoutsUsed = tryoutHistoryThisSeason.length > 0;
-  const taxiSquadPlayers = await storage.players.getTaxiSquadPlayersByTeamId(team.id);
+  const taxiSquadPlayers = await storage?.players.getTaxiSquadPlayersByTeamId(team.id);
 
   console.log(`✅ [SEASONAL DATA] Tryouts used: ${tryoutsUsed}, taxi squad count: ${taxiSquadPlayers.length}`);
 
@@ -2634,7 +2589,7 @@ router.get('/:teamId/seasonal-data', requireAuth, asyncHandler(async (req: Reque
       tryoutsUsed: tryoutsUsed,
       taxiSquadCount: taxiSquadPlayers.length,
       seasonalData: {
-        tryoutDate: tryoutsUsed ? new Date().toISOString() : null,
+        tryoutDate: tryoutsUsed ? new Date() : null,
         currentSeasonDay: 1
       }
     }
@@ -2660,7 +2615,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', requireAuth, asyncHandler(a
   }
 
   // Check if player exists and is on taxi squad
-  const player = await storage.players.getPlayerById(playerId);
+  const player = await storage?.players.getPlayerById(playerId);
   if (!player) {
     throw ErrorCreators.notFound("Player not found");
   }
@@ -2670,7 +2625,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', requireAuth, asyncHandler(a
   }
 
   // Get all players to check taxi squad status
-  const prisma = await getPrismaClient();
+  const prisma = await DatabaseService.getInstance();
   const allTeamPlayers = await prisma.player.findMany({
     where: {
       teamId: team.id,
@@ -2693,7 +2648,7 @@ router.post('/:teamId/taxi-squad/:playerId/promote', requireAuth, asyncHandler(a
   }
 
   // Promote player using storage method
-  const promotedPlayer = await storage.players.promotePlayerFromTaxiSquad(playerId);
+  const promotedPlayer = await storage?.players.promotePlayerFromTaxiSquad(playerId);
 
   console.log(`✅ [TAXI SQUAD] Promoted player ${player.firstName} ${player.lastName} from taxi squad`);
 
@@ -2723,7 +2678,7 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
   }
 
   // Check if player exists and is on taxi squad
-  const player = await storage.players.getPlayerById(playerId);
+  const player = await storage?.players.getPlayerById(playerId);
   if (!player) {
     throw ErrorCreators.notFound("Player not found");
   }
@@ -2733,7 +2688,7 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
   }
 
   // Get all players to check taxi squad status
-  const prisma = await getPrismaClient();
+  const prisma = await DatabaseService.getInstance();
   const allTeamPlayers = await prisma.player.findMany({
     where: {
       teamId: team.id,
@@ -2756,7 +2711,7 @@ router.delete('/:teamId/taxi-squad/:playerId', requireAuth, asyncHandler(async (
   }
 
   // Release player using storage method
-  const released = await storage.players.releasePlayerFromTaxiSquad(playerId);
+  const released = await storage?.players.releasePlayerFromTaxiSquad(playerId);
 
   console.log(`✅ [TAXI SQUAD] Released player ${player.firstName} ${player.lastName} from taxi squad`);
 

@@ -1,5 +1,7 @@
-import { getPrismaClient } from "../database.js";
+import { DatabaseService } from "../database/DatabaseService.js";
 import { QuickMatchSimulation } from './enhancedSimulationEngine.js';
+import type { Team, League } from '@shared/types/models';
+
 // Using any types for Prisma enums to avoid import issues
 
 /**
@@ -20,7 +22,7 @@ export class UnifiedTournamentAutomation {
         await this.checkRoundCompletion(tournamentId, roundNumber);
         
         // Check if tournament is complete or round has advanced
-        const prisma = await getPrismaClient();
+        const prisma = await DatabaseService.getInstance();
         const tournament = await prisma.tournament.findUnique({
           where: { id: tournamentId }
         });
@@ -63,7 +65,7 @@ export class UnifiedTournamentAutomation {
     console.log(`Starting tournament ${tournamentId} round ${roundNumber}...`);
     
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       // Get matches for this round
       const matches = await prisma.game.findMany({
         where: { 
@@ -91,7 +93,7 @@ export class UnifiedTournamentAutomation {
           });
 
           // Use instant simulation
-          const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+          const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
           
           // Update match status and score immediately
           await prisma.game.update({
@@ -137,7 +139,7 @@ export class UnifiedTournamentAutomation {
     console.log(`Checking round completion for tournament ${tournamentId}, round ${completedRound}`);
     
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       // Get all matches for this round
       const roundMatches = await prisma.game.findMany({
         where: {
@@ -203,7 +205,7 @@ export class UnifiedTournamentAutomation {
     console.log(`Generating round ${completedRound + 1} matches for tournament ${tournamentId}`);
     
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const nextRound = completedRound + 1;
       
       // Check if next round matches already exist (prevent duplicates)
@@ -282,7 +284,7 @@ export class UnifiedTournamentAutomation {
     console.log(`Completing tournament ${tournamentId}...`);
     
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       
       // Get tournament to determine type and find finals round
       const tournament = await prisma.tournament.findUnique({
@@ -426,7 +428,7 @@ export class UnifiedTournamentAutomation {
    * Handle match completion for tournament progression
    */
   static async handleMatchCompletion(matchId: number): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     try {
       const match = await prisma.game.findUnique({
         where: { id: matchId },
@@ -453,7 +455,7 @@ export class UnifiedTournamentAutomation {
    */
   static async runTournamentAutomation(): Promise<void> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       
       // Check for tournaments that need to start
       const tournamentsToStart = await prisma.tournament.findMany({
@@ -495,7 +497,7 @@ export class UnifiedTournamentAutomation {
    */
   static async startTournament(tournamentId: number): Promise<void> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       
       // Update tournament status
       await prisma.tournament.update({

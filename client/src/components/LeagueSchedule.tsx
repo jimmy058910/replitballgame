@@ -7,6 +7,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Calendar, Clock, Eye, Users, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
+import type { Team, League } from '@shared/types/models';
+
 
 interface ScheduledMatch {
   id: string;
@@ -61,7 +63,7 @@ export default function LeagueSchedule() {
   console.log("LeagueSchedule render:", { 
     schedule: schedule ? {
       totalDays: Object.keys(schedule.schedule || {}).length,
-      currentDay: schedule.currentDay,
+      currentDay: schedule?.currentDay,
       scheduleKeys: Object.keys(schedule.schedule || {}),
       firstFewEntries: Object.entries(schedule.schedule || {}).slice(0, 3)
     } : null, 
@@ -276,7 +278,7 @@ export default function LeagueSchedule() {
               {title}
               {!isCompleted && (
                 <Badge variant="outline" className="ml-auto mr-2">
-                  Day {schedule.currentDay} of {schedule.totalDays}
+                  Day {schedule?.currentDay} of {schedule.totalDays}
                 </Badge>
               )}
               <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''} ${isCompleted ? 'ml-auto' : ''}`} />
@@ -295,7 +297,7 @@ export default function LeagueSchedule() {
                 const dayMatches = matchesByDay[day];
                 if (!dayMatches || dayMatches.length === 0) return null;
 
-                const isCurrentDay = day === schedule.currentDay;
+                const isCurrentDay = day === schedule?.currentDay;
 
                 return (
                   <div key={day} className="space-y-3">

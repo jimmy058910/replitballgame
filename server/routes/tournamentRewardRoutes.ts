@@ -5,6 +5,8 @@ import { getPrismaClient } from '../database.js';
 const prisma = await getPrismaClient();
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { storage } from '../storage/index.js';
+import type { Team, League } from '@shared/types/models';
+
 
 const router = Router();
 
@@ -163,7 +165,7 @@ router.post('/claim-all', requireAuth, async (req: any, res: Response) => {
     await prisma.teamFinances.update({
       where: { teamId: userTeam.id },
       data: {
-        credits: BigInt(currentCredits + totalCredits),
+        credits: Number(currentCredits + totalCredits),
         gems: currentGems + totalGems
       }
     });
@@ -194,7 +196,7 @@ router.post('/claim-all', requireAuth, async (req: any, res: Response) => {
           transactionType: 'reward',
           itemName: 'Tournament Rewards',
           itemType: 'reward',
-          creditsAmount: BigInt(totalCredits),
+          creditsAmount: Number(totalCredits),
           gemsAmount: 0,
           status: 'completed',
           metadata: { claimedRewards }
@@ -208,7 +210,7 @@ router.post('/claim-all', requireAuth, async (req: any, res: Response) => {
           transactionType: 'reward',
           itemName: 'Tournament Rewards',
           itemType: 'reward',
-          creditsAmount: BigInt(0),
+          creditsAmount: Number(0),
           gemsAmount: totalGems,
           status: 'completed',
           metadata: { claimedRewards }
@@ -526,7 +528,7 @@ router.post('/claim-team-rewards/:teamId', requireAuth, async (req: any, res: Re
     await prisma.teamFinances.update({
       where: { teamId: teamId },
       data: {
-        credits: BigInt(currentCredits + totalCredits),
+        credits: Number(currentCredits + totalCredits),
         gems: currentGems + totalGems
       }
     });

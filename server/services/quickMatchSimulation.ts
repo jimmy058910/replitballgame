@@ -8,7 +8,7 @@
  * Race Effects, Tactical Systems, Stadium Effects, and Player Progression
  */
 
-import { getPrismaClient } from '../database.js';
+import { DatabaseService } from '../database/DatabaseService.js';
 import { CamaraderieService } from './camaraderieService.js';
 import { logInfo, logError } from './errorService.js';
 import { 
@@ -19,6 +19,8 @@ import {
   type TacticalModifiers
 } from '../../shared/tacticalSystem.js';
 import { AdvancedTacticalEffectsService } from './advancedTacticalEffectsService.js';
+import type { Player, Team, Stadium } from '@shared/types/models';
+
 
 // Constants for simulation configuration
 const DEFAULT_STAT_VALUE = 20;
@@ -154,7 +156,7 @@ export class QuickMatchSimulation {
    */
   static async simulateMatch(matchId: string): Promise<QuickSimulationResult> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       
       logInfo("Starting quick match simulation", { matchId });
 
@@ -212,8 +214,8 @@ export class QuickMatchSimulation {
 
       // 4. Generate player statistics
       const playerStats = await this.generatePlayerStats(
-        match.homeTeam.players,
-        match.awayTeam.players,
+        match.homeTeam?.players,
+        match.awayTeam?.players,
         homeEffects,
         awayEffects,
         matchResult
@@ -221,7 +223,7 @@ export class QuickMatchSimulation {
 
       // 5. Process injuries based on game events and camaraderie
       const injuries = await this.processInjuries(
-        [...match.homeTeam.players, ...match.awayTeam.players],
+        [...match.homeTeam?.players, ...match.awayTeam?.players],
         homeEffects,
         awayEffects,
         matchResult.intensity
@@ -229,14 +231,14 @@ export class QuickMatchSimulation {
 
       // 6. Calculate enhanced stamina depletion with tactical modifiers
       const staminaChanges = await this.calculateStaminaChanges(
-        [...match.homeTeam.players, ...match.awayTeam.players],
+        [...match.homeTeam?.players, ...match.awayTeam?.players],
         homeEffects.tacticalEffectiveness + awayEffects.tacticalEffectiveness,
         matchResult.matchDuration,
         {
           homeStaminaModifier: homeEffects.tacticalModifiers.staminaDepletionModifier,
           awayStaminaModifier: awayEffects.tacticalModifiers.staminaDepletionModifier,
-          homeTeamSize: match.homeTeam.players.length,
-          awayTeamSize: match.awayTeam.players.length
+          homeTeamSize: match.homeTeam?.players.length,
+          awayTeamSize: match.awayTeam?.players.length
         }
       );
 
@@ -319,7 +321,7 @@ export class QuickMatchSimulation {
     // 🚀 ENHANCED TACTICAL SYSTEM INTEGRATION
     const teamTacticalInfo: TeamTacticalInfo = {
       fieldSize: (team.homeField || 'STANDARD').toLowerCase() as any,
-      tacticalFocus: (team.tacticalFocus || 'BALANCED') as any,
+      tacticalFocus: (team?.tacticalFocus || 'BALANCED') as any,
       camaraderie: camaraderieEffects.teamCamaraderie,
       headCoachTactics: headCoach?.tactics || DEFAULT_STAT_VALUE,
       isHomeTeam
@@ -351,8 +353,8 @@ export class QuickMatchSimulation {
 
     // 🎯 TACTICAL SYSTEM LOGGING
     console.log(`🎯 [TACTICS] ${isHomeTeam ? 'HOME' : 'AWAY'} Team: ${team.name}`);
-    console.log(`   Field Size: ${teamTacticalInfo.fieldSize.toUpperCase()} (${fieldSizeEffects.name})`);
-    console.log(`   Tactical Focus: ${teamTacticalInfo.tacticalFocus}`);
+    console.log(`   Field Size: ${teamTacticalInfo?.fieldSize.toUpperCase()} (${fieldSizeEffects.name})`);
+    console.log(`   Tactical Focus: ${teamTacticalInfo?.tacticalFocus}`);
     console.log(`   Game Situation: ${gameSituation}`);
     console.log(`   Pass Range Modifier: ${tacticalModifiers.passRangeModifier}x`);
     console.log(`   Stamina Depletion: ${tacticalModifiers.staminaDepletionModifier}x`);
@@ -367,12 +369,12 @@ export class QuickMatchSimulation {
       Math.min(100, (stadium.capacity || DEFAULT_STADIUM_CAPACITY) / 100 + Math.random() * 20) : DEFAULT_ATMOSPHERE;
 
     // Equipment bonuses (average from players)
-    const equipmentBonuses = team.players.reduce((sum: number, player: any) => {
+    const equipmentBonuses = team?.players.reduce((sum: number, player: any) => {
       return sum + (player.equipmentBonuses || 0);
-    }, 0) / Math.max(1, team.players.length);
+    }, 0) / Math.max(1, team?.players.length);
 
     // Race effect bonuses (diversity bonus)
-    const uniqueRaces = new Set(team.players.map((p: any) => p.race)).size;
+    const uniqueRaces = new Set(team?.players.map((p: any) => p.race)).size;
     const raceEffectBonuses = Math.min(15, uniqueRaces * 2); // Max 15% bonus for diversity
 
     return {
@@ -406,8 +408,8 @@ export class QuickMatchSimulation {
     intensity: number;
   }> {
     // Calculate base team strength from player stats
-    const homeStrength = this.calculateTeamStrength(homeTeam.players);
-    const awayStrength = this.calculateTeamStrength(awayTeam.players);
+    const homeStrength = this.calculateTeamStrength(homeTeam?.players);
+    const awayStrength = this.calculateTeamStrength(awayTeam?.players);
 
     // 🚀 ENHANCED TACTICAL MODIFIERS APPLICATION
     // Apply comprehensive tactical system modifiers
@@ -926,7 +928,7 @@ export class QuickMatchSimulation {
     matchResult: any
   ): Promise<void> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const matchDate = new Date();
 
       logInfo("Saving match statistics to database", { 
@@ -1033,7 +1035,7 @@ export class QuickMatchSimulation {
     matchDate: Date,
     matchType: string
   ): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
 
     // Filter player stats for this team
     const teamPlayerStats = playerStats.filter(stat => {

@@ -5,6 +5,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import type { Stadium } from '@shared/types/models';
+
 
 interface ConfigCache {
   [key: string]: any;

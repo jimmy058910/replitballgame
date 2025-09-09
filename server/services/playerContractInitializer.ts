@@ -1,6 +1,7 @@
 import { getPrismaClient } from "../database.js";
-import { Player } from "../db";
 import { ContractService } from './contractService.js';
+import type { Player } from '@shared/types/models';
+
 
 export class PlayerContractInitializer {
   /**

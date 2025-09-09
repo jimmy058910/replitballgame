@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { PlayerAgingRetirementService } from '../services/playerAgingRetirementService.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService } from '../services/rbacService.js';
+import type { Player } from '@shared/types/models';
+
 
 const router = Router();
 

@@ -1,4 +1,4 @@
-import { getPrismaClient } from '../database.js';
+import { DatabaseService } from '../database/DatabaseService.js';
 import { PrismaClient, Game } from "../db";
 
 export class MatchStorage {
@@ -12,7 +12,7 @@ export class MatchStorage {
     tournamentId?: number;
     round?: number;
   }): Promise<Game> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const newMatch = await prisma.game.create({
       data: {
         homeTeamId: matchData.homeTeamId,
@@ -29,7 +29,7 @@ export class MatchStorage {
   }
 
   async getMatchById(id: number): Promise<Game | null> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const match = await prisma.game.findUnique({
       where: { 
         id: Number(id) 
@@ -43,7 +43,7 @@ export class MatchStorage {
   }
 
   async getMatchesByTeamId(teamId: number): Promise<Game[]> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const teamMatches = await prisma.game.findMany({
       where: {
         OR: [
@@ -67,7 +67,7 @@ export class MatchStorage {
   }
 
   async updateMatchOpponent(matchId: number, homeTeamId?: number, awayTeamId?: number): Promise<Game> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const updateData: any = {};
     
     if (homeTeamId !== undefined) updateData.homeTeamId = homeTeamId;
@@ -86,7 +86,7 @@ export class MatchStorage {
   }
 
   async getUpcomingMatches(teamId: number): Promise<Game[]> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const upcomingMatches = await prisma.game.findMany({
       where: {
         OR: [
@@ -109,7 +109,7 @@ export class MatchStorage {
 
   async getMatchesByDivision(division: number, seasonId?: number): Promise<Game[]> {
     // Get teams in the division first
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const divisionTeams = await prisma.team.findMany({
       where: { division },
       select: { id: true }
@@ -142,7 +142,7 @@ export class MatchStorage {
     try {
       // Remove 'id' from updates to avoid Prisma constraint conflicts
       const { id: _, ...updateData } = updates;
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const updatedMatch = await prisma.game.update({
         where: { id },
         data: updateData,
@@ -169,7 +169,7 @@ export class MatchStorage {
       ];
     }
     
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const live = await prisma.game.findMany({
       where: whereClause,
       include: {
@@ -205,7 +205,7 @@ export class MatchStorage {
     const endOfDay = new Date(gameDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const matches = await prisma.game.findMany({
       where: {
         status: 'SCHEDULED',

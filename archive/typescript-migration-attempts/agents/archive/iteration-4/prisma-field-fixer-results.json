@@ -1,0 +1,86 @@
+{
+  "timestamp": "2025-01-09T12:30:00Z",
+  "iteration": 4,
+  "agent": "prisma-field-fixer",
+  "summary": {
+    "errorsBefore": 526,
+    "errorsAfter": 524,
+    "errorsReduced": 2,
+    "successRate": "0.4%"
+  },
+  "fixes": {
+    "fieldsRenamed": 15,
+    "relationsFixed": 8,
+    "missingImportsAdded": 1,
+    "fieldNamesUpdated": 6
+  },
+  "details": [
+    {
+      "file": "server/services/enhancedTeamManagementService.ts",
+      "changes": [
+        "playerMatchStats: enabled with correct orderBy gameDate",
+        "homeGames → homeMatches (2 occurrences)",
+        "awayGames → awayMatches (2 occurrences)", 
+        "finances → teamFinances in include",
+        "teamFinance → teamFinances in create/update operations (3 occurrences)",
+        "Fixed player field names: name → firstName/lastName, position → role, stamina → staminaAttribute"
+      ],
+      "errorsBefore": 38,
+      "errorsAfter": 36
+    },
+    {
+      "file": "server/services/enhancedCompetitionService.ts", 
+      "changes": [
+        "Added missing prisma import from database/enhancedDatabaseConfig"
+      ],
+      "errorsBefore": 30,
+      "errorsAfter": 29
+    },
+    {
+      "file": "server/routes/teamTrendsRoutes.ts",
+      "changes": [
+        "homeGames → homeMatches in _count select",
+        "awayGames → awayMatches in _count select",
+        "Fixed totalGames calculation to use correct field names"
+      ],
+      "errorsBefore": 3,
+      "errorsAfter": 1
+    }
+  ],
+  "patterns": {
+    "mostCommonFixes": [
+      {
+        "pattern": "teamFinance",
+        "correction": "teamFinances", 
+        "occurrences": 4
+      },
+      {
+        "pattern": "homeGames/awayGames",
+        "correction": "homeMatches/awayMatches",
+        "occurrences": 4
+      },
+      {
+        "pattern": "playerMatchStats.createdAt",
+        "correction": "playerMatchStats.gameDate", 
+        "occurrences": 2
+      },
+      {
+        "pattern": "player.name/position/stamina",
+        "correction": "player.firstName/lastName/role/staminaAttribute",
+        "occurrences": 5
+      }
+    ],
+    "remainingIssues": [
+      "Multiple files still have homeGames/awayGames relations that need systematic correction",
+      "Some files still reference .teamFinance instead of .teamFinances",
+      "BigInt serialization issues in routes still need addressing",
+      "Invalid orderBy fields on models that don't have createdAt"
+    ]
+  },
+  "recommendations": [
+    "Run comprehensive search/replace for remaining homeGames → homeMatches",
+    "Continue with Import Fixer Agent to add missing Prisma imports", 
+    "Apply BigInt serialization fixes in routes",
+    "Focus on remaining high-error files with property access issues"
+  ]
+}

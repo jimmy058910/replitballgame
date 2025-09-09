@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { EnhancedMarketplaceService } from '../services/enhancedMarketplaceService.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 

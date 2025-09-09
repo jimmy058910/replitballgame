@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, XCircle, AlertCircle, Lightbulb, RefreshCw } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import type { Team } from '@shared/types/models';
+
 
 interface TeamNameInputProps {
   value: string;
@@ -44,8 +46,7 @@ export function TeamNameInput({
   });
 
   // Validation mutation
-  const validateMutation = useMutation({
-    // @ts-expect-error TS2322
+  const validateMutation = useMutation({
     mutationFn: (name: string) => 
       apiRequest('/api/team-names/validate-with-suggestions', 'POST', {
         baseName: name,

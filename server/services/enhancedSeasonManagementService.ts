@@ -769,7 +769,7 @@ export class EnhancedSeasonManagementService {
         daysRemaining: 17 - currentDay
       },
       games: {
-        total: gameStats.reduce((sum, s) => sum + s._count, 0),
+        total: gameStats.reduce((sum: any, s: any) => sum + s._count, 0),
         scheduled: gameStats.find(s => s.status === 'SCHEDULED')?._count || 0,
         completed: gameStats.find(s => s.status === 'COMPLETED')?._count || 0,
         live: gameStats.find(s => s.status === 'IN_PROGRESS')?._count || 0

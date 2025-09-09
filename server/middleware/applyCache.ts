@@ -5,6 +5,8 @@
 
 import { Router } from 'express';
 import { cacheResponse } from './cacheMiddleware.js';
+import type { Player, Team, League } from '@shared/types/models';
+
 
 // Team routes with caching
 export function applyCacheToTeamRoutes(router: Router): Router {

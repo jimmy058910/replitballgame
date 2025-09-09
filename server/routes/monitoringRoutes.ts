@@ -8,6 +8,8 @@ import { PrismaClient } from '@prisma/client';
 import { logger } from '../services/loggingService';
 import { performance } from 'perf_hooks';
 import os from 'os';
+import type { Team } from '@shared/types/models';
+
 
 const router = Router();
 const prisma = new PrismaClient();

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { teamQueryOptions, storeQueryOptions } from "@/lib/api/queryOptions";
 import { apiRequest } from "@/lib/queryClient";
 import { ShoppingCart, Coins, Gem, TrendingUp, Building, Trophy, Gift, Star, Crown, CreditCard, Package } from "lucide-react";
 import { useLocation } from 'wouter';
@@ -12,15 +13,17 @@ import TryoutSystem from "@/components/TryoutSystem";
 import DynamicMarketplaceManager from "@/components/DynamicMarketplaceManager";
 import FinancesTab from "@/components/FinancesTab";
 import EnhancedInventoryHub from "@/components/EnhancedInventoryHub";
+import type { Player, Team, TeamFinances, Stadium, League } from '@shared/types/models';
 
-// Type interfaces
-interface Team {
+
+// Local interfaces (only for component-specific types)
+interface LocalTeam {
   id: string;
   name: string;
   credits: number;
 }
 
-interface TeamFinances {
+interface LocalTeamFinances {
   credits: number | string;
   gems: number;
   premiumCurrency: number;
@@ -219,23 +222,22 @@ export default function Market() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  const { data: rawTeam } = useQuery<Team>({
-    queryKey: ["/api/teams/my"],
-    // Temporary fix: provide explicit queryFn since /api/teams/my might have auth issues
+  // Use queryOptions pattern with temporary hardcoded team data
+  const { data: rawTeam } = useQuery({
+    ...teamQueryOptions.myTeam(true), // authenticated = true
     queryFn: () => {
-      // For now, return team data with id 4 (Oakland Cougars)
+      // Temporary fix: provide explicit queryFn since /api/teams/my might have auth issues
       return Promise.resolve({ id: "4", name: "Oakland Cougars", credits: 163000 });
     }
   });
 
-  const { data: teamFinances } = useQuery<TeamFinances>({
-    queryKey: ["/api/teams/" + rawTeam?.id + "/finances"],
-    enabled: !!rawTeam?.id
-  });
+  const { data: teamFinances } = useQuery(
+    teamQueryOptions.teamFinances(rawTeam?.id || '')
+  );
 
   // Fetch Gem Store items (gem-only items)
   const { data: gemStoreData } = useQuery({
-    queryKey: ["/api/store/"],
+    ...storeQueryOptions.gemStore(),
     select: (data: any) => {
       const gemItems = data?.consumables || [];
       console.log('Gem store items:', gemItems.length, gemItems);
@@ -245,7 +247,7 @@ export default function Market() {
 
   // Fetch Unified Store Data (Master Economy v5 - 8-item daily rotation)
   const { data: unifiedStoreData } = useQuery({
-    queryKey: ["/api/store/items"],
+    ...storeQueryOptions.unifiedStore(),
     select: (data: any) => {
       // Master Economy v5 returns dailyItems array with 8 items containing mixed equipment and consumables
       const dailyItems = data?.dailyItems || [];
@@ -257,17 +259,17 @@ export default function Market() {
   const gemItems = gemStoreData || [];
   const unifiedItems = unifiedStoreData || [];
 
-  const team = (rawTeam || {}) as Team;
+  const team = (rawTeam || {}) as LocalTeam;
 
   // Fetch gem packages
   const { data: gemPackagesData } = useQuery({
-    queryKey: ["/api/store/gem-packages"],
+    ...storeQueryOptions.gemPackages(),
     select: (data: any) => data?.data || []
   });
 
   // Fetch Realm Pass data
   const { data: realmPassData } = useQuery({
-    queryKey: ["/api/store/realm-pass"],
+    ...storeQueryOptions.realmPass(),
     select: (data: any) => data?.data || {}
   });
 

@@ -12,6 +12,8 @@ import { QuickMatchSimulation } from './enhancedSimulationEngine.js';
 import { dailyTournamentAutoFillService } from './dailyTournamentAutoFillService.js';
 import { DynamicPlayoffService } from './dynamicPlayoffService.js';
 import { generateRandomPlayer } from './leagueService.js';
+import type { Player, Team, Stadium } from '@shared/types/models';
+
 
 // Prisma client will be accessed via await getPrismaClient() in each method
 
@@ -256,7 +258,7 @@ export class SeasonTimingAutomationService {
         return;
       }
       
-      const currentDayFromDB = currentSeason.currentDay || 1;
+      const currentDayFromDB = currentSeason?.currentDay || 1;
       const nextDay = currentDayFromDB + 1;
       const isEndOfSeason = currentDayFromDB === 16; // Day 16→17 transition
       
@@ -308,8 +310,8 @@ export class SeasonTimingAutomationService {
       const currentSeason = await storage.seasons.getCurrentSeason();
       let currentDayInCycle = 5; // Default fallback
       
-      if (currentSeason && typeof currentSeason.currentDay === 'number') {
-        currentDayInCycle = currentSeason.currentDay;
+      if (currentSeason && typeof currentSeason?.currentDay === 'number') {
+        currentDayInCycle = currentSeason?.currentDay;
       } else {
         // Fallback to calculation if no database value - FIXED: Use proper 3AM EDT boundaries
         const startDate = new Date("2025-08-16T15:40:19.081Z"); // Use actual season start from database
@@ -621,7 +623,7 @@ export class SeasonTimingAutomationService {
       const result = await AgingService.processDailyAging();
       console.log('DEBUG: AgingService.processDailyAging() completed, result:', result);
       logInfo('✅ Aging processing completed', {
-        playersProcessed: result.playersProcessed,
+        playersProcessed: result?.playersProcessed,
         retirementsProcessed: result.retirementsProcessed
       });
     } catch (error) {
@@ -640,7 +642,7 @@ export class SeasonTimingAutomationService {
       const result = await InjuryStaminaService.processDailyRecovery();
       console.log('DEBUG: InjuryStaminaService.processDailyRecovery() completed, result:', result);
       logInfo('✅ Injury recovery completed', {
-        playersProcessed: result.playersProcessed,
+        playersProcessed: result?.playersProcessed,
         injuriesHealed: result.injuriesHealed,
         staminaRestored: result.staminaRestored
       });
@@ -694,14 +696,14 @@ export class SeasonTimingAutomationService {
           const dailyCost = Math.floor(totalStadiumInvestment * 0.01);
           
           // Update team finances
-          if (team.finances) {
-            const currentCredits = Number(team.finances.credits) || 0;
+          if (team?.finances) {
+            const currentCredits = Number(team?.finances.credits) || 0;
             const newCredits = currentCredits - dailyCost; // Allow negative balances
             
             await prisma.teamFinances.update({
-              where: { id: team.finances.id },
+              where: { id: team?.finances.id },
               data: {
-                credits: BigInt(Math.max(0, Math.floor(newCredits)))
+                credits: Number(Math.max(0, Math.floor(newCredits)))
               }
             });
             
@@ -712,7 +714,7 @@ export class SeasonTimingAutomationService {
             await prisma.teamFinances.create({
               data: {
                 teamId: team.id,
-                credits: BigInt(10000 - dailyCost), // Start with 10k credits minus daily cost
+                credits: Number(10000 - dailyCost), // Start with 10k credits minus daily cost
                 gems: 0
               }
             });
@@ -896,7 +898,7 @@ export class SeasonTimingAutomationService {
             position
           );
           
-          await storage.players.createPlayer({
+          await storage?.players.createPlayer({
             ...playerData,
             teamId: team.id,
           } as any);
@@ -1015,7 +1017,7 @@ export class SeasonTimingAutomationService {
                 });
                 
                 // Use instant simulation instead of live match
-                const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+                const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
                 
                 // Update match status and score immediately
                 await prisma.game.update({
@@ -1164,7 +1166,7 @@ export class SeasonTimingAutomationService {
             });
 
             // Use instant simulation
-            const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+            const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
             
             // Update match status and score immediately
             await prisma.game.update({
@@ -1225,7 +1227,7 @@ export class SeasonTimingAutomationService {
             });
             
             // Use instant simulation for catch-up
-            const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+            const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
             
             // Update match status and score immediately
             await prisma.game.update({
@@ -1254,8 +1256,8 @@ export class SeasonTimingAutomationService {
   private getCurrentSeasonInfo(currentSeason: any): { currentDayInCycle: number; seasonNumber: number } {
     let currentDayInCycle = 5; // Default fallback
     
-    if (currentSeason && typeof currentSeason.currentDay === 'number') {
-      currentDayInCycle = currentSeason.currentDay;
+    if (currentSeason && typeof currentSeason?.currentDay === 'number') {
+      currentDayInCycle = currentSeason?.currentDay;
     } else if (currentSeason && typeof currentSeason.dayInCycle === 'number') {
       currentDayInCycle = currentSeason.dayInCycle;
     } else if (currentSeason && typeof currentSeason.day_in_cycle === 'number') {
@@ -1276,7 +1278,7 @@ export class SeasonTimingAutomationService {
     console.log('Season timing debug:', {
       currentDayInCycle,
       seasonNumber,
-      source: currentSeason && typeof currentSeason.currentDay === 'number' ? 'database' : 'calculation'
+      source: currentSeason && typeof currentSeason?.currentDay === 'number' ? 'database' : 'calculation'
     });
     
     return { currentDayInCycle, seasonNumber };
@@ -1322,7 +1324,7 @@ export class SeasonTimingAutomationService {
         return;
       }
 
-      const databaseDay = currentSeason.currentDay || 1;
+      const databaseDay = currentSeason?.currentDay || 1;
       const calculatedDay = await this.calculateCorrectDay(currentSeason);
       
       // CRITICAL: Check if we need season transition by examining if we're past the season end
@@ -1430,7 +1432,7 @@ export class SeasonTimingAutomationService {
         fromDay,
         toDay,
         eventType,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         executedAt: 'startup_missed_progression'
       };
       
@@ -1488,7 +1490,7 @@ export class SeasonTimingAutomationService {
         }
       }
 
-      const databaseDay = currentSeason.currentDay || 1;
+      const databaseDay = currentSeason?.currentDay || 1;
       logInfo(`✅ Found active season - currently Day ${databaseDay}`);
       
       console.log('🔧 [MISSED PROGRESSION DEBUG] Step 3: Starting progression calculation...');
@@ -1608,11 +1610,11 @@ export class SeasonTimingAutomationService {
 
       console.log('🔧 [DAY ADVANCEMENT] Current season object:', {
         id: currentSeason.id,
-        currentDay: currentSeason.currentDay,
+        currentDay: currentSeason?.currentDay,
         startDate: currentSeason.startDate
       });
       
-      const currentDayFromDB = currentSeason.currentDay || 1;
+      const currentDayFromDB = currentSeason?.currentDay || 1;
       const nextDay = currentDayFromDB + 1;
       
       console.log(`🔧 [DAY ADVANCEMENT] Advancing from Day ${currentDayFromDB} to Day ${nextDay}`);
@@ -1743,7 +1745,7 @@ export class SeasonTimingAutomationService {
     try {
       // Only check playoff advancement on Day 15
       const currentSeason = await storage.seasons.getCurrentSeason();
-      if (!currentSeason || currentSeason.currentDay !== 15) {
+      if (!currentSeason || currentSeason?.currentDay !== 15) {
         return; // Not Day 15, skip playoff checks
       }
 
@@ -1894,7 +1896,7 @@ export class SeasonTimingAutomationService {
         
         // Use instant simulation for tournament matches
         try {
-          const simulationResult = await QuickMatchSimulation.simulateMatch(match.id.toString());
+          const simulationResult = await QuickMatchSimulation.runQuickSimulation(match.id.toString());
           
           // Update match status and score immediately
           await prisma.game.update({
@@ -2020,7 +2022,7 @@ export class SeasonTimingAutomationService {
         where: { teamId },
         data: {
           credits: {
-            increment: BigInt(prize.credits)
+            increment: Number(prize.credits)
           },
           gems: {
             increment: prize.gems

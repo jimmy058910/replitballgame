@@ -3,6 +3,8 @@ import { DailyPlayerProgressionService } from '../services/dailyPlayerProgressio
 import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
+import type { Player, Team } from '@shared/types/models';
+
 
 const router = Router();
 

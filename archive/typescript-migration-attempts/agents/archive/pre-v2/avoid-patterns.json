@@ -1,0 +1,56 @@
+{
+  "lastUpdated": "2025-01-09T17:00:00Z",
+  "iteration": 1,
+  "antiPatterns": {
+    "blindInterfaceRemoval": {
+      "description": "Removing local interfaces without understanding their purpose",
+      "reason": "May break existing component logic that depends on local type definitions",
+      "betterApproach": "Rename local interfaces to avoid conflicts (Team → ComponentTeam)",
+      "observedIn": "Initial attempts to fix TS2440 errors"
+    },
+    "aggressiveCacheClearing": {
+      "description": "Using Date.now() or aggressive query invalidation",
+      "reason": "Causes unnecessary re-renders and breaks caching benefits",
+      "betterApproach": "Use proper staleTime and skipToken patterns",
+      "observedIn": "Legacy query patterns in some components"
+    },
+    "typeAssertionsInsteadOfGuards": {
+      "description": "Using 'as' assertions instead of runtime type checking",
+      "reason": "Removes TypeScript safety without runtime validation",
+      "betterApproach": "Create proper type guards or use optional chaining",
+      "observedIn": "Property access errors"
+    },
+    "modifyingSharedTypes": {
+      "description": "Changing shared type definitions to fix local errors",
+      "reason": "Breaks other components that depend on accurate types",
+      "betterApproach": "Fix the component code to match the correct types",
+      "observedIn": "Prisma field mismatches"
+    }
+  },
+  "lowSuccessRatePatterns": {
+    "bulkInterfaceConsolidation": {
+      "successRate": 40,
+      "reason": "Too many moving parts, hard to debug failures",
+      "betterApproach": "Fix one interface conflict at a time"
+    },
+    "enabledToSkipTokenBulkReplace": {
+      "successRate": 65,
+      "reason": "Different query patterns need different handling",
+      "betterApproach": "Analyze each query's conditional logic individually"
+    }
+  },
+  "problematicFiles": [
+    {
+      "file": "client/src/components/optimized/OptimizedDashboard.tsx",
+      "issue": "Imports non-existent components",
+      "approach": "Comment out missing imports, don't create placeholders"
+    }
+  ],
+  "concurrencyIssues": [
+    {
+      "issue": "Error count discrepancies during agent processing",
+      "cause": "Multiple agents running TypeScript compilation simultaneously",
+      "solution": "Accept that total error count may fluctuate, focus on targeted fixes"
+    }
+  ]
+}

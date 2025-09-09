@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Heart, TrendingUp, Shield, Users, Star } from "lucide-react";
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
 interface CamaraderieEffects {
   teamCamaraderie: number;
@@ -31,18 +32,7 @@ interface CamaraderieSummary {
   concernedPlayers: any[];
 }
 
-interface Player {
-  id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  camaraderieScore: number;
-  race: string;
-  age: number;
-  role: string;
-  isOnMarket: boolean;
-  isRetired: boolean;
-}
+
 
 // Helper function to get camaraderie color based on score
 function getCamaraderieColor(camaraderieScore: number): string {
@@ -88,8 +78,7 @@ export default function UnifiedTeamChemistry({ teamId }: { teamId: string }) {
   });
 
   // Filter to only main roster players (flexible 13-15 players, excluding taxi squad)
-  const activePlayers = allPlayers?.filter(player => !player.isOnMarket && !player.isRetired) || [];
-  // @ts-expect-error TS2339
+  const activePlayers = allPlayers?.filter(player => !player.isOnMarket && !player.isRetired) || [];
   const sortedPlayers = [...activePlayers].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   const taxiSquadPlayers = sortedPlayers.slice(13); // Players beyond position 13 are taxi squad (max 2)
   const players = sortedPlayers.slice(0, sortedPlayers.length - taxiSquadPlayers.length); // Flexible main roster

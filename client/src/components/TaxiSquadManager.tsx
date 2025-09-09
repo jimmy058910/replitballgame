@@ -9,27 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 import UnifiedPlayerCard from "@/components/UnifiedPlayerCard";
 import { StarRating } from "@/components/StarRating";
 import { getPlayerRole } from "@shared/playerUtils";
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
 // Player type for taxi squad
-interface Player {
-  id: string;
-  firstName: string;
-  lastName: string;
-  race: string;
-  age: number;
-  role: string;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  staminaAttribute: number;
-  leadership: number;
-  agility: number;
-  potentialRating: number;
-  dailyStaminaLevel: number;
-  injuryStatus: string;
-}
+
 
 interface TaxiSquadManagerProps {
   teamId?: string;
@@ -53,7 +36,10 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
 
   const { data: taxiSquadPlayers, isLoading, error } = useQuery<TaxiPlayer[], Error>({
     queryKey: [`/api/teams/${teamId}/taxi-squad`],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/taxi-squad`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}/taxi-squad`);
+      return response;
+    },
     enabled: !!teamId,
   });
 
@@ -62,8 +48,7 @@ export function TaxiSquadManager({ teamId, onNavigateToRecruiting }: TaxiSquadMa
     queryKey: ['/api/seasons/current-cycle'],
   });
 
-  // Promotions only allowed during offseason (Days 16-17)
-  // @ts-expect-error TS18048
+  // Promotions only allowed during offseason (Days 16-17)
   const isOffseason = seasonCycle?.data?.currentDay >= 16;
 
   const promotePlayerMutation = useMutation({

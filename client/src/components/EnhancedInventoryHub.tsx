@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import type { Team } from '@shared/types/models';
+
 import { 
   Package, 
   Shield, 
@@ -88,19 +90,13 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
   });
 
   // Filter definitions
-  const filterChips = [
-    // @ts-expect-error TS18046
-    { id: 'all', name: 'All', icon: Package, count: inventory.length },
-    // @ts-expect-error TS18046
-    { id: 'equipment', name: 'Equipment', icon: Shield, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('equipment')).length },
-    // @ts-expect-error TS18046
-    { id: 'consumable', name: 'Consumables', icon: Zap, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('consumable')).length },
-    // @ts-expect-error TS18046
-    { id: 'boost', name: 'Boosts', icon: Activity, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('boost')).length },
-    // @ts-expect-error TS18046
-    { id: 'entry', name: 'Entries', icon: Ticket, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('entry')).length },
-    // @ts-expect-error TS18046
-    { id: 'trophy', name: 'Trophies', icon: Trophy, count: inventory.filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('trophy')).length },
+  const filterChips = [
+    { id: 'all', name: 'All', icon: Package, count: (inventory as any).length },
+    { id: 'equipment', name: 'Equipment', icon: Shield, count: (inventory as any).filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('equipment')).length },
+    { id: 'consumable', name: 'Consumables', icon: Zap, count: (inventory as any).filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('consumable')).length },
+    { id: 'boost', name: 'Boosts', icon: Activity, count: (inventory as any).filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('boost')).length },
+    { id: 'entry', name: 'Entries', icon: Ticket, count: (inventory as any).filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('entry')).length },
+    { id: 'trophy', name: 'Trophies', icon: Trophy, count: (inventory as any).filter((i: InventoryItem) => i.itemType?.toLowerCase().includes('trophy')).length },
   ];
 
   const rarityOptions = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -110,7 +106,7 @@ export default function EnhancedInventoryHub({ teamId }: EnhancedInventoryHubPro
   const filteredItems = useMemo(() => {
     if (!Array.isArray(inventory)) return [];
     
-    return inventory.filter((item: InventoryItem) => {
+    return (inventory as any).filter((item: InventoryItem) => {
       // Quantity filter - only show items with quantity > 0
       if (item.quantity <= 0) return false;
       

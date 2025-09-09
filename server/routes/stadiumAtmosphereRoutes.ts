@@ -3,6 +3,8 @@ import { StadiumAtmosphereService } from '../services/stadiumAtmosphereService.j
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
 import { getPrismaClient } from "../database.js";
+import type { Player, Stadium } from '@shared/types/models';
+
 
 const router = Router();
 

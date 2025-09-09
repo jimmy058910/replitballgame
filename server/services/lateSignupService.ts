@@ -2,6 +2,8 @@ import { getPrismaClient } from '../database.js';
 import { storage } from '../storage/index.js';
 import { logInfo } from './errorService.js';
 import { Race, PlayerRole } from "../db";
+import type { Team } from '@shared/types/models';
+
 
 /**
  * Late Signup Service
@@ -380,7 +382,7 @@ export class LateSignupService {
       const role = playerRoles[i];
       
       try {
-        await storage.players.createPlayer({
+        await storage?.players.createPlayer({
           firstName: playerName.split(' ')[0],
           lastName: playerName.split(' ')[1],
           teamId: teamId,

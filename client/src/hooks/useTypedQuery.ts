@@ -1,5 +1,7 @@
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import type { Team, TeamFinances } from '@shared/types/models';
+
 
 // Type-safe wrapper for useQuery that handles API requests with proper typing
 export function useTypedQuery<T>(

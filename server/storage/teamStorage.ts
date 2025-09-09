@@ -1,6 +1,8 @@
-import { getPrismaClient } from '../database.js';
-import { PrismaClient, Team, Race } from "../db";
+import { DatabaseService } from '../database/DatabaseService.js';
+import { PrismaClient, Race } from "../db";
 import { PaymentHistoryService } from '../services/paymentHistoryService.js';
+import type { Team } from '@shared/types/models';
+
 
 // Greek alphabet subdivision names for proper subdivision assignment
 const GREEK_ALPHABET = [
@@ -14,7 +16,7 @@ const GREEK_ALPHABET = [
  * Uses Greek alphabet naming system instead of hardcoded "main"
  */
 async function getDefaultSubdivision(division: number): Promise<string> {
-  const prisma = await getPrismaClient();
+  const prisma = await DatabaseService.getInstance();
   
   // For late signup system (Division 8), use the late signup logic
   if (division === 8) {
@@ -29,7 +31,7 @@ async function getDefaultSubdivision(division: number): Promise<string> {
     }
     
     // Count teams per subdivision
-    const subdivisionCounts = existingTeams.reduce((acc, team) => {
+    const subdivisionCounts = existingTeams.reduce((acc: any, team: any) => {
       const subdivision = team.subdivision || "alpha";
       acc[subdivision] = (acc[subdivision] || 0) + 1;
       return acc;
@@ -68,7 +70,7 @@ async function getDefaultSubdivision(division: number): Promise<string> {
   }
   
   // Count teams per subdivision
-  const subdivisionCounts = existingTeams.reduce((acc, team) => {
+  const subdivisionCounts = existingTeams.reduce((acc: any, team: any) => {
     const subdivision = team.subdivision || "alpha";
     acc[subdivision] = (acc[subdivision] || 0) + 1;
     return acc;
@@ -119,13 +121,13 @@ async function serializeTeamData(team: any): Promise<any> {
   if (!team) return null;
   
   // If we have players but no contract data included, fetch it separately
-  let playersWithContracts = team.players || [];
+  let playersWithContracts = team?.players || [];
   
-  if (team.players && team.players.length > 0 && !team.players[0].contract) {
+  if (team?.players && team?.players.length > 0 && !team?.players[0].contract) {
     // Fetch contracts for all players in this team
-    const prisma = await getPrismaClient();
-    const playerIds = team.players.map((p: any) => p.id);
-    const contracts = await prisma.Contract.findMany({
+    const prisma = await DatabaseService.getInstance();
+    const playerIds = team?.players.map((p: any) => p.id);
+    const contracts = await prisma.contract.findMany({
       where: { playerId: { in: playerIds } }
     });
     
@@ -133,7 +135,7 @@ async function serializeTeamData(team: any): Promise<any> {
     const contractMap = new Map(contracts.map((c: any) => [c.playerId, c]));
     
     // Add contract data to each player
-    playersWithContracts = team.players.map((player: any) => ({
+    playersWithContracts = team?.players.map((player: any) => ({
       ...player,
       contract: contractMap.get(player.id) || null
     }));
@@ -141,7 +143,7 @@ async function serializeTeamData(team: any): Promise<any> {
   
   return {
     ...team,
-    finances: serializeTeamFinances(team.finances),
+    finances: serializeTeamFinances(team?.TeamFinance),
     playersCount: playersWithContracts.length,
     players: playersWithContracts.map((player: any) => ({
       ...player,
@@ -161,11 +163,11 @@ export class TeamStorage {
     division?: number;
     subdivision?: string;
   }): Promise<Team> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find or create UserProfile by userId for foreign key relationship
     let userProfile = await prisma.userProfile.findUnique({
-      where: { userId: teamData.userId }
+      where: { userProfileId: teamData.userId }
     });
     
     if (!userProfile) {
@@ -216,7 +218,7 @@ export class TeamStorage {
         transactionType: "admin_grant",
         itemType: "credits",
         itemName: "New team creation",
-        creditsAmount: BigInt(50000),
+        creditsAmount: Number(50000),
         gemsAmount: 0,
         status: "completed",
         metadata: {
@@ -241,11 +243,11 @@ export class TeamStorage {
     division?: number;
     subdivision?: string;
   }): Promise<Team> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     
     // Find or create UserProfile by userId for AI team
     let userProfile = await prisma.userProfile.findUnique({
-      where: { userId: teamData.userId }
+      where: { userProfileId: teamData.userId }
     });
     
     if (!userProfile) {
@@ -300,9 +302,9 @@ export class TeamStorage {
     }
     
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const userProfile = await prisma.userProfile.findUnique({
-        where: { userId: userId }
+        where: { userProfileId: userId }
       });
     
       if (!userProfile) {
@@ -334,7 +336,7 @@ export class TeamStorage {
       if (!team) {
         console.log(`🔄 Team not found by userProfileId, checking legacy userId field for ${userId}`);
         team = await prisma.team.findFirst({
-          where: { userId: userId },
+          where: { userProfileId: userId },
           include: {
             finances: true,
             stadium: true,
@@ -392,7 +394,7 @@ export class TeamStorage {
     }
     
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const team = await prisma.team.findUnique({
         where: { 
           id: Number(id) 
@@ -430,7 +432,7 @@ export class TeamStorage {
 
   async getAllTeams(): Promise<any[]> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const teams = await prisma.team.findMany({
         include: {
           finances: true,
@@ -461,7 +463,7 @@ export class TeamStorage {
 
   async getAllTeamsWithBasicInfo(): Promise<any[]> {
     try {
-      const prisma = await getPrismaClient();
+      const prisma = await DatabaseService.getInstance();
       const teams = await prisma.team.findMany({
         include: {
           finances: true,
@@ -491,7 +493,7 @@ export class TeamStorage {
   }
 
   async getTeamsInDivision(division: number, subdivision?: string): Promise<any[]> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const whereClause: any = { division: division };
     if (subdivision) {
       whereClause.subdivision = subdivision;
@@ -521,7 +523,7 @@ export class TeamStorage {
   }
 
   async updateTeam(teamId: number, updateData: any): Promise<any> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const updatedTeam = await prisma.team.update({
       where: { id: teamId },
       data: updateData,
@@ -542,7 +544,7 @@ export class TeamStorage {
   }
 
   async updateTeamRecord(teamId: number, wins: number, losses: number, points: number): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     await prisma.team.update({
       where: { id: teamId },
       data: { 
@@ -554,7 +556,7 @@ export class TeamStorage {
   }
 
   async createDefaultFinancesForTeam(teamId: number): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     await prisma.teamFinances.create({
       data: {
         teamId,
@@ -613,7 +615,7 @@ export class TeamStorage {
         camaraderieScore: playerData.camaraderieScore || 75.0,
       };
       
-      await storage.players.createPlayer(cleanPlayerData);
+      await storage?.players.createPlayer(cleanPlayerData);
     }
   }
 
@@ -649,7 +651,7 @@ export class TeamStorage {
   }
 
   async createDefaultStadiumForTeam(teamId: number): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     await prisma.stadium.create({
       data: {
         teamId,
@@ -664,7 +666,7 @@ export class TeamStorage {
   }
 
   async deleteTeam(teamId: number): Promise<void> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     // Delete related records first
     await prisma.player.deleteMany({ where: { teamId: teamId } });
     await prisma.staff.deleteMany({ where: { teamId: teamId } });
@@ -677,7 +679,7 @@ export class TeamStorage {
 
   // World rankings method with proper BigInt serialization
   async getWorldRankings(): Promise<any> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const teams = await prisma.team.findMany({
       include: {
         finances: true,
@@ -695,7 +697,7 @@ export class TeamStorage {
     return {
       rankings: await Promise.all(teams.map((team: any) => serializeTeamData(team))),
       totalTeams: teams.length,
-      totalPlayers: teams.reduce((sum: number, team: any) => sum + team.players.length, 0)
+      totalPlayers: teams.reduce((sum: number, team: any) => sum + team?.players.length, 0)
     };
   }
 
@@ -712,7 +714,7 @@ export class TeamStorage {
 
   // Add missing getTeamsByDivision method
   async getTeamsByDivision(division: number): Promise<any[]> {
-    const prisma = await getPrismaClient();
+    const prisma = await DatabaseService.getInstance();
     const teams = await prisma.team.findMany({
       where: { division: division },
       include: {

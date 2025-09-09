@@ -6,6 +6,8 @@
  */
 
 import { getPrismaClient } from '../database.js';
+import type { Team } from '@shared/types/models';
+
 
 export async function fixOaklandCougarsStats() {
   console.log('🔧 Starting Oakland Cougars statistics fix...');

@@ -8,28 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { apiRequest } from '@/lib/queryClient';
 import { Users, Settings, Target, TrendingUp } from 'lucide-react';
+import type { Player, Team, Staff, Contract } from '@shared/types/models';
 
-interface Player {
-  id: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  race: string;
-  age: number;
-  position: string;
-  isStarter: boolean;
-  fieldPosition: any;
-  speed: number;
-  power: number;
-  throwing: number;
-  catching: number;
-  kicking: number;
-  stamina: number;
-  leadership: number;
-  agility: number;
-  injuryStatus: string;
-  dailyStaminaLevel: number;
-}
+
 
 interface LineupRosterBoardProps {
   teamId: string;
@@ -40,20 +21,23 @@ export default function LineupRosterBoard({ teamId }: LineupRosterBoardProps) {
   const [selectedFormation, setSelectedFormation] = useState("3-2-4");
   const [tacticalFocus, setTacticalFocus] = useState("balanced");
 
-  const { data: players, isLoading } = useQuery({
-    queryKey: ['/api/teams', teamId, 'players'],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/players`),
+  const { data: players, isLoading: playersLoading } = useQuery<Player[]>({ 
+    queryKey: ["/api/players"],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}/players`);
+      return response as Player[];
+    },
   });
 
-  const { data: teamData } = useQuery({
+  const { data: teamData, isLoading: teamLoading } = useQuery<Team>({
     queryKey: ['/api/teams', teamId],
-    queryFn: () => apiRequest(`/api/teams/${teamId}`),
-  });
-
-  // @ts-expect-error TS2339
-  const starters = players?.filter((p: Player) => p.isStarter) || [];
-  // @ts-expect-error TS2339
-  const bench = players?.filter((p: Player) => !p.isStarter) || [];
+    queryFn: async () => {
+      const response = await apiRequest(`/api/teams/${teamId}`);
+      return response as Team;
+    },
+  });
+  const starters = players?.filter((p: Player) => p.starter) || [];
+  const bench = players?.filter((p: Player) => !p.starter) || [];
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -72,8 +56,7 @@ export default function LineupRosterBoard({ teamId }: LineupRosterBoardProps) {
   const getPlayerRole = (player: Player): string => {
     const stats = [
       { name: 'Passer', value: player.throwing + player.leadership + player.agility },
-      { name: 'Runner', value: player.speed + player.agility + player.catching },
-      // @ts-expect-error TS2339
+      { name: 'Runner', value: player.speed + player.agility + player.catching },
       { name: 'Blocker', value: player.power + player.staminaAttribute + player.leadership }
     ];
     
@@ -94,6 +77,8 @@ export default function LineupRosterBoard({ teamId }: LineupRosterBoardProps) {
     { id: "control", name: "Ball Control", description: "+2 passing accuracy, +1 stamina conservation" }
   ];
 
+  const isLoading = playersLoading || teamLoading;
+  
   if (isLoading) {
     return (
       <Card>
@@ -154,7 +139,7 @@ export default function LineupRosterBoard({ teamId }: LineupRosterBoardProps) {
                             >
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <div className="font-medium">{player.name}</div>
+                                  <div className="font-medium">{`${player.firstName} ${player.lastName}`}</div>
                                   <div className="text-sm text-gray-600 dark:text-gray-400">
                                     {getPlayerRole(player)} • Power: {getPlayerPower(player)}
                                   </div>
@@ -195,7 +180,7 @@ export default function LineupRosterBoard({ teamId }: LineupRosterBoardProps) {
                             >
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <div className="font-medium">{player.name}</div>
+                                  <div className="font-medium">{`${player.firstName} ${player.lastName}`}</div>
                                   <div className="text-sm text-gray-600 dark:text-gray-400">
                                     {getPlayerRole(player)} • Power: {getPlayerPower(player)}
                                   </div>
@@ -301,8 +286,7 @@ export default function LineupRosterBoard({ teamId }: LineupRosterBoardProps) {
               <TrendingUp className="h-5 w-5 text-yellow-600" />
               <div>
                 <div className="font-medium text-yellow-800 dark:text-yellow-200">
-                  {/*
-                   // @ts-expect-error TS2339 */}
+                  {/* */}
                   Current Team Camaraderie: {teamData?.teamCamaraderie || 50}
                 </div>
                 <div className="text-sm text-yellow-700 dark:text-yellow-300">

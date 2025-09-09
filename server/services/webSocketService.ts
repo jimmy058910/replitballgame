@@ -3,6 +3,8 @@ import { getPrismaClient } from "../database.js";
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from "./matchStateManager";
 import logger from '../utils/logger.js';
+import type { Stadium } from '@shared/types/models';
+
 
 interface ConnectedUser {
   userId: string;
@@ -37,7 +39,7 @@ class WebSocketService {
           // Verify user exists in database with timeout
           const prisma = await getPrismaClient();
           const userProfile = await Promise.race([
-            prisma.userProfile.findFirst({
+            await prisma.userProfile.findFirst({
               where: { id: Number(data.userId) }
             }),
             new Promise((_, reject) => 
@@ -105,7 +107,7 @@ class WebSocketService {
 
           const prisma = await getPrismaClient();
           const match = await Promise.race([
-            prisma.game.findUnique({
+            await prisma.game.findUnique({
               where: { id: parseInt(data.matchId) },
               select: {
                 id: true,
@@ -248,7 +250,7 @@ class WebSocketService {
             case 'start_match':
               // Use instant simulation instead of live match
               const { QuickMatchSimulation } = await import('./enhancedSimulationEngine');
-              const simulationResult = await QuickMatchSimulation.simulateMatch(data.matchId);
+              const simulationResult = await QuickMatchSimulation.runQuickSimulation(data.matchId);
               
               // Update match with final results
               await prisma.game.update({

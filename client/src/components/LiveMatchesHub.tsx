@@ -25,6 +25,8 @@ import {
   Globe
 } from 'lucide-react';
 import { Link } from 'wouter';
+import type { Team, League } from '@shared/types/models';
+
 
 // Type definitions for live matches
 type LiveMatch = {

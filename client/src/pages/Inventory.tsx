@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, skipToken } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,11 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConsumableManager } from "@/components/ConsumableManager";
-
-interface Team {
-  id: string;
-  name: string;
-}
+import { teamQueryOptions } from '@/lib/api/queryOptions';
+import type { Player, Team } from '@shared/types/models';
 
 interface InventoryItem {
   id: string;
@@ -28,14 +25,17 @@ export default function Inventory() {
   const [selectedCategory, setSelectedCategory] = useState("equipment");
   const [activeTab, setActiveTab] = useState("inventory");
 
-  const { data: rawTeam } = useQuery({
-    queryKey: ["/api/teams/my"],
-  });
-  const team = (rawTeam || {}) as Team;
+  const { data: team } = useQuery(teamQueryOptions.myTeamLegacy());
 
   const { data: rawInventory, isLoading: inventoryLoading } = useQuery({
     queryKey: ["/api/inventory", team?.id],
-    enabled: !!team?.id,
+    queryFn: team?.id
+      ? async () => {
+          const response = await fetch(`/api/inventory/${team.id}`);
+          return response.json();
+        }
+      : skipToken,
+    staleTime: 60 * 1000,
   });
   const inventory = (rawInventory || []) as InventoryItem[];
 
@@ -83,9 +83,7 @@ export default function Inventory() {
   if (!team) {
     return (
       <div className="min-h-screen bg-gray-900 text-white">
-      {/*
-       // @ts-expect-error TS2552 */}
-      <Navigation />
+      {/* Navigation component temporarily removed */}
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
         <h1 className="font-orbitron text-3xl font-bold mb-6">Team Required</h1>
         <p className="text-gray-300 mb-8">Please create or select a team to access your inventory.</p>
@@ -225,9 +223,7 @@ export default function Inventory() {
                               {Object.entries(item.metadata.statBoosts).map(([stat, boost]) => (
                                 <div key={stat} className="flex justify-between">
                                   <span className="capitalize">{stat}:</span>
-                                  {/*
-                                   // @ts-expect-error TS2322 */}
-                                  <span className="text-green-400">+{boost}</span>
+                                  <span className="text-green-400">+{String(boost)}</span>
                                 </div>
                               ))}
                             </div>

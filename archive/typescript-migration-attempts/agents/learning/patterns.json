@@ -1,0 +1,90 @@
+{
+  "successfulPatterns": {
+    "queryOptions": {
+      "pattern": "useQuery(queryOptions.method())",
+      "description": "TanStack Query v5 queryOptions factory pattern",
+      "successRate": 1,
+      "applications": 9,
+      "filesFixed": 3,
+      "autoApply": true,
+      "example": "const { data: team } = useQuery(teamQueryOptions.myTeam());"
+    },
+    "skipToken": {
+      "pattern": "queryFn: condition ? fetchFn : skipToken",
+      "description": "Conditional queries using skipToken instead of enabled",
+      "successRate": 1,
+      "applications": 5,
+      "filesFixed": 3,
+      "autoApply": true,
+      "example": "queryFn: teamId ? async () => fetchTeam(teamId) : skipToken"
+    },
+    "importFromShared": {
+      "pattern": "import type { ... } from '@shared/types/models'",
+      "description": "Import types from shared models instead of local definitions",
+      "successRate": 1,
+      "applications": 47,
+      "filesFixed": 11,
+      "autoApply": true
+    },
+    "prismaImport": {
+      "pattern": "import { prisma } from '../database.js'",
+      "description": "Correct Prisma import path",
+      "successRate": 1,
+      "applications": 21,
+      "filesFixed": 6,
+      "autoApply": true
+    },
+    "stadiumPricing": {
+      "pattern": "stadium.{level}Level * {multiplier}",
+      "description": "Calculate stadium prices from level fields",
+      "successRate": 1,
+      "applications": 4,
+      "filesFixed": 1,
+      "autoApply": true,
+      "mappings": {
+        "ticketPrice": "lightingScreensLevel * 5",
+        "concessionPrice": "concessionsLevel * 2",
+        "parkingPrice": "parkingLevel * 1",
+        "vipSuitePrice": "vipSuitesLevel * 25"
+      }
+    },
+    "lazyComponentPlaceholder": {
+      "pattern": "const LazyComponent = () => <div>Loading...</div>",
+      "description": "Placeholder implementation for missing lazy components",
+      "successRate": 1,
+      "applications": 6,
+      "filesFixed": 1,
+      "autoApply": true
+    },
+    "optionalChaining": {
+      "pattern": "object?.property?.value ?? defaultValue",
+      "description": "Defensive property access with nullish coalescing",
+      "successRate": 0.018,
+      "applications": 557,
+      "filesFixed": 4,
+      "autoApply": false,
+      "needsRedesign": true,
+      "note": "Only 1.8% success rate - needs schema-first approach"
+    }
+  },
+  "failedPatterns": {
+    "blindOptionalChaining": {
+      "pattern": "Adding ?. without checking schema",
+      "failureRate": 0.982,
+      "reason": "Doesn't fix root cause, just hides errors"
+    },
+    "anyTypeCasting": {
+      "pattern": "(object as any).property",
+      "failureRate": 1,
+      "reason": "Loses type safety, creates technical debt"
+    }
+  },
+  "pendingPatterns": {
+    "schemaFirstProperty": {
+      "pattern": "Check Prisma schema → Fix property name → Update types",
+      "description": "New approach for property access errors",
+      "targetSuccessRate": 0.8,
+      "status": "pending_implementation"
+    }
+  }
+}
