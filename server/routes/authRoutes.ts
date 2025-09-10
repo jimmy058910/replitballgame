@@ -238,19 +238,37 @@ router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
       // Always return authenticated for development
       console.log('✅ Development mode: authenticated by default');
     } else {
-      // In production, bypass auth check for immediate fix (Firebase auth handled on frontend)
-      // TODO: Implement proper Firebase token verification
-      const isProduction = process.env.NODE_ENV === 'production';
+      // Production: Use proper Firebase token verification
+      const authHeader = req.headers.authorization;
       
-      // Check if user is authenticated (with development OR production bypass)
-      if (!isProduction && (!req.requireAuth || !req.requireAuth())) {
-        console.log('❌ Production mode: user not authenticated');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log('❌ Production mode: No Firebase token provided');
+        return res.json({ authenticated: false, user: null });
+      }
+
+      const token = authHeader.split(' ')[1];
+      
+      try {
+        // Verify Firebase token in production
+        const admin = await import('firebase-admin');
+        const decodedToken = await admin.default.auth().verifyIdToken(token);
+        
+        // Set user info from verified token
+        req.user = {
+          uid: decodedToken.uid,
+          email: decodedToken.email || `${decodedToken.uid}@realmrivalry.com`,
+          claims: decodedToken
+        };
+        
+        console.log('✅ Production Firebase token verified for user:', decodedToken.email || decodedToken.uid);
+      } catch (error) {
+        console.error('❌ Production Firebase token verification failed:', error);
         return res.json({ authenticated: false, user: null });
       }
     }
 
-    // User is authenticated, get user data
-    const hardcodedUserId = "44010914"; // Temporary for development
+    // User is authenticated, get user data using verified token
+    const authenticatedUserId = req.user?.uid || req.user?.claims?.sub;
     let user;
     try {
       // Initialize database connection first
@@ -258,12 +276,12 @@ router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
       await getPrismaClient(); // This will initialize the database properly
       console.log('✅ Database connection established for development');
       
-      user = await userStorage.getUser(hardcodedUserId);
+      user = await userStorage.getUser(authenticatedUserId);
     } catch (dbError: any) {
       console.log('Database connection failed, using development user data...', dbError.message);
       // Return development user data without database dependency
       const devUser = {
-        userId: hardcodedUserId,
+        userId: authenticatedUserId,
         email: "jimmy058910@gmail.com", 
         firstName: "Jimmy",
         lastName: "Dev",
@@ -279,7 +297,7 @@ router.get('/user', async (req: Request, res: Response, next: NextFunction) => {
     if (!user) {
       console.log('Creating development user profile...');
       user = await userStorage.upsertUser({
-        userId: hardcodedUserId,
+        userId: authenticatedUserId,
         email: "jimmy058910@gmail.com",
         firstName: "Jimmy",
         lastName: "Dev"

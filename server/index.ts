@@ -6,7 +6,8 @@ import path from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env file for local development
+// Load .env.local file first for local development, fallback to .env
+config({ path: path.join(__dirname, '..', '.env.local') });
 config({ path: path.join(__dirname, '..', '.env') });
 
 import express from "express";

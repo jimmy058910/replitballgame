@@ -101,21 +101,28 @@ class UserSubdivisionService {
         teamSubdivision: userTeam?.subdivision
       });
 
-      // Handle development case - Oakland Cougars lookup across all subdivisions
-      if (!userTeam || (userTeam && userTeam.name !== 'Oakland Cougars')) {
-        logger.info('Searching all subdivisions for Oakland Cougars (dev mode)');
-
-        const subdivisions = ['alpha', 'beta', 'gamma', 'main', 'delta', 'epsilon'];
+      // Handle development case - fallback to Oakland Cougars if no user team found
+      if (!userTeam && process.env.NODE_ENV === 'development') {
+        logger.info('No user team found, checking for Oakland Cougars in development mode');
         
-        for (const sub of subdivisions) {
-          const teamsInSub = await storage.teams.getTeamsByDivisionAndSubdivision(division, sub);
-          const oaklandInSub = teamsInSub.find(team => team.name.includes('Oakland Cougars'));
+        try {
+          // Use the new OaklandCougarsDevService for clean separation
+          const { OaklandCougarsDevService } = await import('../services/development/oaklandCougarsDevService.js');
+          const oaklandTeam = await OaklandCougarsDevService.findOaklandCougarsAcrossSubdivisions(division);
           
-          if (oaklandInSub) {
-            logger.info('Oakland Cougars found in subdivision', { subdivision: sub });
-            subdivision = sub;
-            break;
+          if (oaklandTeam) {
+            subdivision = oaklandTeam.subdivision;
+            userTeam = oaklandTeam;
+            logger.info('Oakland Cougars fallback successful', { 
+              subdivision, 
+              teamId: oaklandTeam.id 
+            });
           }
+        } catch (devServiceError) {
+          logger.warn('Oakland Cougars development fallback failed', { 
+            error: devServiceError 
+          });
+          // Continue with normal flow - don't fail the main process
         }
       }
 
@@ -2656,21 +2663,8 @@ router.get('/dev-analyze-team-associations', async (req: Request, res: Response,
   }
 });
 
-// DEVELOPMENT: Create UserProfile for Development Testing (No Auth Required)
-router.post('/dev-setup-test-user', async (req: Request, res: Response, next: NextFunction) => {
-  if (process.env.NODE_ENV !== 'development') {
-    return res.status(403).json({ error: 'Development endpoint only' });
-  }
-  
-  try {
-    console.log('🔧 DEV: Setting up test user for Oakland Cougars...');
-    
-    const prisma = await getPrismaClient();
-    
-    // Find Oakland Cougars team
-    const oaklandCougars = await prisma.team.findFirst({
-      where: { name: 'Oakland Cougars', division: 7, subdivision: 'alpha' }
-    });
+// DEVELOPMENT ENDPOINTS MOVED: See server/routes/development/devRoutes.ts
+// The /dev-setup-test-user endpoint has been moved to the dedicated development routes
     
     if (!oaklandCougars) {
       return res.status(404).json({ error: 'Oakland Cougars team not found' });

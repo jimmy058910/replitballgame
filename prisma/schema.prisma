@@ -30,6 +30,12 @@ model UserProfile {
   redeemedCodes     RedeemCodeRecord[]
   adRewardMilestone AdRewardMilestone? // <<<< ADDED THIS RELATION
   
+  // Role-based access control
+  role              Role                @default(USER)
+  
+  // Payment integration
+  stripeCustomerId  String?             @unique
+  
   // NDA Acceptance Fields for Pre-Alpha
   ndaAccepted       Boolean             @default(false)
   ndaAcceptedAt     DateTime?
@@ -192,6 +198,13 @@ enum PlayerRole {
   PASSER
   RUNNER
   BLOCKER
+}
+
+enum Role {
+  USER
+  TEAM_OWNER
+  ADMIN
+  SUPER_ADMIN
 }
 
 enum InjuryStatus {

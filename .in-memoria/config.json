@@ -14,9 +14,7 @@
       "**/*.py",
       "**/*.rs",
       "**/*.go",
-      "**/*.java",
-      "**/*.md",
-      "**/*.json"
+      "**/*.java"
     ],
     "ignored": [
       "**/node_modules/**",
@@ -28,7 +26,7 @@
     "debounceMs": 500
   },
   "mcp": {
-    "serverPort": 3000,
+    "serverPort": 3001,
     "enableAllTools": true
   }
 }

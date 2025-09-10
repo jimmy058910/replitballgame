@@ -90,10 +90,22 @@
       "Bash(awk:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "mcp__serena"
-      "mcp__playwright"
+      "mcp__serena",
+      "mcp__playwright",
+      "mcp__in-memoria",
+      "mcp__ide__getDiagnostics",
+      "Read(//c/Users/Jimmy/**)",
+      "Bash(claude --debug)",
+      "Bash(npx:*)",
+      "Bash(uvx:*)",
+      "Bash(gh run list:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "serena",
+    "playwright",
+    "in-memoria"
+  ]
 }

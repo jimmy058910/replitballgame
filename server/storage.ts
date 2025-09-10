@@ -5,6 +5,7 @@
 
 import { storage, type IAppStorage } from "./storage/index.js";
 import { getPrismaClient } from "./database.js"; // Use Prisma instead of Drizzle
+import { logger } from "./utils/logger.js";
 import type { Player, Team } from '@shared/types/models';
 
 
@@ -51,9 +52,18 @@ export type { IAppStorage };
  */
 async function batchInsertPlayerMatchStats(stats: any[]): Promise<void> {
   if (stats.length === 0) return;
-  // TODO: Create PlayerMatchStats table in Prisma schema if needed
-  // For now, this is a placeholder to prevent errors
-  console.log("batchInsertPlayerMatchStats called but table not implemented yet");
+  
+  try {
+    const prisma = await getPrismaClient();
+    await prisma.playerMatchStats.createMany({
+      data: stats,
+      skipDuplicates: true
+    });
+    logger.info(`Successfully inserted ${stats.length} player match statistics`);
+  } catch (error) {
+    logger.error('Failed to batch insert player match statistics', { error, statsCount: stats.length });
+    throw error;
+  }
 }
 
 /**
@@ -62,9 +72,18 @@ async function batchInsertPlayerMatchStats(stats: any[]): Promise<void> {
  */
 async function batchInsertTeamMatchStats(stats: any[]): Promise<void> {
   if (stats.length === 0) return;
-  // TODO: Create TeamMatchStats table in Prisma schema if needed
-  // For now, this is a placeholder to prevent errors
-  console.log("batchInsertTeamMatchStats called but table not implemented yet");
+  
+  try {
+    const prisma = await getPrismaClient();
+    await prisma.teamMatchStats.createMany({
+      data: stats,
+      skipDuplicates: true
+    });
+    logger.info(`Successfully inserted ${stats.length} team match statistics`);
+  } catch (error) {
+    logger.error('Failed to batch insert team match statistics', { error, statsCount: stats.length });
+    throw error;
+  }
 }
 
 // Add these functions to the exported storage object if they are not already part of the aggregated storage.

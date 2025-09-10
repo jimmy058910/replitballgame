@@ -74,6 +74,8 @@ import manualStandingsComplete from "./manualStandingsComplete.js";
 import simpleCleanupRoutes from "./simpleCleanupRoutes.js";
 import integrityRoutes from "./integrityRoutes.js";
 import timeFixRoutes from "./timeFixRoutes.js";
+import { devRoutes } from "./development/devRoutes.js";
+import { emergencyRoutes } from "./admin/emergencyRoutes.js";
 import type { Player, Team, Stadium, League } from '@shared/types/models';
 
 
@@ -213,6 +215,26 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     console.log('✅ [registerAllRoutes] Late signup and registration routes registered successfully');
   } catch (error: any) {
     console.error('❌ [registerAllRoutes] Failed to register late signup routes:', error.message);
+  }
+
+  // Development routes for Oakland Cougars and dev fixtures (development environment only)
+  console.log('🔍 [registerAllRoutes] About to register development routes...');
+  try {
+    app.use("/api/dev", devRoutes);
+    console.log('✅ [registerAllRoutes] Development routes registered successfully');
+  } catch (devImportError: any) {
+    console.error('❌ [registerAllRoutes] Failed to register development routes:', devImportError.message);
+    console.error('❌ [registerAllRoutes] Error stack:', devImportError.stack);
+  }
+
+  // Emergency administrative routes (heavily protected)
+  console.log('🔍 [registerAllRoutes] About to register emergency admin routes...');
+  try {
+    app.use("/api/admin/emergency", emergencyRoutes);
+    console.log('✅ [registerAllRoutes] Emergency admin routes registered successfully');
+  } catch (devImportError: any) {
+    console.error('❌ [registerAllRoutes] Failed to register development routes:', devImportError.message);
+    console.error('❌ [registerAllRoutes] Error stack:', devImportError.stack);
   }
 
   // Admin routes for testing and manual triggers
