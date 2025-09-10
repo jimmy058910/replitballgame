@@ -11,29 +11,38 @@ export class SeasonStorage {
     endDate?: Date;
   }): Promise<any> {
     const prisma = await getPrismaClient();
-    const result = await prisma.$executeRaw`
-      INSERT INTO "Season" (id, "seasonNumber", phase, "startDate", "endDate", "currentDay", "createdAt")
-      VALUES (${`season-${seasonData.year}-${Date.now()}`}, ${seasonData.year}, ${seasonData.phase || 'REGULAR_SEASON'}::"SeasonPhase", ${seasonData.startDate || new Date()}, ${seasonData.endDate}, ${1}, NOW())
-    `;
+    // Use Prisma's safe create method instead of raw SQL
+    const result = await prisma.season.create({
+      data: {
+        id: `season-${seasonData.year}-${Date.now()}`,
+        seasonNumber: seasonData.year,
+        phase: seasonData.phase || 'REGULAR_SEASON' as any,
+        startDate: seasonData.startDate || new Date(),
+        endDate: seasonData.endDate,
+        currentDay: 1,
+        createdAt: new Date()
+      }
+    });
     return result;
   }
 
   async getSeasonById(id: string): Promise<any | null> {
     const prisma = await getPrismaClient();
-    const seasons = await prisma.$queryRaw`
-      SELECT * FROM "Season" WHERE id = ${id} LIMIT 1
-    `;
-    return (seasons as any[])[0] || null;
+    // FIX: Use Prisma's safe findUnique instead of raw SQL with template literals
+    const season = await prisma.season.findUnique({
+      where: { id: id }
+    });
+    return season;
   }
 
   async getCurrentSeason(): Promise<any | null> {
     try {
-      console.log('Attempting to find current season with raw SQL...');
+      console.log('Attempting to find current season...');
       const prisma = await getPrismaClient();
-      const seasons = await prisma.$queryRaw`
-        SELECT * FROM "Season" ORDER BY "startDate" DESC LIMIT 1
-      `;
-      const season = (seasons as any[])[0] || null;
+      // Use Prisma's safe findFirst instead of raw SQL
+      const season = await prisma.season.findFirst({
+        orderBy: { startDate: 'desc' }
+      });
       console.log('Found season:', season);
       return season;
     } catch (error) {
@@ -44,24 +53,39 @@ export class SeasonStorage {
 
   async getLatestSeasonOverall(): Promise<any | null> {
     const prisma = await getPrismaClient();
-    const seasons = await prisma.$queryRaw`
-      SELECT * FROM "Season" ORDER BY year DESC, start_date DESC LIMIT 1
-    `;
-    return (seasons as any[])[0] || null;
+    // Use Prisma's safe findFirst instead of raw SQL
+    const season = await prisma.season.findFirst({
+      orderBy: [
+        { year: 'desc' },
+        { startDate: 'desc' }
+      ]
+    });
+    return season;
   }
 
   async updateSeason(id: string, updates: any): Promise<any | null> {
     try {
       const prisma = await getPrismaClient();
-      const setClause = Object.keys(updates)
-        .map(key => `${key} = $${key}`)
-        .join(', ');
+      // FIX: Use Prisma's safe update method instead of raw SQL with dynamic SET clauses
+      const validUpdateFields = ['seasonNumber', 'phase', 'startDate', 'endDate', 'currentDay'];
+      const safeUpdates: any = {};
       
-      await prisma.$executeRaw`
-        UPDATE "Season" SET ${setClause}, updated_at = NOW() WHERE id = ${id}
-      `;
+      // Validate and sanitize update fields
+      Object.keys(updates).forEach(key => {
+        if (validUpdateFields.includes(key)) {
+          safeUpdates[key] = updates[key];
+        }
+      });
       
-      return await this.getSeasonById(id);
+      const updatedSeason = await prisma.season.update({
+        where: { id: id },
+        data: {
+          ...safeUpdates,
+          updatedAt: new Date()
+        }
+      });
+      
+      return updatedSeason;
     } catch (error) {
       console.warn(`Season with ID ${id} not found for update.`);
       return null;
@@ -70,11 +94,19 @@ export class SeasonStorage {
 
   async getChampionshipHistory(limit: number = 10): Promise<any[]> {
     const prisma = await getPrismaClient();
-    const seasons = await prisma.$queryRaw`
-      SELECT * FROM "Season" WHERE status = 'completed' AND end_date < NOW()
-      ORDER BY year DESC LIMIT ${limit}
-    `;
-    return seasons as any[];
+    // FIX: Use Prisma's safe query methods instead of raw SQL with template literals
+    const validLimit = Math.min(Math.max(1, Math.floor(limit)), 100); // Sanitize limit: 1-100
+    
+    const seasons = await prisma.season.findMany({
+      where: {
+        status: 'completed',
+        endDate: { lt: new Date() }
+      },
+      orderBy: { year: 'desc' },
+      take: validLimit
+    });
+    
+    return seasons;
   }
 
 }

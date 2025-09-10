@@ -1,0 +1,95 @@
+2s
+Run echo "🗄️ Validating Prisma schema (CI environment)..."
+🗄️ Validating Prisma schema (CI environment)...
+Prisma schema loaded from prisma/schema.prisma
+
+Prisma schema warnings:
+- With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+- With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+- With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+- With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+- With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+- With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+- With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+- With `relationMode = "prisma"`, no foreign keys are used, so relation fields will not benefit from the index usually created by the relational database under the hood. This can lead to poor performance when querying these fields. We recommend adding an index manually. Learn more at https://pris.ly/d/relation-mode-prisma-indexes" 
+The schema at prisma/schema.prisma is valid 🚀
+✅ PRISMA SCHEMA: Valid and consistent
+2s
+Run echo "🔄 Testing Prisma client generation..."
+🔄 Testing Prisma client generation...
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.10.1) to ./prisma/generated/client in 493ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+✅ PRISMA CLIENT: Generated successfully
+✅ All schema models properly exported
+0s
+Run echo "🗄️ Checking database integration patterns..."
+🗄️ Checking database integration patterns...
+📋 Analyzing Prisma usage patterns...
+⚠️ Potential initialization issue: server/utils/connectionPoolOptimizer.ts
+⚠️ Potential initialization issue: server/database-enhancer.ts
+⚠️ DATABASE INTEGRATION: 2 files may need attention (minor issues)
+0s
+Run echo "📊 Validating database exports (server/db.ts)..."
+📊 Validating database exports (server/db.ts)...
+⚠️ DATABASE EXPORTS: Missing exports:  getPrismaClient PrismaClient
+0s
+1s
+Run echo "🎯 Checking critical database files..."
+🎯 Checking critical database files...
+✅ Found: server/database.ts
+✅ Found: server/db.ts
+✅ Found: prisma/schema.prisma
+0s
+Run actions/upload-artifact@v4
+Multiple search paths detected. Calculating the least common ancestor of all paths
+The least common ancestor is /home/runner/work/replitballgame/replitballgame. This will be the root directory of the artifact
+With the provided path, there will be 4 files uploaded
+Artifact name is valid!
+Root directory input is valid!
+Beginning upload of artifact content to blob storage
+Uploaded bytes 315388
+Finished uploading artifact content to blob storage!
+SHA256 digest of uploaded artifact zip is 7c86fe652277be9141327d0db985b45b75818060cddae54065776d9013e0264b
+Finalizing artifact upload
+Artifact prisma-guardian-analysis-1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635.zip successfully finalized. Artifact ID 3970983075
+Artifact prisma-guardian-analysis-1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635 has been successfully uploaded! Final size is 315388 bytes. Artifact ID is 3970983075
+Artifact download URL: https://github.com/jimmy058910/replitballgame/actions/runs/17601421717/artifacts/3970983075
+0s
+Run echo ""
+
+🗄️ PRISMA DATABASE GUARDIAN REPORT
+===================================
+🗓️ Run Date: Wed Sep 10 02:38:34 UTC 2025
+🎯 Commit: 1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635
+🌿 Branch: main
+
+📊 DATABASE VALIDATION RESULTS:
+   Schema Status: valid
+   Client Generation: success
+   Missing Models: 0
+   Integration Status: minor_issues
+   Proper Initializations: 155
+   Missing Initializations: 2
+   Exports Status: incomplete
+   Critical Files: all_present
+
+🎉 STATUS: DATABASE SYSTEM PERFECT
+✅ Schema valid and consistent
+✅ Client generation working
+✅ All integrations proper
+✅ All exports complete
+✅ Deployment ready
+===================================
+0s
+0s
+Run SCHEMA_STATUS="valid"
+✅ SUCCESS: Prisma Guardian completed - database layer stable for deployment
+📊 Schema: valid, Generation: success, Files: all_present
+📊 Missing initializations: 2 (informational - not blocking deployment)
+🔧 Prisma patterns may need attention but don't prevent deployment

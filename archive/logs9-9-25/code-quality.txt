@@ -1,0 +1,97 @@
+1s
+Run echo "🔍 Analyzing TypeScript code quality (production-aligned)..."
+🔍 Analyzing TypeScript code quality (production-aligned)...
+📊 TypeScript Quality Metrics:
+   Implicit 'any' types: 1453
+   Missing return type annotations: 27
+   Files without error handling: 77
+0s
+Run echo "🗄️ Analyzing database code quality patterns..."
+🗄️ Analyzing database code quality patterns...
+📊 Database Quality Metrics:
+   Improper async patterns: 42
+   Missing transaction usage: 0
+   Storage files without error handling: 22
+0s
+Run echo "🔒 Analyzing security patterns and vulnerabilities..."
+🔒 Analyzing security patterns and vulnerabilities...
+📊 Security Analysis:
+   Potential hardcoded secrets: 0
+   SQL injection risks: 2
+   Routes without validation: 9
+   Routes without auth checks: 6
+0s
+Run echo "⚡ Analyzing performance patterns..."
+⚡ Analyzing performance patterns...
+📊 Performance Metrics:
+   Potential N+1 query issues: 1
+   Queries without limits: 457
+   Synchronous operations in async: 9
+   Queries without pagination: 449
+0s
+Run echo "🧹 Analyzing code maintainability..."
+🧹 Analyzing code maintainability...
+📊 Maintainability Metrics:
+   Files over 500 lines: 60
+   Potential duplicate functions: 176
+   TODO/FIXME comments: 50
+   Console.log statements: 1274
+2s
+Run echo "🔍 Running dependency security audit..."
+🔍 Running dependency security audit...
+✅ DEPENDENCIES: No high+ vulnerabilities detected
+0s
+0s
+Run echo "📊 Calculating overall code quality score..."
+📊 Calculating overall code quality score...
+📊 Component Scores:
+   TypeScript Quality: 5/25
+   Database Quality: 0/20
+   Security: 14/25
+   Performance: 5/15
+   Maintainability: 5/15
+   Total Score: 29/100 (29%)
+0s
+Run actions/upload-artifact@v4
+With the provided path, there will be 1 file uploaded
+Artifact name is valid!
+Root directory input is valid!
+Beginning upload of artifact content to blob storage
+Uploaded bytes 221
+Finished uploading artifact content to blob storage!
+SHA256 digest of uploaded artifact zip is a179465f00f000a44b2f8a503dd48a166575bf21f0d4db2e50428b4c7b39c637
+Finalizing artifact upload
+Artifact code-quality-analysis-1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635.zip successfully finalized. Artifact ID 3970982966
+Artifact code-quality-analysis-1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635 has been successfully uploaded! Final size is 221 bytes. Artifact ID is 3970982966
+Artifact download URL: https://github.com/jimmy058910/replitballgame/actions/runs/17601421714/artifacts/3970982966
+0s
+Run echo ""
+
+🔍 CODE QUALITY GUARDIAN REPORT
+===============================
+🗓️ Analysis Date: Wed Sep 10 02:38:33 UTC 2025
+🎯 Commit: 1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635
+🌿 Branch: main
+
+📊 OVERALL QUALITY SCORE: 29/100 (29%)
+
+🎯 DETAILED METRICS:
+   TypeScript Issues: 1557
+   Database Pattern Issues: 42
+   Security Concerns: 0
+   Performance Issues: 1
+   Maintainability Issues: 60
+   Dependency Vulnerabilities: 0
+
+📊 STATUS: CODE QUALITY ANALYSIS COMPLETE
+📋 High technical debt identified (informational)
+🔧 Consider improvement opportunities when time permits
+✅ Does not block deployment
+===============================
+0s
+0s
+Run PERCENTAGE=29
+✅ SUCCESS: Code Quality Guardian analysis completed
+📊 Quality Score: 29% (informational - does not block deployment)
+🔧 Code quality metrics help identify improvement opportunities
+📊 Dependency vulnerabilities: 0 (acceptable for production if under 20)

@@ -15,6 +15,7 @@ import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { ErrorCreators, asyncHandler } from '../services/errorService.js';
 import { consumableStorage } from '../storage/consumableStorage.js';
+import { validateRequest, validationSchemas } from '../middleware/validation.js';
 import type { Player, Team } from '@shared/types/models';
 
 
@@ -183,7 +184,7 @@ router.get('/:teamId', requireAuth, async (req: any, res: Response, next: NextFu
  * POST /api/inventory/:teamId/use-item
  * Use inventory item
  */
-router.post('/:teamId/use-item', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+router.post('/:teamId/use-item', requireAuth, validateRequest(validationSchemas.inventoryItemUse), async (req: any, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.claims?.sub;
     const teamId = await resolveTeamId(req.params.teamId, userId);
@@ -260,7 +261,7 @@ router.post('/:teamId/use-item', requireAuth, async (req: any, res: Response, ne
  * POST /api/inventory/equipment/equip
  * Equip an item to a player
  */
-router.post('/equipment/equip', requireAuth, asyncHandler(async (req: any, res: Response) => {
+router.post('/equipment/equip', requireAuth, validateRequest(validationSchemas.equipmentEquip), asyncHandler(async (req: any, res: Response) => {
   const userId = req.user.claims.sub;
   const { teamId, playerId, itemId, itemName } = req.body;
 
@@ -472,7 +473,7 @@ router.get("/consumables/match/:matchId/team/:teamId", requireAuth, asyncHandler
  * POST /api/inventory/consumables/activate
  * Activate a consumable for a match
  */
-router.post("/consumables/activate", requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.post("/consumables/activate", requireAuth, validateRequest(validationSchemas.consumableActivation), asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId, teamId, consumableId, consumableName, effectType, effectData } = req.body;
   const userId = req.user?.claims?.sub;
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { EnhancedMarketplaceService } from '../services/enhancedMarketplaceService.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
+import { validateRequest, validationSchemas } from '../middleware/validation.js';
 import type { Player, Team } from '@shared/types/models';
 
 
@@ -55,7 +56,7 @@ router.get('/listings', async (req, res) => {
  * POST /api/enhanced-marketplace/listings
  * Create a new marketplace listing
  */
-router.post('/listings', requireAuth, async (req: any, res) => {
+router.post('/listings', requireAuth, validateRequest(validationSchemas.marketplaceListing), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     if (!userId) {
@@ -106,7 +107,7 @@ router.post('/listings', requireAuth, async (req: any, res) => {
  * POST /api/enhanced-marketplace/listings/:listingId/bid
  * Place a bid on a listing
  */
-router.post('/listings/:listingId/bid', requireAuth, async (req: any, res) => {
+router.post('/listings/:listingId/bid', requireAuth, validateRequest(validationSchemas.marketplaceBid), async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     if (!userId) {

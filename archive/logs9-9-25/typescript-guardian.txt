@@ -1,0 +1,76 @@
+3s
+Run echo "🗄️ Generating Prisma client..."
+🗄️ Generating Prisma client...
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.10.1) to ./prisma/generated/client in 500ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+✅ Prisma client generated
+21s
+Run echo "🛡️ Running TypeScript Guardian - Server Compilation..."
+🛡️ Running TypeScript Guardian - Server Compilation...
+🔍 Running server build with error tolerance (matching production build)...
+📊 TypeScript errors detected: 4
+✅ SERVER COMPILATION: JavaScript files generated successfully
+📊 Generated files: 249 JS files
+⚠️ Note: 4 TypeScript errors present but compilation succeeded (production behavior)
+1s
+Run echo "🛡️ Running TypeScript Guardian - Client Compilation..."
+🛡️ Running TypeScript Guardian - Client Compilation...
+📊 Client errors detected: 1
+⚠️ CLIENT COMPILATION: 1 TypeScript errors found
+0s
+Run echo "🛡️ Running Prisma Integration Guardian..."
+🛡️ Running Prisma Integration Guardian...
+⚠️ PRISMA INTEGRATION: 1679 files with missing prisma initialization
+📋 Files needing prisma initialization:
+grep: write error: Broken pipe
+server/utils/matchStatusFixer.ts:    const stuckGames = await prisma.game.findMany({
+server/utils/matchStatusFixer.ts:        await prisma.game.update({
+server/utils/matchStatusFixer.ts:    const tournament = await prisma.tournament.findUnique({
+server/utils/matchStatusFixer.ts:    const tournaments = await prisma.tournament.findMany({
+grep: write error: Broken pipe
+server/utils/transactionManager.ts:          const result = await prisma.$transaction(
+1m 4s
+Run echo "🛡️ Analyzing critical deployment paths..."
+🛡️ Analyzing critical deployment paths...
+grep: ;: No such file or directory
+grep: ;: No such file or directory
+grep: ;: No such file or directory
+0s
+1s
+Run actions/upload-artifact@v4
+With the provided path, there will be 2 files uploaded
+Artifact name is valid!
+Root directory input is valid!
+Beginning upload of artifact content to blob storage
+Uploaded bytes 614
+Finished uploading artifact content to blob storage!
+SHA256 digest of uploaded artifact zip is 34d66c817a0d61e254faf44d75864a43963a1c9cdb1b0262ed9315b179f1a962
+Finalizing artifact upload
+Artifact typescript-guardian-logs-1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635.zip successfully finalized. Artifact ID 3970991425
+Artifact typescript-guardian-logs-1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635 has been successfully uploaded! Final size is 614 bytes. Artifact ID is 3970991425
+Artifact download URL: https://github.com/jimmy058910/replitballgame/actions/runs/17601421718/artifacts/3970991425
+0s
+Run echo ""
+
+🛡️ TYPESCRIPT GUARDIAN REPORT
+================================
+🗓️ Run Date: Wed Sep 10 02:40:08 UTC 2025
+🎯 Commit: 1a458c4dc5bd62ae614e78542a4b4f5a5dcc3635
+🌿 Branch: main
+
+📊 COMPILATION RESULTS:
+   Server Errors: 4
+   Client Errors: 1
+   Prisma Issues: 1679
+
+🎉 STATUS: DEPLOYMENT READY
+✅ Server compilation successful (JavaScript files generated)
+📊 TypeScript errors are acceptable (production behavior)
+✅ Ready for deployment
+================================

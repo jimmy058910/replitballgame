@@ -3,6 +3,7 @@ import { consumableStorage } from '../storage/consumableStorage.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { asyncHandler } from '../services/errorService.js';
 import { getPrismaClient } from "../database.js";
+import { validateRequest, validationSchemas } from '../middleware/validation.js';
 
 const router = Router();
 
@@ -41,7 +42,7 @@ router.get("/match/:matchId/team/:teamId", requireAuth, asyncHandler(async (req:
 }));
 
 // Activate a consumable for a match
-router.post("/activate", requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.post("/activate", requireAuth, validateRequest(validationSchemas.consumableActivation), asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { matchId, teamId, consumableId, consumableName, effectType, effectData } = req.body;
   const userId = req.user?.claims?.sub;
 
