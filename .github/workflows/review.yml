@@ -52,7 +52,7 @@ jobs:
           # Use the secret token you created in Step 1
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         # Skip Snyk scan for Dependabot PRs if token is unavailable
-        if: ${{ secrets.SNYK_TOKEN != '' }}
+        if: ${{ env.SNYK_TOKEN != '' }}
         continue-on-error: true
 
       - name: Upload Snyk Scan Results to GitHub
@@ -80,7 +80,7 @@ jobs:
           # Exclude compiled code and dependencies from the review.
           exclude_paths: 'dist/,node_modules/'
         # Only run AI review on pull requests AND if API key is available
-        if: ${{ github.event_name == 'pull_request' && secrets.GOOGLE_API_KEY != '' }}
+        if: ${{ github.event_name == 'pull_request' }}
         continue-on-error: true
         timeout-minutes: 10
 
