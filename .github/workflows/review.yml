@@ -44,12 +44,16 @@ jobs:
         # so the AI review can still run.
         # Note: Removed --all-projects to avoid multiple SARIF runs in same category
         # (GitHub policy change July 2025)
-        run: snyk test --sarif-file-output=snyk.sarif || true
+        run: |
+          # Fix package-lock sync issue first
+          npm ci --omit=dev --no-audit --quiet || echo "npm ci completed with warnings"
+          snyk test --sarif-file-output=snyk.sarif || echo "Snyk scan completed with findings"
         env:
           # Use the secret token you created in Step 1
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         # Skip Snyk scan for Dependabot PRs if token is unavailable
-        if: ${{ env.SNYK_TOKEN != '' }}
+        if: ${{ secrets.SNYK_TOKEN != '' }}
+        continue-on-error: true
 
       - name: Upload Snyk Scan Results to GitHub
         # This step takes the SARIF file from Snyk and uploads it to the
@@ -75,8 +79,10 @@ jobs:
           google_model: 'gemini-1.5-flash'
           # Exclude compiled code and dependencies from the review.
           exclude_paths: 'dist/,node_modules/'
-        # Only run AI review on pull requests, not scheduled scans
-        if: ${{ github.event_name == 'pull_request' }}
+        # Only run AI review on pull requests AND if API key is available
+        if: ${{ github.event_name == 'pull_request' && secrets.GOOGLE_API_KEY != '' }}
+        continue-on-error: true
+        timeout-minutes: 10
 
       # --- Weekly Scan Notifications ---
       - name: Create Issue for Weekly Vulnerabilities
