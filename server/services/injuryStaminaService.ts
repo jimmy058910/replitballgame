@@ -377,10 +377,27 @@ export class InjuryStaminaService {
       data: { dailyItemsUsed: 0 }
     });
 
-    // Get all players for individual processing
-    const allPlayers = await prisma.player.findMany();
+    // Process players in batches to prevent memory overflow
+    const BATCH_SIZE = 100;
+    let offset = 0;
+    let hasMorePlayers = true;
 
-    for (const player of allPlayers) {
+    while (hasMorePlayers) {
+      // Get batch of players
+      const playerBatch = await prisma.player.findMany({
+        take: BATCH_SIZE,
+        skip: offset,
+        orderBy: { id: 'asc' }
+      });
+
+      if (playerBatch.length === 0) {
+        hasMorePlayers = false;
+        break;
+      }
+
+      console.log(`Processing injury/stamina recovery for players ${offset + 1}-${offset + playerBatch.length}`);
+
+      for (const player of playerBatch) {
       const updates: any = {};
 
       // Natural injury recovery with Recovery Specialist bonus
@@ -468,7 +485,11 @@ export class InjuryStaminaService {
         });
       }
     }
+
+    // Move to next batch
+    offset += BATCH_SIZE;
   }
+}
 
   /**
    * Get injury effects for match simulation

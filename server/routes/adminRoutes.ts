@@ -2,28 +2,30 @@
  * Admin routes for testing and manual triggers
  */
 import { Router, Request, Response } from 'express';
-import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
+import { SeasonTimingAutomationService } from '../services/automation/index.js';
 import { MatchStatusFixer } from '../utils/matchStatusFixer.js';
 import { TournamentBracketGenerator } from '../utils/tournamentBracketGenerator.js';
 import { UnifiedTournamentAutomation } from '../services/unifiedTournamentAutomation';
 import { TeamStandingsSyncService } from '../scripts/syncTeamStandings.js';
+import { requireAuth } from '../middleware/firebaseAuth.js';
+import { logger } from '../services/loggingService.js';
 import type { Team } from '@shared/types/models';
 
-// No auth import needed for now - will use simple endpoint
+// Admin routes now require authentication for security
 
 const router = Router();
 
 // Manual trigger for game simulation (for testing)
-router.post('/trigger-simulation', async (req: Request, res: Response) => {
+router.post('/trigger-simulation', requireAuth, async (req: Request, res: Response) => {
   try {
-    console.log('🎮 [ADMIN] Manual simulation trigger requested...');
+    logger.adminOperation('SIMULATION_TRIGGER', 'Manual simulation trigger requested');
     
     const automationService = SeasonTimingAutomationService.getInstance();
     
     // Force check simulation window
     await automationService.checkMatchSimulationWindow();
     
-    console.log('✅ [ADMIN] Manual simulation trigger completed');
+    logger.adminSuccess('SIMULATION_TRIGGER', 'Manual simulation trigger completed');
     
     res.json({ 
       success: true, 
@@ -32,7 +34,7 @@ router.post('/trigger-simulation', async (req: Request, res: Response) => {
     });
     
   } catch (error) {
-    console.error('❌ [ADMIN] Manual simulation trigger failed:', error);
+    logger.adminError('SIMULATION_TRIGGER', 'Manual simulation trigger failed', error);
     res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -41,9 +43,9 @@ router.post('/trigger-simulation', async (req: Request, res: Response) => {
 });
 
 // CRITICAL FIX: Force advance day to Day 7 (manual day advancement)
-router.post('/force-advance-to-day-7', async (req, res) => {
+router.post('/force-advance-to-day-7', requireAuth, async (req, res) => {
   try {
-    console.log('🔥 [ADMIN] CRITICAL FIX: Manually advancing to Day 7...');
+    logger.adminOperation('DAY_ADVANCEMENT', 'CRITICAL FIX: Manually advancing to Day 7');
     
     const { getPrismaClient } = await import('../database');
     const prisma = await DatabaseService.getInstance();
@@ -60,7 +62,10 @@ router.post('/force-advance-to-day-7', async (req, res) => {
       });
     }
     
-    console.log(`🔥 Current season Day ${currentSeason?.currentDay} -> advancing to Day 7`);
+    logger.adminOperation('DAY_ADVANCEMENT', `Current season Day ${currentSeason?.currentDay} -> advancing to Day 7`, {
+      seasonId: currentSeason.id,
+      previousDay: currentSeason?.currentDay
+    });
     
     // Force update to Day 7
     await prisma.season.update({
@@ -68,7 +73,9 @@ router.post('/force-advance-to-day-7', async (req, res) => {
       data: { currentDay: 7 }
     });
     
-    console.log('✅ Season successfully advanced to Day 7');
+    logger.adminSuccess('DAY_ADVANCEMENT', 'Season successfully advanced to Day 7', {
+      seasonId: currentSeason.id
+    });
     
     res.json({
       success: true,
@@ -80,7 +87,7 @@ router.post('/force-advance-to-day-7', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Error advancing to Day 7:', error);
+    logger.adminError('DAY_ADVANCEMENT', 'Error advancing to Day 7', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -89,7 +96,7 @@ router.post('/force-advance-to-day-7', async (req, res) => {
 });
 
 // Force complete all overdue Day 6 games
-router.post('/force-complete-day-6-games', async (req, res) => {
+router.post('/force-complete-day-6-games', requireAuth, async (req, res) => {
   try {
     console.log('🔥 [ADMIN] Force completing all overdue Day 6 games...');
     
@@ -153,7 +160,7 @@ router.post('/force-complete-day-6-games', async (req, res) => {
 });
 
 // Fix stuck LIVE games
-router.post('/fix-stuck-games', async (req: Request, res: Response) => {
+router.post('/fix-stuck-games', requireAuth, async (req: Request, res: Response) => {
   try {
     console.log('🔧 [ADMIN] Fix stuck games requested...');
     
@@ -203,7 +210,7 @@ router.get('/stuck-games', async (req: Request, res: Response) => {
 });
 
 // Start a specific tournament round
-router.post('/start-tournament-round', async (req: Request, res: Response) => {
+router.post('/start-tournament-round', requireAuth, async (req: Request, res: Response) => {
   try {
     const { tournamentId, roundNumber } = req.body;
     
@@ -304,7 +311,7 @@ router.get('/tournaments', async (req: Request, res: Response) => {
 });
 
 // Generate tournament bracket for a tournament with 8 teams
-router.post('/tournament/:id/generate-bracket', async (req: Request, res: Response) => {
+router.post('/tournament/:id/generate-bracket', requireAuth, async (req: Request, res: Response) => {
   try {
     const tournamentId = parseInt(req.params.id);
     console.log(`🏆 [ADMIN] Generating bracket for tournament ${tournamentId}...`);

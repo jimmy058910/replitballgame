@@ -13,7 +13,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { Trophy } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import ModernStickyHeader from '../ModernStickyHeader';
-import LiveMatchesHub from '../LiveMatchesHub';
+// LiveMatchesHub removed - using quick simulation only
 import { useCompetitionData } from './hooks/useCompetitionData';
 import { LeagueStandings } from './components/LeagueStandings';
 import { TournamentHub } from './components/TournamentHub';
@@ -161,7 +161,7 @@ const CompetitionCenter = React.memo(() => {
 
           {/* Tab Content */}
           <TabsContent value="live" className="space-y-4">
-            <LiveMatchesHub team={team} />
+            {/* LiveMatchesHub removed - using quick simulation only */}
           </TabsContent>
 
           <TabsContent value="league" className="space-y-4">

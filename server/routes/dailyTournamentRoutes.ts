@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { storage } from '../storage/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { getPrismaClient } from "../database.js";
-import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 import { StandingsUpdateService } from '../services/standingsUpdateService.js';
 import moment from "moment-timezone";
 import type { Team } from '@shared/types/models';

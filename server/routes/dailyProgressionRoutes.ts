@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { DailyPlayerProgressionService } from '../services/dailyPlayerProgressionService.js';
-import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
+import { SeasonTimingAutomationService } from '../services/automation/index.js';
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { RBACService, Permission } from '../services/rbacService.js';
 import type { Player, Team } from '@shared/types/models';
@@ -244,7 +244,7 @@ router.post('/test-full-day-advancement', requireAuth, RBACService.requirePermis
     console.log('[DAILY PROGRESSION TEST] Starting full day advancement test');
     
     // Import the automation service
-    const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService');
+    const { SeasonTimingAutomationService } = await import('../services/automation/index.js');
     const automationService = SeasonTimingAutomationService.getInstance();
     
     // Execute full daily progression (same as the scheduled 3AM process)
@@ -274,7 +274,7 @@ router.get('/automation-status', async (req, res) => {
     console.log('[AUTOMATION STATUS] Checking automation service status...');
     
     // Import and check automation service
-    const { SeasonTimingAutomationService } = await import('../services/seasonTimingAutomationService.js');
+    const { SeasonTimingAutomationService } = await import('../services/automation/index.js');
     const automationService = SeasonTimingAutomationService.getInstance();
     
     // Trigger missed progression check manually

@@ -17,7 +17,19 @@ router.use(requireAuth);
  * GET /api/camaraderie/summary
  */
 router.get('/summary', asyncHandler(async (req: any, res: Response) => {
-  const userId = req.user.claims.sub;
+  console.log('🔍 [DEBUG] req.user exists:', !!req.user);
+  console.log('🔍 [DEBUG] req.user.claims exists:', !!req.user?.claims);
+  console.log('🔍 [DEBUG] req.user.uid:', req.user?.uid);
+  console.log('🔍 [DEBUG] req.user.claims.sub:', req.user?.claims?.sub);
+  
+  // Use uid as fallback if claims.sub is not available
+  const userId = req.user?.claims?.sub || req.user?.uid;
+  console.log('🔍 [DEBUG] Final userId used:', userId);
+  
+  if (!userId) {
+    console.log('❌ [DEBUG] No userId found');
+    throw ErrorCreators.unauthorized("User ID not found in token");
+  }
   
   // Get user's team
   const team = await storage.teams.getTeamByUserId(userId);

@@ -1,6 +1,6 @@
 import { getPrismaClient } from '../../database.js';
-import { logger } from '../../utils/logger.js';
-import { ServiceError } from '../../utils/ServiceError.js';
+import logger from '../../utils/logger.js';
+import { AppError } from '../errorService.js';
 import type { Team, UserProfile } from '@shared/types/models';
 
 /**
@@ -20,7 +20,7 @@ export class OaklandCougarsDevService {
    */
   private static ensureDevelopment(): void {
     if (process.env.NODE_ENV !== 'development') {
-      throw new ServiceError('OaklandCougarsDevService is only available in development environment');
+      throw new AppError('OaklandCougarsDevService is only available in development environment');
     }
   }
 
@@ -66,7 +66,7 @@ export class OaklandCougarsDevService {
       
     } catch (error) {
       logger.error('Error finding Oakland Cougars across subdivisions', { error, division });
-      throw new ServiceError('Failed to find Oakland Cougars team', error);
+      throw new AppError('Failed to find Oakland Cougars team', error);
     }
   }
 
@@ -108,7 +108,7 @@ export class OaklandCougarsDevService {
       
     } catch (error) {
       logger.error('Error creating development UserProfile', { error });
-      throw new ServiceError('Failed to create development UserProfile', error);
+      throw new AppError('Failed to create development UserProfile', error);
     }
   }
 
@@ -139,7 +139,7 @@ export class OaklandCougarsDevService {
       });
       
       if (!oaklandCougars) {
-        throw new ServiceError('Oakland Cougars team not found in expected location (division 7, alpha)');
+        throw new AppError('Oakland Cougars team not found in expected location (division 7, alpha)');
       }
       
       // Link the team to the UserProfile
@@ -157,7 +157,7 @@ export class OaklandCougarsDevService {
       
     } catch (error) {
       logger.error('Error linking Oakland Cougars to development UserProfile', { error });
-      throw new ServiceError('Failed to link Oakland Cougars to development UserProfile', error);
+      throw new AppError('Failed to link Oakland Cougars to development UserProfile', error);
     }
   }
 
@@ -202,7 +202,7 @@ export class OaklandCougarsDevService {
       
     } catch (error) {
       logger.error('Error checking if Oakland Cougars game', { error, gameId });
-      throw new ServiceError('Failed to check Oakland Cougars game status', error);
+      throw new AppError('Failed to check Oakland Cougars game status', error);
     }
   }
 
@@ -249,7 +249,7 @@ export class OaklandCougarsDevService {
       
     } catch (error) {
       logger.error('Error getting Oakland Cougars development setup status', { error });
-      throw new ServiceError('Failed to get development setup status', error);
+      throw new AppError('Failed to get development setup status', error);
     }
   }
 
@@ -290,7 +290,7 @@ export class OaklandCougarsDevService {
       
     } catch (error) {
       logger.error('Error during complete Oakland Cougars development setup', { error });
-      throw new ServiceError('Failed to complete Oakland Cougars development setup', error);
+      throw new AppError('Failed to complete Oakland Cougars development setup', error);
     }
   }
 }

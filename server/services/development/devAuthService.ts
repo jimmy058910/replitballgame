@@ -1,5 +1,5 @@
-import { logger } from '../../utils/logger.js';
-import { ServiceError } from '../../utils/ServiceError.js';
+import logger from '../../utils/logger.js';
+import { AppError } from '../errorService.js';
 
 /**
  * DevAuthService
@@ -46,7 +46,7 @@ export class DevAuthService {
    */
   private static ensureDevelopment(): void {
     if (process.env.NODE_ENV !== 'development') {
-      throw new ServiceError('DevAuthService is only available in development environment');
+      throw new AppError('DevAuthService is only available in development environment');
     }
   }
 
@@ -205,7 +205,7 @@ export class DevAuthService {
 
     const userInfo = this.validateDevToken(token);
     if (!userInfo) {
-      throw new ServiceError('Invalid development token for mock Firebase user creation');
+      throw new AppError('Invalid development token for mock Firebase user creation');
     }
 
     return {

@@ -1,6 +1,6 @@
 import { getPrismaClient } from '../../database.js';
-import { logger } from '../../utils/logger.js';
-import { ServiceError } from '../../utils/ServiceError.js';
+import logger from '../../utils/logger.js';
+import { AppError } from '../errorService.js';
 import type { Team, UserProfile, Player } from '@shared/types/models';
 
 /**
@@ -19,7 +19,7 @@ export class DevSeedDataService {
    */
   private static ensureDevelopment(): void {
     if (process.env.NODE_ENV !== 'development') {
-      throw new ServiceError('DevSeedDataService is only available in development environment');
+      throw new AppError('DevSeedDataService is only available in development environment');
     }
   }
 
@@ -115,7 +115,7 @@ export class DevSeedDataService {
 
     } catch (error) {
       logger.error('Error creating development teams', { error, options });
-      throw new ServiceError('Failed to create development teams', error);
+      throw new AppError('Failed to create development teams', error);
     }
   }
 
@@ -184,7 +184,7 @@ export class DevSeedDataService {
 
     } catch (error) {
       logger.error('Error creating development league', { error, options });
-      throw new ServiceError('Failed to create development league', error);
+      throw new AppError('Failed to create development league', error);
     }
   }
 
@@ -206,7 +206,7 @@ export class DevSeedDataService {
       });
 
       if (!team) {
-        throw new ServiceError(`Team with ID ${teamId} not found`);
+        throw new AppError(`Team with ID ${teamId} not found`);
       }
 
       logger.info('Creating development players', { teamId, teamName: team.name, count });
@@ -253,7 +253,7 @@ export class DevSeedDataService {
 
     } catch (error) {
       logger.error('Error creating development players', { error, teamId, count });
-      throw new ServiceError('Failed to create development players', error);
+      throw new AppError('Failed to create development players', error);
     }
   }
 
@@ -325,7 +325,7 @@ export class DevSeedDataService {
 
     } catch (error) {
       logger.error('Error creating complete development environment', { error, options });
-      throw new ServiceError('Failed to create complete development environment', error);
+      throw new AppError('Failed to create complete development environment', error);
     }
   }
 
@@ -430,7 +430,7 @@ export class DevSeedDataService {
 
     } catch (error) {
       logger.error('Error during development data cleanup', { error, options });
-      throw new ServiceError('Failed to cleanup development data', error);
+      throw new AppError('Failed to cleanup development data', error);
     }
   }
 }

@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { getPrismaClient } from '../../database.js';
-import { logger } from '../../utils/logger.js';
+import logger from '../../utils/logger.js';
 import { ServiceError } from '../../utils/ServiceError.js';
 import { AdminAuthService } from '../../services/admin/adminAuthService.js';
 

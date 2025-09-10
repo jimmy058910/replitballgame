@@ -17,8 +17,8 @@
 import { z } from 'zod';
 import { getPrismaClient } from '../database.js';
 import { DynamicSeasonService } from './dynamicSeasonService.js';
-import { SeasonalFlowService } from './seasonalFlowService.js';
-import { SeasonTimingAutomationService } from './seasonTimingAutomationService.js';
+import { SeasonalFlowService } from './seasonal/index.js';
+import { SeasonTimingAutomationService } from './automation/index.js';
 import { ScheduleGenerationService } from './scheduleGenerationService.js';
 import { logInfo, logError } from './errorService.js';
 import { getEasternTime, EASTERN_TIMEZONE } from '../../shared/timezone.js';
@@ -821,6 +821,6 @@ export const ScheduleGenerationServiceCompat = {
 
 // Re-export for convenience
 export { DynamicSeasonService } from './dynamicSeasonService.js';
-export { SeasonalFlowService } from './seasonalFlowService.js';
-export { SeasonTimingAutomationService } from './seasonTimingAutomationService.js';
+export { SeasonalFlowService } from './seasonal/index.js';
+export { SeasonTimingAutomationService } from './automation/index.js';
 export { ScheduleGenerationService } from './scheduleGenerationService.js';

@@ -315,20 +315,22 @@ router.post('/admin/daily-reset', requireAuth, async (req: any, res: Response, n
 router.get('/system/stats', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
     const prisma = await getPrismaClient();
-    // Get overall system statistics
-    const totalPlayers = await prisma.player.findMany();
+    // Get overall system statistics using efficient queries
+    const totalPlayerCount = await prisma.player.count();
+    const injuredPlayerCount = await prisma.player.count({
+      where: { injuryStatus: { not: 'HEALTHY' } }
+    });
+    const healthyPlayers = totalPlayerCount - injuredPlayerCount;
     
-    const injuredPlayers = totalPlayers.filter((p: any) => p.injuryStatus !== 'HEALTHY').length;
-    const healthyPlayers = totalPlayers.length - injuredPlayers;
-    
-    // Calculate average stamina percentage
-    const averageStamina = totalPlayers.length > 0 
-      ? totalPlayers.reduce((sum: number, p: any) => sum + (p.dailyStaminaLevel ?? 100), 0) / totalPlayers.length  
-      : 100;
+    // Calculate average stamina using aggregation
+    const staminaStats = await prisma.player.aggregate({
+      _avg: { dailyStaminaLevel: true }
+    });
+    const averageStamina = staminaStats._avg.dailyStaminaLevel ?? 100;
         
     const stats = {
-      totalPlayers: totalPlayers.length,
-      injuredPlayers,
+      totalPlayers: totalPlayerCount,
+      injuredPlayers: injuredPlayerCount,
       healthyPlayers,
       averageStamina,
       lowStaminaPlayers: totalPlayers.filter((p: any) => (p.dailyStaminaLevel ?? 100) < 50).length,

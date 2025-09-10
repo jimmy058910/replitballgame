@@ -359,7 +359,7 @@ async function startServer() {
           service: 'season_timing',
           gameType: 'dome_ball'
         });
-        const { SeasonTimingAutomationService } = await import('./services/seasonTimingAutomationService.js');
+        const { SeasonTimingAutomationService } = await import('./services/automation/index.js');
         const automationService = SeasonTimingAutomationService.getInstance();
         await automationService.start();
         logger.info('✅ Season timing automation initialized successfully', {

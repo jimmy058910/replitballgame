@@ -87,7 +87,11 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction): 
             devUser = {
               uid: 'oakland-cougars-owner',
               email: 'oakland.cougars@realmrivalry.dev',
-              claims: { uid: 'oakland-cougars-owner', email: 'oakland.cougars@realmrivalry.dev' }
+              claims: { 
+                uid: 'oakland-cougars-owner', 
+                sub: 'oakland-cougars-owner', 
+                email: 'oakland.cougars@realmrivalry.dev' 
+              }
             };
             break;
           case 'dev-token-123':
@@ -96,7 +100,11 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction): 
             devUser = {
               uid: 'dev-user-123',
               email: 'developer@realmrivalry.com',
-              claims: { uid: 'dev-user-123', email: 'developer@realmrivalry.com' }
+              claims: { 
+                uid: 'dev-user-123', 
+                sub: 'dev-user-123', 
+                email: 'developer@realmrivalry.com' 
+              }
             };
             break;
           default:
@@ -107,6 +115,7 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction): 
           console.log(`🔧 Development bypass activated for ${devUser.email}`);
           req.user = devUser;
           console.log(`✅ Development bypass authenticated for ${devUser.uid}`);
+          console.log(`🔍 [DEBUG] req.user.claims.sub after auth:`, req.user.claims.sub);
           next();
           return;
         }

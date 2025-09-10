@@ -98,7 +98,10 @@
       "Bash(claude --debug)",
       "Bash(npx:*)",
       "Bash(uvx:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(move:*)",
+      "Bash(netstat:*)",
+      "Bash(claude /mcp)"
     ],
     "deny": [],
     "ask": []

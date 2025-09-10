@@ -21,7 +21,7 @@ import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { matchStorage } from '../storage/matchStorage.js';
 import { storage } from '../storage/index.js';
-import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 import { calculateGameRevenue, calculateAttendance } from '../../shared/stadiumSystem.js';
 import type { Player, Team, Stadium } from '@shared/types/models';
 

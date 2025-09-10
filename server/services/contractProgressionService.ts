@@ -462,16 +462,31 @@ export class ContractProgressionService {
   }> {
     const prisma = await getPrismaClient();
     
-    const allContracts = await prisma.contract.findMany();
+    // Use efficient aggregation queries instead of loading all contracts
+    const totalActiveContracts = await prisma.contract.count();
+    const expiringContracts = await prisma.contract.count({ where: { length: 1 } });
     
-    const totalActiveContracts = allContracts.length;
-    const expiringContracts = allContracts.filter(c => c.length === 1).length;
-    const averageContractLength = allContracts.reduce((sum: any, c: any) => sum + c.length, 0) / totalActiveContracts;
-    const totalSalaryCommitments = allContracts.reduce((sum: any, c: any) => sum + Number(c.salary * c.length), Number(0));
+    // Calculate average using aggregation
+    const lengthSum = await prisma.contract.aggregate({
+      _sum: { length: true }
+    });
+    const averageContractLength = totalActiveContracts > 0 ? (lengthSum._sum.length || 0) / totalActiveContracts : 0;
     
+    // Calculate total salary commitments using aggregation
+    const salarySum = await prisma.contract.aggregate({
+      _sum: { salary: true }
+    });
+    const totalSalaryCommitments = salarySum._sum.salary || 0;
+    
+    // Get contract length distribution efficiently
     const contractsByLength: Record<number, number> = {};
-    allContracts.forEach(contract => {
-      contractsByLength[contract.length] = (contractsByLength[contract.length] || 0) + 1;
+    const lengthDistribution = await prisma.contract.groupBy({
+      by: ['length'],
+      _count: { length: true }
+    });
+    
+    lengthDistribution.forEach(group => {
+      contractsByLength[group.length] = group._count.length;
     });
 
     return {

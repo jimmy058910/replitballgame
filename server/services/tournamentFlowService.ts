@@ -1,5 +1,5 @@
 import { getPrismaClient } from "../database.js";
-import { QuickMatchSimulation } from './enhancedSimulationEngine.js';
+import { QuickMatchSimulation } from './quickMatchSimulation.js';
 import { MatchType } from "../db";
 import type { Team } from '@shared/types/models';
 

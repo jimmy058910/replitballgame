@@ -9,11 +9,12 @@ import { cachedUserStorage } from '../storage/cachedUserStorage.js';
 import { cachedTeamStorage } from '../storage/cachedTeamStorage.js';
 import { cachedPlayerStorage } from '../storage/cachedPlayerStorage.js';
 import { asyncHandler } from '../services/errorService.js';
+import { requireAuth } from '../middleware/firebaseAuth.js';
 
 const router = Router();
 
 // Get cache statistics
-router.get('/stats', asyncHandler(async (req: any, res: Response) => {
+router.get('/stats', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const stats = memoryCache.getStats();
   
   res.json({
@@ -29,7 +30,7 @@ router.get('/stats', asyncHandler(async (req: any, res: Response) => {
 }));
 
 // Clear specific cache types
-router.delete('/clear/:type', asyncHandler(async (req: any, res: Response): Promise<void> => {
+router.delete('/clear/:type', requireAuth, asyncHandler(async (req: any, res: Response): Promise<void> => {
   const { type } = req.params;
   let cleared = 0;
   
@@ -71,7 +72,7 @@ router.delete('/clear/:type', asyncHandler(async (req: any, res: Response): Prom
 }));
 
 // Get cache contents (for debugging)
-router.get('/debug', asyncHandler(async (req: any, res: Response) => {
+router.get('/debug', requireAuth, asyncHandler(async (req: any, res: Response) => {
   const stats = memoryCache.getStats();
   
   res.json({

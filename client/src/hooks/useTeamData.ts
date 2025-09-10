@@ -98,21 +98,7 @@ export const useUpcomingMatches = (team: Team | undefined, isAuthenticated: bool
   });
 };
 
-/**
- * Hook for live matches
- * - Very short staleTime (10 seconds) since live data is highly volatile
- */
-export const useLiveMatches = (team: Team | undefined, isAuthenticated: boolean) => {
-  return useQuery<LiveMatch[]>({
-    queryKey: ['matches', 'live'], // Global live matches, not team-specific
-    enabled: !!team?.id && isAuthenticated,
-    staleTime: 1000 * 10, // 10 seconds - live data is very volatile
-    gcTime: 1000 * 60, // 1 minute cache
-    refetchInterval: 1000 * 15, // Check every 15 seconds for live matches
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-};
+
 
 // ===== CACHE MANAGEMENT UTILITIES =====
 
@@ -183,7 +169,7 @@ export const useTeamCacheManager = () => {
 export const useTeamDashboardData = (isAuthenticated: boolean) => {
   const { data: team, isLoading: teamLoading, error: teamError } = useMyTeam(isAuthenticated);
   const { data: upcomingMatches, isLoading: matchesLoading, error: matchesError } = useUpcomingMatches(team, isAuthenticated);
-  const { data: liveMatches, isLoading: liveLoading } = useLiveMatches(team, isAuthenticated);
+
 
   const isLoading = teamLoading || (!!team && matchesLoading);
   const hasError = teamError || matchesError;
@@ -197,8 +183,7 @@ export const useTeamDashboardData = (isAuthenticated: boolean) => {
     matchesLoading,
     upcomingMatchesCount: upcomingMatches?.length || 0,
     matchesError: !!matchesError,
-    liveLoading,
-    liveMatchesCount: liveMatches?.length || 0,
+
     isAuthenticated,
     isReady: !!team && !isLoading
   });
@@ -216,7 +201,7 @@ export const useTeamDashboardData = (isAuthenticated: boolean) => {
   return {
     team,
     upcomingMatches,
-    liveMatches,
+
     isLoading,
     hasError,
     isReady: !!team && !isLoading, // Safe to render when we have team and not loading

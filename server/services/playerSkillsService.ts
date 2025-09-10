@@ -45,8 +45,10 @@ export class PlayerSkillsService {
     });
     if (!player) return [];
 
-    // Get all skills
-    const allSkills = await prisma.skill.findMany();
+    // Get all skills with reasonable limit (skills are typically limited in number)
+    const allSkills = await prisma.skill.findMany({
+      take: 1000 // Reasonable limit for skills
+    });
 
     // Get player's current skills
     const currentPlayerSkills = await prisma.playerSkillLink.findMany({

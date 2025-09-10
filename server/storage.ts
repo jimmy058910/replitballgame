@@ -5,7 +5,7 @@
 
 import { storage, type IAppStorage } from "./storage/index.js";
 import { getPrismaClient } from "./database.js"; // Use Prisma instead of Drizzle
-import { logger } from "./utils/logger.js";
+import logger from "./utils/logger.js";
 import type { Player, Team } from '@shared/types/models';
 
 

@@ -435,11 +435,33 @@ export class StadiumAtmosphereService {
       change: number;
     }>;
   }> {
-    const allTeams = await prisma.team.findMany();
+    // Process teams in batches to prevent memory overflow
+    const BATCH_SIZE = 50;
+    let offset = 0;
+    let hasMoreTeams = true;
     const loyaltyUpdates = [];
     let totalChange = 0;
     
-    for (const team of allTeams) {
+    // Get total count for logging
+    const totalTeams = await prisma.team.count();
+    console.log(`Processing end-of-season loyalty for ${totalTeams} teams`);
+
+    while (hasMoreTeams) {
+      // Get batch of teams
+      const teamBatch = await prisma.team.findMany({
+        take: BATCH_SIZE,
+        skip: offset,
+        orderBy: { id: 'asc' }
+      });
+
+      if (teamBatch.length === 0) {
+        hasMoreTeams = false;
+        break;
+      }
+
+      console.log(`Processing loyalty batch: teams ${offset + 1}-${offset + teamBatch.length}`);
+
+      for (const team of teamBatch) {
       const result = await this.calculateEndOfSeasonLoyalty(team.id.toString(), season);
       const change = result.newLoyalty - result.oldLoyalty;
       
@@ -453,10 +475,14 @@ export class StadiumAtmosphereService {
       
       totalChange += change;
     }
+
+    // Move to next batch
+    offset += BATCH_SIZE;
+  }
     
     return {
-      teamsProcessed: allTeams.length,
-      averageLoyaltyChange: allTeams.length > 0 ? totalChange / allTeams.length : 0,
+      teamsProcessed: loyaltyUpdates.length,
+      averageLoyaltyChange: loyaltyUpdates.length > 0 ? totalChange / loyaltyUpdates.length : 0,
       loyaltyUpdates
     };
   }

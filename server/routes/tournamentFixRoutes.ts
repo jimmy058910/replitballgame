@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getPrismaClient } from "../database.js";
 import { requireAuth } from "../middleware/firebaseAuth.js";
 import { tournamentFlowService } from '../services/tournamentFlowService.js';
-import { QuickMatchSimulation } from '../services/enhancedSimulationEngine.js';
+import { QuickMatchSimulation } from '../services/quickMatchSimulation.js';
 // CRITICAL FIX: Dynamic import to prevent startup database connections
 // import { matchStateManager } from '../services/matchStateManager.js';
 

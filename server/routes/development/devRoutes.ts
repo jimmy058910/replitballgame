@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { OaklandCougarsDevService } from '../../services/development/oaklandCougarsDevService.js';
 import { DevAuthService } from '../../services/development/devAuthService.js';
 import { DevSeedDataService } from '../../services/development/devSeedDataService.js';
-import { logger } from '../../utils/logger.js';
+import logger from '../../utils/logger.js';
 
 const router = express.Router();
 

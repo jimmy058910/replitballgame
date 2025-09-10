@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { getPrismaClient } from "../database.js";
+import { requireAuth } from '../middleware/firebaseAuth.js';
 
 const router = Router();
 
 // Database connection test endpoint for debugging
-router.post('/database-test', async (req, res) => {
+router.post('/database-test', requireAuth, async (req, res) => {
   try {
     console.log('🔍 MANUAL DATABASE TEST INITIATED:', new Date().toISOString());
     const prisma = await getPrismaClient();
@@ -37,7 +38,7 @@ router.post('/database-test', async (req, res) => {
 });
 
 // Simple GET version for easier testing
-router.get('/database-test', async (req, res) => {
+router.get('/database-test', requireAuth, async (req, res) => {
   try {
     console.log('🔍 SIMPLE DATABASE TEST:', new Date().toISOString());
     console.log('🔍 Using working db.ts Prisma client');

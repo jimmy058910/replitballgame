@@ -133,7 +133,22 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+  const jsonData = await res.json();
+  
+  // Handle API responses with wrapper formats
+  // Extract the data/matches property for endpoints that use wrapper patterns
+  if (jsonData && typeof jsonData === 'object' && jsonData.success === true) {
+    // Handle {success: true, data: [...]} format
+    if (jsonData.data !== undefined) {
+      return jsonData.data;
+    }
+    // Handle {success: true, matches: [...]} format (live matches endpoint)
+    if (jsonData.matches !== undefined) {
+      return jsonData.matches;
+    }
+  }
+  
+  return jsonData;
   };
 
 export const queryClient = new QueryClient({

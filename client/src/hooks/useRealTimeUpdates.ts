@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { useTournamentStore } from '@/stores/tournamentStore';
-import { useMatchStore } from '@/stores/matchStore';
+// matchStore import removed - using quick simulation only
 import { useEconomyStore } from '@/stores/economyStore';
 
 // Hook to set up real-time updates across all stores
 export function useRealTimeUpdates() {
   const tournamentStore = useTournamentStore();
-  const matchStore = useMatchStore();
+  // matchStore removed - using quick simulation only
   const economyStore = useEconomyStore();
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export function useRealTimeUpdates() {
         await tournamentStore.connectWebSocket();
         
         // Initialize match WebSocket
-        await matchStore.connectWebSocket();
+        // matchStore.connectWebSocket() removed
         
         // Initialize economy WebSocket  
         await economyStore.connectWebSocket();
@@ -33,7 +33,7 @@ export function useRealTimeUpdates() {
     // Cleanup connections on unmount
     return () => {
       tournamentStore.disconnectWebSocket();
-      matchStore.disconnectWebSocket();
+      // matchStore.disconnectWebSocket() removed
       economyStore.disconnectWebSocket();
     };
   }, []);
@@ -45,21 +45,19 @@ export function useRealTimeUpdates() {
       if (!tournamentStore.isConnected) {
         tournamentStore.refreshData();
       }
-      if (!matchStore.isConnected) {
-        matchStore.refreshData();
-      }
+      // matchStore connection check removed
       if (!economyStore.isConnected) {
         economyStore.refreshData();
       }
     }, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
-  }, [tournamentStore.isConnected, matchStore.isConnected, economyStore.isConnected]);
+  }, [tournamentStore.isConnected, economyStore.isConnected]);
 
   return {
     tournamentConnected: tournamentStore.isConnected,
-    matchConnected: matchStore.isConnected,
+    matchConnected: false, // matchStore removed
     economyConnected: economyStore.isConnected,
-    allConnected: tournamentStore.isConnected && matchStore.isConnected && economyStore.isConnected
+    allConnected: tournamentStore.isConnected && economyStore.isConnected
   };
 }

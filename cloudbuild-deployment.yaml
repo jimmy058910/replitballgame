@@ -20,13 +20,13 @@ steps:
         
         echo "📅 Using build ID: ${SHORT_SHA}"
         
-        # Use fixed Dockerfile if available, otherwise fallback to original
-        if [ -f "Dockerfile.step7-unified-fixed" ]; then
+        # Use modern TypeScript Dockerfile
+        if [ -f "Dockerfile" ]; then
+          DOCKERFILE="Dockerfile"
+          echo "📦 Using modern TypeScript Dockerfile"
+        elif [ -f "Dockerfile.step7-unified-fixed" ]; then
           DOCKERFILE="Dockerfile.step7-unified-fixed"
-          echo "📦 Using fixed Dockerfile"
-        elif [ -f "Dockerfile.step7-unified" ]; then
-          DOCKERFILE="Dockerfile.step7-unified"
-          echo "📦 Using original Dockerfile"
+          echo "📦 Using legacy fixed Dockerfile"
         else
           echo "❌ No Dockerfile found!"
           exit 1

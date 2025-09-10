@@ -1,5 +1,5 @@
 import { DatabaseService } from "../database/DatabaseService.js";
-import { QuickMatchSimulation } from './enhancedSimulationEngine.js';
+import { QuickMatchSimulation } from './quickMatchSimulation.js';
 import type { Team, League } from '@shared/types/models';
 
 // Using any types for Prisma enums to avoid import issues

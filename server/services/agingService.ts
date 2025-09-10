@@ -127,13 +127,33 @@ export class AgingService {
     console.log('Starting end-of-season aging process...');
     
     const prisma = await getPrismaClient();
-    // Get all players in the system
-    const allPlayers = await prisma.player.findMany();
-    console.log(`Processing aging for ${allPlayers.length} players`);
-
+    
+    // Process players in batches to prevent memory overflow
+    const BATCH_SIZE = 100;
+    let offset = 0;
+    let hasMorePlayers = true;
     const results: AgingResult[] = [];
 
-    for (const player of allPlayers) {
+    // Get total count for logging
+    const totalPlayers = await prisma.player.count();
+    console.log(`Processing aging for ${totalPlayers} players in batches of ${BATCH_SIZE}`);
+
+    while (hasMorePlayers) {
+      // Get batch of players
+      const playerBatch = await prisma.player.findMany({
+        take: BATCH_SIZE,
+        skip: offset,
+        orderBy: { id: 'asc' }
+      });
+
+      if (playerBatch.length === 0) {
+        hasMorePlayers = false;
+        break;
+      }
+
+      console.log(`Processing aging batch: players ${offset + 1}-${offset + playerBatch.length}`);
+
+      for (const player of playerBatch) {
       try {
         const result = await this.processPlayerAging(player);
         results.push(result);
@@ -147,6 +167,10 @@ export class AgingService {
         });
       }
     }
+
+    // Move to next batch
+    offset += BATCH_SIZE;
+  }
 
     // Reset games played last season for all players
     await prisma.player.updateMany({

@@ -93,12 +93,28 @@ export class MatchStorage {
           { homeTeamId: teamId },
           { awayTeamId: teamId }
         ],
-        AND: [
-          { status: { not: 'COMPLETED' } },
-          { gameDate: { gte: new Date() } }
-        ]
+        status: {
+          in: ['SCHEDULED', 'IN_PROGRESS', 'POSTPONED']
+        },
+        gameDate: { gte: new Date() }
       },
       include: {
+        homeTeam: {
+          select: {
+            id: true,
+            name: true,
+            division: true,
+            subdivision: true
+          }
+        },
+        awayTeam: {
+          select: {
+            id: true,
+            name: true,
+            division: true,
+            subdivision: true
+          }
+        },
         league: true,
         tournament: true
       },

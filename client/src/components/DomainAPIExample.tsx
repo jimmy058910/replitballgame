@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertCircle, Zap, Database, Shield } from 'lucide-react';
 import { useTournamentStore } from '@/stores/tournamentStore';
-import { useMatchStore } from '@/stores/matchStore';
+
 import { useEconomyStore } from '@/stores/economyStore';
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 
 export function DomainAPIExample() {
   const [isConnecting, setIsConnecting] = useState(false);
   const tournamentStore = useTournamentStore();
-  const matchStore = useMatchStore();
+
   const economyStore = useEconomyStore();
   const { allConnected } = useRealTimeUpdates();
 
@@ -21,7 +21,7 @@ export function DomainAPIExample() {
       // Actually connect WebSocket stores
       await Promise.all([
         tournamentStore.connectWebSocket(),
-        matchStore.connectWebSocket(),
+        // connectWebSocket removed - using quick simulation only
         economyStore.connectWebSocket()
       ]);
       console.log('All WebSocket connections established');
@@ -48,11 +48,12 @@ export function DomainAPIExample() {
       name: 'Match Store',
       icon: <Database className="w-4 h-4" />,
       description: 'Live match updates and simulation events',
-      status: matchStore.isConnected ? 'connected' : 'disconnected',
+      status: 'disabled',
       data: {
-        matches: matchStore.matchHistory?.length || 0,
-        liveMatches: matchStore.liveMatches?.length || 0,
-        events: matchStore.simulationEvents?.length || 0
+        matches: 0,
+        liveMatches: 0,
+        events: 0,
+        note: 'Match store removed - using quick simulation only'
       }
     },
     {

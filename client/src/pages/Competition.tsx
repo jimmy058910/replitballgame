@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import LeagueStandings from "@/components/LeagueStandings";
 import LeagueSchedule from "@/components/LeagueSchedule";
 import TournamentCenter from "@/components/TournamentCenter";
-import ImprovedLiveMatches from "@/components/ImprovedLiveMatches";
+// ImprovedLiveMatches removed - using quick simulation only
 
 
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -1207,7 +1207,7 @@ export default function Competition() {
                 </CardContent>
               </Card>
 
-              <ImprovedLiveMatches maxMatches={8} />
+              {/* ImprovedLiveMatches removed - using quick simulation only */}
             </div>
 
             <Card className="bg-gray-800 border-gray-700">

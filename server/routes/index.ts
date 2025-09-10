@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import authRoutes from "./authRoutes.js";
-import teamRoutes from "./teamRoutes.js";
+import modularTeamRoutes from "./teams/index.js";
 // CONSOLIDATED: All player routes now in enhancedPlayerRoutes.js
 import enhancedPlayerRoutes from "./enhancedPlayerRoutes.js";
 import staffRoutes from "./staffRoutes.js";
@@ -120,15 +120,11 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/auth", authRoutes);
   console.log('🔍 [registerAllRoutes] Registered /api/auth routes');
   
-  console.log('🔍 [registerAllRoutes] About to dynamically import teamRoutes...');
+  console.log('🔍 [registerAllRoutes] Registering modular team routes...');
   try {
-    const teamRoutesModule = await import("./teamRoutes.js");
-    const teamRoutesRouter = teamRoutesModule.default;
-    console.log('🔍 [registerAllRoutes] teamRoutes imported successfully, type:', typeof teamRoutesRouter);
-    
-    // CRITICAL FIX: Register specific routes first to prevent conflicts
-    app.use("/api/teams", teamRoutesRouter); 
-    console.log('✅ [registerAllRoutes] Registered /api/teams routes successfully');
+    // Use new modular team structure (replaces monolithic teamRoutes.ts)
+    app.use("/api/teams", modularTeamRoutes); 
+    console.log('✅ [registerAllRoutes] Registered modular /api/teams routes successfully');
     
     // Add explicit route logging for debugging
     app.use('/api/teams/*', (req: any, res: any, next: any) => {
@@ -137,7 +133,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     });
     
   } catch (teamImportError: any) {
-    console.error('❌ [registerAllRoutes] Failed to import teamRoutes:', teamImportError.message);
+    console.error('❌ [registerAllRoutes] Failed to import modular team routes:', teamImportError.message);
     console.error('❌ [registerAllRoutes] Error stack:', teamImportError.stack);
   }
   // REMOVED DUPLICATE: app.use("/api/teams", teamTrendsRoutes); - Causes route conflict with standings endpoint
