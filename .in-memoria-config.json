@@ -1,0 +1,143 @@
+{
+  "projectName": "Realm Rivalry - Fantasy Sports Dome Ball Game",
+  "version": "1.0.0",
+  "description": "In-Memoria configuration for enhanced AI-driven development",
+  
+  "learning": {
+    "autoLearn": true,
+    "watchMode": "development",
+    "learningThreshold": 0.1,
+    "conceptConfidenceMin": 0.8,
+    "patternFrequencyMin": 5,
+    "stalenessPeriod": "24h",
+    "batchLearningSize": 100
+  },
+  
+  "paths": {
+    "include": [
+      "server/**/*.ts",
+      "client/src/**/*.ts",
+      "client/src/**/*.tsx",
+      "shared/**/*.ts",
+      "prisma/schema.prisma"
+    ],
+    "exclude": [
+      "node_modules/**",
+      "dist/**",
+      ".git/**",
+      "*.log",
+      "coverage/**",
+      "*.test.*",
+      "*.spec.*",
+      "archive/**",
+      "scripts/analysis/**",
+      "scripts/validation/**",
+      "**/*.consolidation_backup*"
+    ]
+  },
+  
+  "intelligence": {
+    "conceptTypes": {
+      "class": { "weight": 1.0, "confidence": 0.8 },
+      "function": { "weight": 0.9, "confidence": 0.8 },
+      "variable": { "weight": 0.7, "confidence": 0.8 },
+      "interface": { "weight": 0.85, "confidence": 0.8 },
+      "type": { "weight": 0.75, "confidence": 0.8 }
+    },
+    "patternTypes": {
+      "naming_convention": { "importance": "high", "trackFrequency": true },
+      "implementation_strategy": { "importance": "high", "trackFrequency": true },
+      "error_handling": { "importance": "high", "trackFrequency": true },
+      "architecture_pattern": { "importance": "high", "trackFrequency": true },
+      "dependency_pattern": { "importance": "medium", "trackFrequency": true }
+    }
+  },
+  
+  "development": {
+    "features": {
+      "realtimeInsights": true,
+      "performanceTracking": true,
+      "codeQualityMetrics": true,
+      "patternRecommendations": true,
+      "semanticSearch": true,
+      "automatedLearning": true
+    },
+    "notifications": {
+      "learningComplete": true,
+      "performanceAlerts": true,
+      "patternDiscovery": true,
+      "codebaseChanges": false
+    }
+  },
+  
+  "performance": {
+    "queryTimeout": 10000,
+    "batchSize": 50,
+    "cacheSize": 1000,
+    "memoryLimit": "512MB",
+    "optimization": {
+      "indexing": true,
+      "vectorization": true,
+      "compression": true
+    }
+  },
+  
+  "integration": {
+    "mcp": {
+      "enabled": true,
+      "claudeCode": true,
+      "apiEndpoints": [
+        "/api/development/insights",
+        "/api/development/pattern-recommendations",
+        "/api/development/search",
+        "/api/development/statistics"
+      ]
+    },
+    "fileWatcher": {
+      "enabled": true,
+      "debounceMs": 1000,
+      "batchChanges": true,
+      "autoLearnOnChange": true
+    }
+  },
+  
+  "realmRivalry": {
+    "domain": "fantasy_sports",
+    "gameType": "dome_ball",
+    "architecture": "modular_enhanced",
+    "framework": {
+      "backend": "Express.js + TypeScript + Prisma",
+      "frontend": "React + TypeScript + Vite + TailwindCSS",
+      "database": "PostgreSQL",
+      "realtime": "Socket.IO"
+    },
+    "patterns": {
+      "routes": "enhanced_consolidated",
+      "services": "domain_driven",
+      "components": "atomic_design",
+      "state": "tanstack_query_zustand"
+    },
+    "specialFeatures": [
+      "5_hub_mobile_architecture",
+      "real_time_match_simulation",
+      "comprehensive_statistics_tracking",
+      "modular_route_consolidation",
+      "mcp_ai_integration"
+    ]
+  },
+  
+  "metrics": {
+    "track": [
+      "concept_learning_rate",
+      "pattern_discovery_rate",
+      "query_performance",
+      "development_efficiency",
+      "code_quality_trends"
+    ],
+    "reporting": {
+      "frequency": "daily",
+      "format": "json",
+      "includeInsights": true
+    }
+  }
+}

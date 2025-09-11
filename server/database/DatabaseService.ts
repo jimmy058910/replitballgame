@@ -63,27 +63,44 @@ export class DatabaseService {
   }
 
   /**
-   * Get database URL with connection optimization parameters
+   * Get database URL with same conversion logic as database.ts (SIMPLIFIED)
    */
   private static getOptimizedDatabaseUrl(): string {
-    const baseUrl = process.env.DATABASE_URL;
-    if (!baseUrl) {
+    const rawUrl = process.env.DATABASE_URL;
+    if (!rawUrl) {
       throw new Error('DATABASE_URL not configured');
     }
 
-    const config = this.getDatabaseConfig();
-    const separator = baseUrl.includes('?') ? '&' : '?';
+    // CRITICAL FIX: Use EXACT same URL conversion logic as database.ts
+    let devUrl = rawUrl;
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    const isCloudRunProduction = nodeEnv === 'production' && process.env.K_SERVICE;
     
-    // Add connection optimization parameters
-    const optimizations = [
-      `connection_limit=${config.maxConnections}`,
-      `pool_timeout=${Math.floor(config.poolTimeoutMs / 1000)}`,
-      `connect_timeout=${Math.floor(config.connectionTimeoutMs / 1000)}`,
-      'statement_cache_size=100', // Optimize for repeated queries
-      'prepared_statement_cache_queries=512' // Cache dome ball simulation queries
-    ];
+    if (!isCloudRunProduction) {
+      // Convert Cloud SQL socket URL to localhost TCP connection for Auth Proxy
+      if (devUrl.includes('host=/cloudsql/')) {
+        console.log('🔍 [DOA] Converting Cloud SQL socket URL for Auth Proxy...');
+        
+        // Extract connection details from Cloud SQL URL
+        const urlMatch = rawUrl.match(/postgresql:\/\/([^:]+):([^@]+)@[^\/]+\/([^?]+)/);
+        
+        if (urlMatch) {
+          const [, username, password, database] = urlMatch;
+          
+          // Development: Connect via Cloud SQL Auth Proxy on localhost:5432
+          devUrl = `postgresql://${username}:${password}@localhost:5432/${database}?schema=public&sslmode=prefer`;
+          
+          console.log('🔍 [DOA] Cloud SQL Auth Proxy connection configured for development');
+        } else {
+          console.warn('⚠️ [DOA] Could not parse Cloud SQL URL, using original');
+        }
+      } else {
+        console.log('🔍 [DOA] URL appears to be TCP already, using as-is for development');
+      }
+    }
 
-    return `${baseUrl}${separator}${optimizations.join('&')}`;
+    // SIMPLIFIED: Return the same URL format as database.ts (no optimization parameters for now)
+    return devUrl;
   }
 
   /**
@@ -117,7 +134,9 @@ export class DatabaseService {
         poolTimeout: this.connectionConfig.poolTimeoutMs + 'ms'
       });
 
-      // Create Prisma client with dome ball game optimizations
+      console.log('🔍 [DOA DEBUG] Optimized URL (first 100 chars):', optimizedUrl.substring(0, 100) + '...');
+
+      // Create Prisma client with SAME configuration as database.ts
       const prismaConfig: any = {
         datasources: {
           db: {
@@ -125,16 +144,8 @@ export class DatabaseService {
           }
         },
         log: this.connectionConfig.environment === 'development' 
-          ? [
-              { emit: 'event', level: 'query' },
-              { emit: 'event', level: 'info' },
-              { emit: 'event', level: 'warn' },
-              { emit: 'event', level: 'error' }
-            ]
-          : [
-              { emit: 'event', level: 'error' },
-              { emit: 'event', level: 'warn' }
-            ]
+          ? ['query', 'info', 'warn', 'error']
+          : ['error']
       };
 
       this.instance = new PrismaClient(prismaConfig);

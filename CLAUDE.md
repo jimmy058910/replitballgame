@@ -263,13 +263,13 @@ GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
 
 **Status**: ✅ All three MCP servers successfully configured and operational
 
-**Working Configuration** (`.mcp.json`):
+**Bulletproof Configuration** (`.mcp.json`):
 ```json
 {
   "mcpServers": {
     "serena": {
-      "command": "cmd",
-      "args": ["/c", "uvx", "--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server"],
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server"],
       "env": {}
     },
     "playwright": {
@@ -304,6 +304,54 @@ claude /mcp
 
 # Debug MCP issues  
 claude --debug
+
+# Cross-computer troubleshooting
+scripts\mcp-troubleshoot.cmd
+```
+
+**Cross-Computer Setup Requirements:**
+- ✅ **Prerequisites**: Python 3.13+, Node 22+, uvx 0.8.15+ installed on both computers
+- ✅ **PATH Configuration**: Ensure uvx.exe is accessible at `C:\Users\Jimmy\.local\bin\uvx.exe` on both machines
+- ✅ **OneDrive Sync**: `.mcp.json` automatically syncs between computers via OneDrive
+- ✅ **User Config Clean**: Remove conflicting MCP configurations from `~/.claude.json`
+- ✅ **PowerShell Execution**: Serena requires PowerShell with full path invocation syntax
+
+**🚀 ULTIMATE MCP FIX SOLUTION (September 2025):**
+- **Root Cause**: PowerShell PATH and JSON escaping issues in Claude Code MCP execution
+- **Solution**: Direct uvx command execution (simplest and most reliable)
+- **Cross-Computer**: Requires uvx in PATH on both machines (standard installation)
+
+**Automated Fix Tools:**
+- ✅ **Quick Fix Script**: `scripts\mcp-fix.cmd` - Complete automated repair
+- ✅ **Bulletproof Config**: `.mcp-bulletproof.json` - Direct uvx execution 
+- ✅ **Backup Config**: `.mcp-backup.json` - Full path fallback if needed
+- ✅ **Legacy Fallback**: `.mcp-fallback.json` - Playwright + In-Memoria only
+
+**🔧 Instant MCP Repair Process:**
+```bash
+# Run the automated fix script
+scripts\mcp-fix.cmd
+
+# Or manually apply bulletproof config
+copy .mcp-bulletproof.json .mcp.json
+
+# Restart Claude Code and verify
+claude /mcp
+```
+
+**If Serena MCP STILL Fails:**
+```bash
+# Step 1: Verify uvx PATH access
+uvx --version
+# Should show: uvx 0.8.15+ 
+
+# Step 2: Apply backup configuration
+copy .mcp-backup.json .mcp.json
+
+# Step 3: Last resort - Playwright + In-Memoria only
+copy .mcp-fallback.json .mcp.json
+
+# Then restart Claude Code completely
 ```
 
 ### **🔧 Automated Troubleshooting**
@@ -334,6 +382,38 @@ npm run dev:local
 - ✅ **Todo list integration** for tracking fixes
 
 ## 📋 QUICK REFERENCE
+
+### **Database Connection Architecture (CRITICAL)**
+
+**ARCHITECTURAL DECISION (September 11th, 2025)**: The codebase maintains TWO working database connection systems for different use cases:
+
+1. **DatabaseService.ts** (Optimized DOA System)
+   - **Purpose**: High-performance operations with advanced optimization
+   - **Used by**: Storage layer (`teamStorage.ts`, etc.), new modular services
+   - **Features**: Connection pooling, lazy initialization, comprehensive error handling
+
+2. **database.ts** (Cloud Run Compatible System) 
+   - **Purpose**: Simple, reliable connections for legacy routes and scripts
+   - **Used by**: 136+ route files, utility scripts, data access layers
+   - **Features**: Cloud Run startup compatibility, dual-environment URL handling
+
+**Why Both Systems Coexist:**
+- ✅ **Risk Mitigation**: Migrating 136+ files would introduce significant deployment risk
+- ✅ **Production Stability**: Both systems work reliably after authentication fixes
+- ✅ **Clear Separation**: New development uses DatabaseService, legacy continues with database.ts
+- ✅ **Gradual Migration**: Files can migrate to DatabaseService over time without urgency
+
+**Authentication Resolution (September 11th, 2025):**
+- **Root Cause**: Expired Google Cloud authentication tokens causing "Database unavailable" errors
+- **Fix**: `gcloud auth application-default login` + proper userId mapping in firebaseAuth.ts
+- **Both systems now work identically** after authentication and URL conversion fixes
+
+**PERSISTENT AUTHENTICATION SOLUTION (September 11th, 2025):**
+✅ **Service Account Key Implemented**: `realm-rivalry-dev@direct-glider-465821-p7.iam.gserviceaccount.com`
+✅ **Never Expires**: Eliminates recurring authentication breakages
+✅ **Automatic Loading**: `.env.local` contains `GOOGLE_APPLICATION_CREDENTIALS` path
+✅ **Health Check**: `npm run dev:auth-check` for comprehensive environment validation
+✅ **Smart Startup**: `scripts/dev-start-with-auth.cmd` with fallback to user auth
 
 ### **Database Model Names (CRITICAL)**
 - ✅ Use `prisma.game` (NOT `prisma.match`)

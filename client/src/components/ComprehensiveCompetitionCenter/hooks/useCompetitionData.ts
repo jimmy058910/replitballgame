@@ -42,23 +42,27 @@ export const useCompetitionData = (): UseCompetitionDataResult => {
   const { isAuthenticated } = useAuth();
   
   // Core team data  
-  const { data: team, isLoading: teamLoading, error: teamError } = useQuery(
-    isAuthenticated ? teamQueryOptions.myTeam(isAuthenticated) : { enabled: false } as any
-  );
+  const { data: team, isLoading: teamLoading, error: teamError } = useQuery({
+    ...teamQueryOptions.myTeam(isAuthenticated),
+    enabled: isAuthenticated
+  });
   
   // Season data - use proper typing to avoid TS errors
-  const { data: seasonData } = useQuery(
-    (team as any)?.id ? seasonQueryOptions.current() : { enabled: false } as any
-  );
+  const { data: seasonData } = useQuery({
+    ...seasonQueryOptions.current(),
+    enabled: !!(team as any)?.id
+  });
   
   // Match data
   const { data: liveMatches = [] } = useQuery(matchQueryOptions.live());
-  const { data: upcomingMatches = [] } = useQuery(
-    (team as any)?.id ? matchQueryOptions.upcoming() : { enabled: false } as any
-  );
-  const { data: recentMatches = [] } = useQuery(
-    (team as any)?.id ? matchQueryOptions.recent() : { enabled: false } as any
-  );
+  const { data: upcomingMatches = [] } = useQuery({
+    ...matchQueryOptions.upcoming((team as any)?.id?.toString()),
+    enabled: !!(team as any)?.id
+  });
+  const { data: recentMatches = [] } = useQuery({
+    ...matchQueryOptions.recent((team as any)?.id?.toString()),
+    enabled: !!(team as any)?.id
+  });
   const { data: dailySchedule } = useQuery(matchQueryOptions.dailySchedule());
   
   // Memoize the return object to prevent unnecessary re-renders

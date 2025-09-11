@@ -325,9 +325,7 @@ export class TeamStorage {
           players: {
             where: {
               isOnMarket: false,
-              contract: {
-                isNot: null // Only include players WITH contracts (main roster)
-              }
+              isRetired: false
             },
             include: {
               contract: true,
@@ -349,9 +347,7 @@ export class TeamStorage {
             players: {
               where: {
                 isOnMarket: false,
-                contract: {
-                  isNot: null // Only include players WITH contracts (main roster)
-                }
+                isRetired: false
               },
               include: {
                 contract: true,

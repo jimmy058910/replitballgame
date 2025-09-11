@@ -33,24 +33,37 @@ export async function apiRequest<T>(
   let headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
   
   try {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    
-    if (user) {
-      // Get fresh Firebase ID token
-      const idToken = await user.getIdToken(true); // Force refresh
-      headers['Authorization'] = `Bearer ${idToken}`;
-      console.log('🔐 Added Firebase token to API request');
-      console.log('🔍 Sending token first 50 chars:', idToken.substring(0, 50));
-    } else {
-      // Fallback to stored token if Firebase auth.currentUser is not available
+    // In development mode, always prioritize the stored dev token
+    if (import.meta.env.DEV) {
       const storedToken = localStorage.getItem('firebase_token');
-      if (storedToken) {
+      if (storedToken === 'dev-token-123') {
         headers['Authorization'] = `Bearer ${storedToken}`;
-        console.log('🔐 Added stored Firebase token to API request');
-        console.log('🔍 QueryClient - Sending stored token first 50 chars:', storedToken.substring(0, 50));
+        console.log('🔐 Development mode - using dev token for API request');
+        console.log('🔍 Dev token:', storedToken);
       } else {
-        console.warn('⚠️ No Firebase token available for API request');
+        console.warn('⚠️ Development mode but dev token not found or invalid');
+      }
+    } else {
+      // Production mode - use Firebase auth
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (user) {
+        // Get fresh Firebase ID token
+        const idToken = await user.getIdToken(true); // Force refresh
+        headers['Authorization'] = `Bearer ${idToken}`;
+        console.log('🔐 Production mode - added Firebase token to API request');
+        console.log('🔍 Sending token first 50 chars:', idToken.substring(0, 50));
+      } else {
+        // Fallback to stored token if Firebase auth.currentUser is not available
+        const storedToken = localStorage.getItem('firebase_token');
+        if (storedToken) {
+          headers['Authorization'] = `Bearer ${storedToken}`;
+          console.log('🔐 Production fallback - added stored Firebase token to API request');
+          console.log('🔍 QueryClient - Sending stored token first 50 chars:', storedToken.substring(0, 50));
+        } else {
+          console.warn('⚠️ No Firebase token available for API request');
+        }
       }
     }
   } catch (error) {
@@ -88,21 +101,34 @@ export const getQueryFn: <T>(options: {
     let headers: Record<string, string> = {};
     
     try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      
-      if (user) {
-        const idToken = await user.getIdToken();
-        headers['Authorization'] = `Bearer ${idToken}`;
-        console.log('🔐 Added Firebase token to query');
-      } else {
-        // Fallback to stored token if Firebase auth.currentUser is not available
+      // In development mode, always prioritize the stored dev token
+      if (import.meta.env.DEV) {
         const storedToken = localStorage.getItem('firebase_token');
-        if (storedToken) {
+        if (storedToken === 'dev-token-123') {
           headers['Authorization'] = `Bearer ${storedToken}`;
-          console.log('🔐 Added stored Firebase token to query');
+          console.log('🔐 Development mode - using dev token for query');
+          console.log('🔍 Dev token:', storedToken);
         } else {
-          console.warn('⚠️ No Firebase token available (neither currentUser nor stored)');
+          console.warn('⚠️ Development mode but dev token not found or invalid');
+        }
+      } else {
+        // Production mode - use Firebase auth
+        const auth = getAuth();
+        const user = auth.currentUser;
+        
+        if (user) {
+          const idToken = await user.getIdToken();
+          headers['Authorization'] = `Bearer ${idToken}`;
+          console.log('🔐 Production mode - added Firebase token to query');
+        } else {
+          // Fallback to stored token if Firebase auth.currentUser is not available
+          const storedToken = localStorage.getItem('firebase_token');
+          if (storedToken) {
+            headers['Authorization'] = `Bearer ${storedToken}`;
+            console.log('🔐 Production fallback - added stored Firebase token to query');
+          } else {
+            console.warn('⚠️ No Firebase token available (neither currentUser nor stored)');
+          }
         }
       }
     } catch (error: unknown) {

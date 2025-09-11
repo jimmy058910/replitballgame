@@ -157,8 +157,7 @@ router.get('/:playerId/contract-negotiation-data', requireAuth, async (req: any,
       return res.status(403).json({ error: "Player does not belong to your team" });
     }
 
-    const contractService = new ContractService();
-    const negotiationData = await contractService.getContractNegotiationData(player, userTeam);
+    const negotiationData = await ContractService.getContractNegotiationData(player, userTeam);
 
     res.json({ 
       player: {

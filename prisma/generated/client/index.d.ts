@@ -266,6 +266,16 @@ export const PlayerRole: {
 export type PlayerRole = (typeof PlayerRole)[keyof typeof PlayerRole]
 
 
+export const Role: {
+  USER: 'USER',
+  TEAM_OWNER: 'TEAM_OWNER',
+  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN'
+};
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
 export const InjuryStatus: {
   HEALTHY: 'HEALTHY',
   MINOR_INJURY: 'MINOR_INJURY',
@@ -404,7 +414,6 @@ export const NotificationType: {
   MARKETPLACE_BID: 'MARKETPLACE_BID',
   MARKETPLACE_SOLD: 'MARKETPLACE_SOLD',
   MARKETPLACE_EXPIRED: 'MARKETPLACE_EXPIRED',
-  SCOUTING_REPORT: 'SCOUTING_REPORT',
   MATCH_RESULT: 'MATCH_RESULT',
   TOURNAMENT_UPDATE: 'TOURNAMENT_UPDATE',
   RECRUIT_SIGNED: 'RECRUIT_SIGNED',
@@ -468,6 +477,10 @@ export const Race: typeof $Enums.Race
 export type PlayerRole = $Enums.PlayerRole
 
 export const PlayerRole: typeof $Enums.PlayerRole
+
+export type Role = $Enums.Role
+
+export const Role: typeof $Enums.Role
 
 export type InjuryStatus = $Enums.InjuryStatus
 
@@ -5585,6 +5598,8 @@ export namespace Prisma {
     ndaAccepted: boolean | null
     ndaAcceptedAt: Date | null
     ndaVersion: string | null
+    role: $Enums.Role | null
+    stripeCustomerId: string | null
   }
 
   export type UserProfileMaxAggregateOutputType = {
@@ -5602,6 +5617,8 @@ export namespace Prisma {
     ndaAccepted: boolean | null
     ndaAcceptedAt: Date | null
     ndaVersion: string | null
+    role: $Enums.Role | null
+    stripeCustomerId: string | null
   }
 
   export type UserProfileCountAggregateOutputType = {
@@ -5619,6 +5636,8 @@ export namespace Prisma {
     ndaAccepted: number
     ndaAcceptedAt: number
     ndaVersion: number
+    role: number
+    stripeCustomerId: number
     _all: number
   }
 
@@ -5646,6 +5665,8 @@ export namespace Prisma {
     ndaAccepted?: true
     ndaAcceptedAt?: true
     ndaVersion?: true
+    role?: true
+    stripeCustomerId?: true
   }
 
   export type UserProfileMaxAggregateInputType = {
@@ -5663,6 +5684,8 @@ export namespace Prisma {
     ndaAccepted?: true
     ndaAcceptedAt?: true
     ndaVersion?: true
+    role?: true
+    stripeCustomerId?: true
   }
 
   export type UserProfileCountAggregateInputType = {
@@ -5680,6 +5703,8 @@ export namespace Prisma {
     ndaAccepted?: true
     ndaAcceptedAt?: true
     ndaVersion?: true
+    role?: true
+    stripeCustomerId?: true
     _all?: true
   }
 
@@ -5784,6 +5809,8 @@ export namespace Prisma {
     ndaAccepted: boolean
     ndaAcceptedAt: Date | null
     ndaVersion: string | null
+    role: $Enums.Role
+    stripeCustomerId: string | null
     _count: UserProfileCountAggregateOutputType | null
     _avg: UserProfileAvgAggregateOutputType | null
     _sum: UserProfileSumAggregateOutputType | null
@@ -5820,6 +5847,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: boolean
     ndaVersion?: boolean
+    role?: boolean
+    stripeCustomerId?: boolean
     Team?: boolean | UserProfile$TeamArgs<ExtArgs>
     redeemedCodes?: boolean | UserProfile$redeemedCodesArgs<ExtArgs>
     adRewardMilestone?: boolean | UserProfile$adRewardMilestoneArgs<ExtArgs>
@@ -5841,6 +5870,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: boolean
     ndaVersion?: boolean
+    role?: boolean
+    stripeCustomerId?: boolean
   }, ExtArgs["result"]["userProfile"]>
 
   export type UserProfileSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -5858,6 +5889,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: boolean
     ndaVersion?: boolean
+    role?: boolean
+    stripeCustomerId?: boolean
   }, ExtArgs["result"]["userProfile"]>
 
   export type UserProfileSelectScalar = {
@@ -5875,9 +5908,11 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: boolean
     ndaVersion?: boolean
+    role?: boolean
+    stripeCustomerId?: boolean
   }
 
-  export type UserProfileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "email" | "firstName" | "lastName" | "profileImageUrl" | "bio" | "createdAt" | "updatedAt" | "referralCode" | "referredBy" | "ndaAccepted" | "ndaAcceptedAt" | "ndaVersion", ExtArgs["result"]["userProfile"]>
+  export type UserProfileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "email" | "firstName" | "lastName" | "profileImageUrl" | "bio" | "createdAt" | "updatedAt" | "referralCode" | "referredBy" | "ndaAccepted" | "ndaAcceptedAt" | "ndaVersion" | "role" | "stripeCustomerId", ExtArgs["result"]["userProfile"]>
   export type UserProfileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Team?: boolean | UserProfile$TeamArgs<ExtArgs>
     redeemedCodes?: boolean | UserProfile$redeemedCodesArgs<ExtArgs>
@@ -5909,6 +5944,8 @@ export namespace Prisma {
       ndaAccepted: boolean
       ndaAcceptedAt: Date | null
       ndaVersion: string | null
+      role: $Enums.Role
+      stripeCustomerId: string | null
     }, ExtArgs["result"]["userProfile"]>
     composites: {}
   }
@@ -6349,6 +6386,8 @@ export namespace Prisma {
     readonly ndaAccepted: FieldRef<"UserProfile", 'Boolean'>
     readonly ndaAcceptedAt: FieldRef<"UserProfile", 'DateTime'>
     readonly ndaVersion: FieldRef<"UserProfile", 'String'>
+    readonly role: FieldRef<"UserProfile", 'Role'>
+    readonly stripeCustomerId: FieldRef<"UserProfile", 'String'>
   }
     
 
@@ -7803,8 +7842,8 @@ export namespace Prisma {
     division: number | null
     wins: number | null
     losses: number | null
-    draws: number | null
     points: number | null
+    draws: number | null
   }
 
   export type TeamSumAggregateOutputType = {
@@ -7816,8 +7855,8 @@ export namespace Prisma {
     division: number | null
     wins: number | null
     losses: number | null
-    draws: number | null
     points: number | null
+    draws: number | null
   }
 
   export type TeamMinAggregateOutputType = {
@@ -7837,8 +7876,8 @@ export namespace Prisma {
     subdivision: string | null
     wins: number | null
     losses: number | null
-    draws: number | null
     points: number | null
+    draws: number | null
   }
 
   export type TeamMaxAggregateOutputType = {
@@ -7858,8 +7897,8 @@ export namespace Prisma {
     subdivision: string | null
     wins: number | null
     losses: number | null
-    draws: number | null
     points: number | null
+    draws: number | null
   }
 
   export type TeamCountAggregateOutputType = {
@@ -7879,8 +7918,8 @@ export namespace Prisma {
     subdivision: number
     wins: number
     losses: number
-    draws: number
     points: number
+    draws: number
     _all: number
   }
 
@@ -7894,8 +7933,8 @@ export namespace Prisma {
     division?: true
     wins?: true
     losses?: true
-    draws?: true
     points?: true
+    draws?: true
   }
 
   export type TeamSumAggregateInputType = {
@@ -7907,8 +7946,8 @@ export namespace Prisma {
     division?: true
     wins?: true
     losses?: true
-    draws?: true
     points?: true
+    draws?: true
   }
 
   export type TeamMinAggregateInputType = {
@@ -7928,8 +7967,8 @@ export namespace Prisma {
     subdivision?: true
     wins?: true
     losses?: true
-    draws?: true
     points?: true
+    draws?: true
   }
 
   export type TeamMaxAggregateInputType = {
@@ -7949,8 +7988,8 @@ export namespace Prisma {
     subdivision?: true
     wins?: true
     losses?: true
-    draws?: true
     points?: true
+    draws?: true
   }
 
   export type TeamCountAggregateInputType = {
@@ -7970,8 +8009,8 @@ export namespace Prisma {
     subdivision?: true
     wins?: true
     losses?: true
-    draws?: true
     points?: true
+    draws?: true
     _all?: true
   }
 
@@ -8078,8 +8117,8 @@ export namespace Prisma {
     subdivision: string | null
     wins: number
     losses: number
-    draws: number
     points: number
+    draws: number
     _count: TeamCountAggregateOutputType | null
     _avg: TeamAvgAggregateOutputType | null
     _sum: TeamSumAggregateOutputType | null
@@ -8118,8 +8157,8 @@ export namespace Prisma {
     subdivision?: boolean
     wins?: boolean
     losses?: boolean
-    draws?: boolean
     points?: boolean
+    draws?: boolean
     user?: boolean | UserProfileDefaultArgs<ExtArgs>
     players?: boolean | Team$playersArgs<ExtArgs>
     staff?: boolean | Team$staffArgs<ExtArgs>
@@ -8159,8 +8198,8 @@ export namespace Prisma {
     subdivision?: boolean
     wins?: boolean
     losses?: boolean
-    draws?: boolean
     points?: boolean
+    draws?: boolean
     user?: boolean | UserProfileDefaultArgs<ExtArgs>
     league?: boolean | Team$leagueArgs<ExtArgs>
   }, ExtArgs["result"]["team"]>
@@ -8182,8 +8221,8 @@ export namespace Prisma {
     subdivision?: boolean
     wins?: boolean
     losses?: boolean
-    draws?: boolean
     points?: boolean
+    draws?: boolean
     user?: boolean | UserProfileDefaultArgs<ExtArgs>
     league?: boolean | Team$leagueArgs<ExtArgs>
   }, ExtArgs["result"]["team"]>
@@ -8205,11 +8244,11 @@ export namespace Prisma {
     subdivision?: boolean
     wins?: boolean
     losses?: boolean
-    draws?: boolean
     points?: boolean
+    draws?: boolean
   }
 
-  export type TeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userProfileId" | "name" | "logoUrl" | "isAI" | "createdAt" | "updatedAt" | "camaraderie" | "fanLoyalty" | "homeField" | "tacticalFocus" | "leagueId" | "division" | "subdivision" | "wins" | "losses" | "draws" | "points", ExtArgs["result"]["team"]>
+  export type TeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userProfileId" | "name" | "logoUrl" | "isAI" | "createdAt" | "updatedAt" | "camaraderie" | "fanLoyalty" | "homeField" | "tacticalFocus" | "leagueId" | "division" | "subdivision" | "wins" | "losses" | "points" | "draws", ExtArgs["result"]["team"]>
   export type TeamInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserProfileDefaultArgs<ExtArgs>
     players?: boolean | Team$playersArgs<ExtArgs>
@@ -8281,8 +8320,8 @@ export namespace Prisma {
       subdivision: string | null
       wins: number
       losses: number
-      draws: number
       points: number
+      draws: number
     }, ExtArgs["result"]["team"]>
     composites: {}
   }
@@ -8741,8 +8780,8 @@ export namespace Prisma {
     readonly subdivision: FieldRef<"Team", 'String'>
     readonly wins: FieldRef<"Team", 'Int'>
     readonly losses: FieldRef<"Team", 'Int'>
-    readonly draws: FieldRef<"Team", 'Int'>
     readonly points: FieldRef<"Team", 'Int'>
+    readonly draws: FieldRef<"Team", 'Int'>
   }
     
 
@@ -31592,11 +31631,11 @@ export namespace Prisma {
     tournamentId: number | null
     round: number | null
     status: $Enums.GameStatus | null
+    createdAt: Date | null
     seasonId: string | null
     scheduleId: string | null
     subdivision: string | null
     gameDay: number | null
-    createdAt: Date | null
   }
 
   export type GameMaxAggregateOutputType = {
@@ -31612,11 +31651,11 @@ export namespace Prisma {
     tournamentId: number | null
     round: number | null
     status: $Enums.GameStatus | null
+    createdAt: Date | null
     seasonId: string | null
     scheduleId: string | null
     subdivision: string | null
     gameDay: number | null
-    createdAt: Date | null
   }
 
   export type GameCountAggregateOutputType = {
@@ -31633,11 +31672,11 @@ export namespace Prisma {
     tournamentId: number
     round: number
     status: number
+    createdAt: number
     seasonId: number
     scheduleId: number
     subdivision: number
     gameDay: number
-    createdAt: number
     _all: number
   }
 
@@ -31679,11 +31718,11 @@ export namespace Prisma {
     tournamentId?: true
     round?: true
     status?: true
+    createdAt?: true
     seasonId?: true
     scheduleId?: true
     subdivision?: true
     gameDay?: true
-    createdAt?: true
   }
 
   export type GameMaxAggregateInputType = {
@@ -31699,11 +31738,11 @@ export namespace Prisma {
     tournamentId?: true
     round?: true
     status?: true
+    createdAt?: true
     seasonId?: true
     scheduleId?: true
     subdivision?: true
     gameDay?: true
-    createdAt?: true
   }
 
   export type GameCountAggregateInputType = {
@@ -31720,11 +31759,11 @@ export namespace Prisma {
     tournamentId?: true
     round?: true
     status?: true
+    createdAt?: true
     seasonId?: true
     scheduleId?: true
     subdivision?: true
     gameDay?: true
-    createdAt?: true
     _all?: true
   }
 
@@ -31828,11 +31867,11 @@ export namespace Prisma {
     tournamentId: number | null
     round: number | null
     status: $Enums.GameStatus
+    createdAt: Date
     seasonId: string | null
     scheduleId: string | null
     subdivision: string | null
     gameDay: number | null
-    createdAt: Date
     _count: GameCountAggregateOutputType | null
     _avg: GameAvgAggregateOutputType | null
     _sum: GameSumAggregateOutputType | null
@@ -31868,11 +31907,11 @@ export namespace Prisma {
     tournamentId?: boolean
     round?: boolean
     status?: boolean
+    createdAt?: boolean
     seasonId?: boolean
     scheduleId?: boolean
     subdivision?: boolean
     gameDay?: boolean
-    createdAt?: boolean
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
@@ -31898,11 +31937,11 @@ export namespace Prisma {
     tournamentId?: boolean
     round?: boolean
     status?: boolean
+    createdAt?: boolean
     seasonId?: boolean
     scheduleId?: boolean
     subdivision?: boolean
     gameDay?: boolean
-    createdAt?: boolean
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
@@ -31925,11 +31964,11 @@ export namespace Prisma {
     tournamentId?: boolean
     round?: boolean
     status?: boolean
+    createdAt?: boolean
     seasonId?: boolean
     scheduleId?: boolean
     subdivision?: boolean
     gameDay?: boolean
-    createdAt?: boolean
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
     awayTeam?: boolean | TeamDefaultArgs<ExtArgs>
@@ -31952,14 +31991,14 @@ export namespace Prisma {
     tournamentId?: boolean
     round?: boolean
     status?: boolean
+    createdAt?: boolean
     seasonId?: boolean
     scheduleId?: boolean
     subdivision?: boolean
     gameDay?: boolean
-    createdAt?: boolean
   }
 
-  export type GameOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "leagueId" | "homeTeamId" | "awayTeamId" | "homeScore" | "awayScore" | "gameDate" | "simulated" | "simulationLog" | "matchType" | "tournamentId" | "round" | "status" | "seasonId" | "scheduleId" | "subdivision" | "gameDay" | "createdAt", ExtArgs["result"]["game"]>
+  export type GameOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "leagueId" | "homeTeamId" | "awayTeamId" | "homeScore" | "awayScore" | "gameDate" | "simulated" | "simulationLog" | "matchType" | "tournamentId" | "round" | "status" | "createdAt" | "seasonId" | "scheduleId" | "subdivision" | "gameDay", ExtArgs["result"]["game"]>
   export type GameInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     league?: boolean | Game$leagueArgs<ExtArgs>
     homeTeam?: boolean | TeamDefaultArgs<ExtArgs>
@@ -32014,11 +32053,11 @@ export namespace Prisma {
       tournamentId: number | null
       round: number | null
       status: $Enums.GameStatus
+      createdAt: Date
       seasonId: string | null
       scheduleId: string | null
       subdivision: string | null
       gameDay: number | null
-      createdAt: Date
     }, ExtArgs["result"]["game"]>
     composites: {}
   }
@@ -32463,11 +32502,11 @@ export namespace Prisma {
     readonly tournamentId: FieldRef<"Game", 'Int'>
     readonly round: FieldRef<"Game", 'Int'>
     readonly status: FieldRef<"Game", 'GameStatus'>
+    readonly createdAt: FieldRef<"Game", 'DateTime'>
     readonly seasonId: FieldRef<"Game", 'String'>
     readonly scheduleId: FieldRef<"Game", 'String'>
     readonly subdivision: FieldRef<"Game", 'String'>
     readonly gameDay: FieldRef<"Game", 'Int'>
-    readonly createdAt: FieldRef<"Game", 'DateTime'>
   }
     
 
@@ -56459,7 +56498,9 @@ export namespace Prisma {
     referredBy: 'referredBy',
     ndaAccepted: 'ndaAccepted',
     ndaAcceptedAt: 'ndaAcceptedAt',
-    ndaVersion: 'ndaVersion'
+    ndaVersion: 'ndaVersion',
+    role: 'role',
+    stripeCustomerId: 'stripeCustomerId'
   };
 
   export type UserProfileScalarFieldEnum = (typeof UserProfileScalarFieldEnum)[keyof typeof UserProfileScalarFieldEnum]
@@ -56491,8 +56532,8 @@ export namespace Prisma {
     subdivision: 'subdivision',
     wins: 'wins',
     losses: 'losses',
-    draws: 'draws',
-    points: 'points'
+    points: 'points',
+    draws: 'draws'
   };
 
   export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
@@ -56803,11 +56844,11 @@ export namespace Prisma {
     tournamentId: 'tournamentId',
     round: 'round',
     status: 'status',
+    createdAt: 'createdAt',
     seasonId: 'seasonId',
     scheduleId: 'scheduleId',
     subdivision: 'subdivision',
-    gameDay: 'gameDay',
-    createdAt: 'createdAt'
+    gameDay: 'gameDay'
   };
 
   export type GameScalarFieldEnum = (typeof GameScalarFieldEnum)[keyof typeof GameScalarFieldEnum]
@@ -57238,6 +57279,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Role'
+   */
+  export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
+    
+
+
+  /**
+   * Reference to a field of type 'Role[]'
+   */
+  export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -57580,6 +57635,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFilter<"UserProfile"> | boolean
     ndaAcceptedAt?: DateTimeNullableFilter<"UserProfile"> | Date | string | null
     ndaVersion?: StringNullableFilter<"UserProfile"> | string | null
+    role?: EnumRoleFilter<"UserProfile"> | $Enums.Role
+    stripeCustomerId?: StringNullableFilter<"UserProfile"> | string | null
     Team?: XOR<TeamNullableScalarRelationFilter, TeamWhereInput> | null
     redeemedCodes?: RedeemCodeRecordListRelationFilter
     adRewardMilestone?: XOR<AdRewardMilestoneNullableScalarRelationFilter, AdRewardMilestoneWhereInput> | null
@@ -57600,6 +57657,8 @@ export namespace Prisma {
     ndaAccepted?: SortOrder
     ndaAcceptedAt?: SortOrderInput | SortOrder
     ndaVersion?: SortOrderInput | SortOrder
+    role?: SortOrder
+    stripeCustomerId?: SortOrderInput | SortOrder
     Team?: TeamOrderByWithRelationInput
     redeemedCodes?: RedeemCodeRecordOrderByRelationAggregateInput
     adRewardMilestone?: AdRewardMilestoneOrderByWithRelationInput
@@ -57610,6 +57669,7 @@ export namespace Prisma {
     userId?: string
     email?: string
     referralCode?: string
+    stripeCustomerId?: string
     AND?: UserProfileWhereInput | UserProfileWhereInput[]
     OR?: UserProfileWhereInput[]
     NOT?: UserProfileWhereInput | UserProfileWhereInput[]
@@ -57623,10 +57683,11 @@ export namespace Prisma {
     ndaAccepted?: BoolFilter<"UserProfile"> | boolean
     ndaAcceptedAt?: DateTimeNullableFilter<"UserProfile"> | Date | string | null
     ndaVersion?: StringNullableFilter<"UserProfile"> | string | null
+    role?: EnumRoleFilter<"UserProfile"> | $Enums.Role
     Team?: XOR<TeamNullableScalarRelationFilter, TeamWhereInput> | null
     redeemedCodes?: RedeemCodeRecordListRelationFilter
     adRewardMilestone?: XOR<AdRewardMilestoneNullableScalarRelationFilter, AdRewardMilestoneWhereInput> | null
-  }, "id" | "userId" | "email" | "referralCode">
+  }, "id" | "userId" | "email" | "referralCode" | "stripeCustomerId">
 
   export type UserProfileOrderByWithAggregationInput = {
     id?: SortOrder
@@ -57643,6 +57704,8 @@ export namespace Prisma {
     ndaAccepted?: SortOrder
     ndaAcceptedAt?: SortOrderInput | SortOrder
     ndaVersion?: SortOrderInput | SortOrder
+    role?: SortOrder
+    stripeCustomerId?: SortOrderInput | SortOrder
     _count?: UserProfileCountOrderByAggregateInput
     _avg?: UserProfileAvgOrderByAggregateInput
     _max?: UserProfileMaxOrderByAggregateInput
@@ -57668,6 +57731,8 @@ export namespace Prisma {
     ndaAccepted?: BoolWithAggregatesFilter<"UserProfile"> | boolean
     ndaAcceptedAt?: DateTimeNullableWithAggregatesFilter<"UserProfile"> | Date | string | null
     ndaVersion?: StringNullableWithAggregatesFilter<"UserProfile"> | string | null
+    role?: EnumRoleWithAggregatesFilter<"UserProfile"> | $Enums.Role
+    stripeCustomerId?: StringNullableWithAggregatesFilter<"UserProfile"> | string | null
   }
 
   export type SessionWhereInput = {
@@ -57732,8 +57797,8 @@ export namespace Prisma {
     subdivision?: StringNullableFilter<"Team"> | string | null
     wins?: IntFilter<"Team"> | number
     losses?: IntFilter<"Team"> | number
-    draws?: IntFilter<"Team"> | number
     points?: IntFilter<"Team"> | number
+    draws?: IntFilter<"Team"> | number
     user?: XOR<UserProfileScalarRelationFilter, UserProfileWhereInput>
     players?: PlayerListRelationFilter
     staff?: StaffListRelationFilter
@@ -57772,8 +57837,8 @@ export namespace Prisma {
     subdivision?: SortOrderInput | SortOrder
     wins?: SortOrder
     losses?: SortOrder
-    draws?: SortOrder
     points?: SortOrder
+    draws?: SortOrder
     user?: UserProfileOrderByWithRelationInput
     players?: PlayerOrderByRelationAggregateInput
     staff?: StaffOrderByRelationAggregateInput
@@ -57815,8 +57880,8 @@ export namespace Prisma {
     subdivision?: StringNullableFilter<"Team"> | string | null
     wins?: IntFilter<"Team"> | number
     losses?: IntFilter<"Team"> | number
-    draws?: IntFilter<"Team"> | number
     points?: IntFilter<"Team"> | number
+    draws?: IntFilter<"Team"> | number
     user?: XOR<UserProfileScalarRelationFilter, UserProfileWhereInput>
     players?: PlayerListRelationFilter
     staff?: StaffListRelationFilter
@@ -57855,8 +57920,8 @@ export namespace Prisma {
     subdivision?: SortOrderInput | SortOrder
     wins?: SortOrder
     losses?: SortOrder
-    draws?: SortOrder
     points?: SortOrder
+    draws?: SortOrder
     _count?: TeamCountOrderByAggregateInput
     _avg?: TeamAvgOrderByAggregateInput
     _max?: TeamMaxOrderByAggregateInput
@@ -57884,8 +57949,8 @@ export namespace Prisma {
     subdivision?: StringNullableWithAggregatesFilter<"Team"> | string | null
     wins?: IntWithAggregatesFilter<"Team"> | number
     losses?: IntWithAggregatesFilter<"Team"> | number
-    draws?: IntWithAggregatesFilter<"Team"> | number
     points?: IntWithAggregatesFilter<"Team"> | number
+    draws?: IntWithAggregatesFilter<"Team"> | number
   }
 
   export type PlayerWhereInput = {
@@ -59488,11 +59553,11 @@ export namespace Prisma {
     tournamentId?: IntNullableFilter<"Game"> | number | null
     round?: IntNullableFilter<"Game"> | number | null
     status?: EnumGameStatusFilter<"Game"> | $Enums.GameStatus
+    createdAt?: DateTimeFilter<"Game"> | Date | string
     seasonId?: StringNullableFilter<"Game"> | string | null
     scheduleId?: StringNullableFilter<"Game"> | string | null
     subdivision?: StringNullableFilter<"Game"> | string | null
     gameDay?: IntNullableFilter<"Game"> | number | null
-    createdAt?: DateTimeFilter<"Game"> | Date | string
     league?: XOR<LeagueNullableScalarRelationFilter, LeagueWhereInput> | null
     homeTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     awayTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
@@ -59517,11 +59582,11 @@ export namespace Prisma {
     tournamentId?: SortOrderInput | SortOrder
     round?: SortOrderInput | SortOrder
     status?: SortOrder
+    createdAt?: SortOrder
     seasonId?: SortOrderInput | SortOrder
     scheduleId?: SortOrderInput | SortOrder
     subdivision?: SortOrderInput | SortOrder
     gameDay?: SortOrderInput | SortOrder
-    createdAt?: SortOrder
     league?: LeagueOrderByWithRelationInput
     homeTeam?: TeamOrderByWithRelationInput
     awayTeam?: TeamOrderByWithRelationInput
@@ -59549,11 +59614,11 @@ export namespace Prisma {
     tournamentId?: IntNullableFilter<"Game"> | number | null
     round?: IntNullableFilter<"Game"> | number | null
     status?: EnumGameStatusFilter<"Game"> | $Enums.GameStatus
+    createdAt?: DateTimeFilter<"Game"> | Date | string
     seasonId?: StringNullableFilter<"Game"> | string | null
     scheduleId?: StringNullableFilter<"Game"> | string | null
     subdivision?: StringNullableFilter<"Game"> | string | null
     gameDay?: IntNullableFilter<"Game"> | number | null
-    createdAt?: DateTimeFilter<"Game"> | Date | string
     league?: XOR<LeagueNullableScalarRelationFilter, LeagueWhereInput> | null
     homeTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
     awayTeam?: XOR<TeamScalarRelationFilter, TeamWhereInput>
@@ -59578,11 +59643,11 @@ export namespace Prisma {
     tournamentId?: SortOrderInput | SortOrder
     round?: SortOrderInput | SortOrder
     status?: SortOrder
+    createdAt?: SortOrder
     seasonId?: SortOrderInput | SortOrder
     scheduleId?: SortOrderInput | SortOrder
     subdivision?: SortOrderInput | SortOrder
     gameDay?: SortOrderInput | SortOrder
-    createdAt?: SortOrder
     _count?: GameCountOrderByAggregateInput
     _avg?: GameAvgOrderByAggregateInput
     _max?: GameMaxOrderByAggregateInput
@@ -59607,11 +59672,11 @@ export namespace Prisma {
     tournamentId?: IntNullableWithAggregatesFilter<"Game"> | number | null
     round?: IntNullableWithAggregatesFilter<"Game"> | number | null
     status?: EnumGameStatusWithAggregatesFilter<"Game"> | $Enums.GameStatus
+    createdAt?: DateTimeWithAggregatesFilter<"Game"> | Date | string
     seasonId?: StringNullableWithAggregatesFilter<"Game"> | string | null
     scheduleId?: StringNullableWithAggregatesFilter<"Game"> | string | null
     subdivision?: StringNullableWithAggregatesFilter<"Game"> | string | null
     gameDay?: IntNullableWithAggregatesFilter<"Game"> | number | null
-    createdAt?: DateTimeWithAggregatesFilter<"Game"> | Date | string
   }
 
   export type SeasonWhereInput = {
@@ -61300,6 +61365,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
     Team?: TeamCreateNestedOneWithoutUserInput
     redeemedCodes?: RedeemCodeRecordCreateNestedManyWithoutUserProfileInput
     adRewardMilestone?: AdRewardMilestoneCreateNestedOneWithoutUserProfileInput
@@ -61320,6 +61387,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
     Team?: TeamUncheckedCreateNestedOneWithoutUserInput
     redeemedCodes?: RedeemCodeRecordUncheckedCreateNestedManyWithoutUserProfileInput
     adRewardMilestone?: AdRewardMilestoneUncheckedCreateNestedOneWithoutUserProfileInput
@@ -61339,6 +61408,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     Team?: TeamUpdateOneWithoutUserNestedInput
     redeemedCodes?: RedeemCodeRecordUpdateManyWithoutUserProfileNestedInput
     adRewardMilestone?: AdRewardMilestoneUpdateOneWithoutUserProfileNestedInput
@@ -61359,6 +61430,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     Team?: TeamUncheckedUpdateOneWithoutUserNestedInput
     redeemedCodes?: RedeemCodeRecordUncheckedUpdateManyWithoutUserProfileNestedInput
     adRewardMilestone?: AdRewardMilestoneUncheckedUpdateOneWithoutUserProfileNestedInput
@@ -61379,6 +61452,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
   }
 
   export type UserProfileUpdateManyMutationInput = {
@@ -61395,6 +61470,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserProfileUncheckedUpdateManyInput = {
@@ -61412,6 +61489,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type SessionCreateInput = {
@@ -61470,8 +61549,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -61510,8 +61589,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -61545,8 +61624,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -61585,8 +61664,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -61623,8 +61702,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
   }
 
   export type TeamUpdateManyMutationInput = {
@@ -61641,8 +61720,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
   }
 
   export type TeamUncheckedUpdateManyInput = {
@@ -61662,8 +61741,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
   }
 
   export type PlayerCreateInput = {
@@ -63338,9 +63417,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
@@ -63365,11 +63444,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -63383,9 +63462,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
@@ -63410,11 +63489,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -63433,11 +63512,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
   }
 
   export type GameUpdateManyMutationInput = {
@@ -63449,9 +63528,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type GameUncheckedUpdateManyInput = {
@@ -63468,11 +63547,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SeasonCreateInput = {
@@ -65341,6 +65420,13 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type EnumRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
+  }
+
   export type TeamNullableScalarRelationFilter = {
     is?: TeamWhereInput | null
     isNot?: TeamWhereInput | null
@@ -65381,6 +65467,8 @@ export namespace Prisma {
     ndaAccepted?: SortOrder
     ndaAcceptedAt?: SortOrder
     ndaVersion?: SortOrder
+    role?: SortOrder
+    stripeCustomerId?: SortOrder
   }
 
   export type UserProfileAvgOrderByAggregateInput = {
@@ -65402,6 +65490,8 @@ export namespace Prisma {
     ndaAccepted?: SortOrder
     ndaAcceptedAt?: SortOrder
     ndaVersion?: SortOrder
+    role?: SortOrder
+    stripeCustomerId?: SortOrder
   }
 
   export type UserProfileMinOrderByAggregateInput = {
@@ -65419,6 +65509,8 @@ export namespace Prisma {
     ndaAccepted?: SortOrder
     ndaAcceptedAt?: SortOrder
     ndaVersion?: SortOrder
+    role?: SortOrder
+    stripeCustomerId?: SortOrder
   }
 
   export type UserProfileSumOrderByAggregateInput = {
@@ -65511,6 +65603,16 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type EnumRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleWithAggregatesFilter<$PrismaModel> | $Enums.Role
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRoleFilter<$PrismaModel>
+    _max?: NestedEnumRoleFilter<$PrismaModel>
   }
   export type JsonFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -65776,8 +65878,8 @@ export namespace Prisma {
     subdivision?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
-    draws?: SortOrder
     points?: SortOrder
+    draws?: SortOrder
   }
 
   export type TeamAvgOrderByAggregateInput = {
@@ -65789,8 +65891,8 @@ export namespace Prisma {
     division?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
-    draws?: SortOrder
     points?: SortOrder
+    draws?: SortOrder
   }
 
   export type TeamMaxOrderByAggregateInput = {
@@ -65810,8 +65912,8 @@ export namespace Prisma {
     subdivision?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
-    draws?: SortOrder
     points?: SortOrder
+    draws?: SortOrder
   }
 
   export type TeamMinOrderByAggregateInput = {
@@ -65831,8 +65933,8 @@ export namespace Prisma {
     subdivision?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
-    draws?: SortOrder
     points?: SortOrder
+    draws?: SortOrder
   }
 
   export type TeamSumOrderByAggregateInput = {
@@ -65844,8 +65946,8 @@ export namespace Prisma {
     division?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
-    draws?: SortOrder
     points?: SortOrder
+    draws?: SortOrder
   }
 
   export type FloatWithAggregatesFilter<$PrismaModel = never> = {
@@ -67476,11 +67578,11 @@ export namespace Prisma {
     tournamentId?: SortOrder
     round?: SortOrder
     status?: SortOrder
+    createdAt?: SortOrder
     seasonId?: SortOrder
     scheduleId?: SortOrder
     subdivision?: SortOrder
     gameDay?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type GameAvgOrderByAggregateInput = {
@@ -67508,11 +67610,11 @@ export namespace Prisma {
     tournamentId?: SortOrder
     round?: SortOrder
     status?: SortOrder
+    createdAt?: SortOrder
     seasonId?: SortOrder
     scheduleId?: SortOrder
     subdivision?: SortOrder
     gameDay?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type GameMinOrderByAggregateInput = {
@@ -67528,11 +67630,11 @@ export namespace Prisma {
     tournamentId?: SortOrder
     round?: SortOrder
     status?: SortOrder
+    createdAt?: SortOrder
     seasonId?: SortOrder
     scheduleId?: SortOrder
     subdivision?: SortOrder
     gameDay?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type GameSumOrderByAggregateInput = {
@@ -68938,6 +69040,10 @@ export namespace Prisma {
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
+  }
+
+  export type EnumRoleFieldUpdateOperationsInput = {
+    set?: $Enums.Role
   }
 
   export type TeamUpdateOneWithoutUserNestedInput = {
@@ -71888,6 +71994,13 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type NestedEnumRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleFilter<$PrismaModel> | $Enums.Role
+  }
+
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -71994,6 +72107,16 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumRoleWithAggregatesFilter<$PrismaModel> | $Enums.Role
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRoleFilter<$PrismaModel>
+    _max?: NestedEnumRoleFilter<$PrismaModel>
   }
   export type NestedJsonFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -72526,8 +72649,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesCreateNestedOneWithoutTeamInput
@@ -72564,8 +72687,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -72654,8 +72777,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUpdateOneWithoutTeamNestedInput
@@ -72692,8 +72815,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -72777,6 +72900,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
     redeemedCodes?: RedeemCodeRecordCreateNestedManyWithoutUserProfileInput
     adRewardMilestone?: AdRewardMilestoneCreateNestedOneWithoutUserProfileInput
   }
@@ -72796,6 +72921,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
     redeemedCodes?: RedeemCodeRecordUncheckedCreateNestedManyWithoutUserProfileInput
     adRewardMilestone?: AdRewardMilestoneUncheckedCreateNestedOneWithoutUserProfileInput
   }
@@ -73365,9 +73492,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
@@ -73390,11 +73517,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -73418,9 +73545,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
@@ -73443,11 +73570,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -73572,6 +73699,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     redeemedCodes?: RedeemCodeRecordUpdateManyWithoutUserProfileNestedInput
     adRewardMilestone?: AdRewardMilestoneUpdateOneWithoutUserProfileNestedInput
   }
@@ -73591,6 +73720,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     redeemedCodes?: RedeemCodeRecordUncheckedUpdateManyWithoutUserProfileNestedInput
     adRewardMilestone?: AdRewardMilestoneUncheckedUpdateOneWithoutUserProfileNestedInput
   }
@@ -74109,11 +74240,11 @@ export namespace Prisma {
     tournamentId?: IntNullableFilter<"Game"> | number | null
     round?: IntNullableFilter<"Game"> | number | null
     status?: EnumGameStatusFilter<"Game"> | $Enums.GameStatus
+    createdAt?: DateTimeFilter<"Game"> | Date | string
     seasonId?: StringNullableFilter<"Game"> | string | null
     scheduleId?: StringNullableFilter<"Game"> | string | null
     subdivision?: StringNullableFilter<"Game"> | string | null
     gameDay?: IntNullableFilter<"Game"> | number | null
-    createdAt?: DateTimeFilter<"Game"> | Date | string
   }
 
   export type GameUpsertWithWhereUniqueWithoutAwayTeamInput = {
@@ -74204,8 +74335,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesCreateNestedOneWithoutTeamInput
@@ -74243,8 +74374,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
     stadium?: StadiumUncheckedCreateNestedOneWithoutTeamInput
@@ -74640,8 +74771,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUpdateOneWithoutTeamNestedInput
@@ -74679,8 +74810,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
     stadium?: StadiumUncheckedUpdateOneWithoutTeamNestedInput
@@ -75862,8 +75993,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesCreateNestedOneWithoutTeamInput
@@ -75901,8 +76032,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
     stadium?: StadiumUncheckedCreateNestedOneWithoutTeamInput
@@ -75973,8 +76104,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUpdateOneWithoutTeamNestedInput
@@ -76012,8 +76143,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
     stadium?: StadiumUncheckedUpdateOneWithoutTeamNestedInput
@@ -76074,8 +76205,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -76113,8 +76244,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     stadium?: StadiumUncheckedCreateNestedOneWithoutTeamInput
@@ -76163,8 +76294,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -76202,8 +76333,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     stadium?: StadiumUncheckedUpdateOneWithoutTeamNestedInput
@@ -76236,8 +76367,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -76275,8 +76406,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -76325,8 +76456,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -76364,8 +76495,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -76567,8 +76698,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -76606,8 +76737,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -76694,8 +76825,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -76733,8 +76864,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -76811,8 +76942,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -76850,8 +76981,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -77030,8 +77161,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -77069,8 +77200,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -77337,8 +77468,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -77376,8 +77507,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -77415,8 +77546,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -77454,8 +77585,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -77662,8 +77793,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -77701,8 +77832,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -77746,8 +77877,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -77785,8 +77916,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -77903,8 +78034,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -77942,8 +78073,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -78050,8 +78181,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -78089,8 +78220,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -78175,8 +78306,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -78214,8 +78345,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -78322,8 +78453,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -78361,8 +78492,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -78585,8 +78716,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -78624,8 +78755,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -78674,8 +78805,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -78713,8 +78844,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -78747,8 +78878,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -78785,8 +78916,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -78825,9 +78956,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
     tournament?: TournamentCreateNestedOneWithoutGamesInput
@@ -78850,11 +78981,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -78975,8 +79106,8 @@ export namespace Prisma {
     subdivision?: StringNullableFilter<"Team"> | string | null
     wins?: IntFilter<"Team"> | number
     losses?: IntFilter<"Team"> | number
-    draws?: IntFilter<"Team"> | number
     points?: IntFilter<"Team"> | number
+    draws?: IntFilter<"Team"> | number
   }
 
   export type GameUpsertWithWhereUniqueWithoutLeagueInput = {
@@ -79153,8 +79284,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -79192,8 +79323,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -79231,8 +79362,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -79270,8 +79401,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -79612,8 +79743,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -79651,8 +79782,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -79696,8 +79827,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -79735,8 +79866,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -79939,9 +80070,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
@@ -79965,10 +80096,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -80169,9 +80300,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
@@ -80195,10 +80326,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -80280,8 +80411,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -80319,8 +80450,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -80369,8 +80500,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -80408,8 +80539,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -80442,8 +80573,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -80481,8 +80612,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -80654,8 +80785,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -80693,8 +80824,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -80928,6 +81059,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
     Team?: TeamCreateNestedOneWithoutUserInput
     adRewardMilestone?: AdRewardMilestoneCreateNestedOneWithoutUserProfileInput
   }
@@ -80947,6 +81080,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
     Team?: TeamUncheckedCreateNestedOneWithoutUserInput
     adRewardMilestone?: AdRewardMilestoneUncheckedCreateNestedOneWithoutUserProfileInput
   }
@@ -81016,6 +81151,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     Team?: TeamUpdateOneWithoutUserNestedInput
     adRewardMilestone?: AdRewardMilestoneUpdateOneWithoutUserProfileNestedInput
   }
@@ -81035,6 +81172,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     Team?: TeamUncheckedUpdateOneWithoutUserNestedInput
     adRewardMilestone?: AdRewardMilestoneUncheckedUpdateOneWithoutUserProfileNestedInput
   }
@@ -81053,6 +81192,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
     Team?: TeamCreateNestedOneWithoutUserInput
     redeemedCodes?: RedeemCodeRecordCreateNestedManyWithoutUserProfileInput
   }
@@ -81072,6 +81213,8 @@ export namespace Prisma {
     ndaAccepted?: boolean
     ndaAcceptedAt?: Date | string | null
     ndaVersion?: string | null
+    role?: $Enums.Role
+    stripeCustomerId?: string | null
     Team?: TeamUncheckedCreateNestedOneWithoutUserInput
     redeemedCodes?: RedeemCodeRecordUncheckedCreateNestedManyWithoutUserProfileInput
   }
@@ -81106,6 +81249,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     Team?: TeamUpdateOneWithoutUserNestedInput
     redeemedCodes?: RedeemCodeRecordUpdateManyWithoutUserProfileNestedInput
   }
@@ -81125,6 +81270,8 @@ export namespace Prisma {
     ndaAccepted?: BoolFieldUpdateOperationsInput | boolean
     ndaAcceptedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     ndaVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    stripeCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
     Team?: TeamUncheckedUpdateOneWithoutUserNestedInput
     redeemedCodes?: RedeemCodeRecordUncheckedUpdateManyWithoutUserProfileNestedInput
   }
@@ -81220,9 +81367,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
@@ -81245,11 +81392,11 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
@@ -81377,8 +81524,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -81416,8 +81563,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -81514,8 +81661,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -81553,8 +81700,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -81864,9 +82011,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
@@ -81890,11 +82037,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     teamStats?: TeamMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -82021,9 +82168,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
@@ -82047,11 +82194,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -82069,8 +82216,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     user: UserProfileCreateNestedOneWithoutTeamInput
     players?: PlayerCreateNestedManyWithoutTeamInput
     staff?: StaffCreateNestedManyWithoutTeamInput
@@ -82108,8 +82255,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
     players?: PlayerUncheckedCreateNestedManyWithoutTeamInput
     staff?: StaffUncheckedCreateNestedManyWithoutTeamInput
     finances?: TeamFinancesUncheckedCreateNestedOneWithoutTeamInput
@@ -82142,9 +82289,9 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     league?: LeagueCreateNestedOneWithoutScheduleInput
     homeTeam: TeamCreateNestedOneWithoutHomeTeamGamesInput
     awayTeam: TeamCreateNestedOneWithoutAwayTeamGamesInput
@@ -82168,11 +82315,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
     playerStats?: PlayerMatchStatsUncheckedCreateNestedManyWithoutGameInput
   }
 
@@ -82206,8 +82353,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -82245,8 +82392,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -82285,9 +82432,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
@@ -82311,11 +82458,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
 
@@ -82704,11 +82851,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
   }
 
   export type GameCreateManyAwayTeamInput = {
@@ -82724,11 +82871,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
   }
 
   export type TeamMatchStatsCreateManyTeamInput = {
@@ -83274,9 +83421,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
@@ -83299,11 +83446,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -83321,11 +83468,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type GameUpdateWithoutAwayTeamInput = {
@@ -83337,9 +83484,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
@@ -83362,11 +83509,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -83384,11 +83531,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TeamMatchStatsUpdateWithoutTeamInput = {
@@ -84106,8 +84253,8 @@ export namespace Prisma {
     subdivision?: string | null
     wins?: number
     losses?: number
-    draws?: number
     points?: number
+    draws?: number
   }
 
   export type GameCreateManyLeagueInput = {
@@ -84123,11 +84270,11 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
   }
 
   export type LeagueStandingCreateManyLeagueInput = {
@@ -84159,8 +84306,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     user?: UserProfileUpdateOneRequiredWithoutTeamNestedInput
     players?: PlayerUpdateManyWithoutTeamNestedInput
     staff?: StaffUpdateManyWithoutTeamNestedInput
@@ -84197,8 +84344,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
     players?: PlayerUncheckedUpdateManyWithoutTeamNestedInput
     staff?: StaffUncheckedUpdateManyWithoutTeamNestedInput
     finances?: TeamFinancesUncheckedUpdateOneWithoutTeamNestedInput
@@ -84234,8 +84381,8 @@ export namespace Prisma {
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
-    draws?: IntFieldUpdateOperationsInput | number
     points?: IntFieldUpdateOperationsInput | number
+    draws?: IntFieldUpdateOperationsInput | number
   }
 
   export type GameUpdateWithoutLeagueInput = {
@@ -84247,9 +84394,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
     tournament?: TournamentUpdateOneWithoutGamesNestedInput
@@ -84272,11 +84419,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -84294,11 +84441,11 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type LeagueStandingUpdateWithoutLeagueInput = {
@@ -84659,10 +84806,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
   }
 
   export type ScheduleCreateManySeasonInput = {
@@ -84716,9 +84863,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
@@ -84742,10 +84889,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -84764,10 +84911,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ScheduleUpdateWithoutSeasonInput = {
@@ -84842,10 +84989,10 @@ export namespace Prisma {
     tournamentId?: number | null
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
   }
 
   export type GameUpdateWithoutScheduleInput = {
@@ -84857,9 +85004,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
@@ -84883,10 +85030,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -84905,10 +85052,10 @@ export namespace Prisma {
     tournamentId?: NullableIntFieldUpdateOperationsInput | number | null
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RedeemCodeRecordCreateManyRedeemCodeInput = {
@@ -84947,11 +85094,11 @@ export namespace Prisma {
     matchType?: $Enums.MatchType
     round?: number | null
     status?: $Enums.GameStatus
+    createdAt?: Date | string
     seasonId?: string | null
     scheduleId?: string | null
     subdivision?: string | null
     gameDay?: number | null
-    createdAt?: Date | string
   }
 
   export type TournamentEntryCreateManyTournamentInput = {
@@ -84971,9 +85118,9 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     league?: LeagueUpdateOneWithoutScheduleNestedInput
     homeTeam?: TeamUpdateOneRequiredWithoutHomeTeamGamesNestedInput
     awayTeam?: TeamUpdateOneRequiredWithoutAwayTeamGamesNestedInput
@@ -84996,11 +85143,11 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     playerStats?: PlayerMatchStatsUncheckedUpdateManyWithoutGameNestedInput
     teamStats?: TeamMatchStatsUncheckedUpdateManyWithoutGameNestedInput
   }
@@ -85018,11 +85165,11 @@ export namespace Prisma {
     matchType?: EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
     round?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumGameStatusFieldUpdateOperationsInput | $Enums.GameStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seasonId?: NullableStringFieldUpdateOperationsInput | string | null
     scheduleId?: NullableStringFieldUpdateOperationsInput | string | null
     subdivision?: NullableStringFieldUpdateOperationsInput | string | null
     gameDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TournamentEntryUpdateWithoutTournamentInput = {

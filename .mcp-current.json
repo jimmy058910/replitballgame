@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server"],
+      "env": {},
+      "cwd": "C:\\Users\\Jimmy\\OneDrive\\Documents\\Realm Rivalry\\replitballgame"
+    },
+    "playwright": {
+      "command": "cmd",
+      "args": ["/c", "npx", "@playwright/mcp"],
+      "env": {}
+    },
+    "in-memoria": {
+      "command": "cmd", 
+      "args": ["/c", "npx", "in-memoria", "server"],
+      "env": {}
+    }
+  }
+}

@@ -125,7 +125,7 @@ const ModernStickyHeader: React.FC = () => {
       console.log('✅ [HEADER] Team data ready:', team.name, 'ID:', team.id);
       if (upcomingMatches.length > 0) {
         const nextMatch = upcomingMatches[0];
-        const opponent = nextMatch.homeTeam.id === team.id?.toString() 
+        const opponent = String(nextMatch.homeTeam.id) === String(team.id) 
           ? nextMatch.awayTeam.name 
           : nextMatch.homeTeam.name;
         console.log('🎯 [HEADER] Current opponent in header:', opponent, 'Full match:', nextMatch.homeTeam.name, 'vs', nextMatch.awayTeam.name);
@@ -222,11 +222,11 @@ const ModernStickyHeader: React.FC = () => {
     
     // Check if user has live match
     const userLiveMatch = Array.isArray(liveMatches) ? liveMatches.find(match => 
-      match.homeTeam.id === team?.id?.toString() || match.awayTeam.id === team?.id?.toString()
+      String(match.homeTeam.id) === String(team?.id) || String(match.awayTeam.id) === String(team?.id)
     ) : null;
     
     if (userLiveMatch) {
-      const opponent = userLiveMatch.homeTeam.id === team?.id?.toString() 
+      const opponent = String(userLiveMatch.homeTeam.id) === String(team?.id) 
         ? userLiveMatch.awayTeam.name 
         : userLiveMatch.homeTeam.name;
       return { text: `LIVE vs ${opponent}`, isOffSeason: false };
@@ -251,7 +251,7 @@ const ModernStickyHeader: React.FC = () => {
     });
     
     if (nextMatch && nextMatch.matchType === 'LEAGUE') {
-      const isHome = nextMatch.homeTeam.id === team?.id?.toString();
+      const isHome = String(nextMatch.homeTeam.id) === String(team?.id);
       const opponent = isHome ? nextMatch.awayTeam.name : nextMatch.homeTeam.name;
       const homeAwayText = isHome ? "HOME" : "AWAY";
       
@@ -315,7 +315,7 @@ const ModernStickyHeader: React.FC = () => {
   
   // Check if team has live match - single definition used throughout component
   const userLiveMatch = Array.isArray(liveMatches) ? liveMatches.find(match => 
-    match.homeTeam.id === team?.id?.toString() || match.awayTeam.id === team?.id?.toString()
+    String(match.homeTeam.id) === String(team?.id) || String(match.awayTeam.id) === String(team?.id)
   ) : null;
 
   if (!isAuthenticated) {

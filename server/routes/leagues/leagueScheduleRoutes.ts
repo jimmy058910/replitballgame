@@ -61,7 +61,25 @@ router.get('/daily-schedule', requireAuth, async (req: Request, res: Response, n
   try {
     logger.info('Getting daily schedule');
     
-    const schedule = await storage.leagues.getDailySchedule();
+    // Get the user's team to filter by division/subdivision
+    const userId = req.user?.uid;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'User not authenticated' });
+    }
+    
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam) {
+      return res.status(404).json({ success: false, error: 'Team not found' });
+    }
+    
+    logger.info('🏀 [ROUTE DEBUG] User team info', { 
+      teamId: userTeam.id, 
+      teamName: userTeam.name, 
+      division: userTeam.division, 
+      subdivision: userTeam.subdivision 
+    });
+    
+    const schedule = await storage.leagues.getDailySchedule(userTeam.division, userTeam.subdivision);
     
     res.json({
       success: true,

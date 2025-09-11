@@ -134,7 +134,9 @@ exports.Prisma.UserProfileScalarFieldEnum = {
   referredBy: 'referredBy',
   ndaAccepted: 'ndaAccepted',
   ndaAcceptedAt: 'ndaAcceptedAt',
-  ndaVersion: 'ndaVersion'
+  ndaVersion: 'ndaVersion',
+  role: 'role',
+  stripeCustomerId: 'stripeCustomerId'
 };
 
 exports.Prisma.SessionScalarFieldEnum = {
@@ -160,8 +162,8 @@ exports.Prisma.TeamScalarFieldEnum = {
   subdivision: 'subdivision',
   wins: 'wins',
   losses: 'losses',
-  draws: 'draws',
-  points: 'points'
+  points: 'points',
+  draws: 'draws'
 };
 
 exports.Prisma.PlayerScalarFieldEnum = {
@@ -415,11 +417,11 @@ exports.Prisma.GameScalarFieldEnum = {
   tournamentId: 'tournamentId',
   round: 'round',
   status: 'status',
+  createdAt: 'createdAt',
   seasonId: 'seasonId',
   scheduleId: 'scheduleId',
   subdivision: 'subdivision',
-  gameDay: 'gameDay',
-  createdAt: 'createdAt'
+  gameDay: 'gameDay'
 };
 
 exports.Prisma.SeasonScalarFieldEnum = {
@@ -713,6 +715,13 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+exports.Role = exports.$Enums.Role = {
+  USER: 'USER',
+  TEAM_OWNER: 'TEAM_OWNER',
+  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN'
+};
+
 exports.FieldSize = exports.$Enums.FieldSize = {
   STANDARD: 'STANDARD',
   LARGE: 'LARGE',
@@ -841,7 +850,6 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   MARKETPLACE_BID: 'MARKETPLACE_BID',
   MARKETPLACE_SOLD: 'MARKETPLACE_SOLD',
   MARKETPLACE_EXPIRED: 'MARKETPLACE_EXPIRED',
-  SCOUTING_REPORT: 'SCOUTING_REPORT',
   MATCH_RESULT: 'MATCH_RESULT',
   TOURNAMENT_UPDATE: 'TOURNAMENT_UPDATE',
   RECRUIT_SIGNED: 'RECRUIT_SIGNED',

@@ -36,6 +36,14 @@ export interface UseLeagueStandingsResult {
  * League standings hook with scouting integration
  */
 export const useLeagueStandings = (team: any): UseLeagueStandingsResult => {
+  // Debug logging
+  console.log('🏆 useLeagueStandings - Team data:', { 
+    team, 
+    division: team?.division, 
+    subdivision: team?.subdivision,
+    teamId: team?.id 
+  });
+
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [isScoutingModalOpen, setIsScoutingModalOpen] = useState(false);
   
@@ -43,18 +51,25 @@ export const useLeagueStandings = (team: any): UseLeagueStandingsResult => {
   const { data: divisionStandings = [], isLoading: standingsLoading, error: standingsError } = useQuery({
     ...leagueQueryOptions.standings(team?.division ?? 8),
     enabled: !!team?.division,
-    select: (data: any[]) => {
-      if (!Array.isArray(data)) return [];
+    select: (data: any) => {
+      // Handle the wrapped response format {success: true, standings: [...]}
+      const standings = data?.standings || data || [];
+      if (!Array.isArray(standings)) return [];
       
-      return data
-        .filter(team => team && typeof team.wins === 'number')
-        .map((team: any, index: number) => ({
-          ...team,
-          position: index + 1,
-          gamesPlayed: (team.wins || 0) + (team.losses || 0) + (team.draws || 0),
-          totalScores: team.goalsFor || team.totalScores || 0,
-          scoresAgainst: team.goalsAgainst || team.scoresAgainst || 0,
-          scoreDifference: (team.goalsFor || team.totalScores || 0) - (team.goalsAgainst || team.scoresAgainst || 0)
+      return standings
+        .filter(standing => standing && typeof standing.wins === 'number')
+        .map((standing: any) => ({
+          id: standing.teamId,
+          name: standing.teamName,
+          wins: standing.wins,
+          losses: standing.losses,
+          draws: standing.draws,
+          points: standing.points,
+          gamesPlayed: standing.gamesPlayed,
+          totalScores: standing.totalScores || 0,
+          scoresAgainst: standing.scoresAgainst || 0,
+          scoreDifference: standing.scoreDifference || 0,
+          position: standing.rank
         }))
         .sort((a: any, b: any) => {
           // Sort by points (desc), then by goal difference (desc), then by goals for (desc)
@@ -66,9 +81,10 @@ export const useLeagueStandings = (team: any): UseLeagueStandingsResult => {
   });
   
   // Global rankings
-  const { data: globalRankings = [], isLoading: rankingsLoading } = useQuery(
-    worldQueryOptions.globalRankings()
-  );
+  const { data: globalRankings = [], isLoading: rankingsLoading } = useQuery({
+    ...worldQueryOptions.globalRankings(!!team),
+    enabled: !!team
+  });
   
   // Scouting data
   const { data: scoutingData, isLoading: scoutingLoading } = useQuery(
@@ -85,6 +101,15 @@ export const useLeagueStandings = (team: any): UseLeagueStandingsResult => {
     setIsScoutingModalOpen(false);
   };
   
+  // Debug logging for current state
+  console.log('🏆 useLeagueStandings - Current state:', { 
+    teamDivision: team?.division,
+    divisionStandingsLength: divisionStandings.length,
+    standingsLoading,
+    standingsError,
+    rawData: divisionStandings
+  });
+
   return {
     divisionStandings,
     standingsLoading,

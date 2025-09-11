@@ -101,7 +101,42 @@
       "Bash(gh run list:*)",
       "Bash(move:*)",
       "Bash(netstat:*)",
-      "Bash(claude /mcp)"
+      "Bash(claude /mcp)",
+      "Bash(pip install:*)",
+      "Bash(serena:*)",
+      "Bash(python:*)",
+      "Bash(pip show:*)",
+      "Bash(pip uninstall:*)",
+      "Bash(scriptsserena-mcp-debug.cmd)",
+      "Bash(copy .mcp-fallback.json .mcp.json)",
+      "Bash(where python)",
+      "Bash(where node)",
+      "Bash(where uvx)",
+      "Bash(rm:*)",
+      "Bash(claude config get)",
+      "Bash(start http://localhost:3000)",
+      "Bash(concurrently:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm start:*)",
+      "Bash(ps:*)",
+      "Bash(kill:*)",
+      "Bash(lsof:*)",
+      "Bash(pkill:*)",
+      "Bash(claude --version)",
+      "Bash(scriptsmcp-fix.cmd)",
+      "Bash(scripts/mcp-fix:*)",
+      "Bash(C:UsersJimmy.localbinuvx.exe --from git+https://github.com/oraios/serena serena start-mcp-server)",
+      "Bash(copy \".mcp.json\" \".mcp-current.json\")",
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(claude mcp:*)",
+      "Bash(claude --debug --version)",
+      "WebFetch(domain:firebase.google.com)",
+      "WebFetch(domain:www.heroui.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "mcp__firebase__firebase_get_environment",
+      "Bash(copy:*)",
+      "mcp__firebase__firebase_list_projects"
     ],
     "deny": [],
     "ask": []
@@ -109,6 +144,8 @@
   "enabledMcpjsonServers": [
     "serena",
     "playwright",
-    "in-memoria"
+    "in-memoria",
+    "firebase",
+    "gcloud-mcp"
   ]
 }

@@ -44,9 +44,151 @@ export default function LeagueSchedule() {
   }, []);
   
   const { data: schedule, isLoading, error } = useQuery<DailySchedule>({
-    queryKey: ["/api/leagues/daily-schedule"],
-    refetchInterval: 5 * 1000, // Update every 5 seconds for immediate testing
-    staleTime: 0, // Force fresh data every time
+    queryKey: ["leagues", "daily-schedule"],
+    queryFn: async () => {
+      // Try daily schedule endpoint first
+      const response = await fetch('/api/leagues/daily-schedule', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('dev-token') || 'dev-token-123'}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch schedule: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Handle different response formats from leagues endpoint
+      if (data.success && data.schedule) {
+        // The API returns: { success: true, schedule: { schedule: {...}, currentDay: 5, totalDays: 14, seasonStartDate: "..." }}
+        // So data.schedule.schedule contains the actual day-by-day schedule data
+        const actualScheduleData = data.schedule.schedule;
+        const currentDay = data.schedule.currentDay;
+        const totalDays = data.schedule.totalDays;
+        const seasonStartDate = data.schedule.seasonStartDate;
+        
+        // If it's already in the expected format
+        if (typeof actualScheduleData === 'object' && !Array.isArray(actualScheduleData)) {
+          // Convert numeric day keys to string format if needed
+          const convertedSchedule: Record<string, ScheduledMatch[]> = {};
+          Object.entries(actualScheduleData).forEach(([key, matches]) => {
+            const dayKey = key.startsWith('day') ? key : `day${key}`;
+            // Parse the original key to get the actual numeric day
+            const originalDay = parseInt(key) || 1;
+            convertedSchedule[dayKey] = Array.isArray(matches) ? matches.map((match: any) => ({
+              id: match.id?.toString(),
+              homeTeamId: match.homeTeamId?.toString(),
+              awayTeamId: match.awayTeamId?.toString(),
+              homeTeamName: match.homeTeamName,
+              awayTeamName: match.awayTeamName,
+              homeScore: match.homeScore,
+              awayScore: match.awayScore,
+              scheduledTime: new Date(match.gameDate || match.scheduledTime || new Date()),
+              scheduledTimeFormatted: match.scheduledTimeFormatted || new Date(match.gameDate || new Date()).toLocaleString(),
+              isLive: match.status === 'IN_PROGRESS' || match.isLive,
+              canWatch: match.canWatch || match.status === 'IN_PROGRESS',
+              status: match.status || 'SCHEDULED',
+              gameDay: originalDay,
+              matchType: match.matchType || 'LEAGUE'
+            })) : [];
+          });
+          
+          return {
+            schedule: convertedSchedule,
+            currentDay: currentDay || 5,
+            totalDays: totalDays || 14,
+            seasonStartDate: seasonStartDate || "2025-09-05T04:00:00.000Z"
+          };
+        }
+        
+        // If it's an array of matches, transform it
+        if (Array.isArray(data.schedule)) {
+          const scheduleByDay: Record<string, ScheduledMatch[]> = {};
+          let totalDays = 0;
+          
+          data.schedule.forEach((match: any) => {
+            const gameDay = match.gameDay || 1;
+            const dayKey = `day${gameDay}`;
+            
+            if (!scheduleByDay[dayKey]) {
+              scheduleByDay[dayKey] = [];
+            }
+            
+            scheduleByDay[dayKey].push({
+              id: match.id?.toString(),
+              homeTeamId: match.homeTeamId?.toString(),
+              awayTeamId: match.awayTeamId?.toString(),
+              homeTeamName: match.homeTeamName || match.homeTeam?.name,
+              awayTeamName: match.awayTeamName || match.awayTeam?.name,
+              homeScore: match.homeScore,
+              awayScore: match.awayScore,
+              scheduledTime: new Date(match.gameDate || match.scheduledTime),
+              scheduledTimeFormatted: new Date(match.gameDate || match.scheduledTime).toLocaleString(),
+              isLive: match.status === 'LIVE',
+              canWatch: match.status === 'LIVE',
+              status: match.status || 'SCHEDULED',
+              gameDay: gameDay,
+              matchType: match.matchType || 'LEAGUE'
+            });
+            
+            totalDays = Math.max(totalDays, gameDay);
+          });
+          
+          return {
+            schedule: scheduleByDay,
+            currentDay: 5,
+            totalDays: totalDays,
+            seasonStartDate: "2025-09-05T04:00:00.000Z"
+          };
+        }
+      }
+      
+      // Handle legacy array format (if endpoint returns just an array)
+      if (Array.isArray(data)) {
+        const scheduleByDay: Record<string, ScheduledMatch[]> = {};
+        let totalDays = 0;
+        
+        data.forEach((match: any) => {
+          const gameDay = match.gameDay || 1;
+          const dayKey = `day${gameDay}`;
+          
+          if (!scheduleByDay[dayKey]) {
+            scheduleByDay[dayKey] = [];
+          }
+          
+          scheduleByDay[dayKey].push({
+            id: match.id?.toString(),
+            homeTeamId: match.homeTeamId?.toString(),
+            awayTeamId: match.awayTeamId?.toString(),
+            homeTeamName: match.homeTeamName || match.homeTeam?.name,
+            awayTeamName: match.awayTeamName || match.awayTeam?.name,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            scheduledTime: new Date(match.gameDate || match.scheduledTime),
+            scheduledTimeFormatted: new Date(match.gameDate || match.scheduledTime).toLocaleString(),
+            isLive: match.status === 'LIVE',
+            canWatch: match.status === 'LIVE',
+            status: match.status || 'SCHEDULED',
+            gameDay: gameDay,
+            matchType: match.matchType || 'LEAGUE'
+          });
+          
+          totalDays = Math.max(totalDays, gameDay);
+        });
+        
+        return {
+          schedule: scheduleByDay,
+          currentDay: 5,
+          totalDays: totalDays,
+          seasonStartDate: "2025-09-05T04:00:00.000Z"
+        };
+      }
+      
+      return { schedule: {}, currentDay: 5, totalDays: 0 };
+    },
+    refetchInterval: 5 * 60 * 1000, // Update every 5 minutes
+    staleTime: 2 * 60 * 1000, // Fresh for 2 minutes
     enabled: true,
   });
   
@@ -217,26 +359,40 @@ export default function LeagueSchedule() {
   // Separate completed and upcoming games - ONLY LEAGUE GAMES for consistency with standings
   const allMatches: ScheduledMatch[] = [];
   Object.entries(schedule.schedule).forEach(([day, dayMatches]) => {
-    if (dayMatches && dayMatches.length > 0) {
+    if (dayMatches && Array.isArray(dayMatches) && dayMatches.length > 0) {
       dayMatches.forEach(match => {
         // CRITICAL FIX: Only include LEAGUE games to match standings calculation
         if (match.matchType === 'LEAGUE' || !match.matchType) {
-          allMatches.push({ ...match, gameDay: parseInt(day) });
+          // Use match.gameDay which we already set correctly, instead of parsing the "dayX" key
+          allMatches.push({ ...match, gameDay: match.gameDay });
         }
       });
     }
   });
-
+  
   // Split matches into completed and upcoming
   const completedMatches = allMatches
-    .filter(match => match.status.toUpperCase() === 'COMPLETED')
+    .filter(match => {
+      const status = match.status.toUpperCase();
+      // Check for various completed game statuses AND games with scores
+      return status === 'COMPLETED' || 
+             status === 'FINISHED' || 
+             status === 'FINAL' ||
+             (match.homeScore !== null && match.homeScore !== undefined && 
+              match.awayScore !== null && match.awayScore !== undefined);
+    })
     .sort((a, b) => b.gameDay - a.gameDay); // Most recent first
 
   const upcomingMatches = allMatches
     .filter(match => {
       const status = match.status.toUpperCase();
-      // Keep SCHEDULED and IN_PROGRESS in upcoming section
-      return status === 'SCHEDULED' || status === 'IN_PROGRESS';
+      // Only include games that are NOT completed (inverse of completed filter)
+      const isCompleted = status === 'COMPLETED' || 
+                         status === 'FINISHED' || 
+                         status === 'FINAL' ||
+                         (match.homeScore !== null && match.homeScore !== undefined && 
+                          match.awayScore !== null && match.awayScore !== undefined);
+      return !isCompleted;
     })
     .sort((a, b) => a.gameDay - b.gameDay); // Chronological order
 

@@ -398,8 +398,9 @@ export const leagueQueryOptions = {
     queryKey: [`/api/leagues/${division || 8}/standings`],
     queryFn: division
       ? async () => {
-          const response = await apiRequest(`/api/leagues/${division}/standings`);
-          return response as any;
+          const response = await apiRequest(`/api/leagues/${division}/standings`) as any;
+          // Extract standings array from wrapped response
+          return response?.standings || response || [];
         }
       : skipToken,
     staleTime: 0, // Always fetch fresh data

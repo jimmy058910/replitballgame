@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "cmd",
+      "args": ["/c", "C:\\Users\\Jimmy\\.local\\bin\\uvx.exe", "--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server"],
+      "env": {}
+    },
+    "playwright": {
+      "command": "cmd",
+      "args": ["/c", "npx", "@playwright/mcp"],
+      "env": {}
+    },
+    "in-memoria": {
+      "command": "cmd", 
+      "args": ["/c", "npx", "in-memoria", "server"],
+      "env": {}
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import authRoutes from "./authRoutes.js";
 import modularTeamRoutes from "./teams/index.js";
+import modularLeagueRoutes from "./leagues/index.js";
 // CONSOLIDATED: All player routes now in enhancedPlayerRoutes.js
 import enhancedPlayerRoutes from "./enhancedPlayerRoutes.js";
 import staffRoutes from "./staffRoutes.js";
@@ -46,6 +47,8 @@ import { dailyProgressionRoutes } from "./dailyProgressionRoutes.js";
 // CONSOLIDATED: seasonalFlowRoutes moved to enhancedSeasonRoutes.js
 // CONSOLIDATED: dailyTournamentRoutes moved to enhancedTournamentRoutes.js
 import contractInitializerRoutes from "./contractInitializerRoutes.js";
+// Development API for In-Memoria MCP integration and insights
+import developmentRoutes from "./developmentRoutes.js";
 // CONSOLIDATED: equipmentRoutes moved to enhancedInventoryRoutes.js
 import tryoutRoutes from "./tryoutRoutes.js";
 import lateSignupRoutes from "./lateSignupRoutes.js";
@@ -140,8 +143,15 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   // CONSOLIDATED PLAYER ROUTES: All player functionality in one enhanced system
   app.use("/api/players", enhancedPlayerRoutes);
   app.use("/api/staff", staffRoutes);
-  // CONSOLIDATED LEAGUE ROUTES: All league functionality in one enhanced system
-  app.use("/api/leagues", enhancedLeagueRoutes); // Core league operations, standings, schedules
+  // MODULAR LEAGUE ROUTES: New modular league system with standings and schedules
+  console.log('🔍 [registerAllRoutes] Registering modular league routes...');
+  try {
+    app.use("/api/leagues", modularLeagueRoutes); // Modular league operations, standings, schedules
+    console.log('✅ [registerAllRoutes] Registered modular /api/leagues routes successfully');
+  } catch (leagueImportError: any) {
+    console.error('❌ [registerAllRoutes] Failed to import modular league routes:', leagueImportError.message);
+    console.error('❌ [registerAllRoutes] Error stack:', leagueImportError.stack);
+  }
   // Backward compatibility paths - all route to enhancedLeagueRoutes
   app.use("/api/league-management", enhancedLeagueRoutes); // Enterprise-grade league management (admin operations)
   app.use("/api/team-matches", enhancedLeagueRoutes); // League matches for team recent matches display
@@ -261,6 +271,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   app.use("/api/admin", resetRoutes); // Admin reset and scheduling functionality
   app.use("/api/cache", cacheRoutes); // Cache management and statistics
   app.use("/api/cache-test", quickCacheTest); // Cache testing and demonstration
+  app.use("/api/development", developmentRoutes); // In-Memoria MCP integration and development insights
   app.use("/api/manual-standings", manualStandingsComplete); // Complete comprehensive standings fix
   app.use("/api/tournament-cleanup", enhancedTournamentRoutes); // Tournament cleanup & maintenance
   app.use("/api/simple-cleanup", simpleCleanupRoutes); // Simple cleanup using working Prisma patterns

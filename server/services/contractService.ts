@@ -44,7 +44,7 @@ export class ContractService {
       const player = individual as Player;
       // Players: Sum of all 8 attributes * 50₡ (updated for database schema)
       attributeSum = player.speed + player.power + player.throwing + player.catching + 
-                    player.kicking + player.leadership + player.agility;
+                    player.kicking + player.leadership + player.agility + (player.staminaAttribute || 0);
       attributeValue = attributeSum * 50;
     } else {
       const staffMember = individual as Staff;
@@ -331,5 +331,67 @@ export class ContractService {
       good: Math.round(contractCalc.marketValue * 1.05),
       excellent: Math.round(contractCalc.marketValue * 1.15)
     };
+  }
+
+  /**
+   * Get comprehensive contract negotiation data for a player
+   * This method provides all the data needed by the frontend contract modal
+   */
+  static async getContractNegotiationData(player: Player, team: Team): Promise<any> {
+    try {
+      const prisma = await getPrismaClient();
+      
+      // Get current contract info
+      const currentContract = await prisma.contract.findFirst({
+        where: { playerId: player.id }
+      });
+
+      // Calculate contract values using existing service
+      const contractCalc = ContractService.calculateContractValue(player);
+      
+      // Get current season from TimingService
+      const { timingService } = await import("../../shared/services/timingService.js");
+      const currentTiming = timingService.getSeasonTiming();
+      const currentSeason = currentTiming.currentSeason || 1;
+      const currentDay = currentTiming.currentDay || 1;
+      const currentPhase = currentTiming.currentPhase || 'regular';
+      
+      const contractEndsAfterSeason = currentContract ? currentSeason + (currentContract.length || 1) : currentSeason;
+      const nextContractStartsSeason = contractEndsAfterSeason + 1;
+
+      // Calculate signing bonus (20% of market value)
+      const signingBonus = Math.round(contractCalc.marketValue * 0.2);
+
+      return {
+        calculation: {
+          baseSalary: contractCalc.baseSalary,
+          marketValue: contractCalc.marketValue,
+          minimumOffer: contractCalc.minimumOffer,
+          signingBonus: signingBonus,
+          salaryRange: {
+            min: contractCalc.minimumOffer,
+            max: Math.round(contractCalc.marketValue * 1.5) // 150% of market value as max
+          },
+          yearsRange: {
+            min: 1,
+            max: 5
+          }
+        },
+        contractInfo: {
+          currentSalary: currentContract?.salary || 0,
+          currentYears: currentContract?.length || 0,
+          currentSeason: currentSeason,
+          contractEndsAfterSeason: contractEndsAfterSeason,
+          nextContractStartsSeason: nextContractStartsSeason
+        },
+        seasonInfo: {
+          currentDay: currentDay,
+          currentPhase: currentPhase
+        }
+      };
+    } catch (error) {
+      console.error("Error getting contract negotiation data:", error);
+      throw error;
+    }
   }
 }

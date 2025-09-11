@@ -4,14 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Star, User, Calendar, DollarSign, Clock, TrendingUp, AlertCircle } from "lucide-react";
+import { 
+  Star, 
+  User, 
+  Calendar, 
+  DollarSign, 
+  Clock, 
+  TrendingUp, 
+  AlertCircle, 
+  Plus, 
+  Minus,
+  CheckCircle,
+  XCircle,
+  Info,
+  Coins
+} from "lucide-react";
 import type { Player } from "@shared/types/models";
 
 interface ContractNegotiationProps {
@@ -43,9 +56,21 @@ interface ContractInfo {
   nextContractStartsSeason: number;
 }
 
+interface SeasonInfo {
+  currentDay: number;
+  currentPhase: string;
+}
+
 interface ContractNegotiationData {
   calculation: ContractCalculation;
   contractInfo: ContractInfo;
+  seasonInfo: SeasonInfo;
+}
+
+interface NegotiationResponse {
+  acceptanceProbability: number;
+  playerFeedback: string;
+  responseType: 'accepting' | 'considering' | 'demanding' | 'rejecting';
 }
 
 interface SubmitOfferResponse {
@@ -56,18 +81,11 @@ interface SubmitOfferResponse {
   signingBonus?: number;
 }
 
-interface NegotiationResponse {
-  acceptanceProbability: number;
-  playerFeedback: string;
-  responseType: 'accepting' | 'considering' | 'demanding' | 'rejecting';
-  isAccepted?: boolean;
-}
-
-// Race-specific emojis
+// Race-specific emojis with color themes
 const getRaceEmoji = (race: string) => {
   const raceMap: { [key: string]: string } = {
     'human': '👤',
-    'sylvan': '🍃',
+    'sylvan': '🍃', 
     'gryll': '🪨',
     'lumina': '✨',
     'umbra': '🌙'
@@ -75,27 +93,174 @@ const getRaceEmoji = (race: string) => {
   return raceMap[race?.toLowerCase()] || '👤';
 };
 
-// Star rating component
+const getRaceGradient = (race: string) => {
+  const gradientMap: { [key: string]: string } = {
+    'human': 'from-blue-600 via-blue-700 to-blue-800',
+    'sylvan': 'from-green-600 via-emerald-700 to-green-800',
+    'gryll': 'from-amber-600 via-orange-700 to-amber-800',
+    'lumina': 'from-purple-600 via-violet-700 to-purple-800',
+    'umbra': 'from-gray-600 via-slate-700 to-gray-800'
+  };
+  return gradientMap[race?.toLowerCase()] || 'from-blue-600 via-blue-700 to-blue-800';
+};
+
+// Enhanced Star Rating Component with Potential Color Coding
 const StarRating = ({ rating, maxStars = 5 }: { rating: number; maxStars?: number }) => {
   const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  
+  // Color based on potential rating
+  const getStarColor = (starIndex: number, rating: number) => {
+    if (rating >= 4.5) return 'text-yellow-400 fill-yellow-400'; // Elite
+    if (rating >= 3.5) return 'text-purple-400 fill-purple-400';  // High  
+    if (rating >= 2.5) return 'text-blue-400 fill-blue-400';      // Good
+    if (rating >= 1.5) return 'text-green-400 fill-green-400';    // Decent
+    return 'text-gray-400 fill-gray-400';                         // Developing
+  };
+  
   for (let i = 1; i <= maxStars; i++) {
-    const filled = i <= rating;
-    const partial = !filled && i - 1 < rating && rating < i;
+    const filled = i <= fullStars;
+    const partial = !filled && i === fullStars + 1 && hasHalfStar;
     
     stars.push(
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          filled 
-            ? 'text-yellow-400 fill-yellow-400' 
-            : partial 
-            ? 'text-yellow-400 fill-yellow-400/50'
-            : 'text-gray-300 fill-gray-300'
-        }`}
+        className={`w-5 h-5 transition-colors ${
+          filled || partial
+            ? getStarColor(i, rating)
+            : 'text-gray-600 fill-gray-600'
+        } ${partial ? 'opacity-50' : ''}`}
       />
     );
   }
-  return <div className="flex gap-1">{stars}</div>;
+  
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex">{stars}</div>
+      <span className="text-sm text-gray-300 font-medium ml-1">
+        {rating.toFixed(1)}/5
+      </span>
+    </div>
+  );
+};
+
+// Mobile-First Stepper Component
+const MobileStepper = ({ 
+  value, 
+  onChange, 
+  min = 1, 
+  max = 5, 
+  label,
+  suffix = ""
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  label: string;
+  suffix?: string;
+}) => {
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-medium text-gray-200">{label}</label>
+      <div className="flex items-center justify-center gap-4 bg-gray-800 rounded-lg p-3">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onChange(Math.max(min, value - 1))}
+          disabled={value <= min}
+          className="w-12 h-12 rounded-full p-0 bg-gray-700 hover:bg-gray-600 border-gray-600"
+        >
+          <Minus className="h-5 w-5" />
+        </Button>
+        
+        <div className="text-center min-w-[80px]">
+          <div className="text-2xl font-bold text-white">
+            {value}{suffix}
+          </div>
+          <div className="text-xs text-gray-400">
+            {value === 1 ? 'year' : 'years'}
+          </div>
+        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onChange(Math.min(max, value + 1))}
+          disabled={value >= max}
+          className="w-12 h-12 rounded-full p-0 bg-gray-700 hover:bg-gray-600 border-gray-600"
+        >
+          <Plus className="h-5 w-5" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Acceptance Probability Indicator
+const AcceptanceProbability = ({ 
+  probability, 
+  feedback, 
+  responseType 
+}: { 
+  probability: number; 
+  feedback: string;
+  responseType: string;
+}) => {
+  const getColorClass = (prob: number) => {
+    if (prob >= 80) return 'bg-green-600';
+    if (prob >= 60) return 'bg-yellow-500'; 
+    if (prob >= 40) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+  
+  const getTextColor = (prob: number) => {
+    if (prob >= 80) return 'text-green-400';
+    if (prob >= 60) return 'text-yellow-400';
+    if (prob >= 40) return 'text-orange-400';
+    return 'text-red-400';
+  };
+  
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'accepting': return <CheckCircle className="h-5 w-5 text-green-400" />;
+      case 'considering': return <Clock className="h-5 w-5 text-yellow-400" />;
+      case 'demanding': return <TrendingUp className="h-5 w-5 text-orange-400" />;
+      default: return <XCircle className="h-5 w-5 text-red-400" />;
+    }
+  };
+  
+  return (
+    <Card className="bg-gray-800 border-gray-700">
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-300">Acceptance Probability</span>
+          <div className="flex items-center gap-2">
+            {getIcon(responseType)}
+            <span className={`text-lg font-bold ${getTextColor(probability)}`}>
+              {probability}%
+            </span>
+          </div>
+        </div>
+        
+        <Progress 
+          value={probability} 
+          className="h-2"
+          style={{
+            // @ts-ignore - Custom CSS variable for dynamic color
+            '--progress-foreground': getColorClass(probability).replace('bg-', '')
+          }}
+        />
+        
+        <div className="bg-gray-900 rounded-lg p-3 border-l-4 border-gray-600">
+          <p className="text-sm text-gray-300 italic">
+            "{feedback}"
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
 export default function ContractNegotiationRedesigned({ player, isOpen, onClose }: ContractNegotiationProps) {
@@ -105,9 +270,8 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
   // State management
   const [offerSalary, setOfferSalary] = useState<number>(0);
   const [offerYears, setOfferYears] = useState<number>(3);
-  const [negotiationHistory, setNegotiationHistory] = useState<any[]>([]);
 
-  // Fetch contract calculations and current contract info
+  // Fetch contract calculations and current contract info  
   const { data: contractData, isLoading: isLoadingContract } = useQuery<ContractNegotiationData>({
     queryKey: ['/api/players', player?.id, 'contract-negotiation-data'],
     queryFn: async () => {
@@ -127,14 +291,14 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
       });
       return response as NegotiationResponse;
     },
-    enabled: !!player?.id && offerSalary > 0 && offerYears > 0,
+    enabled: !!player?.id && offerSalary > 0 && offerYears > 0 && !!contractData,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
 
   // Initialize offer values when contract data loads
-  useEffect(() => {
-    if (contractData?.calculation) {
+  useEffect(() => {
+    if (contractData?.calculation) {
       setOfferSalary(contractData.calculation.marketValue);
     }
   }, [contractData]);
@@ -145,27 +309,18 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
       const response = await apiRequest(`/api/players/${player.id}/negotiate-contract`, 'POST', offer);
       return response as SubmitOfferResponse;
     },
-    onSuccess: (data) => {
+    onSuccess: (data) => {
       if (data.accepted) {
         toast({
-          title: "Contract Accepted!",
+          title: "Contract Accepted!",
           description: `New contract runs Season ${data.startSeason}-${data.endSeason}. ${data?.signingBonus?.toLocaleString() || '0'}₡ bonus paid now.`,
         });
         queryClient.invalidateQueries({ queryKey: ['/api/teams/my'] });
         queryClient.invalidateQueries({ queryKey: ['/api/players'] });
         onClose();
       } else {
-        // Add to negotiation history
-        setNegotiationHistory(prev => [...prev, {
-          salary: offerSalary,
-          years: offerYears,
-          result: 'rejected',
-          feedback: data.feedback,
-          date: new Date().toLocaleDateString()
-        }]);
-        
         toast({
-          title: "Offer Rejected",
+          title: "Offer Rejected", 
           description: data.feedback,
           variant: "destructive"
         });
@@ -180,104 +335,97 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
     }
   });
 
-  if (!player) {
-    return null;
-  }
-  const calculation = contractData?.calculation as ContractCalculation;
-  const contractInfo = contractData?.contractInfo as ContractInfo;
-  const isOfferValid = offerSalary >= (calculation?.salaryRange?.min || 0) && 
-                     offerSalary <= (calculation?.salaryRange?.max || Infinity) &&
-                     offerYears >= (calculation?.yearsRange?.min || 1) &&
-                     offerYears <= (calculation?.yearsRange?.max || 5);
+  if (!player) return null;
 
-  const getAcceptanceColor = (probability: number) => {
-    if (probability >= 80) return "text-green-400";
-    if (probability >= 60) return "text-yellow-400";
-    if (probability >= 40) return "text-orange-400";
-    return "text-red-400";
+  const calculation = contractData?.calculation;
+  const contractInfo = contractData?.contractInfo;
+  const seasonInfo = contractData?.seasonInfo;
+  
+  const isOfferValid = calculation && 
+    offerSalary >= calculation.salaryRange.min && 
+    offerSalary <= calculation.salaryRange.max &&
+    offerYears >= calculation.yearsRange.min &&
+    offerYears <= calculation.yearsRange.max;
+
+  const formatCredits = (amount: number) => {
+    return `${amount.toLocaleString()}₡`;
   };
 
-  const getAcceptanceBarColor = (probability: number) => {
-    if (probability >= 80) return "bg-green-500";
-    if (probability >= 60) return "bg-yellow-500";
-    if (probability >= 40) return "bg-orange-500";
-    return "bg-red-500";
-  };
+  const totalPackageValue = (offerSalary * offerYears) + (calculation?.signingBonus || 0);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700">
-        <DialogHeader className="pb-6">
-          <DialogTitle className="text-2xl font-bold text-white">Contract Negotiation</DialogTitle>
-        </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-800 text-white">
+        {/* Enhanced Mobile-First Header */}
+        <div className={`bg-gradient-to-r ${getRaceGradient(player.race)} p-6 -m-6 mb-6 rounded-t-lg`}>
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-3xl border-2 border-white/20">
+              {getRaceEmoji(player.race)}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-2xl font-black text-white mb-1 truncate">
+                {player.firstName} {player.lastName}
+              </DialogTitle>
+              
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <Badge className="bg-white/20 text-white border-white/30 font-semibold">
+                  {player.role?.toUpperCase()}
+                </Badge>
+                <Badge className="bg-white/20 text-white border-white/30 font-semibold">
+                  {player.race?.toUpperCase()}
+                </Badge>
+                <span className="text-white/80 text-sm">
+                  Age {player.age} • #{player.jerseyNumber || '??'}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <StarRating rating={parseFloat(player.potentialRating?.toString() || '0')} />
+                <div className="text-right">
+                  <div className="text-3xl font-black text-white">
+                    {/* Calculate total power score */}
+                    {Math.round(
+                      ((player.speed || 0) + (player.power || 0) + (player.throwing || 0) + 
+                       (player.catching || 0) + (player.kicking || 0) + (player.leadership || 0) + 
+                       (player.agility || 0) + (player.stamina || 0)) / 8
+                    )}
+                  </div>
+                  <div className="text-sm text-white/70">Overall Power</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {isLoadingContract ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-            <span className="ml-3 text-white">Loading negotiation data...</span>
+          <div className="space-y-4 animate-pulse">
+            <div className="h-32 bg-gray-800 rounded-lg"></div>
+            <div className="h-48 bg-gray-800 rounded-lg"></div>
+            <div className="h-24 bg-gray-800 rounded-lg"></div>
           </div>
         ) : (
           <div className="space-y-6">
-            
-            {/* HEADER - Player Info */}
-            <Card className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-blue-500/30">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center text-2xl">
-                      {getRaceEmoji(player.race)}
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">
-                        {player.firstName} {player.lastName}
-                      </h2>
-                      <div className="flex items-center gap-4 mt-1">
-                        <Badge className="bg-blue-600 text-white">
-                          {player.role} • {player.race}
-                        </Badge>
-                        <div className="flex items-center gap-1 text-gray-300">
-                          <Calendar className="w-4 h-4" />
-                          <span>Age {player.age}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <StarRating rating={player.potentialRating || 2.5} />
-                          <span className="text-sm text-gray-300 ml-1">
-                            {player.potentialRating?.toFixed(1) || '2.5'}/5
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-green-400">
-                      {Math.round((player.speed + player.power + player.throwing + player.catching + player.kicking + player.agility) / 6)} PWR
-                    </div>
-                    <div className="text-sm text-gray-400">Overall Power</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* CURRENT CONTRACT INFO */}
-            <Card className="bg-gray-800 border-gray-600">
-              <CardHeader>
+            {/* Current Contract Status */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-white">
-                  <Clock className="w-5 h-5" />
+                  <Clock className="h-5 w-5 text-blue-400" />
                   Current Contract Status
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <div className="text-xl font-bold text-green-400">
-                      {contractInfo?.currentSalary?.toLocaleString() || '0'}₡/season
+                    <div className="text-2xl font-bold text-green-400">
+                      {contractInfo?.currentSalary ? formatCredits(contractInfo.currentSalary) : '₡0'}/season
                     </div>
                     <div className="text-sm text-gray-400">
                       {contractInfo?.currentYears || 0} seasons remaining
                     </div>
                   </div>
-                  <div className="text-right md:text-left">
-                    <div className="text-white font-semibold">
+                  <div className="text-right sm:text-right text-left">
+                    <div className="text-sm text-gray-300">
                       Contract ends after Season {contractInfo?.contractEndsAfterSeason || 'Unknown'}
                     </div>
                     <div className="text-sm text-blue-400">
@@ -285,223 +433,148 @@ export default function ContractNegotiationRedesigned({ player, isOpen, onClose 
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 p-3 bg-blue-900/30 rounded-lg">
-                  <div className="text-sm text-blue-200">
-                    <AlertCircle className="w-4 h-4 inline mr-1" />
-                    Today is Season {contractInfo?.currentSeason || 0}. 
-                    Renegotiations will take effect at the start of Season {contractInfo?.nextContractStartsSeason || 'Unknown'}.
-                  </div>
-                </div>
+                
+                <Alert className="bg-blue-900/30 border-blue-500/30">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription className="text-blue-200">
+                    Today is Season {contractInfo?.currentSeason || '?'}, Day {seasonInfo?.currentDay || '?'} 
+                    ({seasonInfo?.currentPhase || 'Unknown'}). 
+                    Renegotiations will take effect at the start of Season {contractInfo?.nextContractStartsSeason || '?'}.
+                  </AlertDescription>
+                </Alert>
               </CardContent>
             </Card>
 
-            {/* OFFER INPUTS */}
-            <Card className="bg-gray-800 border-gray-600">
-              <CardHeader>
+            {/* Contract Offer Section */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-white">
-                  <DollarSign className="w-5 h-5" />
+                  <DollarSign className="h-5 w-5 text-green-400" />
                   Contract Offer
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                
-                {/* Salary Slider */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-white font-semibold">Annual Salary</Label>
+                {/* Annual Salary Slider */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-200">Annual Salary</label>
                     <div className="text-right">
                       <div className="text-xl font-bold text-green-400">
-                        {offerSalary.toLocaleString()}₡
+                        {formatCredits(offerSalary)}
                       </div>
                       <div className="text-xs text-gray-400">
-                        Expected: {calculation?.salaryRange?.min?.toLocaleString() || '0'}₡ - {calculation?.salaryRange?.max?.toLocaleString() || '0'}₡
+                        Expected: {calculation ? formatCredits(calculation.minimumOffer) : '₡0'} - {calculation ? formatCredits(calculation.marketValue * 1.2) : '₡0'}
                       </div>
                     </div>
                   </div>
                   
-                  <Slider
-                    value={[offerSalary]}
-                    onValueChange={(value) => setOfferSalary(value[0])}
-                    min={calculation?.salaryRange?.min || 10000}
-                    max={calculation?.salaryRange?.max || 100000}
-                    step={1000}
-                    className="w-full"
-                  />
+                  {calculation && (
+                    <Slider
+                      value={[offerSalary]}
+                      onValueChange={(values) => setOfferSalary(values[0])}
+                      min={calculation.salaryRange.min}
+                      max={calculation.salaryRange.max}
+                      step={1000}
+                      className="w-full"
+                    />
+                  )}
                   
                   <div className="flex justify-between text-xs text-gray-400">
-                    <span>Min: {calculation?.salaryRange?.min?.toLocaleString() || '0'}₡</span>
-                    <span>Market: {calculation?.marketValue?.toLocaleString() || '0'}₡</span>
-                    <span>Max: {calculation?.salaryRange?.max?.toLocaleString() || '0'}₡</span>
+                    <span>Min: {calculation ? formatCredits(calculation.salaryRange.min) : '₡0'}</span>
+                    <span>Market: {calculation ? formatCredits(calculation.marketValue) : '₡0'}</span>
+                    <span>Max: {calculation ? formatCredits(calculation.salaryRange.max) : '₡0'}</span>
                   </div>
                 </div>
 
-                {/* Years Stepper */}
-                <div className="space-y-3">
-                  <Label className="text-white font-semibold">Contract Length</Label>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setOfferYears(Math.max((calculation?.yearsRange?.min || 1), offerYears - 1))}
-                      disabled={offerYears <= (calculation?.yearsRange?.min || 1)}
-                      className="w-10 h-10"
-                    >
-                      -
-                    </Button>
-                    <div className="text-center min-w-[120px]">
-                      <div className="text-2xl font-bold text-white">{offerYears}</div>
-                      <div className="text-sm text-gray-400">
-                        {offerYears === 1 ? 'season' : 'seasons'}
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setOfferYears(Math.min((calculation?.yearsRange?.max || 5), offerYears + 1))}
-                      disabled={offerYears >= (calculation?.yearsRange?.max || 5)}
-                      className="w-10 h-10"
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
+                {/* Contract Length Stepper */}
+                <MobileStepper
+                  value={offerYears}
+                  onChange={setOfferYears}
+                  min={calculation?.yearsRange.min || 1}
+                  max={calculation?.yearsRange.max || 5}
+                  label="Contract Length"
+                />
 
-                {/* Signing Bonus (Read-only) */}
-                <div className="space-y-2">
-                  <Label className="text-white font-semibold">Signing Bonus</Label>
-                  <div className="p-3 bg-gray-700 rounded-lg">
-                    <div className="text-lg font-bold text-green-400">
-                      ₡{calculation?.signingBonus?.toLocaleString() || '0'}
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      Will be paid immediately if contract is accepted
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* ACCEPTANCE FEEDBACK */}
-            {negotiationFeedback && (
-              <Card className="bg-gray-800 border-gray-600">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <TrendingUp className="w-5 h-5" />
-                    Player Response
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                {/* Signing Bonus */}
+                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700">
                   <div className="flex items-center justify-between">
-                    <span className="text-white font-semibold">Acceptance Probability</span>
-                    <span className={`text-xl font-bold ${getAcceptanceColor(negotiationFeedback.acceptanceProbability)}`}>
-                      {negotiationFeedback.acceptanceProbability}%
-                    </span>
-                  </div>
-                  
-                  <div className="w-full bg-gray-700 rounded-full h-3">
-                    <div 
-                      className={`h-3 rounded-full transition-all duration-300 ${getAcceptanceBarColor(negotiationFeedback.acceptanceProbability)}`}
-                      style={{ width: `${negotiationFeedback.acceptanceProbability}%` }}
-                    />
-                  </div>
-                  
-                  <div className="p-4 bg-gray-700 rounded-lg">
-                    <div className="text-white font-medium mb-2">Player Feedback:</div>
-                    <div className="text-gray-300 italic">
-                      "{negotiationFeedback.playerFeedback}"
+                    <div className="flex items-center gap-2">
+                      <Coins className="h-5 w-5 text-yellow-400" />
+                      <span className="font-medium text-gray-200">Signing Bonus</span>
+                    </div>
+                    <div className="text-lg font-bold text-yellow-400">
+                      {calculation ? formatCredits(calculation.signingBonus) : '₡0'}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Will be paid immediately if contract is accepted
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Live Acceptance Feedback */}
+            {negotiationFeedback && !isLoadingFeedback && (
+              <AcceptanceProbability
+                probability={negotiationFeedback.acceptanceProbability}
+                feedback={negotiationFeedback.playerFeedback}
+                responseType={negotiationFeedback.responseType}
+              />
             )}
 
-            {/* NEW CONTRACT DETAILS */}
-            <Card className="bg-green-900/20 border-green-500/30">
+            {/* Contract Timeline & Total Value */}
+            <Card className="bg-gradient-to-r from-blue-900/40 to-purple-900/40 border-blue-500/30">
               <CardContent className="p-4">
-                <div className="text-center">
-                  <div className="text-green-400 font-semibold mb-2">If Accepted:</div>
-                  <div className="text-white text-lg">
-                    Contract will begin at start of Season {contractInfo?.nextContractStartsSeason || 'Unknown'} 
-                    and run until end of Season {(contractInfo?.nextContractStartsSeason || 0) + offerYears - 1}
-                  </div>
-                  <div className="text-sm text-gray-300 mt-2">
-                    Total Value: {(offerSalary * offerYears + (calculation?.signingBonus || 0)).toLocaleString()}₡ 
-                    over {offerYears} seasons
+                <div className="text-center space-y-2">
+                  <h3 className="text-lg font-bold text-white">If Accepted</h3>
+                  <p className="text-blue-200">
+                    Contract will begin at start of Season {contractInfo?.nextContractStartsSeason || '?'} and run until end of Season {(contractInfo?.nextContractStartsSeason || 1) + offerYears - 1}
+                  </p>
+                  <div className="text-2xl font-black text-white">
+                    Total Value: {formatCredits(totalPackageValue)} over {offerYears} season{offerYears !== 1 ? 's' : ''}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* NEGOTIATION HISTORY */}
-            {negotiationHistory.length > 0 && (
-              <Card className="bg-gray-800 border-gray-600">
-                <CardHeader>
-                  <CardTitle className="text-white">Previous Offers</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {negotiationHistory.map((offer, index) => (
-                      <div key={index} className="p-3 bg-gray-700 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <span className="text-white">
-                            {offer.salary.toLocaleString()}₡ for {offer.years} seasons
-                          </span>
-                          <Badge variant="destructive">Rejected</Badge>
-                        </div>
-                        <div className="text-sm text-gray-400 mt-1">
-                          {offer.date} - "{offer.feedback}"
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* ACTION BUTTONS */}
-            <div className="flex gap-4 pt-4">
-              <Button
-                onClick={() => submitOfferMutation.mutate({ salary: offerSalary, years: offerYears })}
-                disabled={!isOfferValid || submitOfferMutation.isPending}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
-              >
-                {submitOfferMutation.isPending ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Submitting...
-                  </>
-                ) : (
-                  'Submit Offer'
-                )}
-              </Button>
+            {/* Action Buttons */}
+            <div className="flex flex-col-reverse sm:flex-row gap-3">
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="px-8 h-12 text-lg"
+                className="flex-1 h-12 bg-gray-800 hover:bg-gray-700 border-gray-600 text-white"
               >
                 Cancel
               </Button>
+              <Button
+                onClick={() => submitOfferMutation.mutate({ salary: offerSalary, years: offerYears })}
+                disabled={!isOfferValid || submitOfferMutation.isPending}
+                className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-bold"
+              >
+                {submitOfferMutation.isPending ? 'Submitting...' : 'Submit Offer'}
+              </Button>
             </div>
 
-            {/* Validation Errors */}
-            {!isOfferValid && (
-              <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
-                <div className="text-red-400 font-medium">
-                  <AlertCircle className="w-4 h-4 inline mr-2" />
-                  Invalid Offer
-                </div>
-                <div className="text-red-300 text-sm mt-1">
-                  Salary must be between ₡{calculation?.salaryRange?.min?.toLocaleString() || '0'} 
-                  and ₡{calculation?.salaryRange?.max?.toLocaleString() || '0'}, 
-                  with {calculation?.yearsRange?.min || 1}-{calculation?.yearsRange?.max || 5} seasons.
-                </div>
-              </div>
+            {/* Validation Messages */}
+            {!isOfferValid && calculation && (
+              <Alert className="bg-red-900/30 border-red-500/30">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-red-200">
+                  {offerSalary < calculation.salaryRange.min && 
+                    `Salary must be at least ${formatCredits(calculation.salaryRange.min)}`}
+                  {offerSalary > calculation.salaryRange.max && 
+                    `Salary cannot exceed ${formatCredits(calculation.salaryRange.max)}`}
+                  {(offerYears < calculation.yearsRange.min || offerYears > calculation.yearsRange.max) && 
+                    `Contract length must be ${calculation.yearsRange.min}-${calculation.yearsRange.max} years`}
+                </AlertDescription>
+              </Alert>
             )}
 
-            {/* Contract Activity Info */}
-            <div className="text-center text-sm text-gray-400 border-t border-gray-700 pt-4">
-              <AlertCircle className="w-4 h-4 inline mr-1" />
-              Most contract activity occurs during Offseason (Days 16-17)
+            {/* Helper Text */}
+            <div className="text-center">
+              <p className="text-xs text-gray-500">
+                Most contract activity occurs during Off-season (Days 16-17)
+              </p>
             </div>
           </div>
         )}

@@ -13,6 +13,7 @@ const router = Router();
 
 // Import timezone utilities for current cycle calculation
 import { getServerTimeInfo, EASTERN_TIMEZONE, getEasternTimeAsDate } from "../../shared/timezone.js";
+import { calculateCurrentSeasonDay, calculateCurrentSeasonNumber } from "../../shared/dayCalculation.js";
 import type { Player, Team, Contract } from '@shared/types/models';
 
 
@@ -48,7 +49,30 @@ router.get('/current', requireAuth, async (req: Request, res: Response, next: Ne
         // If no active season, might create one or return specific status
         return res.status(404).json({ message: "No active season found. Please start a new season." });
     }
-    res.json(season);
+    
+    // CRITICAL FIX: Always calculate the current day using proper 3AM EDT logic
+    // instead of relying on potentially stale database values
+    const seasonStartDate = season.startDate ? new Date(season.startDate) : new Date("2025-09-05T07:00:00.000Z");
+    const calculatedCurrentDay = calculateCurrentSeasonDay(seasonStartDate);
+    const calculatedSeasonNumber = calculateCurrentSeasonNumber(seasonStartDate);
+    
+    console.log('🔧 [SEASON CURRENT] Calculated values:', {
+      dbCurrentDay: season.currentDay,
+      calculatedCurrentDay,
+      seasonStartDate: seasonStartDate.toISOString(),
+      source: 'proper 3AM EDT calculation'
+    });
+    
+    // Return season data with calculated current day (override database value)
+    const correctedSeason = {
+      ...season,
+      currentDay: calculatedCurrentDay,
+      seasonNumber: calculatedSeasonNumber,
+      serverTime: new Date(),
+      easternTime: new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
+    };
+    
+    res.json({ season: correctedSeason, serverTime: new Date(), easternTime: new Date().toLocaleString("en-US", { timeZone: "America/New_York" }) });
   } catch (error) {
     console.error("Error fetching current season:", error);
     next(error);
@@ -89,28 +113,22 @@ router.get('/current-cycle', requireAuth, async (req: Request, res: Response, ne
   console.log('🔥 [SEASON ROUTES] /current-cycle called - this is seasonRoutes.ts');
   try {
     console.log('🔍 [current-cycle] Starting route...');
-    // Get current season from database to get the actual currentDay
+    // Get current season from database to get the actual season start date
     const currentSeason = await storage.seasons.getCurrentSeason();
-    let currentDayInCycle = 5; // Default fallback
-    let seasonNumber = 0; // Default season number
     
     console.log('🔍 [current-cycle] Season data from database:', JSON.stringify(currentSeason, null, 2));
-    console.log('🔍 [current-cycle] Type of currentDay:', typeof currentSeason?.currentDay);
-    console.log('🔍 [current-cycle] Value of currentDay:', currentSeason?.currentDay);
     
-    if (currentSeason && typeof currentSeason?.currentDay === 'number') {
-      currentDayInCycle = currentSeason?.currentDay;
-      seasonNumber = currentSeason.seasonNumber || 0;
-      console.log('✅ [current-cycle] Using database value:', { currentDayInCycle, seasonNumber });
-    } else {
-      // Fallback to calculation if no database value
-      const startDate = new Date("2025-07-13");
-      const now = new Date();
-      const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      currentDayInCycle = (daysSinceStart % 17) + 1;
-      seasonNumber = Math.floor(daysSinceStart / 17);
-      console.log('⚠️ [current-cycle] Using calculated value:', { currentDayInCycle, seasonNumber, daysSinceStart });
-    }
+    // CRITICAL FIX: Always use proper 3AM EDT calculation instead of database currentDay
+    const seasonStartDate = currentSeason?.startDate ? new Date(currentSeason.startDate) : new Date("2025-09-05T07:00:00.000Z");
+    const currentDayInCycle = calculateCurrentSeasonDay(seasonStartDate);
+    const seasonNumber = calculateCurrentSeasonNumber(seasonStartDate);
+    
+    console.log('🔧 [current-cycle] Using proper calculation:', { 
+      currentDayInCycle, 
+      seasonNumber, 
+      seasonStartDate: seasonStartDate.toISOString(),
+      source: 'proper 3AM EDT calculation' 
+    });
     
     // Determine the phase and dynamic content based on current day in cycle
     let phase = "Regular Season";

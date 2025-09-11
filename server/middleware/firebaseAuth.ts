@@ -58,6 +58,61 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction): 
       return;
     }
 
+    // Early development token detection - skip Firebase verification for dev tokens
+    if (process.env.NODE_ENV === 'development' && token.startsWith('dev-token-')) {
+      console.log('🔧 Development token detected, skipping Firebase verification');
+      console.log('🔍 Token first 50 chars:', token.substring(0, 50));
+      
+      // Industry-standard development bypass with proper user mapping
+      let devUser = null;
+      
+      // Map development tokens to actual user profiles for comprehensive testing
+      switch (token) {
+        case 'dev-token-oakland-cougars':
+          // Maps to the actual userId in database that owns Oakland Cougars team
+          devUser = {
+            uid: 'dev-user-123',
+            email: 'oakland cougars@realmrivalry.dev',
+            claims: { 
+              uid: 'dev-user-123', 
+              sub: 'dev-user-123', 
+              email: 'oakland cougars@realmrivalry.dev' 
+            }
+          };
+          break;
+        case 'dev-token-123':
+        case 'dev-token-local':
+          // Generic development user - may not have team associations
+          devUser = {
+            uid: 'dev-user-123',
+            email: 'developer@realmrivalry.com',
+            claims: { 
+              uid: 'dev-user-123', 
+              sub: 'dev-user-123', 
+              email: 'developer@realmrivalry.com' 
+            }
+          };
+          break;
+        default:
+          console.log('⚠️ Unknown development token:', token);
+          devUser = {
+            uid: 'dev-user-unknown',
+            email: 'unknown@realmrivalry.dev',
+            claims: { 
+              uid: 'dev-user-unknown', 
+              sub: 'dev-user-unknown', 
+              email: 'unknown@realmrivalry.dev' 
+            }
+          };
+      }
+      
+      console.log('🔧 Development bypass activated for', devUser.email);
+      req.user = devUser;
+      console.log('✅ Development bypass authenticated for', devUser.uid);
+      next();
+      return;
+    }
+
     try {
       console.log('🔍 Token verification attempt - Token length:', token.length);
       console.log('🔍 Token first 50 chars:', token.substring(0, 50));
@@ -76,7 +131,7 @@ export const requireAuth = async (req: any, res: Response, next: NextFunction): 
     } catch (tokenError: any) {
       console.error('❌ Firebase token verification failed:', tokenError.message);
       
-      // Industry-standard development bypass with proper user mapping
+      // Fallback development bypass for non-dev-token patterns
       if (process.env.NODE_ENV === 'development') {
         let devUser = null;
         

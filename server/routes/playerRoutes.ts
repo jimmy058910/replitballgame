@@ -179,8 +179,13 @@ router.get('/:playerId/contract-negotiation-data', requireAuth, async (req: any,
     // Calculate contract values using existing service
     const contractCalc = ContractService.calculateContractValue(player);
     
-    // Mock current season data - replace with actual season logic
-    const currentSeason = 0; // This should come from your season management system
+    // Get current season from TimingService
+    const { timingService } = await import("../../shared/services/timingService.js");
+    const currentTiming = timingService.getSeasonTiming();
+    const currentSeason = currentTiming.currentSeason || 1;
+    const currentDay = currentTiming.currentDay || 1;
+    const currentPhase = currentTiming.currentPhase || 'regular';
+    
     const contractEndsAfterSeason = currentContract ? currentSeason + (currentContract.length || 1) : currentSeason;
     const nextContractStartsSeason = contractEndsAfterSeason + 1;
 
@@ -208,6 +213,10 @@ router.get('/:playerId/contract-negotiation-data', requireAuth, async (req: any,
         currentSeason: currentSeason,
         contractEndsAfterSeason: contractEndsAfterSeason,
         nextContractStartsSeason: nextContractStartsSeason
+      },
+      seasonInfo: {
+        currentDay: currentDay,
+        currentPhase: currentPhase
       }
     });
   } catch (error) {
@@ -314,8 +323,10 @@ router.post('/:playerId/negotiate-contract', requireAuth, async (req: any, res: 
       const contractCalc = ContractService.calculateContractValue(player);
       const signingBonus = Math.round(contractCalc.marketValue * 0.2);
       
-      // Mock season data
-      const currentSeason = 0;
+      // Get current season from TimingService
+      const { timingService } = await import("../../shared/services/timingService.js");
+      const currentTiming = timingService.getSeasonTiming();
+      const currentSeason = currentTiming.currentSeason || 1;
       const startSeason = currentSeason + 1;
       const endSeason = startSeason + years - 1;
       
@@ -364,5 +375,78 @@ router.post('/:playerId/negotiate-contract', requireAuth, async (req: any, res: 
 //     next(error);
 //   }
 // });
+
+/**
+ * POST /api/players/:playerId/negotiation-feedback
+ * Get real-time negotiation feedback for offer adjustments
+ */
+router.post('/:playerId/negotiation-feedback', requireAuth, async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { playerId } = req.params;
+    const { salary, years } = req.body;
+    const userId = req.user.claims.sub;
+
+    const userTeam = await storage.teams.getTeamByUserId(userId);
+    if (!userTeam) {
+      return res.status(404).json({ message: "Your team was not found." });
+    }
+
+    const player = await storage?.players.getPlayerById(parseInt(playerId));
+    if (!player || player.teamId !== userTeam.id) {
+      return res.status(404).json({ message: "Player not found on your team." });
+    }
+
+    // Calculate contract values to determine acceptance probability
+    const contractCalc = ContractService.calculateContractValue(player);
+    const offerValue = salary;
+    const marketValue = contractCalc.marketValue;
+    const minimumOffer = contractCalc.minimumOffer;
+
+    // Calculate acceptance probability based on offer vs market value
+    let acceptanceProbability = 0;
+    let playerFeedback = "";
+    let responseType: 'accepting' | 'considering' | 'demanding' | 'rejecting' = 'rejecting';
+
+    if (offerValue < minimumOffer) {
+      acceptanceProbability = Math.max(5, Math.floor((offerValue / minimumOffer) * 30));
+      playerFeedback = "This offer is insulting. I need much more than this.";
+      responseType = 'rejecting';
+    } else if (offerValue < marketValue * 0.9) {
+      acceptanceProbability = Math.floor(30 + ((offerValue - minimumOffer) / (marketValue * 0.9 - minimumOffer)) * 40);
+      playerFeedback = "Getting closer, but I think I'm worth more than this.";
+      responseType = 'demanding';
+    } else if (offerValue < marketValue * 1.1) {
+      acceptanceProbability = Math.floor(70 + ((offerValue - marketValue * 0.9) / (marketValue * 0.2)) * 20);
+      playerFeedback = "This seems fair. Let me think about it.";
+      responseType = 'considering';
+    } else {
+      acceptanceProbability = Math.min(95, Math.floor(90 + ((offerValue - marketValue * 1.1) / (marketValue * 0.4)) * 5));
+      playerFeedback = "I'd be happy to sign this deal!";
+      responseType = 'accepting';
+    }
+
+    // Adjust for contract length (players prefer longer security)
+    if (years >= 3) {
+      acceptanceProbability += 5;
+      playerFeedback += " I appreciate the job security.";
+    } else if (years === 1) {
+      acceptanceProbability -= 10;
+      playerFeedback += " Though I'd prefer a longer commitment.";
+    }
+
+    // Cap probability at realistic bounds
+    acceptanceProbability = Math.max(5, Math.min(95, acceptanceProbability));
+
+    res.json({
+      acceptanceProbability,
+      playerFeedback,
+      responseType
+    });
+
+  } catch (error) {
+    console.error("Error getting negotiation feedback:", error);
+    next(error);
+  }
+});
 
 export default router;

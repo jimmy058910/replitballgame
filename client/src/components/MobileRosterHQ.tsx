@@ -108,6 +108,8 @@ type TabType = 'roster' | 'tactics' | 'camaraderie' | 'stadium' | 'staff';
 type RosterView = 'all' | 'medical' | 'contracts';
 
 export default function MobileRosterHQ() {
+  console.log('MobileRosterHQ rendering...');
+  
   const { isAuthenticated } = useUnifiedAuth();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();

@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Heart, Battery, Users, Crown, DollarSign, Trash2, AlertTriangle, 
   Wrench, ChevronDown, Pin, Copy, Star, Plus, ArrowRight,
-  Activity, Target, Brain, Zap, Shield, Shirt
+  Activity, Target, Brain, Zap, Shield, Shirt, X
 } from "lucide-react";
 import AbilitiesDisplay from "@/components/AbilitiesDisplay";
 import ContractNegotiationRedesigned from "./ContractNegotiationRedesigned";
@@ -91,6 +91,14 @@ function PlayerDetailModal({
   onEquipmentChange,
   focusSection 
 }: PlayerDetailModalProps) {
+  console.log('PlayerDetailModal rendering with player:', player?.firstName, 'isOpen:', isOpen);
+  
+  // Early return if player is null to prevent hook issues
+  if (!player) {
+    console.log('PlayerDetailModal: No player provided, returning null');
+    return null;
+  }
+  
   // Accordion sections state - only one open at a time
   const [expandedSection, setExpandedSection] = useState<string | null>(focusSection || null);
   const [showContractNegotiation, setShowContractNegotiation] = useState(false);
@@ -178,7 +186,70 @@ function PlayerDetailModal({
     }
   });
 
-  if (!player) return null;
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700 w-full mx-2 sm:mx-auto">
+        <div className="p-6">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between mb-4 bg-gray-800/50 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-700 rounded-full animate-pulse"></div>
+              <div>
+                <div className="h-6 bg-gray-700 rounded w-32 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-700 rounded w-24 animate-pulse"></div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="h-8 bg-gray-700 rounded w-12 mb-1 animate-pulse"></div>
+                <div className="h-3 bg-gray-700 rounded w-8 animate-pulse"></div>
+              </div>
+              <div className="flex gap-2">
+                <div className="w-10 h-10 bg-gray-700 rounded animate-pulse"></div>
+                <div className="w-10 h-10 bg-gray-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contract line skeleton */}
+          <div className="text-center mb-4">
+            <div className="h-4 bg-gray-700 rounded w-64 mx-auto animate-pulse"></div>
+          </div>
+
+          {/* Core stats skeleton */}
+          <div className="grid grid-cols-4 gap-4 mb-4 bg-gray-800/30 rounded-lg p-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="text-center">
+                <div className="h-6 bg-gray-700 rounded w-6 mx-auto mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-700 rounded w-12 mx-auto mb-1 animate-pulse"></div>
+                <div className="h-3 bg-gray-700 rounded w-16 mx-auto animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Action buttons skeleton */}
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-12 bg-gray-700 rounded animate-pulse"></div>
+            ))}
+          </div>
+
+          {/* Accordion sections skeleton */}
+          <div className="space-y-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-12 bg-gray-800/30 rounded-lg animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Show loading skeleton while any data is loading
+  if (equipmentLoading || inventoryLoading || releaseInfoLoading) {
+    return <LoadingSkeleton />;
+  }
 
   // Calculate player power (6 main attributes only)
   const playerPower = Math.round(
@@ -201,9 +272,8 @@ function PlayerDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 bg-gray-900 border-gray-700">
-        <ScrollArea className="max-h-[90vh]">
-          <div className="p-6">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700 w-full mx-2 sm:mx-auto">
+        <div className="p-6">
             {/* 1. Header Bar (Always Visible) */}
             <div className="flex items-center justify-between mb-4 bg-gray-800/50 rounded-lg p-4">
               <div className="flex items-center gap-3">
@@ -223,18 +293,58 @@ function PlayerDetailModal({
                   <div className="text-xs text-gray-400">Power</div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" className="text-yellow-400 hover:text-yellow-300">
-                    <Pin className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-300">
-                    <Copy className="w-4 h-4" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-yellow-400 hover:text-yellow-300 min-w-[44px] min-h-[44px] sm:min-w-[32px] sm:min-h-[32px]"
+                          onClick={() => {
+                            // Toggle favorite/pin status
+                            toast({
+                              title: "Player Favorited",
+                              description: `${player.firstName} ${player.lastName} pinned to top of roster!`,
+                            });
+                          }}
+                        >
+                          <Pin className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Pin to favorites</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-gray-400 hover:text-gray-300 min-w-[44px] min-h-[44px] sm:min-w-[32px] sm:min-h-[32px]"
+                          onClick={() => {
+                            // Add to comparison list
+                            toast({
+                              title: "Player Added to Compare",
+                              description: `${player.firstName} ${player.lastName} ready for comparison!`,
+                            });
+                          }}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Add to compare</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>
 
             {/* Contract Summary Line */}
-            <div className="text-center text-sm text-gray-400 mb-4">
+            <div className="text-center text-sm text-gray-400 mb-4 px-2">
               Contract: {(Number(player.contract?.salary) || 0).toLocaleString()}₡/season - {player.contract?.length || 1} yrs remaining
             </div>
 
@@ -267,21 +377,21 @@ function PlayerDetailModal({
               <div className="grid grid-cols-4 gap-2">
                 <Button 
                   onClick={() => setShowContractNegotiation(true)}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 min-h-[44px] text-xs sm:text-sm"
                   size="sm"
                 >
                   Negotiate
                 </Button>
                 <Button 
                   disabled={player.injuryStatus === 'HEALTHY'}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 min-h-[44px] text-xs sm:text-sm"
                   size="sm"
                 >
                   Heal
                 </Button>
                 <Button 
                   onClick={() => toggleSection('equipment')}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-purple-600 hover:bg-purple-700 min-h-[44px] text-xs sm:text-sm"
                   size="sm"
                 >
                   Equip
@@ -296,6 +406,7 @@ function PlayerDetailModal({
                               variant="destructive"
                               size="sm"
                               disabled={!releaseInfo?.canRelease}
+                              className="min-h-[44px] text-xs sm:text-sm"
                             >
                               Release
                             </Button>
@@ -339,7 +450,7 @@ function PlayerDetailModal({
                 onOpenChange={() => toggleSection('summary')}
               >
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4 min-h-[44px]">
                     <span className="font-medium">Summary & Progress</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'summary' ? 'rotate-180' : ''}`} />
                   </Button>
@@ -387,7 +498,7 @@ function PlayerDetailModal({
                 onOpenChange={() => toggleSection('performance')}
               >
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4 min-h-[44px]">
                     <span className="font-medium">Game Performance</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'performance' ? 'rotate-180' : ''}`} />
                   </Button>
@@ -424,7 +535,7 @@ function PlayerDetailModal({
                 onOpenChange={() => toggleSection('attributes')}
               >
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4 min-h-[44px]">
                     <span className="font-medium">Attributes</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'attributes' ? 'rotate-180' : ''}`} />
                   </Button>
@@ -477,7 +588,7 @@ function PlayerDetailModal({
                 onOpenChange={() => toggleSection('abilities')}
               >
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4 min-h-[44px]">
                     <span className="font-medium">Abilities & Skills</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'abilities' ? 'rotate-180' : ''}`} />
                   </Button>
@@ -503,7 +614,7 @@ function PlayerDetailModal({
                 onOpenChange={() => toggleSection('equipment')}
               >
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4 min-h-[44px]">
                     <span className="font-medium">Equipment</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'equipment' ? 'rotate-180' : ''}`} />
                   </Button>
@@ -512,7 +623,7 @@ function PlayerDetailModal({
                   <Card className="bg-gray-800/20 border-gray-700">
                     <CardContent className="p-4">
                       <div className="mb-4">
-                        <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                        <Button className="w-full bg-purple-600 hover:bg-purple-700 min-h-[44px]">
                           <ArrowRight className="w-4 h-4 mr-2" />
                           Go to Inventory
                         </Button>
@@ -522,28 +633,28 @@ function PlayerDetailModal({
                         <div className="border border-gray-600 rounded-lg p-4 text-center">
                           <Shield className="w-6 h-6 mx-auto mb-2 text-gray-400" />
                           <div className="text-sm text-gray-400">Helmet</div>
-                          <Button variant="ghost" size="sm" className="mt-2">
+                          <Button variant="ghost" size="sm" className="mt-2 min-w-[44px] min-h-[44px] sm:min-w-[32px] sm:min-h-[32px]">
                             <Plus className="w-4 h-4" />
                           </Button>
                         </div>
                         <div className="border border-gray-600 rounded-lg p-4 text-center">
                           <Shirt className="w-6 h-6 mx-auto mb-2 text-gray-400" />
                           <div className="text-sm text-gray-400">Chest</div>
-                          <Button variant="ghost" size="sm" className="mt-2">
+                          <Button variant="ghost" size="sm" className="mt-2 min-w-[44px] min-h-[44px] sm:min-w-[32px] sm:min-h-[32px]">
                             <Plus className="w-4 h-4" />
                           </Button>
                         </div>
                         <div className="border border-gray-600 rounded-lg p-4 text-center">
                           <div className="w-6 h-6 mx-auto mb-2 text-gray-400">👟</div>
                           <div className="text-sm text-gray-400">Shoes</div>
-                          <Button variant="ghost" size="sm" className="mt-2">
+                          <Button variant="ghost" size="sm" className="mt-2 min-w-[44px] min-h-[44px] sm:min-w-[32px] sm:min-h-[32px]">
                             <Plus className="w-4 h-4" />
                           </Button>
                         </div>
                         <div className="border border-gray-600 rounded-lg p-4 text-center">
                           <div className="w-6 h-6 mx-auto mb-2 text-gray-400">🧤</div>
                           <div className="text-sm text-gray-400">Gloves</div>
-                          <Button variant="ghost" size="sm" className="mt-2">
+                          <Button variant="ghost" size="sm" className="mt-2 min-w-[44px] min-h-[44px] sm:min-w-[32px] sm:min-h-[32px]">
                             <Plus className="w-4 h-4" />
                           </Button>
                         </div>
@@ -559,7 +670,7 @@ function PlayerDetailModal({
                 onOpenChange={() => toggleSection('medical')}
               >
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4 min-h-[44px]">
                     <span className="font-medium">Medical & Recovery</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${expandedSection === 'medical' ? 'rotate-180' : ''}`} />
                   </Button>
@@ -599,7 +710,7 @@ function PlayerDetailModal({
                 onOpenChange={() => toggleSection('camaraderie')}
               >
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4">
+                  <Button variant="ghost" className="w-full justify-between bg-gray-800/30 hover:bg-gray-700/50 p-4 min-h-[44px]">
                     <span className="font-medium flex items-center gap-2">
                       <Heart className="w-4 h-4" />
                       Morale & Camaraderie
@@ -675,7 +786,6 @@ function PlayerDetailModal({
               </Collapsible>
             </div>
           </div>
-        </ScrollArea>
 
         {/* Contract Negotiation Modal */}
         {showContractNegotiation && (

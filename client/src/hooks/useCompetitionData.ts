@@ -84,12 +84,12 @@ export function useCompetitionData(options: CompetitionDataOptions = {}): Compet
         meta: { priority: 'medium' }
       },
       
-      // Live matches
+      // Live matches removed - using quick simulation only
       {
-        ...matchQueries.live(),
-        enabled: enabled,
-        refetchInterval: 30000, // Refresh every 30 seconds
-        meta: { priority: 'medium' }
+        queryKey: ['live-matches-stub'],
+        queryFn: () => Promise.resolve([]),
+        enabled: false,
+        meta: { priority: 'low' }
       },
       
       // Active tournaments

@@ -58,8 +58,26 @@ router.get('/current', requireAuth, async (req: any, res: Response, next: NextFu
       return res.status(404).json({ error: "No current season found" });
     }
 
+    // COMPREHENSIVE FIX: Use centralized timing service for unified calculation
+    const { timingService } = await import("../../shared/services/timingService.js");
+    const timing = timingService.getSeasonTiming(currentSeason);
+    
+    console.log('🔧 [ENHANCED SEASON CURRENT] Using timing service:', {
+      dbCurrentDay: currentSeason.currentDay,
+      calculatedCurrentDay: timing.currentDay,
+      phase: timing.phase,
+      source: 'centralized timing service from enhancedSeasonRoutes.ts'
+    });
+    
+    // Return season data with calculated timing values (override database values)
+    const correctedSeason = {
+      ...currentSeason,
+      currentDay: timing.currentDay,
+      seasonNumber: timing.seasonNumber
+    };
+
     res.json({
-      season: convertBigIntToString(currentSeason),
+      season: convertBigIntToString(correctedSeason),
       serverTime: getServerTimeInfo(),
       easternTime: getEasternTimeAsDate()
     });
@@ -81,12 +99,16 @@ router.get('/current-week', requireAuth, async (req: any, res: Response, next: N
       return res.status(404).json({ error: "No current season found" });
     }
 
+    // COMPREHENSIVE FIX: Use centralized timing service for unified calculation
+    const { timingService } = await import("../../shared/services/timingService.js");
+    const timing = timingService.getSeasonTiming(currentSeason);
+
     // Simple week calculation for UI purposes
-    const currentWeek = Math.ceil(currentSeason?.currentDay / 7);
+    const currentWeek = Math.ceil(timing.currentDay / 7);
     
     res.json({
       currentWeek,
-      currentDay: currentSeason?.currentDay,
+      currentDay: timing.currentDay,
       seasonId: currentSeason.id
     });
   } catch (error) {
@@ -107,45 +129,33 @@ router.get('/current-cycle', requireAuth, async (req: any, res: Response, next: 
       return res.status(404).json({ error: "No current season found" });
     }
 
-    const currentDay = currentSeason?.currentDay;
-    let phase, description, daysRemaining;
-
-    // Determine season phase based on 17-day cycle
-    if (currentDay >= 1 && currentDay <= 14) {
-      phase = 'REGULAR_SEASON';
-      description = `Regular Season - Day ${currentDay} of 14`;
-      daysRemaining = 14 - currentDay;
-    } else if (currentDay === 15) {
-      phase = 'PLAYOFFS';
-      description = 'Playoff Day 1 - Semifinals';
-      daysRemaining = 2;
-    } else if (currentDay === 16) {
-      phase = 'PLAYOFFS';
-      description = 'Playoff Day 2 - Championship';
-      daysRemaining = 1;
-    } else if (currentDay === 17) {
-      phase = 'OFF_SEASON';
-      description = 'Season Complete - Awards & Preparation';
-      daysRemaining = 0;
-    } else {
-      phase = 'UNKNOWN';
-      description = `Day ${currentDay} - Phase Unknown`;
-      daysRemaining = 0;
-    }
+    // COMPREHENSIVE FIX: Use centralized timing service for unified calculation
+    const { timingService } = await import("../../shared/services/timingService.js");
+    const timing = timingService.getSeasonTiming(currentSeason);
+    
+    console.log('🔧 [ENHANCED SEASON CYCLE] Using timing service:', {
+      dbCurrentDay: currentSeason.currentDay,
+      calculatedCurrentDay: timing.currentDay,
+      phase: timing.phase,
+      description: timing.description,
+      source: 'centralized timing service from enhancedSeasonRoutes.ts'
+    });
 
     res.json({
       seasonId: currentSeason.id,
-      currentDay,
-      phase,
-      description,
-      daysRemaining,
+      currentDay: timing.currentDay,
+      phase: timing.phase,
+      description: timing.description,
+      daysRemaining: timing.daysRemaining,
       totalDays: 17,
       seasonCycle: {
         regularSeason: { start: 1, end: 14 },
         playoffs: { start: 15, end: 16 },
         offSeason: { start: 17, end: 17 }
       },
-      serverTime: getServerTimeInfo()
+      serverTime: getServerTimeInfo(),
+      nextDayAdvancement: timing.nextDayAdvancement,
+      isSchedulingWindow: timing.isSchedulingWindow
     });
   } catch (error) {
     console.error('Error fetching season cycle:', error);

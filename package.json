@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
     "dev:local": "concurrently \"npm run dev:backend:debug\" \"npm run dev:frontend:local\"",
+    "dev:watch-intelligence": "npx in-memoria watch .",
+    "dev:intelligence": "concurrently \"npm run dev\" \"npm run dev:watch-intelligence\"",
+    "dev:full": "concurrently \"npm run dev:backend:debug\" \"npm run dev:frontend:local\" \"npm run dev:watch-intelligence\"",
     "dev:backend:debug": "cross-env NODE_ENV=development tsx --inspect=0.0.0.0:9229 server/index.ts",
     "dev:frontend:local": "vite --config vite.config.local.ts",
     "dev:db": "node scripts/setup-local-db.js",
     "dev:setup": "npm run dev:db && echo '✅ Local development environment ready!'",
+    "dev:auth-check": "node scripts/check-auth-health.js",
     "start": "NODE_ENV=production node dist/server/index.js",
     "build": "vite build --config vite.config.production.ts",
     "build:server": "tsc --project tsconfig.server.json || true",
@@ -29,7 +33,12 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "intelligence:learn": "node scripts/in-memoria-automation.js --learn",
+    "intelligence:health": "node scripts/in-memoria-automation.js --health-check",
+    "intelligence:report": "node scripts/in-memoria-automation.js --performance-report",
+    "intelligence:optimize": "node scripts/in-memoria-automation.js --auto-optimize",
+    "intelligence:metrics": "node scripts/in-memoria-automation.js --efficiency-metrics"
   },
   "dependencies": {
     "@2toad/profanity": "^3.1.1",

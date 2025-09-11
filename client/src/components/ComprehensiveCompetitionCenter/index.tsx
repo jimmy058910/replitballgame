@@ -15,9 +15,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import ModernStickyHeader from '../ModernStickyHeader';
 // LiveMatchesHub removed - using quick simulation only
 import { useCompetitionData } from './hooks/useCompetitionData';
+import { useLeagueStandings } from './hooks/useLeagueStandings';
 import { LeagueStandings } from './components/LeagueStandings';
 import { TournamentHub } from './components/TournamentHub';
 import { ExhibitionMatches } from './components/ExhibitionMatches';
+import LeagueSchedule from '../LeagueSchedule';
 import { DivisionBadge } from './components/shared/DivisionBadge';
 import type { CompetitionTab } from './types/competition.types';
 
@@ -41,6 +43,13 @@ const CompetitionCenter = React.memo(() => {
     hasError
   } = useCompetitionData();
 
+  // League standings data for competition header
+  const {
+    divisionStandings,
+    globalRankings,
+    standingsLoading
+  } = useLeagueStandings(team);
+
   // Memoized team selection handler
   const handleTeamSelect = useCallback((teamId: number) => {
     // Future enhancement: Could navigate to team details or open modal
@@ -49,7 +58,7 @@ const CompetitionCenter = React.memo(() => {
 
   // Memoized live match count for badge
   const liveMatchCount = useMemo(() => 
-    liveMatches?.filter(match => match?.status === 'LIVE')?.length || 0, 
+    Array.isArray(liveMatches) ? liveMatches.filter(match => match?.status === 'LIVE').length : 0, 
     [liveMatches]
   );
 
@@ -100,25 +109,101 @@ const CompetitionCenter = React.memo(() => {
       <ModernStickyHeader />
       <div className="container mx-auto px-4 py-8 max-w-6xl mt-8">
         
-        {/* Hero Banner */}
+        {/* Competition Header with Rankings */}
         <div className="relative overflow-hidden bg-gradient-to-r from-purple-800 via-blue-700 to-cyan-800 rounded-xl p-4 md:p-6 mb-4 shadow-2xl">
           <div className="absolute inset-0 bg-gradient-radial from-purple-500/30 via-transparent to-cyan-500/20 backdrop-blur-sm"></div>
           <div className="relative z-10">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-black text-white mb-1">
-                  🏆 Competition Center
-                </h1>
-                <p className="text-sm md:text-base text-purple-100 font-semibold">
-                  Compete • Conquer • Claim Glory
-                </p>
+            <div className="flex flex-col gap-4">
+              {/* Title Row */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-black text-white mb-1">
+                    🏆 Competition Center
+                  </h1>
+                  <p className="text-sm md:text-base text-purple-100 font-semibold">
+                    Compete • Conquer • Claim Glory
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs md:text-sm">
+                  <DivisionBadge 
+                    division={team?.division || 8} 
+                    subdivision={team?.subdivision}
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-xs md:text-sm">
-                <DivisionBadge 
-                  division={team?.division || 8} 
-                  subdivision={team?.subdivision}
-                />
-              </div>
+
+              {/* Team Rankings Section - Match Reference Design */}
+              {team && !standingsLoading && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-black/20 rounded-lg backdrop-blur-sm">
+                  {/* League Record */}
+                  <div className="flex items-center gap-2">
+                    <div className="text-green-400 text-lg">🏆</div>
+                    <div>
+                      <div className="text-lg font-bold text-white">
+                        {team.wins || 0} W - {team.losses || 0} L - {team.draws || 0} D
+                      </div>
+                      <div className="text-xs text-green-300">League Record</div>
+                    </div>
+                  </div>
+
+                  {/* Standings Position */}
+                  <div className="flex items-center gap-2">
+                    <div className="text-blue-400 text-lg">📊</div>
+                    <div>
+                      <div className="text-lg font-bold text-white">
+                        {(() => {
+                          const userTeam = divisionStandings.find(standing => 
+                            String(standing.id) === String(team.id)
+                          );
+                          const position = userTeam?.position || divisionStandings.findIndex(standing => 
+                            String(standing.id) === String(team.id)
+                          ) + 1 || '?';
+                          const points = team.points || 0;
+                          const userTeamStanding = divisionStandings.find(standing => 
+                            String(standing.id) === String(team.id)
+                          );
+                          const gamesPlayed = userTeamStanding?.gamesPlayed || team.gamesPlayed || 0;
+                          const gamesRemain = 14 - gamesPlayed;
+                          return `${position}${position === 1 ? 'st' : position === 2 ? 'nd' : position === 3 ? 'rd' : 'th'} - ${points} Pts - ${gamesRemain} Games Remain`;
+                        })()}
+                      </div>
+                      <div className="text-xs text-blue-300">Standings</div>
+                    </div>
+                  </div>
+
+                  {/* Global Rank */}
+                  <div className="flex items-center gap-2">
+                    <div className="text-purple-400 text-lg">🌟</div>
+                    <div>
+                      <div className="text-lg font-bold text-white">
+                        {(() => {
+                          const userGlobalRank = globalRankings.find(r => 
+                            String(r.id) === String(team.id)
+                          );
+                          if (userGlobalRank && globalRankings.length > 0) {
+                            // Calculate percentile based on actual total teams, not assumed 1000
+                            const totalTeams = globalRankings.length;
+                            const percentile = Math.round((userGlobalRank.globalRank / totalTeams) * 100);
+                            return `#${userGlobalRank.globalRank} (Top ${percentile}%)`;
+                          }
+                          return '#? (Loading...)';
+                        })()}
+                      </div>
+                      <div className="text-xs text-purple-300">Global Rank</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Loading State for Rankings */}
+              {standingsLoading && (
+                <div className="p-4 bg-black/20 rounded-lg backdrop-blur-sm">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="animate-spin h-5 w-5 border-2 border-purple-400 border-t-transparent rounded-full"></div>
+                    <span className="text-purple-200 text-sm">Loading competition rankings...</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -170,6 +255,7 @@ const CompetitionCenter = React.memo(() => {
               userId={team?.id?.toString()} 
               onTeamSelect={handleTeamSelect}
             />
+            <LeagueSchedule />
           </TabsContent>
 
           <TabsContent value="tournaments" className="space-y-4">
