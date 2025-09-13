@@ -73,7 +73,8 @@ npx in-memoria analyze ./client/src --brief    # Pattern intelligence
 ### `/dev-start`
 **What it does:**
 - Starts Google Cloud SQL Proxy automatically
-- Launches frontend (localhost:5173) and backend (localhost:3000)
+- Launches separate backend server (localhost:3000) with debugging
+- Launches separate frontend server (localhost:5173) with hot reload
 - Opens Chrome browser for Playwright consistency
 - Provides environment status dashboard
 - Creates todo list for development tasks

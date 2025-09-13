@@ -43,8 +43,10 @@
 
 3. **Start Development Servers**
    ```bash
-   # Start both frontend and backend
-   npm run dev:local
+   # Start backend server with debugging
+   npm run dev:backend:debug &
+   # Start frontend server separately  
+   npm run dev:frontend:local &
    ```
 
 ### Phase 3: Environment Verification

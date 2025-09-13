@@ -13,6 +13,11 @@ vite.config.ts.*
 .env.production
 .env.backup*
 
+# Google Cloud Service Account Keys (CRITICAL SECURITY)
+config/*-key.json
+config/service-account*.json
+*-service-account.json
+
 # Logs
 logs
 *.log

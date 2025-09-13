@@ -79,6 +79,7 @@ import integrityRoutes from "./integrityRoutes.js";
 import timeFixRoutes from "./timeFixRoutes.js";
 import { devRoutes } from "./development/devRoutes.js";
 import { emergencyRoutes } from "./admin/emergencyRoutes.js";
+import gameSystemsRoutes from "./gameSystemsRoutes.js";
 import type { Player, Team, Stadium, League } from '@shared/types/models';
 
 
@@ -209,6 +210,7 @@ export async function registerAllRoutes(app: Express): Promise<void> {
   // CONSOLIDATED: Seasonal flow now in enhancedSeasonRoutes
   app.use("/api/seasonal-flow", enhancedSeasonRoutes); // Backward compatibility for seasonal flow
   app.use("/api/daily-progression", dailyProgressionRoutes); // Covers daily player progression and development system
+  app.use("/api/game-systems", gameSystemsRoutes); // Comprehensive game mechanics: TAP, Power, Staff Effects, Anti-Pay-to-Win
   app.use("/api/contracts", contractInitializerRoutes); // Covers contract initialization and management
   app.use("/api/equipment", enhancedInventoryRoutes); // Backward compatibility for equipment
   app.use("/api/tryouts", tryoutRoutes); // Covers tryout system and candidate generation

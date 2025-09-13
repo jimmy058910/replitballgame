@@ -2,7 +2,7 @@
  * Admin routes for testing and manual triggers
  */
 import { Router, Request, Response } from 'express';
-import { SeasonTimingAutomationService } from '../services/automation/index.js';
+import { SeasonTimingAutomationService } from '../services/seasonTimingAutomationService.js';
 import { MatchStatusFixer } from '../utils/matchStatusFixer.js';
 import { TournamentBracketGenerator } from '../utils/tournamentBracketGenerator.js';
 import { UnifiedTournamentAutomation } from '../services/unifiedTournamentAutomation';
@@ -48,7 +48,7 @@ router.post('/force-advance-to-day-7', requireAuth, async (req, res) => {
     logger.adminOperation('DAY_ADVANCEMENT', 'CRITICAL FIX: Manually advancing to Day 7');
     
     const { getPrismaClient } = await import('../database');
-    const prisma = await DatabaseService.getInstance();
+    const prisma = await getPrismaClient();
     
     // Get current season
     const currentSeason = await prisma.season.findFirst({
@@ -95,13 +95,66 @@ router.post('/force-advance-to-day-7', requireAuth, async (req, res) => {
   }
 });
 
+// Force advance to Day 8
+router.post('/force-advance-to-day-8', requireAuth, async (req, res) => {
+  try {
+    logger.adminOperation('DAY_ADVANCEMENT', 'CRITICAL FIX: Manually advancing to Day 8');
+    
+    const { getPrismaClient } = await import('../database');
+    const prisma = await getPrismaClient();
+    
+    // Get current season
+    const currentSeason = await prisma.season.findFirst({
+      orderBy: { startDate: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      return res.status(404).json({
+        success: false,
+        error: 'No current season found'
+      });
+    }
+    
+    logger.adminOperation('DAY_ADVANCEMENT', `Current season Day ${currentSeason?.currentDay} -> advancing to Day 8`, {
+      seasonId: currentSeason.id,
+      previousDay: currentSeason?.currentDay
+    });
+    
+    // Force update to Day 8
+    await prisma.season.update({
+      where: { id: currentSeason.id },
+      data: { currentDay: 8 }
+    });
+    
+    logger.adminSuccess('DAY_ADVANCEMENT', 'Season successfully advanced to Day 8', {
+      seasonId: currentSeason.id
+    });
+    
+    res.json({
+      success: true,
+      message: 'Season manually advanced to Day 8',
+      previousDay: currentSeason?.currentDay,
+      newDay: 8,
+      seasonId: currentSeason.id,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    logger.adminError('DAY_ADVANCEMENT', 'Error advancing to Day 8', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Force complete all overdue Day 6 games
 router.post('/force-complete-day-6-games', requireAuth, async (req, res) => {
   try {
     console.log('🔥 [ADMIN] Force completing all overdue Day 6 games...');
     
     const { getPrismaClient } = await import('../database');
-    const prisma = await DatabaseService.getInstance();
+    const prisma = await getPrismaClient();
     
     // Find all SCHEDULED games that should have been completed by now
     const now = new Date();
@@ -345,7 +398,7 @@ router.post('/fix-division-7-schedule', async (req: Request, res: Response) => {
     console.log('🔧 [ADMIN] Fixing Division 7 Alpha schedule issues...');
     
     const { getPrismaClient } = await import('../database');
-    const prisma = await DatabaseService.getInstance();
+    const prisma = await getPrismaClient();
     
     // Get Division 7 Alpha teams
     const teams = await prisma.team.findMany({
@@ -499,7 +552,7 @@ router.get('/check-tournament-games', async (req: Request, res: Response) => {
     console.log('🔍 [ADMIN] Checking tournament games...');
     
     const { getPrismaClient } = await import('../database');
-    const prisma = await DatabaseService.getInstance();
+    const prisma = await getPrismaClient();
     
     // Find games with the IDs from the screenshot (10117, 10118, etc.)
     const tournamentGames = await prisma.game.findMany({
@@ -549,7 +602,7 @@ router.get('/check-tournament-games', async (req: Request, res: Response) => {
 router.post('/fix-corrupted-games', async (req: Request, res: Response) => {
   try {
     const { getPrismaClient } = await import('../database');
-    const prisma = await DatabaseService.getInstance();
+    const prisma = await getPrismaClient();
     
     // Fix games 10117, 10118, 10120 - they should be LEAGUE games, not tournament games
     const corruptedGameIds = [10117, 10118, 10120];
@@ -655,7 +708,7 @@ router.post('/regenerate-division-7-alpha', async (req: Request, res: Response) 
     console.log('🔥 [ADMIN] Starting Division 7 Alpha schedule regeneration...');
     
     const { getPrismaClient } = await import('../database.js');
-    const prisma = await DatabaseService.getInstance();
+    const prisma = await getPrismaClient();
     
     // Step 1: Get all Division 7 Alpha teams
     const divisionTeams = await prisma.team.findMany({
@@ -814,7 +867,7 @@ router.post('/fix-team-stats/:teamName', async (req: Request, res: Response) => 
     const { getPrismaClient } = await import('../database.js');
     const { TeamStatisticsIntegrityService } = await import('../services/enhancedStatisticsService.js');
     
-    const prisma = await DatabaseService.getInstance();
+    const prisma = await getPrismaClient();
     
     // Find team by name (case-insensitive search)
     const team = await prisma.team.findFirst({
@@ -871,7 +924,7 @@ router.post('/quick-fix-division-7-alpha', async (req: Request, res: Response) =
     console.log('🚀 [QUICK FIX] Starting Division 7 Alpha schedule regeneration...');
     
     const { getPrismaClient } = await import('../database.js');
-    const prisma = await DatabaseService.getInstance();
+    const prisma = await getPrismaClient();
     
     // Step 1: Get all Division 7 Alpha teams
     const divisionTeams = await prisma.team.findMany({
@@ -969,6 +1022,126 @@ router.post('/sync-all-team-statistics', async (req: Request, res: Response) => 
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// TEMPORARY: Schedule reset endpoint for fixing Day 8-14 games
+router.post('/reset-schedule', async (req: Request, res: Response) => {
+  try {
+    logger.info('🔧 [SCHEDULE RESET] Starting schedule reset for Days 8-14...');
+    
+    const { getPrismaClient } = await import('../database.js');
+    const prisma = await getPrismaClient();
+    
+    // Get current season to understand the timing
+    const currentSeason = await prisma.season.findFirst({
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    if (!currentSeason) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'No active season found' 
+      });
+    }
+    
+    logger.info(`📊 [SCHEDULE RESET] Current season: ${currentSeason.seasonNumber}, Day: ${currentSeason.currentDay}`);
+    
+    // Find all games for Days 8-14 that were completed with wrong simulation
+    const gamesToReset = await prisma.game.findMany({
+      where: {
+        gameDay: { gte: 8, lte: 14 },
+        status: 'COMPLETED',
+        scheduleId: { not: null } // Only regular league games
+      },
+      include: {
+        homeTeam: { select: { name: true } },
+        awayTeam: { select: { name: true } }
+      }
+    });
+    
+    logger.info(`🎯 [SCHEDULE RESET] Found ${gamesToReset.length} games to reset (Days 8-14)`);
+    
+    if (gamesToReset.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No games need resetting - schedule is already correct',
+        gamesReset: 0
+      });
+    }
+    
+    // Calculate proper future dates for each day
+    const seasonStart = new Date(currentSeason.startDate);
+    const resetResults = [];
+    
+    for (const game of gamesToReset) {
+      try {
+        // Calculate when this game day should occur (3AM EDT boundaries)
+        const gameDayDate = new Date(seasonStart);
+        gameDayDate.setDate(seasonStart.getDate() + (game.gameDay - 1));
+        
+        if (game.gameDay === 8) {
+          // For Day 8: Set to past time so it gets simulated correctly by smart progression
+          gameDayDate.setHours(15, 0, 0, 0); // 3 PM that day (in the past)
+        } else {
+          // For Days 9-14: Set to future times for proper scheduling
+          gameDayDate.setHours(19, 0, 0, 0); // 7 PM EDT that day
+        }
+        
+        // Reset the game to SCHEDULED status
+        await prisma.game.update({
+          where: { id: game.id },
+          data: {
+            status: 'SCHEDULED',
+            homeScore: null,
+            awayScore: null,
+            gameDate: gameDayDate
+          }
+        });
+        
+        logger.info(`✅ [SCHEDULE RESET] Day ${game.gameDay}: ${game.homeTeam.name} vs ${game.awayTeam.name} → SCHEDULED`);
+        
+        resetResults.push({
+          gameId: game.id,
+          gameDay: game.gameDay,
+          teams: `${game.homeTeam.name} vs ${game.awayTeam.name}`,
+          newDate: gameDayDate
+        });
+        
+      } catch (gameError) {
+        logger.error(`❌ [SCHEDULE RESET] Failed to reset game ${game.id}:`, gameError);
+      }
+    }
+    
+    // Summary by day
+    const gamesByDay = resetResults.reduce((acc: Record<number, number>, game) => {
+      if (!acc[game.gameDay]) acc[game.gameDay] = 0;
+      acc[game.gameDay]++;
+      return acc;
+    }, {});
+    
+    logger.info(`🏆 [SCHEDULE RESET] Successfully reset ${resetResults.length} games`);
+    logger.info('📅 [SCHEDULE RESET] Games by day:', gamesByDay);
+    
+    res.json({
+      success: true,
+      message: 'Schedule reset complete! Normal progression can now continue.',
+      gamesReset: resetResults.length,
+      gamesByDay,
+      details: {
+        day8Fix: 'Day 8 games will be re-simulated with proper scoring (15-30 points)',
+        futureGamesFix: 'Days 9-14 games are now scheduled for future dates',
+        nextSteps: 'Normal progression testing can now continue'
+      }
+    });
+    
+  } catch (error) {
+    logger.error('❌ [SCHEDULE RESET] Failed to reset schedule:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
     });
   }
 });

@@ -4,80 +4,16 @@ import { getPrismaClient } from "../database.js";
 import { Race, PlayerRole, SeasonPhase } from "../db";
 import { generateRandomName } from "../../shared/names.js";
 import { generatePotential } from "../../shared/potentialSystem.js";
+import { PlayerGenerationService } from "../services/playerGenerationService.js";
 
 const router = Router();
 
 // Generate a random player for tryouts
 function generateRandomPlayer(tryoutType: 'basic' | 'advanced' = 'basic') {
-  const races: Race[] = [Race.HUMAN, Race.SYLVAN, Race.GRYLL, Race.LUMINA, Race.UMBRA];
-  const roles: PlayerRole[] = [PlayerRole.PASSER, PlayerRole.RUNNER, PlayerRole.BLOCKER];
-  
-  const race = races[Math.floor(Math.random() * races.length)];
-  const role = roles[Math.floor(Math.random() * roles.length)];
-  
-  // Use race-specific naming system
-  const { firstName, lastName } = generateRandomName(race.toLowerCase());
-  
-  // Generate random age for tryout player (18-25 typical range)
-  const age = Math.floor(Math.random() * 8) + 18;
-  
-  // Base stats (6-20 range to match new weaker player balance)
-  const baseStats = {
-    speed: Math.floor(Math.random() * 14) + 6,
-    power: Math.floor(Math.random() * 14) + 6,
-    throwing: Math.floor(Math.random() * 14) + 6,
-    catching: Math.floor(Math.random() * 14) + 6,
-    kicking: Math.floor(Math.random() * 14) + 6,
-    staminaAttribute: Math.floor(Math.random() * 14) + 6,
-    leadership: Math.floor(Math.random() * 14) + 6,
-    agility: Math.floor(Math.random() * 14) + 6,
-  };
-  
-  // Apply racial modifiers
-  const racialModifiers = {
-    [Race.HUMAN]: { speed: 1, power: 1, throwing: 1, catching: 1, kicking: 1, staminaAttribute: 1, leadership: 1, agility: 1 },
-    [Race.SYLVAN]: { speed: 3, power: -2, throwing: 0, catching: 0, kicking: 0, staminaAttribute: 0, leadership: 0, agility: 4 },
-    [Race.GRYLL]: { speed: -3, power: 5, throwing: 0, catching: 0, kicking: 0, staminaAttribute: 3, leadership: 0, agility: -2 },
-    [Race.LUMINA]: { speed: 0, power: 0, throwing: 4, catching: 0, kicking: 0, staminaAttribute: -1, leadership: 3, agility: 0 },
-    [Race.UMBRA]: { speed: 2, power: -3, throwing: 0, catching: 0, kicking: 0, staminaAttribute: 0, leadership: -1, agility: 3 },
-  };
-  
-  const modifiers = racialModifiers[race];
-  const finalStats = {
-    speed: Math.min(40, Math.max(1, baseStats.speed + modifiers.speed)),
-    power: Math.min(40, Math.max(1, baseStats.power + modifiers.power)),
-    throwing: Math.min(40, Math.max(1, baseStats.throwing + modifiers.throwing)),
-    catching: Math.min(40, Math.max(1, baseStats.catching + modifiers.catching)),
-    kicking: Math.min(40, Math.max(1, baseStats.kicking + modifiers.kicking)),
-    staminaAttribute: Math.min(40, Math.max(1, baseStats.staminaAttribute + modifiers.staminaAttribute)),
-    leadership: Math.min(40, Math.max(1, baseStats.leadership + modifiers.leadership)),
-    agility: Math.min(40, Math.max(1, baseStats.agility + modifiers.agility)),
-  };
-  
-  // Generate potential using unified system based on tryout type
-  const potentialType = tryoutType === 'advanced' ? 'advanced_tryout' : 'basic_tryout';
-  const potentialRating = generatePotential({
-    type: potentialType,
-    ageModifier: age
+  // Use the comprehensive TAP system instead of simple random generation
+  return PlayerGenerationService.generatePlayer({
+    type: tryoutType === 'advanced' ? 'advanced_tryout' : 'basic_tryout'
   });
-  
-  // Calculate market value based on stats and potential
-  const avgStat = Object.values(finalStats).reduce((a, b) => a + b, 0) / 8;
-  const marketValue = Math.floor(500 + (avgStat * 25) + (potentialRating * 500) + (Math.random() * 300));
-  
-  return {
-    id: Math.random().toString(36).substr(2, 9),
-    name: `${firstName} ${lastName}`,
-    firstName,
-    lastName,
-    race,
-    age: Math.floor(Math.random() * 5) + 16, // 16-20 years old
-    role,
-    ...finalStats,
-    potentialRating,
-    marketValue,
-    potential: potentialRating >= 4.0 ? "High" : potentialRating >= 2.5 ? "Medium" : "Low",
-  };
 }
 
 // Get tryout candidates

@@ -1,0 +1,12 @@
+https://cognition.ai/blog/dont-build-multi-agents
+https://thenewstack.io/context-engineering-going-beyond-prompt-engineering-and-rag/
+https://www.arionresearch.com/blog/common-ethical-dilemmas-in-agentic-ai-real-world-scenarios-and-practical-responses
+https://www.anthropic.com/engineering/claude-code-best-practices
+https://github.com/coleam00/context-engineering-intro/tree/main/use-cases/agent-factory-with-subagents
+https://github.com/coleam00/context-engineering-intro/tree/main/claude-code-full-guide
+https://github.com/OneRedOak/claude-code-workflows/blob/main/design-review/README.md
+https://www.databricks.com/blog/leveraging-agentic-ai-games
+https://www.callstack.com/blog/giving-ai-the-keys-to-your-app-agents-controlling-ui-state
+https://github.com/github/spec-kit
+https://github.com/coleam00/context-engineering-intro
+Research any other sources, MCPs, GitHubs, etc

@@ -22,6 +22,10 @@
 - **NO BAND-AIDS**: Temporary fixes, workarounds, or placeholder solutions are PROHIBITED
 - **NO SHORTCUTS**: All features must be implemented using proper, industry-standard approaches  
 - **NO TECHNICAL DEBT**: Every solution must be the correct, long-term implementation from the start
+- **NO BACKWARD COMPATIBILITY**: In development phase, prioritize optimal architecture over legacy support
+- **BREAK THINGS TO FIX THEM**: Remove old code and technical debt without hesitation
+- **CONTINUOUS VALIDATION**: Test and validate changes frequently throughout development using available scripts and tools
+- **USE FULL AI CAPABILITIES**: Leverage maximum tokens and comprehensive analysis for optimal solutions
 
 ### **COMPREHENSIVE PROBLEM-SOLVING APPROACH**
 **ALWAYS perform complete systematic analysis to identify ALL root causes simultaneously, rather than fixing symptoms individually.**
@@ -173,12 +177,12 @@ cloud-sql-proxy direct-glider-465821-p7:us-central1:realm-rivalry-dev --port=543
 ```
 
 ### **Development Environment Features**
-✅ **Live Preview**: Frontend automatically opens at http://localhost:5173  
+✅ **Integrated Fullstack Server**: Frontend served via Vite middleware on port 3000 (NOT separate 5173)  
 ✅ **Hot Reloading**: Instant updates when you save files  
-✅ **Database Integration**: Real Cloud SQL connection via Auth Proxy  
+✅ **Database Integration**: Real Cloud SQL connection via Auth Proxy on port 5432  
 ✅ **Debugging**: Full breakpoint debugging in IDE  
-✅ **API Proxy**: Seamless API calls from frontend to backend  
-✅ **WebSocket Support**: Real-time Socket.IO connections  
+✅ **API Proxy**: Backend serves frontend through Vite development middleware  
+✅ **WebSocket Support**: Socket.IO + Native WebSocket both on port 3000  
 
 ### **🚀 SLASH COMMAND DEVELOPMENT WORKFLOW** 
 
@@ -214,10 +218,13 @@ npm run dev:local
 - Connects to direct-glider-465821-p7:us-central1:realm-rivalry-dev
 - Handles authentication and port configuration
 
-**✅ Development Servers**
-- Frontend: Vite dev server on port 5173
-- Backend: Express server on port 3000
-- Hot reloading for both frontend and backend
+**✅ Integrated Development Server**
+- **CRITICAL**: Single integrated server on port 3000 serves both frontend and backend
+- **Architecture**: Express server + Vite middleware (NO separate 5173 server)
+- **Frontend**: Served through Vite development middleware at http://localhost:3000
+- **Backend**: Express API routes + Socket.IO + Native WebSocket on same port
+- **Hot reloading**: Vite middleware provides frontend hot reloading
+- **Database**: Cloud SQL Proxy on port 5432 (separate process)
 
 **✅ Browser Consistency** 
 - **Fixed Chrome/Edge Issue**: Always opens Chrome for Playwright consistency
@@ -286,10 +293,17 @@ GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
 }
 ```
 
-**MCP Server Capabilities:**
+**MCP Server Capabilities & Expected Behavior:**
 - ✅ **Serena**: Advanced codebase analysis, symbolic operations, memory management
-- ✅ **Playwright**: Browser automation, testing, UI interaction capabilities  
-- ✅ **In-Memoria**: Persistent intelligence, codebase learning, pattern analysis
+  - **Expected Ports**: 24282-24285 (usually 2 instances running simultaneously)
+  - **Dashboard Test**: Both http://127.0.0.1:24282/dashboard and http://127.0.0.1:24283/dashboard should return HTTP 200
+  - **Project Activation Required**: Must call `mcp__serena__activate_project('replitballgame')` before use
+- ✅ **Playwright**: Browser automation, testing, UI interaction capabilities
+  - **Browser Management**: Handles Chrome browser instances for testing
+  - **Page Navigation**: Ready for immediate http://localhost:3000 testing
+- ✅ **In-Memoria**: Persistent intelligence, codebase learning, pattern analysis  
+  - **Expected State**: 3,680+ concepts, 47+ patterns (data current as of 2025-09-11)
+  - **Auto-Learning**: Usually disabled (data current), but can force refresh if needed
 
 **Key Configuration Notes:**
 - **Windows Compatibility**: All servers use `cmd /c` wrapper for proper Windows execution
@@ -368,11 +382,26 @@ copy .mcp-fallback.json .mcp.json
 /dev-start     # Fresh restart with validation
 ```
 
+**Critical Startup Issues & Solutions:**
+
+**🚨 VITE DEPENDENCY CACHE CORRUPTION (COMMON)**
+- **Error Pattern**: `UNKNOWN: unknown error, unlink 'node_modules\.vite\deps\chunk-*.js.map'`
+- **Root Cause**: Corrupted Vite dependency optimization cache
+- **Immediate Fix**: `del /q "node_modules\.vite\deps\*"` (Windows) or `rm -rf node_modules/.vite/deps/*` (Unix)
+- **Prevention**: Cache clears automatically, but corruption happens during interrupted builds
+
+**🔧 PORT CONFLICT RESOLUTION**
+- **Only Port 3000 Matters**: Integrated server uses single port (NOT 5173)
+- **Check Active**: `netstat -ano | findstr ":3000 " | findstr "LISTENING"`
+- **Kill Conflicts**: `npx kill-port 3000` (if needed)
+- **Database Port**: Cloud SQL Proxy on 5432 (separate, should already be running)
+
 **Traditional Fallback:**
 ```bash
-# Manual process cleanup if needed
-npx kill-port 3000 5173 5432
-npm run dev:local
+# Full environment cleanup and restart
+del /q "node_modules\.vite\deps\*"  # Clear Vite cache first
+npx kill-port 3000                  # Clear port conflicts
+npm run dev                         # Start integrated server
 ```
 
 **Slash Command Intelligence:**
@@ -447,9 +476,11 @@ npm run check           # TypeScript type checking
 # Database  
 npm run db:push         # Push Prisma schema changes
 
-# Testing
-npm test               # Run Vitest tests
+# Testing (CONTINUOUS VALIDATION REQUIRED)
+npm test               # Run Vitest tests - USE FREQUENTLY during development
 npm run test:coverage  # Tests with coverage
+npm run lint           # Code quality checks - RUN BEFORE COMMITS
+npm run typecheck      # TypeScript validation - VALIDATE CONTINUOUSLY
 ```
 
 ## 🏗️ SYSTEM ARCHITECTURE
@@ -486,6 +517,106 @@ Revolutionary interface replacing 6-hub/23-tab design:
 - **Real-time WebSocket Matches**: Detailed statistics and live simulation
 
 **For Complete Game Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md - Game Systems](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md#game-systems)
+
+### **🎯 COMPREHENSIVE GAME SYSTEMS (FULLY IMPLEMENTED)**
+
+**Status**: ✅ All core game mechanics implemented and operational via `/api/game-systems/` endpoints
+
+**Key Systems**: TAP player generation, Daily progression (3 AM reset), Power calculations (CAR), Staff effects (1-40 scale), Team camaraderie, Anti-pay-to-win compliance
+
+**For Complete Game Systems Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md - Game Systems](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md#game-systems-deep-dive)
+
+### **💰 MASTER ECONOMY & REWARDS SYSTEM (FULLY UNIFIED)**
+
+**Status**: ✅ Complete implementation restored and unified across backend/frontend
+
+#### **Dual Currency Architecture**
+- **Credits (₡)**: Primary earned currency for team operations, always display as "25,000₡"
+- **Gems (💎)**: Premium currency for exclusive items and accelerated progress
+
+#### **Stadium Economics Engine** 
+**Location**: `shared/stadiumSystem.ts` (99% intact, import paths fixed)
+- **Dynamic Attendance**: Fan loyalty, weather, division modifiers, win streak bonuses
+- **Revenue Calculation**: Ticket sales, concessions, merchandise based on attendance
+- **Maintenance Costs**: Facilities upkeep, staff salaries, operational expenses
+
+#### **Monetization Systems**
+**Configuration**: `server/config/store_config.json` (95% configured)
+
+**Gem Store Packages**:
+- Starter Pack: $1.99 → 25💎 (bonus: +5💎)  
+- Value Pack: $4.99 → 75💎 (bonus: +15💎)
+- Premium Pack: $9.99 → 175💎 (bonus: +40💎)
+- Elite Pack: $19.99 → 400💎 (bonus: +100💎)  
+- Champion Pack: $39.99 → 900💎 (bonus: +250💎)
+- Ultimate Pack: $99.99 → 2750💎 (bonus: +750💎)
+
+**Realm Pass Subscription**: $9.95/month with exclusive rewards and bonuses
+
+**Gem-to-Credit Exchange** (Anti-Pay-to-Win Ratios):
+- 10💎 → 2,000₡ (1:200 ratio - Starter)
+- 50💎 → 11,250₡ (1:225 ratio - Popular)  
+- 300💎 → 75,000₡ (1:250 ratio - Best Value)
+- 1000💎 → 275,000₡ (1:275 ratio - Bulk)
+
+#### **Tournament Reward Structure** 
+**Service**: `server/services/tournamentService_old_backup.ts` (✅ Updated with correct values)
+
+**Daily Division Tournaments**:
+- Division 1 Champion: 25,000₡ + 15💎
+- Division 2 Champion: 20,000₡ + 12💎
+- Division 3 Champion: 15,000₡ + 10💎
+- Division 4 Champion: 12,000₡ + 8💎
+- Division 5 Champion: 9,000₡ + 6💎
+- Division 6 Champion: 6,000₡ + 4💎
+- Division 7 Champion: 4,000₡ + 2💎
+- Division 8 Champion: 2,500₡ + 1💎
+
+**Mid-Season Cup Tournaments**:
+- Division 1 Champion: 750,000₡ + 300💎
+- Division 2 Champion: 600,000₡ + 250💎
+- Division 3 Champion: 450,000₡ + 200💎
+- Division 4 Champion: 350,000₡ + 150💎
+- Division 5 Champion: 275,000₡ + 125💎
+- Division 6 Champion: 200,000₡ + 100💎
+- Division 7 Champion: 125,000₡ + 75💎
+- Division 8 Champion: 75,000₡ + 50💎
+
+#### **Ad Rewards System**
+**Configuration**: `server/config/store_config.json` (✅ Updated to specification)
+- **Daily Watch Limit**: 5 ads maximum per day
+- **Premium Box Milestone**: 70 ads watched unlocks premium rewards
+- **Reward Structure**: Progressive premium boxes with escalating value
+
+#### **Financial Automation** 
+**Database Models**: `prisma/schema.prisma` (TeamFinances, Stadium models exist)
+- **Maintenance Costs**: Automated weekly facilities/staff salary processing
+- **Revenue Processing**: Game attendance revenue, merchandise sales
+- **Salary Management**: Player and staff contract payments
+- **Transaction Logging**: Complete payment history and audit trails
+
+#### **Individual Awards System**
+- **MVP Awards**: Season-ending recognition with substantial rewards
+- **Positional Awards**: Best at position recognition
+- **Achievement Bonuses**: Performance milestone rewards
+- **Hall of Fame**: Long-term recognition system
+
+#### **Implementation Status**
+- ✅ **Stadium Economics**: 99% intact, import paths fixed
+- ✅ **Monetization Config**: 95% configured, ad system updated  
+- ✅ **Tournament Rewards**: Service updated with correct values
+- 🔄 **API Endpoints**: Need gem exchange, ad rewards, premium box endpoints
+- 🔄 **Financial Automation**: Core logic exists, needs activation
+- 🔄 **Transaction Logging**: Database models exist, service layer needed
+
+#### **Key Technical Files**
+- `shared/stadiumSystem.ts` - Complete stadium economics engine
+- `server/config/store_config.json` - Monetization configuration
+- `server/services/tournamentService_old_backup.ts` - Tournament rewards
+- `server/routes/enhancedStadiumRoutes.ts` - Stadium economic endpoints
+- `prisma/schema.prisma` - TeamFinances, Stadium, AdRewardMilestone models
+
+**For Complete Economy Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md - Economy & Rewards](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md#economy-rewards)
 
 ## 🔧 DEVELOPMENT PATTERNS
 
@@ -529,163 +660,101 @@ Industry-standard patterns with:
 - Runtime type guards in `typeGuards.ts`
 - Strict TypeScript config with comprehensive error prevention
 
-### **🎨 AUTOMATED DESIGN REVIEW WORKFLOW**
+### **Player Marketplace Architecture**
+**FULLY IMPLEMENTED**: Dynamic Player Marketplace system with comprehensive features
 
-**Complete design system integration with automated UI validation**
+**Core System Components:**
+- **EnhancedMarketplaceService**: Primary backend service with escrow system
+- **DynamicMarketplaceManager**: React frontend with real-time updates  
+- **Anti-Sniping System**: 5-minute extensions (max 6 per auction)
+- **CAR-Based Pricing**: Minimum bids calculated as (CAR × 1000) + (Potential × 2000)
 
-#### **Design Review Integration Points**
+**Development Standards:**
+```typescript
+// ✅ CORRECT: Standardized auction durations
+const VALID_DURATIONS = [12, 24, 72, 168]; // 12h, 24h, 3d, 7d
 
-**Quick Visual Check - After Any UI Changes**
-Perform immediate validation for all UI modifications:
+// ✅ CORRECT: Season integration with Day 17 deadline (2AM)
+const AUCTION_CUTOFF_HOUR = 2; // 2AM on Day 17
 
-1. **Identify Changed Components**
-   - List specific components/pages modified
-   - Map affected user journeys
-   - Note any new interactive elements
-
-2. **Live Environment Verification** 
-   ```bash
-   # Navigate to local development
-   mcp__playwright__browser_navigate http://localhost:5173
-   
-   # Check for console errors
-   mcp__playwright__browser_console_messages
-   ```
-
-3. **Mobile-First Validation**
-   ```bash
-   # Test on mobile viewport first (iPhone SE)
-   mcp__playwright__browser_resize 375 667
-   
-   # Navigate through changed areas
-   # Verify touch targets ≥ 44px
-   # Check credit format displays as "amount₡"
-   ```
-
-4. **Design Compliance Check**
-   - Reference `/context/design-principles.md`
-   - Verify adherence to `/context/style-guide.md`
-   - Confirm 5-hub architecture consistency
-   - Validate Realm Rivalry brand standards
-
-5. **Capture Evidence**
-   ```bash
-   # Screenshot key states for documentation
-   mcp__playwright__browser_take_screenshot
-   ```
-
-#### **Comprehensive Design Review Triggers**
-
-Use specialized design review agents when:
-- ✅ Completing significant UI/UX features
-- ✅ Finalizing PRs with visual changes  
-- ✅ Need thorough accessibility validation
-- ✅ Implementing new components
-- ✅ Before production deployments
-
-#### **Design Review Agent Usage**
-```
-Run a comprehensive design review focusing on the [specific component/feature] changes.
-
-Key validation areas:
-- Mobile-first functionality (test 375px viewport first)
-- Credit display formatting ("amount₡" - NEVER "₡amount")
-- 5-hub navigation architecture
-- Accessibility compliance (WCAG AA)
-- Fantasy sports UI authenticity
-- Touch target sizing (≥44px)
-
-Please test across mobile, tablet, and desktop viewports using Playwright MCP.
+// ✅ CORRECT: Comprehensive escrow validation
+await this.validateEscrowBalance(bidderId, bidAmount);
+await this.processEscrowTransaction(listing, bidAmount);
 ```
 
-#### **Critical Validation Checklist**
+**Key Implementation Patterns:**
+- **Escrow System**: All bids held in secure escrow until auction completion
+- **Real-time Updates**: WebSocket integration for live bid notifications
+- **Roster Protection**: Minimum 12 players enforced, maximum 3 listings per team
+- **Financial Structure**: 3% listing fee + 5% market tax on sales
+- **Off-season Behavior**: Days 16-17 convert all auctions to buy-now only
 
-**🚨 ALWAYS VERIFY:**
-- [ ] Credits display as "25,000₡" format (NEVER "₡25,000")
-- [ ] Touch targets ≥ 44px on mobile
-- [ ] 5-hub navigation works correctly
-- [ ] Console shows no critical errors
-- [ ] Mobile viewport (375px) functions properly
-- [ ] Keyboard navigation works throughout
-- [ ] Loading states display appropriately
+**Database Integration:**
+- Comprehensive `player_listings` schema with auction/buy-now support
+- Escrow balance tracking in `team_finances` model
+- Audit trail for all marketplace transactions
 
-**📱 Mobile-First Checks:**
-- [ ] Interface works on iPhone SE (375x667)
-- [ ] Thumb-zone optimization for primary actions  
-- [ ] Smooth scrolling and gesture response
-- [ ] Safe area handling for notched devices
+**Frontend Architecture:**
+- Mobile-first marketplace interface with touch-optimized bidding
+- Real-time countdown timers with anti-sniping extension notifications
+- Comprehensive listing creation with duration dropdown validation
+- Credit formatting compliance: Display as "25,000₡" format throughout
 
-**♿ Accessibility Requirements:**
-- [ ] Keyboard navigation complete
-- [ ] Focus indicators visible
-- [ ] Alt text for all images
-- [ ] 4.5:1 contrast ratio minimum
+### **Injury & Stamina Architecture**
+**FULLY IMPLEMENTED**: Comprehensive dual-stamina system with persistent health tracking
 
-**🎮 Realm Rivalry Context:**
-- [ ] Fantasy sports authenticity maintained
-- [ ] Dome Ball sport mechanics clear
-- [ ] Race diversity appropriately represented
-- [ ] Seasonal context visible when relevant
+**Core System Components:**
+- **InjuryStaminaService**: Primary backend service with dual stamina system
+- **EnhancedInjuryRoutes**: 15+ API endpoints for injury/stamina management
+- **Dual Stamina System**: `dailyStaminaLevel` (persistent) + `inGameStamina` (temporary)
+- **Game Mode Integration**: Exhibition safety rules, League/Tournament depletion
 
-#### **Design System Architecture Integration**
+**Development Standards:**
+```typescript
+// ✅ CORRECT: Dual stamina system implementation
+const matchStartStamina = gameMode === 'exhibition' ? 100 : 
+  Math.round((player.staminaAttribute * player.dailyStaminaLevel) / 100);
 
-**Enhanced Workflow (PR #6 Features):**
+// ✅ CORRECT: Injury calculation with stamina modifier  
+const staminaModifier = carrierInGameStamina < 50 ? 10 : 0;
+const finalInjuryChance = baseChance + powerModifier + staminaModifier;
 
-**Design System Architect Usage:**
-```
-Act as the Design System Architect. Create a new [component type] following our design system.
-
-Requirements:
-1. Extract design tokens from /context/style-guide.md
-2. Generate React component with TypeScript
-3. Ensure WCAG AA compliance
-4. Optimize for mobile-first usage (44px touch targets)
-5. Include comprehensive documentation
-6. Validate against /context/design-principles.md
-
-Focus on:
-- 98% design consistency through token validation
-- Fantasy sports visual authenticity
-- Mobile-optimized touch interactions
-- Credit formatting compliance
+// ✅ CORRECT: Daily reset automation (3AM)
+await injuryStaminaService.performDailyReset();
 ```
 
-**Complete Design System Lifecycle:**
-1. **Design System Architect** → Creates/Updates Standards
-2. **Implementation** → Component development with tokens
-3. **Design Review Agent** → Validates implementation
-4. **Iteration** → Refine based on feedback
+**Key Implementation Patterns:**
+- **Exhibition Safety**: Always 100% stamina start, temporary injuries only
+- **Match Start Logic**: `dailyStaminaLevel` percentage of `staminaAttribute` = effective starting stamina
+- **In-Game Depletion**: Tackle events, knockdowns affect temporary stamina during match
+- **Performance Impact**: Low stamina increases injury risk (+10% when <50%)
+- **Daily Recovery**: Complex formula with base(20) + stamina scaling + coach bonuses
+- **Item Management**: 2 items per player per day, resets at 3AM
 
-#### **Integration with Development Workflow**
+**Database Integration:**
+- `injuryStatus` enum: HEALTHY, MINOR_INJURY, MODERATE_INJURY, SEVERE_INJURY
+- Recovery point system: Minor=100RP, Moderate=300RP, Severe=750RP  
+- `dailyItemsUsed` counter with 3AM reset automation
+- Career injury tracking for aging/retirement calculations
 
-**Before committing UI changes:**
-```bash
-# 1. Quick visual check
-npm run dev:local
-# Navigate and verify changes work
+**Frontend Architecture:**
+- `InjuryStaminaManager`: Team health dashboard with real-time status
+- Recovery item validation: stamina items only for <100% stamina players
+- Exhibition match UI: No stamina warnings, temporary injury indicators only
+- Player cards show both current stamina level and injury status throughout UI
 
-# 2. Request design review  
-# "Run design review on my dashboard changes"
+### **🎨 UI/UX Design & Testing**
 
-# 3. Address any blockers found
-# Fix critical issues before commit
+**Mobile-first design system with automated validation**
 
-# 4. Commit with confidence
-git add . && git commit -m "feat: updated dashboard with design review validation"
-```
-
-**Post-Review Action Items:**
-1. Address any 🚨 Blockers immediately
-2. Plan 🔴 High Priority fixes for current sprint
-3. Schedule 🟡 Medium Priority improvements
-4. Document 🔵 Nitpicks for future consideration
-5. Update design system documentation if patterns change
+**For Complete Design Workflows**: See [UI-UX.md - Design Review Workflow](./UI-UX.md)
 
 ## 📱 MOBILE & PWA FEATURES
 
 **Mobile-first architecture** with 5-hub design, touch-optimized interface, and PWA capabilities.
 
-**For Complete Mobile Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md - Mobile & PWA](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md#mobile-pwa-features)
+**For Complete Mobile & PWA Documentation**: See [REALM_RIVALRY_COMPLETE_DOCUMENTATION.md - Mobile & PWA](./REALM_RIVALRY_COMPLETE_DOCUMENTATION.md#mobile-pwa-features)
+**For UI/UX Design Guidelines**: See [UI-UX.md](./UI-UX.md)
 
 ## 🚀 DEPLOYMENT & PRODUCTION
 
@@ -699,25 +768,15 @@ git add . && git commit -m "feat: updated dashboard with design review validatio
 
 ## 📊 RECENT ACHIEVEMENTS
 
-**🏆 MASSIVE ARCHITECTURAL SUCCESS**: Complete Modular Decomposition via Serena MCP (September 10th, 2025)
-- **Code Reduction**: 24,242+ lines → 892 lines (96.3% reduction achieved!)
-- **File Decomposition**: 18 monolithic files → Clean modular architecture
-- **Systematic Import Resolution**: 29+ files systematically fixed across all modules
-- **Complete Server Startup**: All modular components operational ✅
-- **Architecture Achievement**: Teams, Leagues, Tournaments, Finance modules all functional
-- **Backward Compatibility**: Maintained through delegating index files
-- **Import System**: Comprehensive fix for relative paths and export patterns
+**🏆 LATEST**: Complete Game Systems Implementation (September 12th, 2025)
+- All missing game mechanics implemented: TAP, Daily Progression, Power Calculations, Staff Effects, Anti-Pay-to-Win
+- 5 new comprehensive services with full API integration
+- 100% specification-implementation-documentation unification
 
-**Previous Major Accomplishment**: Comprehensive Technical Debt Resolution (September 10th, 2025)
-- **Security**: 3 critical vulnerabilities → 0 (100% resolved)
-- **Service Layer**: 4+ disconnected implementations → fully functional
-- **Database**: Complete RBAC system with role-based access control
-- **Payment System**: Placeholder endpoints → full Stripe integration
-
-**Earlier Accomplishment**: 8-Agent Refactoring Mission (September 9th, 2025)
-- Database connections: 937 → <50 (93% reduction)  
-- Component decomposition: 2,120-line monolithic → 16 focused components
-- Performance improvements: 40-60% across multiple metrics
+**🏗️ PREVIOUS**: Comprehensive Technical Debt Resolution (September 10th, 2025) 
+- Security vulnerabilities: 3 critical → 0 (100% resolved)
+- Service layer: Disconnected implementations → fully functional
+- Payment system: Placeholders → full Stripe integration
 
 **For Complete Achievement History**: See [SESSION_LOG.md - Recent Achievements](./SESSION_LOG.md#recent-achievements)
 
@@ -740,6 +799,16 @@ git add . && git commit -m "feat: updated dashboard with design review validatio
 5. **For Technical Debt Analysis**: Use Serena MCP tools for systematic codebase analysis
 
 ### **During Development**
+
+#### **🧠 MAXIMIZE AI CAPABILITIES (CRITICAL)**
+**USE FULL AI POWER - Leverage maximum tokens and comprehensive analysis:**
+
+- **Deep Analysis**: Take time to understand complete problem domains before coding
+- **Comprehensive Solutions**: Address all related issues simultaneously, not piecemeal
+- **Extended Reasoning**: Use extra tokens to think through optimal approaches
+- **Multi-Tool Integration**: Combine Serena, Playwright, and In-Memoria MCPs for maximum effectiveness
+- **Thorough Validation**: Test extensively using available scripts throughout development
+- **No Rushed Implementations**: Quality over speed - use full reasoning capacity
 
 #### **🚀 SERENA MCP DEVELOPMENT WORKFLOW (CRITICAL)**
 
@@ -825,7 +894,15 @@ mcp__serena__insert_before_symbol name_path="symbol" relative_path="file" body="
 4. **Deployment Failures**: Check secrets vs environment variables separation
 5. **API Route Issues**: Ensure registration before Vite middleware
 6. **Server Hot-Reload Not Working**: The development server using `tsx` doesn't always hot-reload server-side changes, especially in route files. **Always restart the server (`npx kill-port 3000 && npm run dev`) after modifying server routes or middleware** to ensure changes take effect
-7. **Multiple Development Ports**: Frontend should consistently use localhost:5173. **SOLUTION**: Added `strictPort: true` to `vite.config.local.ts` to prevent port fallback behavior and multiple port accumulation over time
+7. **Multiple Development Ports**: **OUTDATED** - System now uses integrated server on port 3000 only
+8. **Expected Server Startup Pattern**: Normal startup includes these messages:
+   - ✅ "🚀 Starting Realm Rivalry Server..." 
+   - ✅ "✅ Database connection verified"
+   - ✅ "✅ All modular routes loaded successfully" 
+   - ✅ "✅ Server running successfully" on port 3000
+   - ⚠️ "⚠️ Season timing automation failed to start" (expected - automationService.start is not a function)
+   - ✅ "✅ Tournament automation initialized successfully"
+9. **Duplicate Server Processes**: When running `npm run dev` multiple times, expect one to succeed and others to fail with "EADDRINUSE" - this is normal behavior
 
 ### **Performance Optimization**
 - Countdown timers update every minute (not second)

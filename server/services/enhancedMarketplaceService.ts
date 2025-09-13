@@ -91,7 +91,34 @@ export class EnhancedMarketplaceService {
    * SEASON VALIDATION SYSTEM
    * Prevents auctions from ending after Day 17 3AM reset
    */
+  /**
+   * DURATION OPTIONS VALIDATION
+   * Standardized auction durations: 12h, 24h, 3d, 7d
+   */
+  static validateDurationOption(durationHours: number): { isValid: boolean; message?: string } {
+    const validDurations = [12, 24, 72, 168]; // 12h, 24h, 3d, 7d
+    
+    if (!validDurations.includes(durationHours)) {
+      return {
+        isValid: false,
+        message: `Invalid duration. Valid options: 12 hours, 24 hours, 3 days (72 hours), 7 days (168 hours)`
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  /**
+   * SEASON VALIDATION SYSTEM
+   * Prevents auctions from ending after Day 17 2AM reset
+   */
   static async validateAuctionDuration(durationHours: number): Promise<{ isValid: boolean; message?: string }> {
+    // First validate duration option
+    const durationCheck = this.validateDurationOption(durationHours);
+    if (!durationCheck.isValid) {
+      return durationCheck;
+    }
+
     const prisma = await DatabaseService.getInstance();
     // Get current season day from database
     const currentSeason = await prisma.season.findFirst({
@@ -105,16 +132,19 @@ export class EnhancedMarketplaceService {
     const currentTime = new Date();
     const auctionEndTime = new Date(currentTime.getTime() + (durationHours * 60 * 60 * 1000));
     
-    // Calculate Day 17 3AM deadline
+    // Calculate Day 17 2AM deadline (corrected from 3AM)
     const seasonStartDate = new Date(currentSeason.startDate);
     const day17Deadline = new Date(seasonStartDate);
     day17Deadline.setDate(day17Deadline.getDate() + 16); // Day 17 is 16 days after Day 1
-    day17Deadline.setHours(3, 0, 0, 0); // 3 AM
+    day17Deadline.setHours(2, 0, 0, 0); // 2 AM (server reset time)
 
     if (auctionEndTime > day17Deadline) {
+      const hoursRemaining = Math.floor((day17Deadline.getTime() - currentTime.getTime()) / (1000 * 60 * 60));
+      const validDurations = [12, 24, 72, 168].filter(duration => duration <= hoursRemaining);
+      
       return {
         isValid: false,
-        message: `Auction would end after Day 17 3AM deadline. Maximum duration: ${Math.floor((day17Deadline.getTime() - currentTime.getTime()) / (1000 * 60 * 60))} hours`
+        message: `Auction would end after Day 17 2AM deadline. Valid durations: ${validDurations.map(h => h === 168 ? '7 days' : h === 72 ? '3 days' : `${h} hours`).join(', ')}`
       };
     }
 

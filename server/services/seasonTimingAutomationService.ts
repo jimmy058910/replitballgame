@@ -101,7 +101,12 @@ export class SeasonTimingAutomationService {
   }
 
   // Delegate methods to specialized services
-  async checkAndExecuteSmartMissedProgressions() {
+  async checkAndExecuteMissedDailyProgressions(): Promise<{
+    progressionExecuted: boolean;
+    daysAdvanced: number;
+    message: string;
+  }> {
+    // Delegate to the daily progression service for comprehensive catchup
     return await DailyProgressionService.checkAndExecuteSmartMissedProgressions();
   }
 

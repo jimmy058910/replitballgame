@@ -204,15 +204,17 @@ timeout 10 npx in-memoria --help > /dev/null && echo "✅ In Memoria MCP: OK" ||
 ## Daily Workflow Synchronization
 
 ### Starting Development Session
-1. **Computer A**: Run `/dev-start`
-2. **Computer B**: Run `/dev-start`  
+1. **Computer A**: Run `/dev-start` or `/dev-full-start`
+2. **Computer B**: Run `/dev-start` or `/dev-full-start`  
 3. **Verify**: Both show same services running:
-   - ✅ Frontend: http://localhost:5173
-   - ✅ Backend: http://localhost:3000  
+   - ✅ Frontend: http://localhost:5173 (separate Vite dev server)
+   - ✅ Backend: http://localhost:3000 (Express with debugging on 9229)
    - ✅ Database: Cloud SQL Proxy on port 5432
    - ✅ Playwright MCP: Connected
-   - ✅ Serena MCP: Connected  
-   - ✅ In Memoria MCP: Connected
+   - ✅ Serena MCP: Connected (port 24283, project activated)
+   - ✅ In Memoria MCP: Connected (5245+ concepts learned)
+   - ✅ Firebase MCP: Connected (general@realmrivalry.com)
+   - ⚠️ Google Cloud MCP: Available (requires credential setup)
 
 ### Code Synchronization
 - **OneDrive**: Auto-sync for file changes

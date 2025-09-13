@@ -56,20 +56,20 @@
   },
   "creditsPerGem": 1000,
   "gemPackages": [
-    { "id": "pouch_of_gems", "name": "Pouch of Gems", "price": 1.99, "gems": 50, "bonus": 0 },
-    { "id": "sack_of_gems", "name": "Sack of Gems", "price": 4.99, "gems": 125, "bonus": 25 },
-    { "id": "crate_of_gems", "name": "Crate of Gems", "price": 9.99, "gems": 250, "bonus": 75 },
-    { "id": "cart_of_gems", "name": "Cart of Gems", "price": 19.99, "gems": 500, "bonus": 200 },
-    { "id": "chest_of_gems", "name": "Chest of Gems", "price": 49.99, "gems": 1250, "bonus": 750 },
-    { "id": "vault_of_gems", "name": "Vault of Gems", "price": 99.99, "gems": 2500, "bonus": 2000 }
+    { "id": "starter", "name": "Starter Pack", "price": 1.99, "gems": 20, "bonus": 5 },
+    { "id": "value", "name": "Value Pack", "price": 4.99, "gems": 60, "bonus": 15 },
+    { "id": "premium", "name": "Premium Pack", "price": 9.99, "gems": 135, "bonus": 40 },
+    { "id": "elite", "name": "Elite Pack", "price": 19.99, "gems": 300, "bonus": 100 },
+    { "id": "champion", "name": "Champion Pack", "price": 39.99, "gems": 650, "bonus": 250 },
+    { "id": "ultimate", "name": "Ultimate Pack", "price": 99.99, "gems": 2000, "bonus": 750 }
   ],
   "gem_packages": [
-    { "id": "pouch_of_gems", "name": "Pouch of Gems", "price": 1.99, "gems": 50, "bonus": 0 },
-    { "id": "sack_of_gems", "name": "Sack of Gems", "price": 4.99, "gems": 125, "bonus": 25 },
-    { "id": "crate_of_gems", "name": "Crate of Gems", "price": 9.99, "gems": 250, "bonus": 75 },
-    { "id": "cart_of_gems", "name": "Cart of Gems", "price": 19.99, "gems": 500, "bonus": 200 },
-    { "id": "chest_of_gems", "name": "Chest of Gems", "price": 49.99, "gems": 1250, "bonus": 750 },
-    { "id": "vault_of_gems", "name": "Vault of Gems", "price": 99.99, "gems": 2500, "bonus": 2000 }
+    { "id": "starter", "name": "Starter Pack", "price": 1.99, "gems": 20, "bonus": 5 },
+    { "id": "value", "name": "Value Pack", "price": 4.99, "gems": 60, "bonus": 15 },
+    { "id": "premium", "name": "Premium Pack", "price": 9.99, "gems": 135, "bonus": 40 },
+    { "id": "elite", "name": "Elite Pack", "price": 19.99, "gems": 300, "bonus": 100 },
+    { "id": "champion", "name": "Champion Pack", "price": 39.99, "gems": 650, "bonus": 250 },
+    { "id": "ultimate", "name": "Ultimate Pack", "price": 99.99, "gems": 2000, "bonus": 750 }
   ],
   "realmPassSubscription": {
     "price": 9.95,
@@ -87,8 +87,8 @@
     { "gems": 1000, "credits": 275000, "ratio": 275 }
   ],
   "adSystem": {
-    "dailyWatchLimit": 10,
-    "premiumBoxMilestone": 50,
+    "dailyWatchLimit": 5,
+    "premiumBoxMilestone": 70,
     "adRewards": [
       { "chance": 70, "credits": 250 },
       { "chance": 25, "credits": 500 },
@@ -575,40 +575,64 @@
     ],
     "gemPackages": [
       {
-        "id": "gems_starter",
+        "id": "starter",
         "name": "Starter Gem Pack",
-        "description": "Perfect for new managers getting started",
-        "gems": 100,
+        "description": "Perfect for new managers getting started - $1.99",
+        "gems": 20,
+        "bonusGems": 5,
+        "totalGems": 25,
+        "price": 1.99,
+        "rarity": "common"
+      },
+      {
+        "id": "value",
+        "name": "Value Gem Pack",
+        "description": "Great value for regular purchases - $4.99",
+        "gems": 60,
+        "bonusGems": 15,
+        "totalGems": 75,
         "price": 4.99,
-        "rarity": "common",
-        "bonusGems": 0
+        "rarity": "common"
       },
       {
-        "id": "gems_standard",
-        "name": "Standard Gem Pack",
-        "description": "Great value for regular purchases",
-        "gems": 250,
-        "price": 9.99,
-        "rarity": "common",
-        "bonusGems": 25
-      },
-      {
-        "id": "gems_premium",
+        "id": "premium",
         "name": "Premium Gem Pack",
-        "description": "Enhanced value with bonus gems",
-        "gems": 600,
-        "price": 19.99,
-        "rarity": "rare",
-        "bonusGems": 100
+        "description": "Enhanced value with bonus gems - $9.99",
+        "gems": 135,
+        "bonusGems": 40,
+        "totalGems": 175,
+        "price": 9.99,
+        "rarity": "rare"
       },
       {
-        "id": "gems_elite",
+        "id": "elite",
         "name": "Elite Gem Pack",
-        "description": "Maximum value for serious competitors",
-        "gems": 1300,
+        "description": "High-value package for serious competitors - $19.99",
+        "gems": 300,
+        "bonusGems": 100,
+        "totalGems": 400,
+        "price": 19.99,
+        "rarity": "epic"
+      },
+      {
+        "id": "champion",
+        "name": "Champion Gem Pack",
+        "description": "Premium package for champions - $39.99",
+        "gems": 650,
+        "bonusGems": 250,
+        "totalGems": 900,
         "price": 39.99,
-        "rarity": "epic",
-        "bonusGems": 300
+        "rarity": "epic"
+      },
+      {
+        "id": "ultimate",
+        "name": "Ultimate Gem Pack",
+        "description": "Maximum value for ultimate competitors - $99.99",
+        "gems": 2000,
+        "bonusGems": 750,
+        "totalGems": 2750,
+        "price": 99.99,
+        "rarity": "legendary"
       }
     ]
   }

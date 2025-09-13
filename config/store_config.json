@@ -1,0 +1,15 @@
+{
+  "storeSections": {
+    "equipment": [],
+    "consumables": [],
+    "gemPackages": []
+  },
+  "gemExchangeRates": [
+    {
+      "fromCurrency": "credits",
+      "toCurrency": "gems",
+      "rate": 1000,
+      "description": "1000 credits = 1 gem"
+    }
+  ]
+}

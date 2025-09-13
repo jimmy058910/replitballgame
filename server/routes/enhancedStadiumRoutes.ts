@@ -25,7 +25,7 @@ import {
   getAvailableFacilityUpgrades,
   calculateFacilityQuality,
   getAtmosphereDescription
-} from "../../shared/stadiumSystem.js";
+} from "../../shared/stadiumSystem.ts";
 
 const router = Router();
 
