@@ -1,0 +1,14 @@
+{
+    "type": "service_account",
+    "project_id": "direct-glider-465821-p7",
+    "private_key_id": "85992b6a6a4b528d95b41627ae58c861fa8659a8",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDKoJCLZubMnPNV\nlvVshEg+kLiBzSHctZWxNlb0sxi+I7JAuR+hDg/JQecC0X8R3APQLSztaGObKDca\nogadjpbC+TPLLTBsLkjzu0yN29SuOnG0+1PHKo2G9+lwmgel4mgurlGNzmzLP2QW\nvvZvjwfU+j3yLw5L9ZOuxrOK5FhV8vuib6evzsPd68ZRgjiKzuM2AXNrLPX6ItJJ\nKfBeZ78JClo/6Y3JGdKLbBVbUdTzYYFFStLzXVpbMa2aeLYt2mrt4W7gbBBcak0a\n4yNOAZlvNbp3UFevmQmoIyere68w3DuqrQkyXGgHL2KOQpjoQOzL0+7p2DhrjYot\ntCoj8grtAgMBAAECggEALI+ysiGbdNi4b/R+vVJ7I91GYm9nOMdrZ/lcFrzzXk9x\n4meEA/KYeKmIYReLAzW4VfY1aPGZ5DOsKKyE2W4UDEVrRU3HFid4rjdc7t6vT3C1\ndHiINGcQkGPhf/yz3WClCk0WTOIejXU/sPvmrOKO9aDh8iq0kXJsu9Vhg1RT8/ST\nUzpRag6idfX1hrr9n5daT6aI1022GYFZk8G/Xyq0Z5w3Yioeez9MP4+89BtvqPqZ\nftJ9LwBf1n5FBg7zLRxAxtpU4B4MMK1UTM6uViMFxigY7AZJWvAlXD19DyNP2w5s\nix14K7N1+QyXavLn9FA4vDOKuLM0BK6qOPKDX1A34QKBgQDyC2IkDD4RGQ024fAV\ns/bEUuzmvf6hVBva0kJ91xeoxtB8okZWJ8XB5/NtUZ5tApBdvk/faCewCDMkhDoZ\n6JE0O/V8mTJF31IF/ZX2fEJ5ro70UiB40Vjh+UN4S73zSyYZ4qpTer2NY6gngSrr\nV+IlsK2PvJImCezreQTl/H4G4QKBgQDWT2A9CptAyu17C8rO+oveseZfbjfQGGuP\ngXd8h7YMeZ+sZjTj4m4ipJTpPsDp66J7lqWNIeW8CQpCFg3ZdJVJPJjSBNCW+qnO\nn4daJHZnQUOqMKhW4eIHUppEASyAr3czAV5Ta0biaNUYfEgYOJ49nsnVNvbZY7Bi\nrUzhiI1hjQKBgQDOcQkWx95URPKxYcmdKS6KylPGhjxcq1lKrNULcd57FH+UHfAx\n4aBZP5WvItMmFO6/FegYG0Tmbkf4mFLZ8DOQwqchy6RGVjAmbeBvKBKmqEzDdBzA\nD4ZozmpOewObM/heUaaGpwRvSJWOhCvwKLf4/5U5KFPa39JUEJct9coj4QKBgCI5\nduMIqJaGUbqOvYqkVGXx/xpKXbtryvGV+WD3w0jmu2sqv1ONO41ovycokGJK8R3P\nhwys1yVaRDsdjoSlq5mQhc80WaNi0G9g5pqsrAP9VjL9pkSJujD1LhGiJls+qkiI\n9WlY/m710uIgJttHX23zx8O3DWDWHLsFdfumdP2ZAoGBALGX4LGg31Q2bMO8bu6Y\nizI5rFQpHDtB6aOyeszNg3vNn2mMeGsB9YhOUBZafRQhSD+7dUjI89z4ZJcmMiz1\nE8HCJT97+ychcHYbG/iZwPbz3bkZlTlHRdVy2JVDdX63/2v1BOQLerC8bG9Ufd90\nbm/47zIrezIW6rz7oEjLPQrb\n-----END PRIVATE KEY-----\n",
+    "client_email": "realm-rivalry-dev@direct-glider-465821-p7.iam.gserviceaccount.com",
+    "client_id": "118013192683292558069",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/realm-rivalry-dev%40direct-glider-465821-p7.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+  }
+  

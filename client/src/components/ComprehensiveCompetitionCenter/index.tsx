@@ -183,7 +183,7 @@ const CompetitionCenter = React.memo(() => {
                           if (userGlobalRank && globalRankings.length > 0) {
                             // Calculate percentile based on actual total teams, not assumed 1000
                             const totalTeams = globalRankings.length;
-                            const percentile = Math.round((userGlobalRank.globalRank / totalTeams) * 100);
+                            const percentile = Math.round(((totalTeams - userGlobalRank.globalRank + 1) / totalTeams) * 100);
                             return `#${userGlobalRank.globalRank} (Top ${percentile}%)`;
                           }
                           return '#? (Loading...)';

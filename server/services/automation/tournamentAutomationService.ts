@@ -8,168 +8,312 @@ import { logger } from '../loggingService.js';
 import { DatabaseService } from '../../database.js';
 
 export class TournamentAutomationService {
-  private static autoStartTimer: NodeJS.Timeout | null = null;
+  private static timer: NodeJS.Timeout | null = null;
   private static isRunning = false;
-  
+
   /**
    * Start tournament automation
    */
   static async start(): Promise<void> {
     if (this.isRunning) {
-      logger.info('Tournament automation already running');
+      console.log('Tournament automation already running');
       return;
     }
-    
+
     this.isRunning = true;
-    logger.info('Starting tournament automation...');
-    
-    // Recover active timers from database on startup
+    console.log('Starting tournament automation...');
+
+    // Recover active tournament timers from database on startup
     try {
-      logger.info('Recovering tournament auto-fill timers...');
-      await this.recoverActiveTimers();
-      logger.info('✅ Tournament timer recovery completed');
+      console.log('🔄 [TOURNAMENT STARTUP] Recovering tournament auto-fill timers...');
+      const { dailyTournamentAutoFillService } = await import('../dailyTournamentAutoFillService.js');
+      await dailyTournamentAutoFillService.recoverActiveTimers();
+      console.log('✅ [TOURNAMENT STARTUP] Tournament timer recovery completed');
     } catch (error) {
-      logger.error('Tournament timer recovery failed', {
-        error: error instanceof Error ? error.message : String(error)
-      });
+      console.error('⚠️ [TOURNAMENT STARTUP] Tournament timer recovery failed:', error);
     }
+
+    // Schedule tournament auto-start check every hour
+    this.scheduleTournamentAutoStart();
     
-    // Setup timer for tournament checks
-    this.autoStartTimer = setInterval(async () => {
-      await this.checkTournamentAutoStart();
-    }, 60000); // Check every minute
-    
-    logger.info('✅ Tournament automation started');
+    console.log('✅ Tournament automation started');
   }
-  
+
   /**
    * Stop tournament automation
    */
   static async stop(): Promise<void> {
-    if (this.autoStartTimer) {
-      clearInterval(this.autoStartTimer);
-      this.autoStartTimer = null;
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
     }
     this.isRunning = false;
-    logger.info('Tournament automation stopped');
+    console.log('Tournament automation stopped');
   }
-  
+
   /**
-   * Check for tournaments that need auto-start
+   * Check for tournaments that need auto-start processing
    */
-  private static async checkTournamentAutoStart(): Promise<void> {
+  static async checkTournamentAutoStart(): Promise<void> {
     try {
-      logger.info('Checking tournaments for auto-start');
+      console.log('🏆 [TOURNAMENT CHECK] Checking for tournaments that need to be auto-started...');
       
-      // Implementation would be extracted from original service
-      const tournamentsToStart = await this.getTournamentsReadyForStart();
+      // Check for Mid-Season Cup tournaments that need AI team filling at 1PM on Day 7
+      await this.checkMidSeasonCupStart();
       
-      for (const tournament of tournamentsToStart) {
-        await this.autoStartTournament(tournament);
+      // Check for general tournament auto-start
+      await this.checkAndStartTournaments();
+      
+      // Check for tournament advancement
+      await this.checkTournamentAdvancement();
+      
+      // Check for dynamic playoff round advancement during Day 15
+      await this.checkPlayoffRoundAdvancement();
+      
+      console.log('✅ [TOURNAMENT CHECK] Tournament auto-start check completed');
+    } catch (error) {
+      console.error('❌ [TOURNAMENT CHECK] Error during tournament auto-start check:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  /**
+   * Check for Mid-Season Cup tournaments that need AI team filling at 1PM on Day 7
+   */
+  private static async checkMidSeasonCupStart(): Promise<void> {
+    try {
+      const now = new Date();
+      const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      
+      // Check if it's Day 7 at 1PM EDT
+      const currentDay = await this.getCurrentDay();
+      if (currentDay !== 7 || estNow.getHours() !== 13 || estNow.getMinutes() > 5) {
+        return; // Not the right time for Mid-Season Cup start
+      }
+
+      console.log('🏆 [MID-SEASON CUP] Processing Day 7 1PM EDT Mid-Season Cup start...');
+
+      const { getPrismaClient } = await import('../../database.js');
+      const prisma = await getPrismaClient();
+
+      // Find Mid-Season Cup tournaments that are still in registration for Day 7
+      const midSeasonTournaments = await prisma.tournament.findMany({
+        where: {
+          type: 'MID_SEASON_CLASSIC',
+          seasonDay: 7,
+          status: 'REGISTRATION_OPEN'
+        },
+        include: {
+          entries: true
+        }
+      });
+
+      console.log(`🏆 [MID-SEASON CUP] Found ${midSeasonTournaments.length} Mid-Season Cup tournaments to process`);
+
+      for (const tournament of midSeasonTournaments) {
+        try {
+          // Fill with AI teams if needed
+          const { tournamentService } = await import('../tournamentService.js');
+          await tournamentService.fillTournamentWithAI(tournament.id);
+
+          // Update tournament status to prepare for start
+          await prisma.tournament.update({
+            where: { id: tournament.id },
+            data: { 
+              status: 'READY_TO_START',
+              registrationEndTime: new Date() // Close registration
+            }
+          });
+
+          console.log(`✅ [MID-SEASON CUP] Tournament ${tournament.id} filled with AI teams and ready to start`);
+        } catch (error) {
+          console.error(`❌ [MID-SEASON CUP] Error processing tournament ${tournament.id}:`, error);
+        }
       }
     } catch (error) {
-      logger.error('Failed to check tournament auto-start', {
-        error: error instanceof Error ? error.message : String(error)
-      });
+      console.error('❌ [MID-SEASON CUP] Error in Mid-Season Cup start check:', error);
     }
   }
-  
+
   /**
-   * Get tournaments ready for auto-start
+   * Check and start tournaments based on various conditions
    */
-  private static async getTournamentsReadyForStart(): Promise<any[]> {
+  private static async checkAndStartTournaments(): Promise<void> {
     try {
-      // Implementation placeholder
-      return [];
+      const { tournamentService } = await import('../tournamentService.js');
+      await tournamentService.checkAndStartTournaments();
+      console.log('✅ [TOURNAMENT START] General tournament start check completed');
     } catch (error) {
-      logger.error('Failed to get tournaments ready for start', {
-        error: error instanceof Error ? error.message : String(error)
-      });
-      return [];
+      console.error('❌ [TOURNAMENT START] Error checking tournament starts:', error);
     }
   }
-  
+
   /**
-   * Auto-start a tournament
+   * Check for tournament bracket advancement
    */
-  private static async autoStartTournament(tournament: any): Promise<void> {
+  private static async checkTournamentAdvancement(): Promise<void> {
     try {
-      logger.info('Auto-starting tournament', { tournamentId: tournament.id });
+      const { getPrismaClient } = await import('../../database.js');
+      const prisma = await getPrismaClient();
+
+      // Find tournaments with completed rounds that need advancement
+      const tournaments = await prisma.tournament.findMany({
+        where: {
+          status: 'IN_PROGRESS'
+        },
+        include: {
+          matches: {
+            include: {
+              homeTeam: { select: { teamName: true } },
+              awayTeam: { select: { teamName: true } }
+            }
+          }
+        }
+      });
+
+      for (const tournament of tournaments) {
+        await this.checkTournamentRoundAdvancement(tournament);
+      }
+
+      console.log('✅ [TOURNAMENT ADV] Tournament advancement check completed');
+    } catch (error) {
+      console.error('❌ [TOURNAMENT ADV] Error checking tournament advancement:', error);
+    }
+  }
+
+  /**
+   * Check for playoff round advancement during Day 15
+   */
+  private static async checkPlayoffRoundAdvancement(): Promise<void> {
+    try {
+      const currentDay = await this.getCurrentDay();
       
-      // Implementation placeholder
+      if (currentDay === 15) {
+        console.log('🏆 [PLAYOFF ADV] Checking Day 15 playoff round advancement...');
+        
+        const { DynamicPlayoffService } = await import('../dynamicPlayoffService.js');
+        await DynamicPlayoffService.checkAndAdvancePlayoffRounds();
+        
+        console.log('✅ [PLAYOFF ADV] Playoff advancement check completed');
+      }
     } catch (error) {
-      logger.error('Failed to auto-start tournament', {
-        tournamentId: tournament.id,
-        error: error instanceof Error ? error.message : String(error)
-      });
+      console.error('❌ [PLAYOFF ADV] Error checking playoff advancement:', error);
     }
   }
-  
+
   /**
-   * Recover active tournament timers from database
+   * Check specific tournament for round advancement
    */
-  static async recoverActiveTimers(): Promise<{
-    timersRecovered: number;
-    errors: number;
-    message: string;
-  }> {
+  private static async checkTournamentRoundAdvancement(tournament: any): Promise<void> {
     try {
-      logger.adminOperation('RECOVER_TIMERS', 'Recovering active tournament timers from database');
-      
-      // Implementation placeholder
-      return {
-        timersRecovered: 0,
-        errors: 0,
-        message: 'Tournament timers recovered successfully'
-      };
+      const { getPrismaClient } = await import('../../database.js');
+      const prisma = await getPrismaClient();
+
+      // Group matches by round
+      const matchesByRound = tournament.matches.reduce((acc: any, match: any) => {
+        const round = match.round || 1;
+        if (!acc[round]) acc[round] = [];
+        acc[round].push(match);
+        return acc;
+      }, {});
+
+      const rounds = Object.keys(matchesByRound).sort((a, b) => parseInt(a) - parseInt(b));
+
+      for (const roundStr of rounds) {
+        const round = parseInt(roundStr);
+        const roundMatches = matchesByRound[round];
+        
+        // Check if all matches in this round are completed
+        const completedMatches = roundMatches.filter((m: any) => m.status === 'COMPLETED');
+        
+        if (completedMatches.length === roundMatches.length && roundMatches.length > 0) {
+          // All matches in this round are completed, check if next round needs to be created
+          const nextRound = round + 1;
+          const nextRoundMatches = matchesByRound[nextRound];
+          
+          if (!nextRoundMatches && completedMatches.length > 1) {
+            // Create next round matches
+            await this.createNextRoundMatches(tournament.id, round, completedMatches);
+          } else if (completedMatches.length === 1) {
+            // Tournament completed - this is the final
+            await prisma.tournament.update({
+              where: { id: tournament.id },
+              data: { status: 'COMPLETED' }
+            });
+            
+            console.log(`🏆 [TOURNAMENT COMPLETE] Tournament ${tournament.id} completed`);
+          }
+        }
+      }
     } catch (error) {
-      logger.error('Failed to recover active timers', {
-        error: error instanceof Error ? error.message : String(error)
-      });
-      throw error;
+      console.error(`❌ [TOURNAMENT ROUND] Error advancing tournament ${tournament.id}:`, error);
     }
   }
-  
+
   /**
-   * Force auto-fill tournaments
+   * Create matches for the next tournament round
    */
-  static async forceAutoFillTournaments(): Promise<{
-    success: boolean;
-    tournamentsAutoFilled: number;
-    teamsAdded: number;
-    message: string;
-  }> {
+  private static async createNextRoundMatches(tournamentId: number, currentRound: number, completedMatches: any[]): Promise<void> {
     try {
-      logger.adminOperation('FORCE_AUTO_FILL', 'Forcing auto-fill for tournaments');
-      
-      // Implementation placeholder
-      return {
-        success: true,
-        tournamentsAutoFilled: 0,
-        teamsAdded: 0,
-        message: 'Tournaments auto-filled successfully'
-      };
-    } catch (error) {
-      logger.error('Failed to force auto-fill tournaments', {
-        error: error instanceof Error ? error.message : String(error)
+      const { getPrismaClient } = await import('../../database.js');
+      const prisma = await getPrismaClient();
+
+      // Get winners from completed matches
+      const winners = completedMatches.map(match => {
+        return match.homeScore > match.awayScore ? match.homeTeamId : match.awayTeamId;
       });
-      throw error;
+
+      // Pair up winners for next round
+      const nextRoundMatches = [];
+      for (let i = 0; i < winners.length; i += 2) {
+        if (winners[i + 1]) {
+          nextRoundMatches.push({
+            tournamentId: tournamentId,
+            round: currentRound + 1,
+            homeTeamId: winners[i],
+            awayTeamId: winners[i + 1],
+            status: 'SCHEDULED',
+            gameDate: new Date(Date.now() + (5 * 60 * 1000)) // Start in 5 minutes
+          });
+        }
+      }
+
+      // Create next round matches
+      if (nextRoundMatches.length > 0) {
+        await prisma.game.createMany({
+          data: nextRoundMatches
+        });
+
+        console.log(`✅ [TOURNAMENT ROUND] Created ${nextRoundMatches.length} matches for round ${currentRound + 1} of tournament ${tournamentId}`);
+      }
+    } catch (error) {
+      console.error(`❌ [TOURNAMENT ROUND] Error creating next round for tournament ${tournamentId}:`, error);
     }
   }
-  
+
   /**
-   * Get automation status
+   * Get current season day
    */
-  static getStatus(): {
-    isRunning: boolean;
-    activeTimers: number;
-    lastCheck: Date | null;
-  } {
-    return {
-      isRunning: this.isRunning,
-      activeTimers: 0, // Placeholder
-      lastCheck: null // Placeholder
-    };
+  private static async getCurrentDay(): Promise<number> {
+    try {
+      const { storage } = await import('../../storage/index.js');
+      const currentSeason = await storage.seasons.getCurrentSeason();
+      return currentSeason?.currentDay || 1;
+    } catch (error) {
+      console.error('Error getting current day:', error);
+      return 1;
+    }
+  }
+
+  /**
+   * Schedule tournament auto-start check every hour
+   */
+  private static scheduleTournamentAutoStart(): void {
+    this.timer = setInterval(async () => {
+      await this.checkTournamentAutoStart();
+    }, 60 * 60 * 1000); // Check every hour
+    
+    // Also check immediately on startup after a short delay
+    setTimeout(() => this.checkTournamentAutoStart(), 10000);
   }
 }
 

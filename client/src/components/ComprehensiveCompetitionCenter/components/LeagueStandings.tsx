@@ -220,27 +220,20 @@ export const LeagueStandings = React.memo<LeagueStandingsProps>(({
             </table>
           </div>
 
-          {/* Global Ranking Summary */}
-          {globalRankings.length > 0 && team && (
-            <div className="mt-4 p-4 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg border border-purple-500/30">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-5 w-5 text-purple-400" />
-                <h4 className="font-bold text-purple-300">Global Ranking</h4>
-              </div>
-              {(() => {
-                const userGlobalRank = globalRankings.find(r => String(r.id) === String(team.id));
-                if (userGlobalRank) {
-                  return (
-                    <p className="text-sm text-gray-300">
-                      Your team ranks <span className="font-bold text-purple-400">#{userGlobalRank.globalRank}</span> globally 
-                      with a {userGlobalRank.winPercentage.toFixed(1)}% win rate
-                    </p>
-                  );
-                }
-                return <p className="text-sm text-gray-400">Global ranking data not available</p>;
-              })()}
+          {/* Table Legend */}
+          <div className="mt-4 p-4 bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-lg border border-gray-600/30">
+            <h4 className="font-bold text-gray-300 mb-3 text-sm">Table Key</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs text-gray-400">
+              <div><span className="font-semibold text-gray-300">GP</span> - Games Played</div>
+              <div><span className="font-semibold text-gray-300">W</span> - Wins</div>
+              <div><span className="font-semibold text-gray-300">L</span> - Losses</div>
+              <div><span className="font-semibold text-gray-300">D</span> - Draws</div>
+              <div><span className="font-semibold text-gray-300">Pts</span> - Points</div>
+              <div><span className="font-semibold text-gray-300">TS</span> - Total Scores</div>
+              <div><span className="font-semibold text-gray-300">SA</span> - Scores Against</div>
+              <div><span className="font-semibold text-gray-300">SD</span> - Score Difference</div>
             </div>
-          )}
+          </div>
         </div>
       </CompetitionCard>
 

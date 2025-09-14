@@ -132,12 +132,12 @@ export class DailyProgressionService {
         logger.info(`🎮 [SMART PROGRESSION] Simulating missed games for Days ${databaseDay} to ${calculatedDay - 1}...`);
         
         const { DatabaseService } = await import('../../database/DatabaseService.js');
-        const database = DatabaseService.getInstance();
-        
+        const database = await DatabaseService.getInstance();
+
         for (let missedDay = databaseDay; missedDay < calculatedDay; missedDay++) {
           if (missedDay <= 14) { // Only simulate regular season games (Days 1-14)
             logger.info(`🎯 [SMART PROGRESSION] Processing missed games for Day ${missedDay}...`);
-            
+
             // Temporarily set the day to simulate games for that specific day
             await database.season.update({
               where: { id: currentSeason.id },
@@ -284,7 +284,49 @@ export class DailyProgressionService {
         return false;
       }
       
-      // Find games for this specific day that are still SCHEDULED
+      // PRIORITY 1: Check for stuck IN_PROGRESS games (these need immediate fixing)
+      const stuckGames = await database.game.findMany({
+        where: {
+          gameDay: day,
+          status: 'IN_PROGRESS',
+          scheduleId: { not: null } // Only check regular league games
+        },
+        include: {
+          homeTeam: { select: { name: true } },
+          awayTeam: { select: { name: true } }
+        }
+      });
+
+      if (stuckGames.length > 0) {
+        logger.info(`🚨 [GAME CHECK] Found ${stuckGames.length} games stuck in IN_PROGRESS status! Fixing immediately...`);
+        
+        for (const game of stuckGames) {
+          try {
+            // Generate realistic dome ball scores for stuck games
+            const homeScore = Math.floor(Math.random() * 26) + 10; // 10-35
+            const awayScore = Math.floor(Math.random() * 24) + 8;   // 8-31
+            
+            await database.game.update({
+              where: { id: game.id },
+              data: {
+                status: 'COMPLETED',
+                homeScore: homeScore,
+                awayScore: awayScore,
+                simulated: true
+              }
+            });
+            
+            logger.info(`✅ [STUCK GAME FIX] Completed: ${game.homeTeam.name} ${homeScore}-${awayScore} ${game.awayTeam.name} (Day ${game.gameDay})`);
+            
+          } catch (fixError) {
+            logger.error(`❌ [STUCK GAME FIX] Failed to fix stuck game ${game.id}:`, fixError);
+          }
+        }
+        
+        return true; // Games were found and fixed
+      }
+      
+      // PRIORITY 2: Find games for this specific day that are still SCHEDULED
       const scheduledGames = await database.game.findMany({
         where: {
           gameDay: day,

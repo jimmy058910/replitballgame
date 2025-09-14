@@ -88,13 +88,16 @@ function getStatColor(statValue: number): string {
 
 // Calculate overall power as average of 6 core athletic stats
 function calculateOverallPower(player: any): number {
+  // CAR Formula: 8-attribute average for consistency with backend
   const coreStats = [
     player.speed || 20,
     player.power || 20,
     player.agility || 20,
     player.throwing || 20,
     player.catching || 20,
-    player.kicking || 20
+    player.kicking || 20,
+    player.leadership || 20,
+    player.staminaAttribute || 20
   ];
   return Math.round(coreStats.reduce((sum, stat) => sum + stat, 0) / coreStats.length);
 }

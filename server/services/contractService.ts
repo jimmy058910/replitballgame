@@ -350,8 +350,8 @@ export class ContractService {
       const contractCalc = ContractService.calculateContractValue(player);
       
       // Get current season from TimingService
-      const { timingService } = await import("../../shared/services/timingService.js");
-      const currentTiming = timingService.getSeasonTiming();
+      const { getSeasonTiming } = await import("../../shared/services/timingService.js");
+      const currentTiming = getSeasonTiming();
       const currentSeason = currentTiming.currentSeason || 1;
       const currentDay = currentTiming.currentDay || 1;
       const currentPhase = currentTiming.currentPhase || 'regular';

@@ -802,6 +802,13 @@ model TeamMatchStats {
   turnoverDifferential   Int       @default(0)
   physicalDominance      Int       @default(0)
   ballSecurityRating     Float     @default(0)
+
+  // Additional fields for analytics calculations
+  injuriesReceived       Int       @default(0)  // For physicalDominanceRating
+  teamCatches           Int       @default(0)  // For ballSecurityRating
+  teamPassCompletions   Int       @default(0)  // For ballSecurityRating
+  teamDrops             Int       @default(0)  // For ballSecurityRating
+
   homeFieldAdvantage     Float     @default(0)
   crowdIntensity         Float     @default(0)
   domeReverberation      Float     @default(0)

@@ -351,22 +351,42 @@ export class StatsService {
         defensiveStops: acc?.defensiveStops + stat?.defensiveStops,
         totalFumbles: acc.totalFumbles + stat.totalFumbles,
         turnoverDifferential: acc.turnoverDifferential + stat.turnoverDifferential,
-        physicalDominance: acc.physicalDominance + stat.physicalDominance,
-        ballSecurityRating: acc.ballSecurityRating + stat.ballSecurityRating,
         homeFieldAdvantage: acc.homeFieldAdvantage + stat.homeFieldAdvantage,
         camaraderieTeamBonus: acc.camaraderieTeamBonus + stat.camaraderieTeamBonus,
         tacticalEffectiveness: acc.tacticalEffectiveness + stat.tacticalEffectiveness,
         equipmentAdvantage: acc.equipmentAdvantage + stat.equipmentAdvantage,
         physicalConditioning: acc.physicalConditioning + stat.physicalConditioning,
+        // New analytics fields for calculations
+        injuriesReceived: acc.injuriesReceived + stat.injuriesReceived,
+        teamCatches: acc.teamCatches + stat.teamCatches,
+        teamPassCompletions: acc.teamPassCompletions + stat.teamPassCompletions,
+        teamDrops: acc.teamDrops + stat.teamDrops,
       }), {
         timeOfPossession: 0, possessionPercentage: 0, averageFieldPosition: 0, territoryGained: 0,
         totalScore: 0, totalPassingYards: 0, totalRushingYards: 0, totalOffensiveYards: 0,
         passingAccuracy: 0, ballRetentionRate: 0, scoringOpportunities: 0, scoringEfficiency: 0,
         totalTackles: 0, totalKnockdowns: 0, totalBlocks: 0, totalInjuriesInflicted: 0,
         totalInterceptions: 0, totalBallStrips: 0, passDeflections: 0, defensiveStops: 0,
-        totalFumbles: 0, turnoverDifferential: 0, physicalDominance: 0, ballSecurityRating: 0,
+        totalFumbles: 0, turnoverDifferential: 0,
         homeFieldAdvantage: 0, camaraderieTeamBonus: 0, tacticalEffectiveness: 0,
-        equipmentAdvantage: 0, physicalConditioning: 0
+        equipmentAdvantage: 0, physicalConditioning: 0,
+        // Initialize new analytics fields
+        injuriesReceived: 0, teamCatches: 0, teamPassCompletions: 0, teamDrops: 0
+      });
+
+      // Calculate advanced analytics using the implemented functions
+      const physicalDominanceRating = this.calculatePhysicalDominanceRating({
+        totalKnockdowns: aggregated.totalKnockdowns,
+        totalInjuriesInflicted: aggregated.totalInjuriesInflicted,
+        injuriesReceived: aggregated.injuriesReceived,
+        totalBlocks: aggregated.totalBlocks
+      });
+
+      const ballSecurityRating = this.calculateBallSecurityRating({
+        teamCatches: aggregated.teamCatches,
+        teamPassCompletions: aggregated.teamPassCompletions,
+        totalFumbles: aggregated.totalFumbles,
+        teamDrops: aggregated.teamDrops
       });
 
       const result: TeamStats = {
@@ -400,11 +420,11 @@ export class StatsService {
         passDeflections: aggregated.passDeflections,
         defensiveStops: aggregated?.defensiveStops,
         
-        // Physical & Flow Metrics
+        // Physical & Flow Metrics - Using calculated analytics
         totalFumbles: aggregated.totalFumbles,
         turnoverDifferential: aggregated.turnoverDifferential,
-        physicalDominance: aggregated.physicalDominance,
-        ballSecurityRating: Math.round((aggregated.ballSecurityRating / gamesPlayed) * 10) / 10,
+        physicalDominance: physicalDominanceRating, // Using calculated rating
+        ballSecurityRating: ballSecurityRating, // Using calculated rating
         
         // Environment & Strategy
         homeFieldAdvantage: Math.round((aggregated.homeFieldAdvantage / gamesPlayed) * 10) / 10,
@@ -810,5 +830,42 @@ export class StatsService {
       homeFieldAdvantage: 0, camaraderieTeamBonus: 0, tacticalEffectiveness: 0,
       equipmentAdvantage: 0, physicalConditioning: 0
     };
+  }
+
+  /**
+   * Calculate physical dominance rating for a team
+   * Formula: (Knockdowns + Injuries Inflicted - Injuries Received) + (Blocks * 0.5)
+   */
+  static calculatePhysicalDominanceRating(teamStats: {
+    totalKnockdowns: number;
+    totalInjuriesInflicted: number;
+    injuriesReceived: number;
+    totalBlocks: number;
+  }): number {
+    const physicalImpactGiven = teamStats.totalKnockdowns + teamStats.totalInjuriesInflicted;
+    const physicalImpactReceived = teamStats.injuriesReceived;
+    const protectiveValue = teamStats.totalBlocks * 0.5;
+    
+    const dominanceRating = (physicalImpactGiven - physicalImpactReceived) + protectiveValue;
+    return Math.max(0, Math.round(dominanceRating * 10) / 10);
+  }
+
+  /**
+   * Calculate ball security rating for a team
+   * Formula: ((Ball Handling Events - Ball Security Failures) / Ball Handling Events) * 100
+   */
+  static calculateBallSecurityRating(teamStats: {
+    teamCatches: number;
+    teamPassCompletions: number;
+    totalFumbles: number;
+    teamDrops: number;
+  }): number {
+    const ballHandlingEvents = teamStats.teamCatches + teamStats.teamPassCompletions;
+    const ballSecurityFailures = teamStats.totalFumbles + teamStats.teamDrops;
+    
+    if (ballHandlingEvents === 0) return 100; // Perfect if no ball handling
+    
+    const securityPercentage = ((ballHandlingEvents - ballSecurityFailures) / ballHandlingEvents) * 100;
+    return Math.max(0, Math.min(100, Math.round(securityPercentage * 10) / 10));
   }
 }

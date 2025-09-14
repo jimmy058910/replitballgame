@@ -1,65 +1,39 @@
 /**
- * Fantasy Sports Commentary Database - COMPLETE 233+ PROMPTS
+ * Fantasy Sports Commentary Database
  * Implements comprehensive commentary for Realm Rivalry fantasy sports simulation
- * Updated: September 14th, 2025 - Unified Complete System
  */
 
 export interface CommentaryDatabase {
-  // Game Flow & Atmosphere (20 prompts)
   preGame: string[];
   midGameFlow: string[];
   urgencyClockManagement: string[];
-
-  // Ball Control Events (21 prompts)
   looseBallTackle: string[];
   looseBallDrop: string[];
   contestedBallScramble: string[];
-
-  // Running Plays (28 prompts)
   standardRuns: string[];
   breakawayRuns: string[];
   skillBasedRuns: string[];
   raceBasedRuns: Record<string, string[]>;
-
-  // Passing Plays (18 prompts)
   standardCompletions: string[];
   deepPasses: string[];
   skillBasedPasses: string[];
   raceBasedPasses: Record<string, string[]>;
-
-  // Defense & Tackles (20 prompts)
   standardTackles: string[];
   highPowerTackles: string[];
   interceptions: string[];
   passDefense: string[];
-
-  // Game State Effects (15 prompts)
   injury: string[];
   fatigue: string[];
   atmosphere: string[];
   camaraderie: string[];
   scoring: string[];
-
-  // Enhanced Events (31 prompts)
   contestedBallForced: string[];
   contestedBallUnforced: string[];
   anythingGoes: string[];
   possessionBattle: string[];
-  kickoffEvents: string[];
-  halftimeCommentary: string[];
-  knockdownEvents: string[];
-  incompletePassEvents: string[];
-  noTargetEvents: string[];
-  generalPlayEvents: string[];
-
-  // Extended Skills & Context (80+ prompts)
-  enhancedSkillCommentary: Record<string, string[]>;
-  raceSpecificEnhanced: Record<string, Record<string, string[]>>;
-  contextualSituations: Record<string, string[]>;
 }
 
 export const fantasyCommentaryDatabase: CommentaryDatabase = {
-  // 1. PRE-GAME COMMENTARY (6 prompts)
   preGame: [
     "Welcome to the dome, folks! A tense atmosphere here as the 'Elite' {homeTeam} prepares to face the 'Competitive' {awayTeam}!",
     "Both teams are on the field, and the energy from this home crowd is absolutely electric!",
@@ -69,7 +43,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "The players are set. The ball is live. Here we go!"
   ],
 
-  // 2. MID-GAME FLOW COMMENTARY (8 prompts)
   midGameFlow: [
     "We're seeing a real midfield battle unfold. The ball has changed hands three times in the last minute alone.",
     "{teamName} is putting together a long spell of possession now, patiently working the ball and testing the defense for any sign of weakness.",
@@ -81,7 +54,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "{teamName} seems to be controlling the tempo, forcing their opponent to react."
   ],
 
-  // 3. URGENCY & CLOCK MANAGEMENT COMMENTARY (6 prompts)
   urgencyClockManagement: [
     "Just two minutes left in the half! {teamName} needs to make something happen quickly if they want to score before the break.",
     "With the clock winding down, {playerName} is trying to force the issue, looking for any opening.",
@@ -91,7 +63,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "They need to hurry if they want to get one more possession."
   ],
 
-  // 4. LOOSE BALL TACKLE COMMENTARY (7 prompts)
   looseBallTackle: [
     "HUGE HIT by {tacklerName}! The ball comes loose! It's a fumble and anyone's game!",
     "Powerful tackle from {tacklerName} dislodges the ball! It's on the turf!",
@@ -102,7 +73,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "He never had control! The ball is loose on the ground!"
   ],
 
-  // 5. LOOSE BALL DROP COMMENTARY (7 prompts)
   looseBallDrop: [
     "The pass is on target but it's DROPPED by {receiverName}! The ball is live on the turf!",
     "Right through his hands! {receiverName} can't hang on and the ball is up for grabs!",
@@ -113,7 +83,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "A difficult catch, and {receiverName} can't bring it in. The ball is loose."
   ],
 
-  // 6. CONTESTED BALL SCRAMBLE COMMENTARY (7 prompts)
   contestedBallScramble: [
     "Chaos around the ball! A mad scramble as multiple players dive for it!",
     "A pile-up for the loose ball near midfield!",
@@ -124,7 +93,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "And it's the defense that comes up with it! A massive possession change!"
   ],
 
-  // 7. STANDARD RUNS COMMENTARY (7 prompts)
   standardRuns: [
     "{runnerName} grinds it out for {yards} tough yards up the middle before being dragged down by {tacklerName}.",
     "{runnerName} finds a small crease and picks up a solid {yards} yards until {tacklerName} wraps him up.",
@@ -135,7 +103,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "A smart, patient run from {runnerName} finds the opening for {yards} yards until {tacklerName} makes the tackle."
   ],
 
-  // 8. BREAKAWAY RUNS COMMENTARY (6 prompts)
   breakawayRuns: [
     "He finds a seam! {runnerName} turns on the jets and is in open space for a massive gain!",
     "Explosive speed! {runnerName} leaves the defense in the dust with a {yards}-yard burst!",
@@ -145,7 +112,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "He just has a gear that nobody else on the field possesses!"
   ],
 
-  // 9. SKILL-BASED RUNS COMMENTARY (6 prompts)
   skillBasedRuns: [
     "Incredible footwork by {runnerName}! He uses his Juke Move to leave the defender grasping at air!",
     "What a move! {runnerName} cuts left, then right, dancing through traffic for a big gain!",
@@ -155,7 +121,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "Pure strength on display! {runnerName} just bulldozed his way through the tackle attempt!"
   ],
 
-  // 10. RACE-BASED RUNS COMMENTARY (9 prompts)
   raceBasedRuns: {
     UMBRA: [
       "Where did he go?! {runnerName} seems to vanish for a moment with his Shadow Step, and the defender is left tackling empty space!",
@@ -174,7 +139,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     ]
   },
 
-  // 11. STANDARD COMPLETIONS COMMENTARY (6 prompts)
   standardCompletions: [
     "{passerName} connects with {receiverName} on the sideline for a gain of {yards} before {tacklerName} brings him down.",
     "A quick pass from {passerName} to {receiverName} to advance the ball {yards} yards until the defense closes in.",
@@ -184,7 +148,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "He finds his target receiver for {yards} yards before the defense brings him down."
   ],
 
-  // 12. DEEP PASSES COMMENTARY (5 prompts)
   deepPasses: [
     "He's going deep! {passerName} launches one downfield for {receiverName}!",
     "What a strike! {passerName} connects with {receiverName} on a beautiful {yards}-yard completion!",
@@ -193,7 +156,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "A perfect spiral from {passerName} finds his target deep in enemy territory."
   ],
 
-  // 13. SKILL-BASED PASSES COMMENTARY (4 prompts)
   skillBasedPasses: [
     "Masterful awareness by {passerName}! He feels the pressure and slides away, buying just enough time to deliver the pass!",
     "Incredible poise in the pocket from {passerName}, stepping up gracefully before delivering a strike!",
@@ -201,7 +163,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "Surgical accuracy by {passerName}! The pass is placed where only his receiver could get it."
   ],
 
-  // 14. RACE-BASED PASSES COMMENTARY (3 prompts)
   raceBasedPasses: {
     LUMINA: [
       "That's the precision you expect from a Lumina passer! A beautiful, accurate throw from {passerName}.",
@@ -210,7 +171,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     ]
   },
 
-  // 15. STANDARD TACKLES COMMENTARY (5 prompts)
   standardTackles: [
     "{tacklerName} wraps up {carrierName} for the tackle after a short gain.",
     "Solid defense by {tacklerName}, bringing down {carrierName}.",
@@ -219,7 +179,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "A textbook tackle by {tacklerName}."
   ],
 
-  // 16. HIGH POWER TACKLES COMMENTARY (5 prompts)
   highPowerTackles: [
     "A thunderous tackle by {defenderName}! You could hear that one from up here.",
     "Vicious hit! {tacklerName} completely stops the runner's momentum.",
@@ -228,7 +187,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "{blockerName} is just looking to inflict pain! He lays a huge hit on an unsuspecting opponent away from the ball! With no referees, that's a smart, brutal play."
   ],
 
-  // 17. INTERCEPTIONS COMMENTARY (5 prompts)
   interceptions: [
     "The pass is picked off! {defenderName} read the situation perfectly and stepped in front of the receiver!",
     "What a defensive move! {defenderName} makes a diving interception!",
@@ -237,7 +195,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "Great coverage by {defenderName}, forcing the drop."
   ],
 
-  // 18. PASS DEFENSE COMMENTARY (5 prompts)
   passDefense: [
     "Excellent coverage by {defenderName}! The pass is broken up.",
     "The defender makes a move on the ball! Incomplete pass.",
@@ -246,14 +203,12 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "The defense steps up with a crucial pass deflection!"
   ],
 
-  // 19. INJURY COMMENTARY (3 prompts)
   injury: [
     "{playerName} is leveled by a powerful tackle! He's slow to get up... and the team trainer is signaling from the sideline. That looks like a **{severity} Injury**.",
     "{playerName} is down on the field after that hard hit. The medical staff is checking on him.",
     "Ouch! {playerName} took a hard shot on that play. He's moving gingerly as he gets back to his feet."
   ],
 
-  // 20. FATIGUE COMMENTARY (4 prompts)
   fatigue: [
     "{playerName} tries to turn the corner but just doesn't have the legs, brought down after a short gain. You can see the fatigue setting in.",
     "A wobbly pass from {playerName}, who looks exhausted after that long possession. The ball sails wide and is now a contested ball!",
@@ -261,21 +216,18 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "The exhaustion is showing now! {playerName} stumbles slightly and gets tackled easily by {tacklerName}."
   ],
 
-  // 21. ATMOSPHERE COMMENTARY (3 prompts)
   atmosphere: [
     "The home crowd is deafening right now, and it looks like the away team is having trouble with their timing!",
     "This crowd is absolutely electric! The noise is incredible!",
     "The atmosphere in this stadium is off the charts! You can feel the energy from here!"
   ],
 
-  // 22. CAMARADERIE COMMENTARY (3 prompts)
   camaraderie: [
     "You can see the chemistry on display! A perfectly timed block by {blockerName} springs {runnerName} for extra yards!",
     "A miscommunication on offense! {passerName} and {receiverName} were not on the same page, and the pass falls harmlessly to the ground.",
     "That's what team chemistry looks like! Beautiful execution!"
   ],
 
-  // 23. SCORING COMMENTARY (5 prompts)
   scoring: [
     "He's in! {playerName} fights through the defense and crosses the line! A Score for {teamName}!",
     "SCORE! A brilliant individual effort by {playerName}!",
@@ -284,7 +236,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "A hard-fought score, pushing through a pile of players at the goal line!"
   ],
 
-  // 24. CONTESTED BALL FORCED (6 prompts)
   contestedBallForced: [
     "HUGE HIT by {tacklerName}! The ball is dislodged! It's a live ball, a contest is on!",
     "DEVASTATING impact! {tacklerName} forces the ball loose with a bone-crushing tackle!",
@@ -294,7 +245,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "STRIPPED! {tacklerName} punches the ball out with perfect timing! A contested ball situation!"
   ],
 
-  // 25. CONTESTED BALL UNFORCED (5 prompts)
   contestedBallUnforced: [
     "Right through his hands! {receiverName} can't secure the ball and it's live on the turf!",
     "A critical drop by {receiverName}! The ball bounces free and it's a contested situation!",
@@ -303,7 +253,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "BUTTERFINGERS! {receiverName} drops a perfect pass and the ball is live!"
   ],
 
-  // 26. ANYTHING GOES COMMENTARY (6 prompts)
   anythingGoes: [
     "A vicious block by {blockerName} completely away from the ball! It's perfectly legal here in the dome, and it sends a clear message to {opponentName}!",
     "The defense is still hitting {playerName} well after the score! No love lost between these teams - anything goes!",
@@ -313,7 +262,6 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "The dome erupts as {playerName} delivers a crushing hit that would be flagged anywhere else - but not here!"
   ],
 
-  // 27. POSSESSION BATTLE COMMENTARY (6 prompts)
   possessionBattle: [
     "The ball is placed at midfield! Both teams surge forward in a chaotic battle for initial possession!",
     "A fierce scrum at midfield as both sides dive for the ball! Who will emerge with possession?",
@@ -321,212 +269,5 @@ export const fantasyCommentaryDatabase: CommentaryDatabase = {
     "It's a war zone at midfield! Both teams throwing everything they have at securing the ball!",
     "Chaos at the center of the field! The ball is loose and both teams are desperate to claim it!",
     "{teamName} emerges from the midfield mayhem with the ball! They've won the possession battle!"
-  ],
-
-  // 28. KICKOFF EVENTS COMMENTARY (5 prompts)
-  kickoffEvents: [
-    "The kickoff is away! {kickerName} sends it deep into enemy territory!",
-    "A booming kick from {kickerName}! The return man will have to run a long way!",
-    "{receiverName} secures the kickoff and starts his return from deep!",
-    "Perfect placement on the kickoff! {kickerName} puts it exactly where his coverage team can get to it!",
-    "The kickoff is short! {receiverName} gets great field position to start the drive!"
-  ],
-
-  // 29. HALFTIME COMMENTARY (5 prompts)
-  halftimeCommentary: [
-    "That's the end of the first half! What a battle we've seen so far!",
-    "The teams head to the break with the score tied! This one's anyone's game!",
-    "Halftime in the dome! Both teams will be looking to make adjustments!",
-    "Twenty minutes of relentless action comes to a close! The second half should be spectacular!",
-    "The intensity hasn't let up for a second! These teams are giving everything they have!"
-  ],
-
-  // 30. KNOCKDOWN EVENTS COMMENTARY (5 prompts)
-  knockdownEvents: [
-    "MASSIVE COLLISION! {playerName} is absolutely flattened by that hit!",
-    "He got ROCKED! {playerName} is down but getting back up slowly!",
-    "What a devastating hit! {tacklerName} just laid {playerName} out cold!",
-    "BOOM! That collision echoed through the entire dome!",
-    "He got leveled! {playerName} took the full force of that tackle!"
-  ],
-
-  // 31. INCOMPLETE PASS EVENTS (5 prompts)
-  incompletePassEvents: [
-    "The pass sails over the receiver's head! Incomplete!",
-    "Just couldn't connect! {passerName}'s throw is off target!",
-    "The timing was off! {receiverName} and {passerName} weren't in sync!",
-    "Thrown away! {passerName} opts for the safe incomplete rather than risk an interception!",
-    "The pass hits the turf! No connection on that play!"
-  ],
-
-  // 32. NO TARGET EVENTS (5 prompts)
-  noTargetEvents: [
-    "{passerName} looks around but can't find an open receiver! He holds onto the ball!",
-    "No one's open! {passerName} tucks it away and lives to fight another down!",
-    "Excellent coverage by the defense! {passerName} has nowhere to go with the ball!",
-    "The defense has everyone covered! {passerName} can't find a target!",
-    "Smart decision by {passerName} to hold onto the ball rather than force a throw!"
-  ],
-
-  // 33. GENERAL PLAY EVENTS (5 prompts)
-  generalPlayEvents: [
-    "The action continues! Both teams battling for every yard!",
-    "Another play unfolds in this intense matchup!",
-    "The game flows on! Neither team is giving an inch!",
-    "More action in the dome! These teams are going at it!",
-    "The battle continues! Pure dome ball at its finest!"
-  ],
-
-  // ENHANCED SKILL COMMENTARY (35 prompts)
-  enhancedSkillCommentary: {
-    JUKE_MOVE: [
-      "Poetry in motion! {playerName} uses his Juke Move to dance through the defense!",
-      "Incredible footwork! {playerName} jukes left, then right, leaving defenders grasping at air!",
-      "What a move! {playerName}'s juke was so quick the defender fell down trying to follow!",
-      "Masterful agility! {playerName} jukes his way through traffic like he's dancing!",
-      "The defender bites hard on the fake! {playerName}'s juke move leaves him completely out of position!"
-    ],
-    TRUCK_STICK: [
-      "BOOM! {playerName} lowers the boom with his Truck Stick! The defender gets pancaked!",
-      "Raw power on display! {playerName} trucks right through the tackle attempt!",
-      "He just ran him over! {playerName}'s Truck Stick is devastating!",
-      "Like a freight train! {playerName} bulldozes his way through the defense!",
-      "No stopping that! {playerName} powers through the hit and keeps on going!"
-    ],
-    POCKET_PRESENCE: [
-      "Incredible awareness! {playerName} feels the rush and slides gracefully in the pocket!",
-      "What poise! {playerName} steps up beautifully to avoid the pressure!",
-      "Perfect pocket presence! {playerName} buys just enough time to make the throw!",
-      "Veteran savvy! {playerName} knows exactly where the pressure is coming from!",
-      "Cool as ice! {playerName} navigates the pocket like a master!"
-    ],
-    DEADEYE: [
-      "LASER PRECISION! {playerName}'s Deadeye pass threads the needle perfectly!",
-      "Surgical accuracy! {playerName} places that ball exactly where only his receiver can get it!",
-      "What a strike! {playerName}'s Deadeye skill is on full display with that throw!",
-      "Pin-point accuracy! {playerName} delivers a perfect Deadeye pass under pressure!",
-      "Bulls-eye! {playerName}'s throw couldn't have been more accurate!"
-    ],
-    PANCAKE_BLOCK: [
-      "PANCAKED! {playerName} absolutely destroys the defender with his Pancake Block!",
-      "What a devastating block! {playerName} sends his opponent flying!",
-      "Lights out! {playerName}'s Pancake Block just leveled that defender!",
-      "BOOM! {playerName} delivers a crushing Pancake Block that clears the way!",
-      "Dominating block! {playerName} plants the defender right into the turf!"
-    ],
-    SHADOW_STEP: [
-      "Where did he go?! {playerName} uses Shadow Step to seemingly vanish from sight!",
-      "Umbra magic! {playerName}'s Shadow Step leaves the defender tackling empty space!",
-      "He just disappeared! {playerName}'s Shadow Step is like nothing I've ever seen!",
-      "Incredible! {playerName} phases through the tackle attempt with his Shadow Step!",
-      "The defender looks confused! {playerName}'s Shadow Step completely fooled him!"
-    ],
-    SECOND_WIND: [
-      "Remarkable! {playerName} just caught his Second Wind and looks fresh as a daisy!",
-      "What stamina! {playerName} gets his Second Wind at the perfect moment!",
-      "Incredible conditioning! {playerName}'s Second Wind kicks in just when he needs it!",
-      "He looks energized! {playerName}'s Second Wind gives him new life!",
-      "Perfect timing! {playerName}'s Second Wind couldn't have come at a better moment!"
-    ]
-  },
-
-  // RACE-SPECIFIC ENHANCED COMMENTARY (30 prompts)
-  raceSpecificEnhanced: {
-    UMBRA: {
-      STEALTH: [
-        "The Umbra player seems to blend into the shadows! {playerName} is nearly invisible out there!",
-        "Shadow magic at work! {playerName} uses his natural Umbra stealth to confuse the defense!",
-        "Where is he? {playerName}'s Umbra heritage makes him incredibly hard to track!"
-      ],
-      POWER: [
-        "Dark energy flows through {playerName}! That Umbra strength is on full display!",
-        "The shadows seem to give {playerName} extra power! What a devastating hit!",
-        "Umbra might! {playerName} channels the darkness for that crushing blow!"
-      ]
-    },
-    SYLVAN: {
-      AGILITY: [
-        "Nature's grace! {playerName} flows like the wind through the defense!",
-        "Forest-born agility! {playerName} moves with the fluidity of a Sylvan dancer!",
-        "Natural harmony! {playerName}'s Sylvan heritage shows in his perfect balance!"
-      ],
-      HEALING: [
-        "The forest spirits smile on {playerName}! His natural Sylvan recovery is remarkable!",
-        "Like leaves in spring! {playerName}'s Sylvan healing abilities are incredible!",
-        "Nature's blessing! {playerName} seems to recover faster thanks to his Sylvan blood!"
-      ]
-    },
-    GRYLL: {
-      STRENGTH: [
-        "Mountain-born power! {playerName} shows that legendary Gryll strength!",
-        "Like a boulder! {playerName}'s Gryll heritage makes him nearly unmovable!",
-        "Earth-shaking force! {playerName} channels his inner Gryll for that crushing hit!"
-      ],
-      ENDURANCE: [
-        "Gryll stamina! {playerName} just keeps going like the mountains themselves!",
-        "Unyielding as stone! {playerName}'s Gryll endurance is legendary!",
-        "Rock-solid conditioning! {playerName} shows why Grylls are known for their stamina!"
-      ]
-    },
-    LUMINA: {
-      PRECISION: [
-        "Divine accuracy! {playerName}'s Lumina precision is a thing of beauty!",
-        "Light-guided throw! {playerName}'s Lumina heritage shows in that perfect pass!",
-        "Celestial accuracy! {playerName} channels the light for pin-point precision!"
-      ],
-      HEALING: [
-        "Healing light! {playerName}'s Lumina energy helps his teammates recover!",
-        "Divine blessing! {playerName}'s Lumina heritage provides healing to those around him!",
-        "The light shines bright! {playerName}'s healing aura helps his team!"
-      ]
-    }
-  },
-
-  // CONTEXTUAL SITUATIONS COMMENTARY (20 prompts)
-  contextualSituations: {
-    CLUTCH_TIME: [
-      "This is clutch time! {playerName} thrives in these pressure moments!",
-      "When it matters most! {playerName} comes through in the clutch!",
-      "Clutch performance! {playerName} delivers when his team needs him most!",
-      "Ice in his veins! {playerName} loves these high-pressure situations!",
-      "Money time! {playerName} is built for moments like this!"
-    ],
-    RIVALRY: [
-      "Division rivalry intensity! You can feel the hatred between these teams!",
-      "This is what rivalry games are all about! Pure intensity!",
-      "The bad blood is boiling over! These teams do not like each other!",
-      "Rivalry at its finest! Every play matters in this divisional battle!",
-      "You can cut the tension with a knife! This rivalry runs deep!"
-    ],
-    WEATHER: [
-      "The dome's climate control isn't perfect! The conditions are affecting play!",
-      "Environmental factors are playing a role in this game!",
-      "The atmosphere in the dome is thick! It's affecting both teams!",
-      "Tough conditions in the dome today! Both teams are fighting the elements!",
-      "The dome environment is creating challenges for both sides!"
-    ],
-    PLAYOFFS: [
-      "Playoff intensity! Every play could be season-defining!",
-      "This is what the playoffs are all about! Win or go home!",
-      "Championship dreams on the line! Both teams giving everything!",
-      "Playoff pressure! The stakes couldn't be higher!",
-      "Season on the line! This is playoff dome ball at its finest!"
-    ]
-  }
+  ]
 };
-
-/**
- * STAT ATTRIBUTION PATTERNS
- *
- * This commentary system integrates with match simulation to provide:
- * - Event Generation → Stat Changes → Commentary Selection
- * - 233+ unique prompts across 32+ categories
- * - Individual and team stat tracking
- * - Race-specific and skill-based commentary variants
- * - Contextual situation awareness
- *
- * Key Statistical Categories Tracked:
- * - Individual: Passing, Rushing, Receiving, Defense, Skills, Scores
- * - Team: Possession, Totals, Turnovers, Atmosphere Effects
- * - Special: Race abilities, Environmental factors, Clutch performance
- */

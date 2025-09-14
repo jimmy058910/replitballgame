@@ -251,6 +251,11 @@ export async function registerAllRoutes(app: Express): Promise<void> {
     const adminRoutesModule = await import("./adminRoutes.js");
     const adminRoutes = adminRoutesModule.default;
     app.use("/api/admin", adminRoutes);
+
+    // Admin catch-up routes
+    const adminCatchUpRoutesModule = await import("./adminCatchUpRoutes.js");
+    const adminCatchUpRoutes = adminCatchUpRoutesModule.default;
+    app.use("/api/admin", adminCatchUpRoutes);
     console.log('✅ [registerAllRoutes] Admin routes registered successfully');
   } catch (adminImportError: any) {
     console.error('❌ [registerAllRoutes] Failed to import admin routes:', adminImportError.message);

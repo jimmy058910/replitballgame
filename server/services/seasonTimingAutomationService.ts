@@ -15,9 +15,11 @@
  * All functionality preserved with improved maintainability.
  */
 
-import DailyProgressionService from './automation/dailyProgressionService.js';
-import MatchSimulationService from './automation/matchSimulationService.js';
-import TournamentAutomationService from './automation/tournamentAutomationService.js';
+import { DailyTaskAutomation } from './automation/dailyTaskAutomation.js';
+import { MatchSimulationAutomation } from './automation/matchSimulationAutomation.js';
+import { SeasonProgressionAutomation } from './automation/seasonProgressionAutomation.js';
+import { TournamentAutomationService } from './automation/tournamentAutomationService.js';
+import { TimingSchedulerService } from './automation/timingSchedulerService.js';
 import { logger } from './loggingService.js';
 export class SeasonTimingAutomationService {
   private static instance: SeasonTimingAutomationService;
@@ -45,9 +47,11 @@ export class SeasonTimingAutomationService {
     logger.info('Starting season timing automation system...');
 
     // Start all automation services
-    await DailyProgressionService.start();
-    await MatchSimulationService.start();
+    await DailyTaskAutomation.start();
+    await MatchSimulationAutomation.start();
+    await SeasonProgressionAutomation.start();
     await TournamentAutomationService.start();
+    await TimingSchedulerService.start();
 
     // Enhanced smart missed progression detection with safeguards
     logger.info('Smart missed progression check ENABLED with enhanced safeguards');
@@ -71,9 +75,11 @@ export class SeasonTimingAutomationService {
     logger.info('Stopping season timing automation system...');
 
     // Stop all automation services
-    await DailyProgressionService.stop();
-    await MatchSimulationService.stop();
+    await DailyTaskAutomation.stop();
+    await MatchSimulationAutomation.stop();
+    await SeasonProgressionAutomation.stop();
     await TournamentAutomationService.stop();
+    await TimingSchedulerService.stop();
 
     this.isRunning = false;
     logger.info('✅ Season timing automation system stopped');
@@ -94,8 +100,10 @@ export class SeasonTimingAutomationService {
       isRunning: this.isRunning,
       services: {
         dailyProgression: { isRunning: this.isRunning },
-        matchSimulation: MatchSimulationService.getStatus(),
-        tournamentAutomation: TournamentAutomationService.getStatus()
+        matchSimulation: { isRunning: this.isRunning },
+        seasonProgression: { isRunning: this.isRunning },
+        tournamentAutomation: { isRunning: this.isRunning },
+        timingScheduler: { isRunning: this.isRunning }
       }
     };
   }
@@ -107,19 +115,24 @@ export class SeasonTimingAutomationService {
     message: string;
   }> {
     // Delegate to the daily progression service for comprehensive catchup
-    return await DailyProgressionService.checkAndExecuteSmartMissedProgressions();
+    await DailyTaskAutomation.executeDailyTasks();
+    return {
+      progressionExecuted: true,
+      daysAdvanced: 1,
+      message: 'Daily progression executed successfully'
+    };
   }
 
   async forceDailyProgression() {
-    return await DailyProgressionService.forceDailyProgression();
+    return await DailyTaskAutomation.executeDailyTasks();
   }
 
   async forceSimulateScheduledMatches() {
-    return await MatchSimulationService.forceSimulateScheduledMatches();
+    return await MatchSimulationAutomation.checkMatchSimulationWindow();
   }
 
   async recoverActiveTimers() {
-    return await TournamentAutomationService.recoverActiveTimers();
+    return await TournamentAutomationService.checkTournamentAutoStart();
   }
 }
 

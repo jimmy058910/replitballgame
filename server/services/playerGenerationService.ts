@@ -13,6 +13,9 @@ export interface TAPPlayerGenerationParams {
   race?: Race;
   role?: PlayerRole;
   ageRange?: { min: number; max: number };
+  // Scout bonus system for tryouts
+  scoutAccuracy?: number;        // Scout accuracy (0-40) - affects potential discovery
+  scoutingLevel?: number;        // Scout level (1-4) - affects generation quality
 }
 
 export interface GeneratedPlayer {
@@ -100,12 +103,25 @@ export class PlayerGenerationService {
     const { firstName, lastName } = generateRandomName(race.toLowerCase());
     const name = `${firstName} ${lastName}`;
     
-    // Generate potential rating
+    // Generate potential rating with scout bonus
     const potentialType = this.mapGenerationTypeToPotential(params.type);
-    const potentialRating = generatePotential({
+    let potentialRating = generatePotential({
       type: potentialType,
       ageModifier: age
     });
+
+    // Apply scout bonuses for tryout generation
+    if (params.scoutAccuracy !== undefined && (params.type === 'basic_tryout' || params.type === 'advanced_tryout')) {
+      // Scout accuracy (0-40) influences potential discovery
+      // Higher scout accuracy has chance to reveal/boost hidden potential
+      const scoutAccuracyBonus = this.calculateScoutAccuracyBonus(params.scoutAccuracy);
+      
+      // Scout level (1-4) influences overall quality
+      const scoutLevelBonus = this.calculateScoutLevelBonus(params.scoutingLevel || 1);
+      
+      // Apply bonuses (capped to prevent overpowering)
+      potentialRating = Math.min(5.0, potentialRating + scoutAccuracyBonus + scoutLevelBonus);
+    }
     
     // Calculate TAP (Total Attribute Points)
     const tapConfig = this.TAP_CONFIG[params.type];
@@ -248,6 +264,51 @@ export class PlayerGenerationService {
   private static getRandomRace(): Race {
     const races = [Race.HUMAN, Race.SYLVAN, Race.GRYLL, Race.LUMINA, Race.UMBRA];
     return races[Math.floor(Math.random() * races.length)];
+  }
+
+  /**
+   * Calculate scout accuracy bonus for potential discovery
+   * Scout accuracy (0-40) affects chance to find hidden potential
+   */
+  private static calculateScoutAccuracyBonus(scoutAccuracy: number): number {
+    // Normalize scout accuracy to 0-1 scale
+    const normalizedAccuracy = Math.max(0, Math.min(40, scoutAccuracy)) / 40;
+    
+    // Scout accuracy provides small but meaningful potential boost
+    // Formula: 10% chance per 10 accuracy points to get +0.1 potential boost
+    // Maximum possible boost: +0.4 potential (at 40 accuracy)
+    let potentialBonus = 0;
+    
+    // Roll for each 10-point accuracy bracket
+    for (let i = 1; i <= 4; i++) {
+      const threshold = i * 10;
+      if (scoutAccuracy >= threshold) {
+        // 25% base chance, modified by how much above threshold
+        const excess = Math.max(0, scoutAccuracy - threshold + 10) / 10;
+        const rollChance = 0.15 + (excess * 0.1); // 15-25% chance per bracket
+        
+        if (Math.random() < rollChance) {
+          potentialBonus += 0.1;
+        }
+      }
+    }
+    
+    return potentialBonus;
+  }
+
+  /**
+   * Calculate scout level bonus for generation quality
+   * Scout level (1-4) affects overall generation parameters
+   */
+  private static calculateScoutLevelBonus(scoutingLevel: number): number {
+    // Scout level provides consistent but small bonuses
+    switch (scoutingLevel) {
+      case 1: return 0;      // No bonus for basic scouting
+      case 2: return 0.05;   // +0.05 potential for decent scouting
+      case 3: return 0.1;    // +0.1 potential for good scouting  
+      case 4: return 0.15;   // +0.15 potential for excellent scouting
+      default: return 0;
+    }
   }
 
   /**

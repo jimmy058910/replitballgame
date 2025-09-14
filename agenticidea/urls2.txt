@@ -1,0 +1,2 @@
+https://github.com/oxbshw/LLM-Agents-Ecosystem-Handbook
+https://ai.pydantic.dev/

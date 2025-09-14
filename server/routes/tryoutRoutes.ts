@@ -8,23 +8,75 @@ import { PlayerGenerationService } from "../services/playerGenerationService.js"
 
 const router = Router();
 
-// Generate a random player for tryouts
-function generateRandomPlayer(tryoutType: 'basic' | 'advanced' = 'basic') {
-  // Use the comprehensive TAP system instead of simple random generation
+// Generate a random player for tryouts with scout bonuses
+function generateRandomPlayer(
+  tryoutType: 'basic' | 'advanced' = 'basic', 
+  scoutAccuracy?: number, 
+  scoutingLevel?: number
+) {
+  // Use the comprehensive TAP system with scout bonuses
   return PlayerGenerationService.generatePlayer({
-    type: tryoutType === 'advanced' ? 'advanced_tryout' : 'basic_tryout'
+    type: tryoutType === 'advanced' ? 'advanced_tryout' : 'basic_tryout',
+    scoutAccuracy,
+    scoutingLevel
   });
 }
 
 // Get tryout candidates
-router.get('/candidates', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/candidates', requireAuth, async (req: any, res: Response, next: NextFunction) => {
   try {
-    // Generate 8-12 random candidates
+    const userId = req.user.claims.sub;
+    const prisma = await getPrismaClient();
+
+    // Get user's team to access scout information
+    const userProfile = await prisma.userProfile.findFirst({
+      where: { userId: userId }
+    });
+    
+    if (!userProfile) {
+      return res.status(403).json({ error: "User profile not found" });
+    }
+
+    const team = await prisma.team.findFirst({
+      where: { userProfileId: userProfile.id },
+      include: {
+        staff: true // Include staff to get scout information
+      }
+    });
+
+    if (!team) {
+      return res.status(403).json({ error: "Team not found" });
+    }
+
+    // Calculate scout bonuses like in scoutingRoutes.ts
+    const scouts = team.staff.filter((s: any) => s.type === 'head_scout' || s.type === 'recruiting_scout' || s.type === 'scout');
+    let scoutingPower = scouts.reduce((sum: any, s: any) => sum + (s.scoutingRating || 0), 0);
+    scoutingPower = Math.max(10, scoutingPower); // Minimum scouting power
+    
+    const scoutingLevel = scoutingPower >= 150 ? 4 : scoutingPower >= 100 ? 3 : scoutingPower >= 50 ? 2 : 1;
+    
+    // Calculate average scout accuracy from StaffEffectsService pattern
+    const scoutAccuracy = scouts.length > 0 
+      ? scouts.reduce((sum: any, s: any) => {
+          // Use the same formula as StaffEffectsService: (talentId + potentialAssess) / 2
+          const talentId = s.talentIdentification || 20; // Default if missing
+          const potentialAssess = s.potentialAssessment || 20; // Default if missing
+          return sum + ((talentId + potentialAssess) / 2);
+        }, 0) / scouts.length
+      : 15; // Default scout accuracy if no scouts
+
+    // Check tryout type from query params (basic or advanced)
+    const tryoutType = (req.query.type as string) || 'basic';
+    if (!['basic', 'advanced'].includes(tryoutType)) {
+      return res.status(400).json({ error: "Invalid tryout type. Must be 'basic' or 'advanced'" });
+    }
+
+    // Generate 8-12 random candidates with scout bonuses
     const candidateCount = Math.floor(Math.random() * 5) + 8;
     const candidates = [];
     
     for (let i = 0; i < candidateCount; i++) {
-      candidates.push(generateRandomPlayer('basic')); // Generate candidates for basic tryouts
+      candidates.push(generateRandomPlayer(tryoutType as 'basic' | 'advanced', scoutAccuracy, scoutingLevel));
     }
     
     res.json(candidates);

@@ -66,9 +66,19 @@ const calculatePowerRating = (player: any) => {
 
 // Calculate overall power as average of 6 core athletic stats
 const calculateOverallPower = (player: any) => {
-  const coreStats = [player.speed, player.power, player.agility, player.throwing, player.catching, player.kicking];
+  // CAR Formula: 8-attribute average for consistency with backend
+  const coreStats = [
+    player.speed, 
+    player.power, 
+    player.agility, 
+    player.throwing, 
+    player.catching, 
+    player.kicking,
+    player.leadership || 0,
+    player.staminaAttribute || 0
+  ];
   const sum = coreStats.reduce((acc, stat) => acc + (stat || 0), 0);
-  return Math.round(sum / 6);
+  return Math.round(sum / 8);
 };
 
 // Render star rating for potential
