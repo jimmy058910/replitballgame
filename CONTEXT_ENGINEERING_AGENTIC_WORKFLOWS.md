@@ -160,6 +160,66 @@ interface HierarchicalSystem {
 - **Playwright**: Validates Flutter web builds alongside existing React testing
 - **In-Memoria**: Learns cross-platform development patterns and Flutter migration strategies
 
+### Critical Flutter MCPs for 2025 Development
+
+**Essential Flutter Development MCPs:**
+1. **Dart Language Server MCP** (dart-lsp-mcp)
+   - **Purpose**: Native Dart/Flutter language support with LSP integration
+   - **Capabilities**: Code completion, error detection, refactoring, go-to-definition
+   - **Context Value**: Direct IDE-quality support within Claude Code environment
+   - **Installation**: `npm install -g dart-lsp-mcp`
+
+2. **Flutter Project MCP** (flutter-mcp-server)
+   - **Purpose**: Flutter-specific project management and build automation
+   - **Capabilities**: Hot reload, device management, pub.dev package integration
+   - **Context Value**: Native Flutter development workflow within MCP environment
+   - **Installation**: `flutter pub global activate flutter_mcp_server`
+
+3. **Firebase Enhanced MCP** (firebase-admin-mcp)
+   - **Purpose**: Advanced Firebase integration beyond existing firebase-mcp
+   - **Capabilities**: Firestore schema management, Cloud Functions deployment, Analytics
+   - **Context Value**: Complete Firebase ecosystem management for Flutter apps
+   - **Implementation**: Enhanced version of existing firebase-mcp with Flutter focus
+
+4. **GitHub Official MCP** (github-mcp-server) - **OPTIONAL ENHANCEMENT**
+   - **Purpose**: Advanced repository management and CI/CD integration
+   - **Capabilities**: 80+ development tools, issue management, workflow automation
+   - **Context Value**: Repository context loading and automated development workflows
+   - **Priority**: LOW - User's Cursor IDE + Terminal workflow already optimal
+   - **Installation**: `npm install -g @github/mcp-server`
+
+**Flutter Code Quality MCPs:**
+5. **DCM Flutter MCP** (dart-code-metrics-mcp)
+   - **Purpose**: Advanced Dart/Flutter code analysis and metrics
+   - **Capabilities**: Complexity analysis, architecture validation, performance insights
+   - **Context Value**: Maintain high code quality standards during rapid Flutter development
+   - **Installation**: `dart pub global activate dart_code_metrics`
+
+6. **Flutter Lints MCP** (flutter-lints-mcp)
+   - **Purpose**: Flutter-specific linting and style enforcement
+   - **Capabilities**: Flutter best practices, performance anti-patterns, accessibility
+   - **Context Value**: Ensure Flutter code follows Google's official standards
+   - **Implementation**: Integration with existing flutter_lints package
+
+**Advanced Flutter MCPs:**
+7. **Flutter Inspector MCP** (flutter-inspector-mcp)
+   - **Purpose**: Widget tree analysis and performance debugging
+   - **Capabilities**: Widget profiling, memory analysis, rendering performance
+   - **Context Value**: Advanced debugging capabilities for complex Flutter applications
+   - **Integration**: Works with Flutter DevTools for comprehensive analysis
+
+8. **App Store Connect MCP** (app-store-connect-mcp)
+   - **Purpose**: iOS App Store deployment automation
+   - **Capabilities**: Build upload, metadata management, TestFlight distribution
+   - **Context Value**: Streamlined iOS deployment workflow
+   - **Dependencies**: Apple Developer Account, Xcode command line tools
+
+9. **Google Play Console MCP** (play-console-mcp)
+   - **Purpose**: Android Play Store deployment automation
+   - **Capabilities**: APK/AAB upload, release management, Play Console API
+   - **Context Value**: Streamlined Android deployment workflow
+   - **Dependencies**: Google Play Developer Account, Android SDK
+
 ### Serena MCP: Cross-Platform Development Backbone
 
 **Flutter + TypeScript Capabilities:**
@@ -282,9 +342,11 @@ interface GameDomainContext {
   };
   
   fantasy: {
-    races: [Human, Elf, Dwarf, Orc, Goblin];
-    attributes: [Throwing, Speed, Strength, Stamina, Intelligence];
-    development: PlayerGrowthSystem;
+    races: [HUMAN, SYLVAN, GRYLL, LUMINA, UMBRA];
+    attributes: [speed, power, throwing, catching, kicking, staminaAttribute, leadership, agility];
+    raceAbilities: "30% trigger rate for race-specific skills";
+    development: "TAP system + daily progression + aging";
+    potential: "★1-★5 system determining maximum attribute caps";
   };
   
   economy: {
@@ -294,9 +356,9 @@ interface GameDomainContext {
   };
   
   competition: {
-    structure: GreekAlphabetDivisions;
-    schedule: SeventeenDaySeasons;
-    automation: ThreeAMEDTResets;
+    structure: "8 divisions with Greek alphabet subdivisions (alpha_1, beta_2, gamma_3)";
+    schedule: "17-day seasons with Day 17 end-of-season development";
+    automation: "3:00 AM EDT daily resets for progression, aging, stamina recovery";
   };
 }
 ```
@@ -662,35 +724,47 @@ async function contextAwareFeatureDevelopment(feature: string) {
 
 ### Resource Allocation Strategy
 
-**Token Budget Management:**
+**Claude Code Pro Resource Management:**
 ```typescript
-interface ContextBudget {
-  systemInstructions: 2000;    // 20% - Core identity and rules
-  domainKnowledge: 3000;       // 30% - Game mechanics and technical details
-  conversationHistory: 2000;   // 20% - Recent interaction context
-  retrievedData: 1500;         // 15% - RAG/MCP tool outputs
-  workingMemory: 1000;         // 10% - Current task specifics
-  safety_buffer: 500;          // 5% - Overflow prevention
-  
-  total: 10000; // Example context window
+interface ClaudeCodeProResourceModel {
+  sessionStructure: {
+    timeAllocation: "5-hour interactive sessions";
+    contextModel: "Prompt-based resource allocation";
+    costStructure: "Subscription-based, no token counting";
+    efficiency: "Optimized for extended development workflows";
+  };
+
+  resourceOptimization: {
+    comprehensiveContext: "Load full project context without budget constraints";
+    persistentMemory: "MCP servers maintain state across prompts";
+    toolOrchestration: "Unlimited tool use within session time";
+    qualityFocus: "Emphasize solution quality over resource consumption";
+  };
+
+  sessionManagement: {
+    contextContinuity: "Full session context maintained automatically";
+    mcpPersistence: "Serena, Playwright, In-Memoria state preserved";
+    progressTracking: "Development progress tracked across session breaks";
+    handoffOptimization: "Seamless context transfer between sessions";
+  };
 }
 ```
 
-**Dynamic Context Compression:**
+**Context Quality Over Quantity:**
 ```typescript
-function compressContextForLongSessions(context: FullContext): CompressedContext {
+function optimizeForClaudeCodePro(context: DevelopmentContext): OptimizedContext {
   return {
-    // Keep full: Critical current task information
-    currentTask: context.currentTask,
-    
-    // Summarize: Historical decisions and outcomes
-    decisionHistory: summarizeDecisions(context.conversationHistory),
-    
-    // Index: Large knowledge bases for quick lookup
-    knowledgeIndex: indexDomainKnowledge(context.domainKnowledge),
-    
-    // Truncate: Least recent tool outputs
-    recentOutputs: context.toolOutputs.slice(-5)
+    // Maximize: Comprehensive understanding for better solutions
+    fullProjectContext: context.completeProjectState,
+
+    // Prioritize: Quality insights over information compression
+    detailedDomainKnowledge: context.comprehensiveGameMechanics,
+
+    // Enhance: Tool orchestration for optimal outcomes
+    mcpToolIntegration: context.serenaPlaywrightInMemoria,
+
+    // Focus: Long-term development success
+    strategicImplementation: context.zeroTechnicalDebtApproach
   };
 }
 ```
@@ -1425,7 +1499,7 @@ mcp__playwright__browser_navigate("http://localhost:8080") # Flutter web testing
 - Consistent Flutter widget patterns across mobile/web platforms
 - First-attempt app store build success rate >90%
 - Seamless React-to-Flutter migration without API changes
-- Efficient token utilization across Dart and TypeScript analysis
+- Efficient context management across Dart and TypeScript analysis
 - Clear adherence to Flutter + Firebase + GCP patterns
 - Successful integration of existing Express backend APIs
 - Smooth handoffs between mobile, web, and backend development
@@ -1457,9 +1531,174 @@ mcp__playwright__browser_navigate("http://localhost:8080") # Flutter web testing
 - Prioritize mobile-first development with web as compilation target
 - Optimize for GCP ecosystem integration and cost management
 
+## Claude Code Security & Workflow Integrations (2025)
+
+### Automated Security Framework
+
+**Core Security Enhancements:**
+```typescript
+interface ClaudeCodeSecurityIntegrations {
+  // Built-in Security Commands
+  securityReview: {
+    command: "/security-review";
+    purpose: "Ad-hoc security analysis from terminal";
+    capabilities: "Vulnerability detection with detailed explanations";
+    integration: "Real-time codebase scanning for security concerns";
+  };
+
+  // GitHub Actions Integration
+  githubActions: {
+    trigger: "Automatic PR analysis";
+    coverage: "Every pull request security validation";
+    detection: "Remote code execution, DNS rebinding, injection attacks";
+    validation: "Proven to catch vulnerabilities in production codebases";
+  };
+
+  // Real-time Security Guardrails
+  codacyGuardrails: {
+    integration: "Sits between AI and IDE";
+    scope: "Every line of code analyzed as generated";
+    feedback: "Immediate security issue awareness for AI agent";
+    enforcement: "Organizational security standards automatically applied";
+  };
+}
+```
+
+**Flutter Security Integration Context:**
+```typescript
+interface FlutterSecurityContext {
+  // Mobile App Security
+  mobileSecurityValidation: {
+    appStore: "iOS App Store security review preparation";
+    playStore: "Google Play Store security compliance";
+    permissions: "Mobile permission analysis and optimization";
+    dataSecurity: "User data protection and privacy compliance";
+  };
+
+  // Cross-Platform Security
+  crossPlatformSecurity: {
+    webAssembly: "WASM security validation for Flutter web";
+    firebase: "Firebase security rules analysis and testing";
+    apis: "Express backend API security assessment";
+    realtime: "WebSocket security for live match data";
+  };
+
+  // Development Security
+  developmentSecurity: {
+    secrets: "API key and credential protection";
+    dependencies: "Flutter package vulnerability scanning";
+    buildSecurity: "Secure build pipeline for app store deployment";
+    codeIntegrity: "Source code integrity and supply chain security";
+  };
+}
+```
+
+### Advanced Workflow Integrations
+
+**Enterprise Development Orchestration:**
+```typescript
+interface ClaudeCodeWorkflowIntegrations {
+  // CI/CD Pipeline Integration
+  cicdIntegration: {
+    githubActions: "Workflow generation and automation";
+    flutterBuilds: "Automated iOS/Android/Web build pipelines";
+    deployment: "Firebase hosting and app store deployment";
+    testing: "Cross-platform testing automation";
+  };
+
+  // MCP Protocol Ecosystem
+  mcpProtocolSupport: {
+    securityPlatforms: "Direct communication with security tools";
+    organizationalStandards: "Automatic enforcement on every prompt";
+    frameworkEcosystem: "87+ MCP tools for specialized development";
+    enterpriseIntegration: "Queen-led AI coordination with worker agents";
+  };
+
+  // Advanced Framework Ecosystem
+  frameworkEcosystem: {
+    claudeFlow: "Enterprise-grade development orchestration v2.0.0";
+    swarmIntelligence: "Collaborative specialized AI assistants";
+    subagentFrameworks: "20+ specialized subagents for development tasks";
+    qualityHooks: "Automated code quality validation and checkpointing";
+  };
+}
+```
+
+**DAST Security Integration:**
+```typescript
+interface DynamicSecurityTesting {
+  // Real-time Security Validation
+  dastIntegration: {
+    commandLineIntegration: "DAST tools in Claude Code workflows";
+    immediateValidation: "Security feedback matching AI development speed";
+    vulnerabilityDetection: "Runtime security issue identification";
+    complianceChecking: "Automated security standard compliance";
+  };
+
+  // Flutter-Specific DAST
+  flutterDAST: {
+    mobileAppTesting: "Runtime security testing for iOS/Android";
+    webSecurityTesting: "Flutter web application security validation";
+    apiSecurityTesting: "Express backend API penetration testing";
+    dataFlowAnalysis: "Cross-platform data security analysis";
+  };
+}
+```
+
+### Team Collaboration & Standards
+
+**Organizational Security Standards:**
+```typescript
+interface OrganizationalSecurityFramework {
+  // Custom Slash Commands
+  customCommands: {
+    storage: ".claude/commands folder (checked into git)";
+    teamAvailability: "Security commands available to entire team";
+    standardization: "Consistent security practices across developers";
+    automation: "Repetitive security tasks automated to reduce burnout";
+  };
+
+  // Version Control Integration
+  versionControlSecurity: {
+    safeModifications: "Secure code change management";
+    auditTrails: "Complete history of security-related changes";
+    branchProtection: "Automated security validation before merges";
+    rollbackCapability: "Safe reversion of problematic changes";
+  };
+
+  // Flutter Team Security Patterns
+  flutterTeamSecurity: {
+    sharedSecurityConfig: "Team-wide Flutter security configurations";
+    appStoreCompliance: "Shared iOS/Android security validation";
+    firebaseSecurityRules: "Collaborative Firebase security rule management";
+    crossPlatformStandards: "Unified security standards across platforms";
+  };
+}
+```
+
+### Implementation Strategy for Realm Rivalry
+
+**Immediate Security Enhancements:**
+1. **Enable `/security-review` command** for existing TypeScript codebase
+2. **Implement GitHub Actions security validation** for Flutter development
+3. **Integrate Codacy Guardrails** for real-time AI security feedback
+4. **Configure DAST tools** for cross-platform security testing
+
+**Flutter Security Migration Strategy:**
+1. **Mobile Security Validation**: iOS/Android app store security compliance
+2. **Web Security Enhancement**: WebAssembly and Firebase security rules
+3. **API Security Continuity**: Maintain Express backend security standards
+4. **Cross-Platform Security Unification**: Shared security patterns across platforms
+
+**Security Success Metrics:**
+- Zero security vulnerabilities in app store submissions
+- 100% automated security validation in CI/CD pipeline
+- Real-time security feedback integrated with AI development workflow
+- Complete security compliance across iOS/Android/Web platforms
+
 ---
 
-**Document Status:** ✅ Complete Flutter Cross-Platform Framework v2.0  
-**Migration Strategy:** React → Flutter with Express API preservation  
-**Deployment Targets:** iOS App Store + Google Play Store + Firebase Web Hosting  
-**Success Metrics:** 96% native performance, $200 first-year cost, single codebase maintenance
+**Document Status:** ✅ Complete Flutter Cross-Platform Framework v2.0 + Security Integration
+**Migration Strategy:** React → Flutter with Express API preservation + Enterprise Security
+**Deployment Targets:** iOS App Store + Google Play Store + Firebase Web Hosting (Security Validated)
+**Success Metrics:** 96% native performance, $200 first-year cost, single codebase maintenance, zero security vulnerabilities
